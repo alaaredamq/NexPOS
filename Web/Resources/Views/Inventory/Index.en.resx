@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="InventoryManagement" xml:space="preserve">
+    <value>Inventory Management</value>
+  </data>
+  <data name="ManageYourInventoryAndStockLevels" xml:space="preserve">
+    <value>Manage your inventory and stock levels</value>
+  </data>
+  <data name="LowStockReport" xml:space="preserve">
+    <value>Low Stock Report</value>
+  </data>
+  <data name="StockValueReport" xml:space="preserve">
+    <value>Stock Value Report</value>
+  </data>
+  <data name="TotalProducts" xml:space="preserve">
+    <value>Total Products</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>Low Stock</value>
+  </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Out of Stock</value>
+  </data>
+  <data name="TotalStockValue" xml:space="preserve">
+    <value>Total Stock Value</value>
+  </data>
+  <data name="StockAlerts" xml:space="preserve">
+    <value>Stock Alerts</value>
+  </data>
+  <data name="InventoryOverview" xml:space="preserve">
+    <value>Inventory Overview</value>
+  </data>
+  <data name="LoadingInventoryData" xml:space="preserve">
+    <value>Loading inventory data...</value>
+  </data>
+  <data name="NoInventoryDataAvailable" xml:space="preserve">
+    <value>No inventory data available</value>
+  </data>
+  <data name="NoMatchingRecordsFound" xml:space="preserve">
+    <value>No matching records found</value>
+  </data>
+  <data name="InventoryDataRefreshedSuccessfully" xml:space="preserve">
+    <value>Inventory data refreshed successfully</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplementedSoon" xml:space="preserve">
+    <value>Export functionality will be implemented soon</value>
+  </data>
+  <data name="StockHistoryFeatureWillBeImplementedSoon" xml:space="preserve">
+    <value>Stock history feature will be implemented soon</value>
+  </data>
+  <data name="SetMinimumStock" xml:space="preserve">
+    <value>Set Minimum Stock</value>
+  </data>
+  <data name="MinimumStockLevel" xml:space="preserve">
+    <value>Minimum Stock Level</value>
+  </data>
+  <data name="EnterMinimumStockLevel" xml:space="preserve">
+    <value>Enter minimum stock level</value>
+  </data>
+  <data name="Set" xml:space="preserve">
+    <value>Set</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PleaseEnterAValidMinimumStockLevel" xml:space="preserve">
+    <value>Please enter a valid minimum stock level</value>
+  </data>
+  <data name="MinimumStockLevelUpdatedSuccessfully" xml:space="preserve">
+    <value>Minimum stock level updated successfully</value>
+  </data>
+  <data name="FailedToUpdateMinimumStockLevel" xml:space="preserve">
+    <value>Failed to update minimum stock level</value>
+  </data>
+  <data name="AnErrorOccurredWhileUpdatingMinimumStockLevel" xml:space="preserve">
+    <value>An error occurred while updating minimum stock level</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>Current Stock</value>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>Min Stock</value>
+  </data>
+  <data name="MaxStock" xml:space="preserve">
+    <value>Max Stock</value>
+  </data>
+  <data name="CostPrice" xml:space="preserve">
+    <value>Cost Price</value>
+  </data>
+  <data name="SellingPrice" xml:space="preserve">
+    <value>Selling Price</value>
+  </data>
+  <data name="StockValue" xml:space="preserve">
+    <value>Stock Value</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>In Stock</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>Adjust Stock</value>
+  </data>
+  <data name="SetMinStock" xml:space="preserve">
+    <value>Set Min Stock</value>
+  </data>
+  <data name="ViewHistory" xml:space="preserve">
+    <value>View History</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>No Category</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="AllProductsInInventory" xml:space="preserve">
+    <value>All products in inventory</value>
+  </data>
+  <data name="NeedsAttention" xml:space="preserve">
+    <value>Needs Attention</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="BelowMinimumLevel" xml:space="preserve">
+    <value>Below minimum level</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="ZeroQuantity" xml:space="preserve">
+    <value>Zero quantity</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="AtCostPrice" xml:space="preserve">
+    <value>At cost price</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Showing" xml:space="preserve">
+    <value>Showing</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>to</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>of</value>
+  </data>
+  <data name="Entries" xml:space="preserve">
+    <value>entries</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+</root>

@@ -1,0 +1,158 @@
+﻿@{
+    ViewData["Title"] = "POS System";
+}
+
+<div class="pos-container">
+    <div class="row pos-row">
+        <!-- Cart Section -->
+        <div class="col-12 col-lg-3 cart-column">
+            <div class="pos-card">
+                <!-- Cart Header -->
+                <div class="pos-card-header">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="ki-filled ki-basket text-primary" style="font-size: 24px;"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 fw-bold">Shopping Cart</h4>
+                                <small class="text-muted">Scan products to add</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-primary" id="cart-count">0</span>
+                    </div>
+
+                    <!-- Barcode Scanner -->
+                    <div class="search-input">
+                        <i class="ki-filled ki-barcode"></i>
+                        <input type="text" id="barcode-input" placeholder="Scan or enter barcode..." class="form-control">
+                    </div>
+                    <button type="button" id="add-product-btn" class="btn btn-primary btn-custom w-100">
+                        <i class="ki-filled ki-plus me-1"></i>Add Product
+                    </button>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="pos-card-body">
+                    <div class="cart-items-area" id="cart-items">
+                        <!-- Empty State -->
+                        <div class="empty-state" id="empty-cart">
+                            <i class="ki-filled ki-basket"></i>
+                            <h5>Cart is Empty</h5>
+                            <p class="mb-0">Start adding products to begin checkout</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Footer -->
+                <div class="pos-card-footer">
+                    <!-- Totals -->
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span>Total (LBP):</span>
+                            <span class="total-amount" id="total-lbp">LBP 0</span>
+                        </div>
+                        <div class="total-row">
+                            <small class="text-muted">Total (USD):</small>
+                            <small class="text-muted" id="total-usd">USD 0.00</small>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button type="button" id="checkoutButton" class="btn btn-checkout" disabled>
+                            <i class="ki-filled ki-dollar me-1"></i>CHECKOUT
+                        </button>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="button" id="holdButton" class="btn btn-outline-secondary btn-custom w-100">
+                                    <i class="ki-filled ki-save-2 me-1"></i>Hold
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" id="clearCartButton" class="btn btn-outline-danger btn-custom w-100">
+                                    <i class="ki-filled ki-trash me-1"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div class="col-12 col-lg-9 products-column">
+            <div class="pos-card">
+                <!-- Products Header -->
+                <div class="pos-card-header">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="ki-filled ki-category text-success" style="font-size: 24px;"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 fw-bold">Product Catalog</h4>
+                                <small class="text-muted">Browse and add products</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="search-input d-md-none">
+                        <i class="ki-filled ki-magnifier"></i>
+                        <input type="text" id="product-search-mobile" placeholder="Search products..." class="form-control">
+                    </div>
+
+                    <div class="row g-2 d-none d-md-flex mb-3">
+                        <div class="col-md-8">
+                            <div class="search-input">
+                                <i class="ki-filled ki-magnifier"></i>
+                                <input type="text" id="product-search" placeholder="Search products..." class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="category-filter" class="form-select">
+                                <option value="">All Categories</option>
+                                <option value="beverages">Beverages</option>
+                                <option value="snacks">Snacks</option>
+                                <option value="household">Household</option>
+                                <option value="food">Food Items</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter Buttons -->
+                    <div class="category-filters">
+                        <button class="category-btn active category-filter-btn" data-category="">
+                            <i class="ki-filled ki-abstract-26 me-1"></i>All Products
+                        </button>
+                        <button class="category-btn category-filter-btn" data-category="beverages">
+                            <i class="ki-filled ki-water me-1"></i>Beverages
+                        </button>
+                        <button class="category-btn category-filter-btn" data-category="snacks">
+                            <i class="ki-filled ki-cheese me-1"></i>Snacks
+                        </button>
+                        <button class="category-btn category-filter-btn" data-category="household">
+                            <i class="ki-filled ki-abstract-33 me-1"></i>Household
+                        </button>
+                        <button class="category-btn category-filter-btn" data-category="food">
+                            <i class="ki-filled ki-coffee me-1"></i>Food Items
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="pos-card-body">
+                    <div class="products-grid" id="products-grid">
+                        @(await Component.InvokeAsync("MainProductsItemComponent"))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Pages/POS/POS.js"></script>
+    <script src="~/js/Pages/POS/CartItem.js"></script>
+}

@@ -1,0 +1,333 @@
+@model Core.Entities.Products.Product
+
+@{
+    ViewData["Title"] = "Product Details";
+    ViewData["Subtitle"] = Model.Name;
+}
+
+<!-- Product Details Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-box me-3"></i>
+                Product Details
+            </h2>
+            <p class="products-subtitle">View product information</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("Edit", "Products", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal me-2">
+                <i class="fas fa-edit me-2"></i>Edit Product
+            </a>
+            <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Products
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Product Details Content -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Product Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <label class="detail-label">Product Name</label>
+                            <p class="detail-value">@Model.Name</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <label class="detail-label">Barcode</label>
+                            <p class="detail-value">@(Model.Barcode ?? "N/A")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="detail-group">
+                            <label class="detail-label">Description</label>
+                            <p class="detail-value">@(Model.Description ?? "No description available")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Category</label>
+                            <p class="detail-value">
+                                <span class="badge bg-primary">@(Model.Category?.Name ?? "Uncategorized")</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Supplier</label>
+                            <p class="detail-value">
+                                <span class="badge bg-info">@(Model.Supplier?.Name ?? "No Supplier")</span>
+                                @if (Model.Supplier?.DiscountRate > 0)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1">@Model.Supplier.DiscountRate% discount</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Status</label>
+                            <p class="detail-value">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Purchase Price</label>
+                            <p class="detail-value text-primary fw-bold">@FormatCurrency(Model.CostPrice ?? 0, Model.Currency?.Notation)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Selling Price</label>
+                            <p class="detail-value text-success fw-bold">@FormatCurrency(Model.SellingPrice, Model.Currency?.Notation)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-group">
+                            <label class="detail-label">Profit Margin</label>
+                            <p class="detail-value text-teal fw-bold">
+                                @{
+                                    var profit = Model.SellingPrice - (Model.CostPrice ?? 0);
+                                }
+                                @FormatCurrency(profit, Model.Currency?.Notation)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <label class="detail-label">Stock Quantity</label>
+                            <p class="detail-value">
+                                @if (Model.StockQuantity <= (Model.MinimumStock ?? 0))
+                                {
+                                    <span class="badge bg-danger fs-6">@Model.StockQuantity units (Low Stock!)</span>
+                                }
+                                else if (Model.StockQuantity <= (Model.MinimumStock ?? 0) * 2)
+                                {
+                                    <span class="badge bg-warning fs-6">@Model.StockQuantity units</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success fs-6">@Model.StockQuantity units</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <label class="detail-label">Minimum Stock Level</label>
+                            <p class="detail-value">@(Model.MinimumStock ?? 0) units</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Product Stats Card -->
+        <div class="products-table-card mb-3">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Product Statistics
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-dollar-sign text-success"></i>
+                        Total Stock Value
+                    </div>
+                    <div class="stat-value">
+                        @{
+                            var totalValue = Model.SellingPrice * Model.StockQuantity;
+                        }
+                        @FormatCurrency(totalValue, Model.Currency?.Notation)
+                    </div>
+                </div>
+                <hr>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-percent text-primary"></i>
+                        Profit Margin %
+                    </div>
+                    <div class="stat-value">
+                        @{
+                            var profitPercent = Model.CostPrice > 0 ? ((Model.SellingPrice - (Model.CostPrice ?? 0)) / (Model.CostPrice ?? 1) * 100) : 0;
+                        }
+                        @profitPercent.ToString("F2")%
+                    </div>
+                </div>
+                <hr>
+                <div class="stat-item">
+                    <div class="stat-label">
+                        <i class="fas fa-calendar text-info"></i>
+                        Created
+                    </div>
+                    <div class="stat-value">
+                        @Model.CreatedAt.ToString("MMM dd, yyyy")
+                    </div>
+                </div>
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <hr>
+                    <div class="stat-item">
+                        <div class="stat-label">
+                            <i class="fas fa-edit text-warning"></i>
+                            Last Updated
+                        </div>
+                        <div class="stat-value">
+                            @Model.UpdatedAt.Value.ToString("MMM dd, yyyy")
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Actions
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", "Products", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
+                        <i class="fas fa-edit me-2"></i>Edit Product
+                    </a>
+                    <button type="button" class="btn btn-danger" onclick="deleteProduct(@Model.Id)">
+                        <i class="fas fa-trash me-2"></i>Delete Product
+                    </button>
+                    <a href="@Url.Action("Index", "Inventory", new { productId = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-primary">
+                        <i class="fas fa-warehouse me-2"></i>View Inventory
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+                $.ajax({
+                    url: '@Url.Action("Delete", "Products")',
+                    type: 'POST',
+                    data: { id: id },
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = '@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })';
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while deleting the product.');
+                    }
+                });
+            }
+        }
+    </script>
+
+    <style>
+        .detail-group {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            color: var(--gray-800);
+            margin: 0;
+        }
+
+        .stat-item {
+            padding: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label i {
+            margin-right: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .text-teal {
+            color: var(--teal-primary) !important;
+        }
+
+        .btn-teal {
+            background-color: var(--teal-primary);
+            border-color: var(--teal-primary);
+            color: white;
+        }
+
+        .btn-teal:hover {
+            background-color: var(--teal-dark);
+            border-color: var(--teal-dark);
+            color: white;
+        }
+    </style>
+}
+

@@ -1,0 +1,166 @@
+@*
+    Reusable numeric PIN entry widget - matches the keypad + dots used on the login screen.
+
+    Markup contract (see ChangePin.cshtml / ChangePassword.cshtml for full examples):
+
+        <div data-pinpad data-pin-length="4" data-clear-label="@Localizer["Clear"]">
+            <div class="pinpad-field is-active" data-pinpad-field>
+                <input type="hidden" data-pinpad-input ... />
+                <div class="pin-dots-row" data-pinpad-dots></div>
+            </div>
+            ... more fields ...
+            <div class="pin-keypad" data-pinpad-keys></div>
+        </div>
+
+    Render this partial once inside the page's @@section Scripts block.
+*@
+<style>
+    .pinpad-wrap { max-width: 320px; margin: 0 auto; }
+
+    .pinpad-field { margin-bottom: 1rem; text-align: center; cursor: pointer; }
+    .pinpad-field .form-label { font-weight: 600; }
+
+    .pin-dots-row {
+        display: inline-flex;
+        gap: 12px;
+        padding: 8px 14px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        transition: border-color .15s ease, background-color .15s ease;
+    }
+
+    .pinpad-field.is-active .pin-dots-row {
+        border-color: var(--teal-primary, #008080);
+        background: rgba(0, 128, 128, .06);
+    }
+
+    .pin-dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 2px solid var(--teal-primary, #008080);
+        background: transparent;
+        transition: background-color .15s ease;
+    }
+
+    .pin-dot.is-filled { background: var(--teal-primary, #008080); }
+
+    .pin-keypad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        max-width: 260px;
+        margin: 1rem auto 0;
+    }
+
+    .pin-key {
+        padding: 12px 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+        color: #212529;
+        cursor: pointer;
+        transition: background-color .15s ease;
+    }
+
+    .pin-key:hover { background: #f1f3f5; }
+    .pin-key:active { background: #e9ecef; }
+    .pin-key:focus-visible { outline: 2px solid var(--teal-primary, #008080); outline-offset: 1px; }
+    .pin-key-action { font-size: .9rem; color: #6c757d; }
+</style>
+<script>
+    (function () {
+        function initPinpad(root) {
+            var length = parseInt(root.getAttribute('data-pin-length'), 10) || 4;
+            var clearLabel = root.getAttribute('data-clear-label') || 'Clear';
+            var fields = Array.prototype.slice.call(root.querySelectorAll('[data-pinpad-field]'));
+            var keypad = root.querySelector('[data-pinpad-keys]');
+            if (!fields.length || !keypad) return;
+
+            var activeIndex = 0;
+
+            fields.forEach(function (field, idx) {
+                var dotsRow = field.querySelector('[data-pinpad-dots]');
+                dotsRow.innerHTML = '';
+                for (var i = 0; i < length; i++) {
+                    var dot = document.createElement('span');
+                    dot.className = 'pin-dot';
+                    dotsRow.appendChild(dot);
+                }
+                field.addEventListener('click', function () { setActive(idx); });
+            });
+
+            var keys = [];
+            for (var d = 1; d <= 9; d++) keys.push({ digit: String(d) });
+            keys.push({ action: 'clear', label: clearLabel, cls: 'pin-key-action' });
+            keys.push({ digit: '0' });
+            keys.push({ action: 'backspace', html: '<i class="fas fa-backspace"></i>', cls: 'pin-key-action' });
+
+            keys.forEach(function (k) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'pin-key' + (k.cls ? ' ' + k.cls : '');
+                if (k.html) btn.innerHTML = k.html;
+                else btn.textContent = k.label || k.digit;
+                btn.addEventListener('click', function () {
+                    if (k.digit) pushDigit(k.digit);
+                    else if (k.action === 'clear') clearActive();
+                    else if (k.action === 'backspace') backspaceActive();
+                });
+                keypad.appendChild(btn);
+            });
+
+            function input(idx) { return fields[idx].querySelector('[data-pinpad-input]'); }
+
+            function render() {
+                fields.forEach(function (field, idx) {
+                    field.classList.toggle('is-active', idx === activeIndex);
+                    var val = input(idx).value;
+                    var dots = field.querySelectorAll('.pin-dot');
+                    for (var i = 0; i < dots.length; i++) {
+                        dots[i].classList.toggle('is-filled', i < val.length);
+                    }
+                });
+            }
+
+            function setActive(idx) { activeIndex = idx; render(); }
+
+            function pushDigit(dgt) {
+                var el = input(activeIndex);
+                if (el.value.length >= length) return;
+                el.value += dgt;
+                if (el.value.length >= length && activeIndex < fields.length - 1) {
+                    activeIndex++;
+                }
+                render();
+            }
+
+            function backspaceActive() {
+                var el = input(activeIndex);
+                if (el.value.length === 0 && activeIndex > 0) {
+                    activeIndex--;
+                } else {
+                    el.value = el.value.slice(0, -1);
+                }
+                render();
+            }
+
+            function clearActive() { input(activeIndex).value = ''; render(); }
+
+            document.addEventListener('keydown', function (e) {
+                var tag = (e.target.tagName || '').toLowerCase();
+                if (tag === 'input' && e.target.type !== 'hidden') return;
+                if (tag === 'textarea') return;
+                if (e.key >= '0' && e.key <= '9') { pushDigit(e.key); e.preventDefault(); }
+                else if (e.key === 'Backspace') { backspaceActive(); e.preventDefault(); }
+            });
+
+            render();
+        }
+
+        var pads = document.querySelectorAll('[data-pinpad]');
+        for (var i = 0; i < pads.length; i++) initPinpad(pads[i]);
+    })();
+</script>

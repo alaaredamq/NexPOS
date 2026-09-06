@@ -1,0 +1,5 @@
+@{
+    Layout = string.Equals(Context.Request.Headers["X-Partial"], "shell", StringComparison.OrdinalIgnoreCase)
+        ? "_ShellLayout"
+        : "_Layout";
+}

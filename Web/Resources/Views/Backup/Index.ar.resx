@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="BackupAndRestore" xml:space="preserve">
+    <value>النسخ الاحتياطي والاستعادة</value>
+  </data>
+  <data name="BackupAndRestoreManagement" xml:space="preserve">
+    <value>إدارة النسخ الاحتياطي والاستعادة</value>
+  </data>
+  <data name="ManageDatabaseBackupsAndRestoreOperations" xml:space="preserve">
+    <value>إدارة النسخ الاحتياطية لقاعدة البيانات وعمليات الاستعادة</value>
+  </data>
+  <data name="TestConnections" xml:space="preserve">
+    <value>اختبار الاتصالات</value>
+  </data>
+  <data name="CreateBackup" xml:space="preserve">
+    <value>إنشاء نسخة احتياطية</value>
+  </data>
+  <data name="Emergency" xml:space="preserve">
+    <value>طوارئ</value>
+  </data>
+  <data name="TotalBackups" xml:space="preserve">
+    <value>إجمالي النسخ الاحتياطية</value>
+  </data>
+  <data name="Successful" xml:space="preserve">
+    <value>ناجحة</value>
+  </data>
+  <data name="TotalSize" xml:space="preserve">
+    <value>الحجم الإجمالي</value>
+  </data>
+  <data name="Scheduled" xml:space="preserve">
+    <value>مجدولة</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>فاشلة</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>آخر</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>أبداً</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>التالي</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>لا يوجد</value>
+  </data>
+  <data name="Backups" xml:space="preserve">
+    <value>النسخ الاحتياطية</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>استعادة</value>
+  </data>
+  <data name="Schedule" xml:space="preserve">
+    <value>الجدولة</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>التقارير</value>
+  </data>
+  <data name="BackupHistory" xml:space="preserve">
+    <value>سجل النسخ الاحتياطية</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="Debug" xml:space="preserve">
+    <value>تصحيح</value>
+  </data>
+  <data name="BulkDelete" xml:space="preserve">
+    <value>حذف متعدد</value>
+  </data>
+  <data name="ValidateAll" xml:space="preserve">
+    <value>التحقق من الكل</value>
+  </data>
+  <data name="RestoreFromBackup" xml:space="preserve">
+    <value>الاستعادة من نسخة احتياطية</value>
+  </data>
+  <data name="SelectBackup" xml:space="preserve">
+    <value>اختر نسخة احتياطية</value>
+  </data>
+  <data name="ChooseBackupToRestore" xml:space="preserve">
+    <value>اختر نسخة احتياطية للاستعادة...</value>
+  </data>
+  <data name="RestoreOptions" xml:space="preserve">
+    <value>خيارات الاستعادة</value>
+  </data>
+  <data name="RestoreData" xml:space="preserve">
+    <value>استعادة البيانات</value>
+  </data>
+  <data name="RestoreSchema" xml:space="preserve">
+    <value>استعادة المخطط</value>
+  </data>
+  <data name="CreateBackupBeforeRestore" xml:space="preserve">
+    <value>إنشاء نسخة احتياطية قبل الاستعادة</value>
+  </data>
+  <data name="RestoreDescription" xml:space="preserve">
+    <value>وصف الاستعادة</value>
+  </data>
+  <data name="DescribeWhyRestoring" xml:space="preserve">
+    <value>اشرح سبب استعادة هذه النسخة الاحتياطية...</value>
+  </data>
+  <data name="StartRestore" xml:space="preserve">
+    <value>بدء الاستعادة</value>
+  </data>
+  <data name="BackupSchedules" xml:space="preserve">
+    <value>جداول النسخ الاحتياطي</value>
+  </data>
+  <data name="CreateSchedule" xml:space="preserve">
+    <value>إنشاء جدول</value>
+  </data>
+  <data name="BackupReports" xml:space="preserve">
+    <value>تقارير النسخ الاحتياطي</value>
+  </data>
+  <data name="GenerateReport" xml:space="preserve">
+    <value>إنشاء تقرير</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>من تاريخ</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>إلى تاريخ</value>
+  </data>
+  <data name="SystemInformation" xml:space="preserve">
+    <value>معلومات النظام</value>
+  </data>
+  <data name="LoadSystemInfo" xml:space="preserve">
+    <value>تحميل معلومات النظام</value>
+  </data>
+  <data name="CreateNewBackup" xml:space="preserve">
+    <value>إنشاء نسخة احتياطية جديدة</value>
+  </data>
+  <data name="BackupName" xml:space="preserve">
+    <value>اسم النسخة الاحتياطية</value>
+  </data>
+  <data name="EnterBackupName" xml:space="preserve">
+    <value>أدخل اسم النسخة الاحتياطية</value>
+  </data>
+  <data name="DefaultNameAutoGenerated" xml:space="preserve">
+    <value>سيتم إنشاء اسم افتراضي تلقائياً</value>
+  </data>
+  <data name="BackupType" xml:space="preserve">
+    <value>نوع النسخة الاحتياطية</value>
+  </data>
+  <data name="SelectBackupType" xml:space="preserve">
+    <value>اختر نوع النسخة الاحتياطية</value>
+  </data>
+  <data name="FullBackup" xml:space="preserve">
+    <value>نسخة احتياطية كاملة</value>
+  </data>
+  <data name="IncrementalBackup" xml:space="preserve">
+    <value>نسخة احتياطية تزايدية</value>
+  </data>
+  <data name="DifferentialBackup" xml:space="preserve">
+    <value>نسخة احتياطية تفاضلية</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>الخيارات</value>
+  </data>
+  <data name="IncludeData" xml:space="preserve">
+    <value>تضمين البيانات</value>
+  </data>
+  <data name="IncludeSchema" xml:space="preserve">
+    <value>تضمين المخطط</value>
+  </data>
+  <data name="EncryptBackup" xml:space="preserve">
+    <value>تشفير النسخة الاحتياطية</value>
+  </data>
+  <data name="Compression" xml:space="preserve">
+    <value>الضغط</value>
+  </data>
+  <data name="SelectCompressionType" xml:space="preserve">
+    <value>اختر نوع الضغط</value>
+  </data>
+  <data name="NoCompression" xml:space="preserve">
+    <value>بدون ضغط</value>
+  </data>
+  <data name="GZipCompression" xml:space="preserve">
+    <value>ضغط GZip</value>
+  </data>
+  <data name="ZIPCompression" xml:space="preserve">
+    <value>ضغط ZIP</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="OperationInProgress" xml:space="preserve">
+    <value>العملية قيد التنفيذ</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>جاري التهيئة...</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="NoBackupsFound" xml:space="preserve">
+    <value>لم يتم العثور على نسخ احتياطية. أنشئ نسختك الاحتياطية الأولى باستخدام الزر أعلاه.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>الاسم</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>الحجم</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>تاريخ الإنشاء</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>تحميل</value>
+  </data>
+  <data name="Validate" xml:space="preserve">
+    <value>التحقق</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="ScheduleManagementComingSoon" xml:space="preserve">
+    <value>إدارة الجدولة قريباً.</value>
+  </data>
+  <data name="successful" xml:space="preserve">
+    <value>ناجحة</value>
+  </data>
+  <data name="TestingConnections" xml:space="preserve">
+    <value>جاري اختبار الاتصالات...</value>
+  </data>
+  <data name="AllConnectionsSuccessful" xml:space="preserve">
+    <value>جميع الاتصالات ناجحة</value>
+  </data>
+  <data name="ConnectionTestFailed" xml:space="preserve">
+    <value>فشل اختبار الاتصال</value>
+  </data>
+  <data name="RefreshingBackupList" xml:space="preserve">
+    <value>جاري تحديث قائمة النسخ الاحتياطية...</value>
+  </data>
+  <data name="PleaseEnterBackupName" xml:space="preserve">
+    <value>الرجاء إدخال اسم النسخة الاحتياطية</value>
+  </data>
+  <data name="PleaseSelectBackupType" xml:space="preserve">
+    <value>الرجاء اختيار نوع النسخة الاحتياطية</value>
+  </data>
+  <data name="StartingBackupOperation" xml:space="preserve">
+    <value>جاري بدء عملية النسخ الاحتياطي...</value>
+  </data>
+  <data name="BackupStartedSuccessfully" xml:space="preserve">
+    <value>بدأت النسخة الاحتياطية بنجاح</value>
+  </data>
+  <data name="FailedToCreateBackup" xml:space="preserve">
+    <value>فشل إنشاء النسخة الاحتياطية</value>
+  </data>
+  <data name="OperationCompletedSuccessfully" xml:space="preserve">
+    <value>اكتملت العملية بنجاح</value>
+  </data>
+  <data name="OperationFailed" xml:space="preserve">
+    <value>فشلت العملية</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>تم إلغاء العملية</value>
+  </data>
+  <data name="FailedToCancelOperation" xml:space="preserve">
+    <value>فشل إلغاء العملية</value>
+  </data>
+  <data name="BackupIsValid" xml:space="preserve">
+    <value>النسخة الاحتياطية صالحة</value>
+  </data>
+  <data name="BackupValidationFailed" xml:space="preserve">
+    <value>فشل التحقق من النسخة الاحتياطية</value>
+  </data>
+  <data name="FailedToValidateBackup" xml:space="preserve">
+    <value>فشل التحقق من النسخة الاحتياطية</value>
+  </data>
+  <data name="ConfirmDeleteBackup" xml:space="preserve">
+    <value>هل أنت متأكد من حذف هذه النسخة الاحتياطية؟</value>
+  </data>
+  <data name="BackupDeletedSuccessfully" xml:space="preserve">
+    <value>تم حذف النسخة الاحتياطية بنجاح</value>
+  </data>
+  <data name="FailedToDeleteBackup" xml:space="preserve">
+    <value>فشل حذف النسخة الاحتياطية</value>
+  </data>
+  <data name="PleaseSelectBackupsToDelete" xml:space="preserve">
+    <value>الرجاء اختيار النسخ الاحتياطية للحذف</value>
+  </data>
+  <data name="ConfirmDeleteBackups" xml:space="preserve">
+    <value>هل أنت متأكد من حذف {0} نسخة احتياطية؟</value>
+  </data>
+  <data name="FailedToDeleteBackups" xml:space="preserve">
+    <value>فشل حذف النسخ الاحتياطية</value>
+  </data>
+  <data name="PleaseSelectBackupsToValidate" xml:space="preserve">
+    <value>الرجاء اختيار النسخ الاحتياطية للتحقق</value>
+  </data>
+  <data name="FailedToValidateBackups" xml:space="preserve">
+    <value>فشل التحقق من النسخ الاحتياطية</value>
+  </data>
+  <data name="PleaseSelectBackupToRestore" xml:space="preserve">
+    <value>الرجاء اختيار نسخة احتياطية للاستعادة</value>
+  </data>
+  <data name="RestoreStartedSuccessfully" xml:space="preserve">
+    <value>بدأت الاستعادة بنجاح</value>
+  </data>
+  <data name="FailedToStartRestore" xml:space="preserve">
+    <value>فشل بدء الاستعادة</value>
+  </data>
+  <data name="EmergencyOptionsComingSoon" xml:space="preserve">
+    <value>خيارات الطوارئ قريباً</value>
+  </data>
+  <data name="ScheduleManagement" xml:space="preserve">
+    <value>إدارة الجدولة قريباً</value>
+  </data>
+  <data name="RetentionDays" xml:space="preserve">
+    <value>أيام الاحتفاظ</value>
+  </data>
+  <data name="RetentionDaysPlaceholder" xml:space="preserve">
+    <value>مثال: 30</value>
+  </data>
+  <data name="RetentionDaysHint" xml:space="preserve">
+    <value>سيتم حذف النسخ الاحتياطية الأقدم من هذا تلقائياً. اتركه فارغاً للاحتفاظ بجميع النسخ الاحتياطية.</value>
+  </data>
+  <data name="EnterScheduleName" xml:space="preserve">
+    <value>أدخل اسم الجدول</value>
+  </data>
+  <data name="EnterScheduleDescription" xml:space="preserve">
+    <value>أدخل وصف الجدول</value>
+  </data>
+  <data name="ActiveScheduleHint" xml:space="preserve">
+    <value>عند التفعيل، سيتم تشغيل النسخ الاحتياطية تلقائياً وفقاً للجدول</value>
+  </data>
+  <data name="PleaseEnterScheduleName" xml:space="preserve">
+    <value>الرجاء إدخال اسم الجدول</value>
+  </data>
+  <data name="ScheduleCreatedSuccessfully" xml:space="preserve">
+    <value>تم إنشاء الجدول بنجاح</value>
+  </data>
+  <data name="ScheduleUpdatedSuccessfully" xml:space="preserve">
+    <value>تم تحديث الجدول بنجاح</value>
+  </data>
+  <data name="ScheduleDeletedSuccessfully" xml:space="preserve">
+    <value>تم حذف الجدول بنجاح</value>
+  </data>
+  <data name="FailedToCreateSchedule" xml:space="preserve">
+    <value>فشل في إنشاء الجدول</value>
+  </data>
+  <data name="FailedToUpdateSchedule" xml:space="preserve">
+    <value>فشل في تحديث الجدول</value>
+  </data>
+  <data name="FailedToDeleteSchedule" xml:space="preserve">
+    <value>فشل في حذف الجدول</value>
+  </data>
+  <data name="EditSchedule" xml:space="preserve">
+    <value>تعديل الجدول</value>
+  </data>
+  <data name="NoSchedulesFound" xml:space="preserve">
+    <value>لم يتم العثور على جداول</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>تشغيل الآن</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>تفعيل</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>تعطيل</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="ScheduleRunStarted" xml:space="preserve">
+    <value>بدأ تشغيل الجدول</value>
+  </data>
+  <data name="FailedToRunSchedule" xml:space="preserve">
+    <value>فشل في تشغيل الجدول</value>
+  </data>
+  <data name="ScheduleEnabled" xml:space="preserve">
+    <value>تم تفعيل الجدول</value>
+  </data>
+  <data name="ScheduleDisabled" xml:space="preserve">
+    <value>تم تعطيل الجدول</value>
+  </data>
+  <data name="FailedToToggleSchedule" xml:space="preserve">
+    <value>فشل في تبديل حالة الجدول</value>
+  </data>
+  <data name="ConfirmDeleteSchedule" xml:space="preserve">
+    <value>هل أنت متأكد من حذف هذا الجدول؟</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>المساحة المستخدمة</value>
+  </data>
+  <data name="LastBackup" xml:space="preserve">
+    <value>آخر نسخة احتياطية</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>الوقت</value>
+  </data>
+  <data name="DayOfWeek" xml:space="preserve">
+    <value>يوم الأسبوع</value>
+  </data>
+  <data name="DayOfMonth" xml:space="preserve">
+    <value>يوم الشهر</value>
+  </data>
+  <data name="Sunday" xml:space="preserve">
+    <value>الأحد</value>
+  </data>
+  <data name="Monday" xml:space="preserve">
+    <value>الاثنين</value>
+  </data>
+  <data name="Tuesday" xml:space="preserve">
+    <value>الثلاثاء</value>
+  </data>
+  <data name="Wednesday" xml:space="preserve">
+    <value>الأربعاء</value>
+  </data>
+  <data name="Thursday" xml:space="preserve">
+    <value>الخميس</value>
+  </data>
+  <data name="Friday" xml:space="preserve">
+    <value>الجمعة</value>
+  </data>
+  <data name="Saturday" xml:space="preserve">
+    <value>السبت</value>
+  </data>
+  <data name="ActiveSchedule" xml:space="preserve">
+    <value>جدول نشط</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="DownloadStarted" xml:space="preserve">
+    <value>بدأ التحميل</value>
+  </data>
+  <data name="FailedToDownloadBackup" xml:space="preserve">
+    <value>فشل في تحميل النسخة الاحتياطية</value>
+  </data>
+  <data name="DeleteBackupTitle" xml:space="preserve">
+    <value>حذف النسخة الاحتياطية</value>
+  </data>
+  <data name="DeleteScheduleTitle" xml:space="preserve">
+    <value>حذف الجدول</value>
+  </data>
+  <data name="BulkDeleteTitle" xml:space="preserve">
+    <value>حذف نسخ احتياطية متعددة</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>نعم، احذف</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>تم الحذف</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>خطأ</value>
+  </data>
+  <data name="ScheduleName" xml:space="preserve">
+    <value>اسم الجدول</value>
+  </data>
+  <data name="NextRun" xml:space="preserve">
+    <value>التشغيل التالي</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>آخر تشغيل</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>غير نشط</value>
+  </data>
+  <data name="ScheduleEnabledSuccessfully" xml:space="preserve">
+    <value>تم تفعيل الجدول بنجاح</value>
+  </data>
+  <data name="ScheduleDisabledSuccessfully" xml:space="preserve">
+    <value>تم تعطيل الجدول بنجاح</value>
+  </data>
+  <data name="FailedToSaveSchedule" xml:space="preserve">
+    <value>فشل في حفظ الجدول</value>
+  </data>
+  <data name="BackupStartedFromSchedule" xml:space="preserve">
+    <value>بدأت النسخة الاحتياطية من الجدول</value>
+  </data>
+  <data name="DeleteBackup" xml:space="preserve">
+    <value>حذف النسخة الاحتياطية</value>
+  </data>
+  <data name="DeleteSchedule" xml:space="preserve">
+    <value>حذف الجدول</value>
+  </data>
+  <data name="DeleteMultipleBackups" xml:space="preserve">
+    <value>حذف نسخ احتياطية متعددة</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>أبداً</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+</root>

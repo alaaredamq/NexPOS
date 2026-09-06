@@ -1,0 +1,623 @@
+@using System.Globalization
+@model Core.Entities.Sales.Order
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
+@using Core.Entities.Configuration
+
+@{
+    Layout = null;
+    var receiptNumber = $"ORD-{Model.Id:D6}";
+    var items = Model.Cart?.CartItems?.ToList() ?? new List<Core.Entities.Inventory.CartItem>();
+    var isThermalMode = ViewData["IsThermalMode"] as bool? ?? false;
+    var currentLang = ViewContext.HttpContext.Request.Query["lang"].ToString() ?? "en";
+    var isRtl = currentLang == "ar";
+    var store = ViewData["StoreSettings"] as StoreSettings;
+}
+
+<!DOCTYPE html>
+<html lang="@currentLang" dir="@(isRtl ? "rtl" : "ltr")">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Localizer["Receipt"] - @receiptNumber</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .receipt-container {
+            background: white;
+            width: 80mm; /* Thermal printer width */
+            max-width: 100%;
+            padding: 10mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+        }
+
+        .store-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .store-info {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .receipt-meta {
+            font-size: 11px;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-bottom: 1px dashed #000;
+        }
+
+        .receipt-meta .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .items-table {
+            width: 100%;
+            margin: 15px 0;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+        }
+
+        .items-table td {
+            padding: 8px 0 4px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .item-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .item-details {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .qty-price {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3px;
+        }
+
+        .totals {
+            margin: 15px 0;
+            font-size: 11px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+
+        .totals .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .totals .row.total {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #000;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            padding-top: 15px;
+            border-top: 2px dashed #000;
+        }
+
+        .thank-you {
+            font-weight: bold;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .barcode {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Print button styles */
+        .print-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn-print {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-close {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn i {
+            font-size: 16px;
+        }
+
+        /* Print styles */
+        @@media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .receipt-container {
+                box-shadow: none;
+                width: 80mm;
+                margin: 0;
+                padding: 5mm;
+            }
+
+            .print-actions {
+                display: none !important;
+            }
+
+            /* Optimize for thermal printers */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @@page {
+                size: 80mm auto;
+                margin: 0;
+            }
+        }
+
+        /* PDF export optimization */
+        .pdf-mode {
+            background: white;
+            padding: 0;
+        }
+
+        .pdf-mode .receipt-container {
+            box-shadow: none;
+            margin: 0;
+        }
+
+        .pdf-mode .print-actions {
+            display: none;
+        }
+
+        /* Thermal printer optimization */
+        .thermal-mode {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .thermal-mode .receipt-container {
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 4px !important;
+            width: 72mm !important;
+            max-width: 272px !important;
+            background: white !important;
+            font-size: 10px !important;
+            line-height: 1.1 !important;
+        }
+
+        .thermal-mode .print-actions {
+            display: none !important;
+        }
+
+        .thermal-mode .store-name {
+            font-size: 12px !important;
+            font-weight: bold !important;
+            color: black !important;
+            margin: 1px 0 !important;
+        }
+
+        .thermal-mode .store-info {
+            font-size: 8px !important;
+            color: black !important;
+            margin: 0 !important;
+            line-height: 1.0 !important;
+        }
+
+        .thermal-mode .receipt-meta {
+            font-size: 9px !important;
+            color: black !important;
+            margin: 1px 0 !important;
+        }
+
+        .thermal-mode .receipt-meta .row {
+            color: black !important;
+        }
+
+        .thermal-mode .items-table {
+            font-size: 9px !important;
+            color: black !important;
+            margin: 2px 0 !important;
+        }
+
+        .thermal-mode .items-table th,
+        .thermal-mode .items-table td {
+            color: black !important;
+            border-color: black !important;
+            padding: 1px 0 !important;
+        }
+
+        .thermal-mode .item-name {
+            color: black !important;
+            font-weight: bold !important;
+            font-size: 9px !important;
+            margin: 1px 0 !important;
+        }
+
+        .thermal-mode .item-details {
+            color: black !important;
+            font-size: 8px !important;
+        }
+
+        .thermal-mode .totals {
+            font-size: 9px !important;
+            color: black !important;
+            margin: 2px 0 !important;
+        }
+
+        .thermal-mode .totals .row {
+            color: black !important;
+            margin: 1px 0 !important;
+        }
+
+        .thermal-mode .totals .row.total {
+            font-size: 11px !important;
+            font-weight: bold !important;
+            color: black !important;
+            margin: 2px 0 !important;
+            padding-top: 2px !important;
+        }
+
+        .thermal-mode .receipt-footer {
+            font-size: 8px !important;
+            color: black !important;
+            margin: 2px 0 !important;
+        }
+
+        .thermal-mode .thank-you {
+            font-size: 10px !important;
+            font-weight: bold !important;
+            color: black !important;
+            margin: 2px 0 !important;
+        }
+
+        .thermal-mode .barcode {
+            font-size: 8px !important;
+            color: black !important;
+            margin: 1px 0 !important;
+        }
+
+        /* Ensure all borders and lines are black for thermal printing */
+        .thermal-mode .receipt-header {
+            border-bottom-color: black !important;
+            margin-bottom: 2px !important;
+            padding-bottom: 2px !important;
+        }
+
+        .thermal-mode .receipt-meta {
+            border-bottom-color: black !important;
+            margin: 2px 0 !important;
+            padding-bottom: 2px !important;
+        }
+
+        .thermal-mode .totals {
+            border-top-color: black !important;
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+        }
+
+        .thermal-mode .totals .row.total {
+            border-top-color: black !important;
+        }
+
+        .thermal-mode .receipt-footer {
+            border-top-color: black !important;
+            margin-top: 2px !important;
+            padding-top: 2px !important;
+        }
+
+        /* RTL Support */
+        [dir="rtl"] .receipt-meta .row,
+        [dir="rtl"] .totals .row,
+        [dir="rtl"] .qty-price {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .items-table th {
+            text-align: right;
+        }
+    </style>
+    <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+</head>
+<body class="@(isThermalMode ? "thermal-mode" : "")">
+    <!-- Print Actions -->
+    @if (!isThermalMode)
+    {
+        <div class="print-actions">
+            <button class="btn btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i>
+                @Localizer["PrintReceipt"]
+            </button>
+            <button class="btn btn-close" onclick="window.close()">
+                <i class="fas fa-times"></i>
+                @Localizer["Close"]
+            </button>
+        </div>
+    }
+
+    <!-- Receipt -->
+    <div class="receipt-container" id="receipt">
+        <!-- Header -->
+        <div class="receipt-header">
+            <div class="store-name">@(store?.StoreName ?? Localizer["YourStoreName"].Value)</div>
+            <div class="store-info">
+                @if (store != null)
+                {
+                    @if (!string.IsNullOrEmpty(store.AddressLine1)) { @store.AddressLine1<br> }
+                    @if (!string.IsNullOrEmpty(store.AddressLine2)) { @store.AddressLine2<br> }
+                    @if (!string.IsNullOrEmpty(store.Phone)) { @:Phone: @store.Phone<br>
+                    }
+                    @if (!string.IsNullOrEmpty(store.TaxId)) { @:Tax ID: @store.TaxId
+                    }
+                }
+                else
+                {
+                    @:123 Main Street<br>
+                    @:City, State 12345<br>
+                    @:Phone: (123) 456-7890<br>
+                    @:Tax ID: 123-456-7890
+                }
+            </div>
+        </div>
+
+        <!-- Receipt Meta -->
+        <div class="receipt-meta">
+            <div class="row">
+                <span>@Localizer["ReceiptNumber"]:</span>
+                <strong>@receiptNumber</strong>
+            </div>
+            <div class="row">
+                <span>@Localizer["Date"]:</span>
+                <span>@Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div class="row">
+                <span>@Localizer["Customer"]:</span>
+                <span>@($"{Model.Customer?.FirstName} {Model.Customer?.LastName}".Trim())</span>
+            </div>
+            <div class="row">
+                <span>@Localizer["Cashier"]:</span>
+                <span>@User.Identity?.Name</span>
+            </div>
+        </div>
+
+        <!-- Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th colspan="2">@Localizer["Items"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        <td colspan="2">
+                            <div class="item-name">@item.Product?.Name</div>
+                            @if (!string.IsNullOrEmpty(item.Product?.Barcode))
+                            {
+                                <div class="item-details">SKU: @item.Product.Barcode</div>
+                            }
+                            <div class="qty-price">
+                                @{
+                                    // For weight/volume products, use WeightOrVolume; for piece products, use Quantity
+                                    var displayQty = item.WeightOrVolume.HasValue && item.WeightOrVolume.Value > 0 
+                                        ? item.WeightOrVolume.Value 
+                                        : item.Quantity;
+                                    var unit = item.Product?.Unit;
+                                    var qtyDisplay = displayQty.ToString("F3", CultureInfo.InvariantCulture);
+                                    if (!string.IsNullOrEmpty(unit) && unit.ToLower() != "piece")
+                                    {
+                                        qtyDisplay += $" {unit}";
+                                    }
+                                }
+                                <span>@qtyDisplay x $@item.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)</span>
+                                <strong>$@item.TotalPrice.ToString("F2", CultureInfo.InvariantCulture)</strong>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals">
+            @{
+                var subtotal = Model.Cart.CartItems.Sum(i => i.TotalPrice);
+                var discountAmount = Model.Cart.DiscountAmount ?? 0;
+                var cartTotal = subtotal - discountAmount;
+                var adjustment = Model.TotalAmount - cartTotal;
+            }
+            <div class="row">
+                <span>@Localizer["Subtotal"]:</span>
+                <span>$@subtotal.ToString("F2", CultureInfo.InvariantCulture)</span>
+            </div>
+            @if (discountAmount > 0)
+            {
+                <div class="row">
+                    <span>@Localizer["Discount"]:</span>
+                    <span>-$@discountAmount.ToString("F2", CultureInfo.InvariantCulture)</span>
+                </div>
+            }
+            @if (adjustment != 0)
+            {
+                <div class="row">
+                    <span>@(adjustment > 0 ? Localizer["Surcharge"].Value : Localizer["Adjustment"].Value):</span>
+                    <span>@(adjustment > 0 ? "+" : "")$@adjustment.ToString("F2", CultureInfo.InvariantCulture)</span>
+                </div>
+            }
+            <div class="row">
+                <span>@Localizer["Tax"]:</span>
+                <span>$0.00</span>
+            </div>
+            <div class="row total">
+                <span>@Localizer["Total"]:</span>
+                <span>@Model.Currency?.Notation $@Model.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)</span>
+            </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="receipt-meta">
+            <div class="row">
+                <span>@Localizer["PaymentMethod"]:</span>
+                <span>@Localizer["Cash"]</span>
+            </div>
+            <div class="row">
+                <span>@Localizer["AmountPaid"]:</span>
+                <span>$@Model.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)</span>
+            </div>
+            <div class="row">
+                <span>@Localizer["Change"]:</span>
+                <span>$0.00</span>
+            </div>
+        </div>
+
+        <!-- Barcode -->
+        <div class="barcode">
+            *@receiptNumber*
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">
+            <div class="thank-you">@(store != null ? store.ReceiptFooterMessage : Localizer["ThankYouForYourPurchase"].Value)</div>
+            @if (store != null)
+            {
+                @if (!string.IsNullOrEmpty(store.FooterLine1)) { <div>@store.FooterLine1</div> }
+                @if (!string.IsNullOrEmpty(store.FooterLine2)) { <div style="margin-top: 10px;">@store.FooterLine2</div> }
+                @if (!string.IsNullOrEmpty(store.FooterLine3)) { <div style="margin-top: 10px;">@store.FooterLine3</div> }
+                @if (!string.IsNullOrEmpty(store.Website) || !string.IsNullOrEmpty(store.Phone))
+                {
+                    <div style="margin-top: 10px; font-size: 10px;">
+                        @if (!string.IsNullOrEmpty(store.Website)) { @Localizer["QuestionsVisitUsAt"] @store.Website<br> }
+                        @if (!string.IsNullOrEmpty(store.Phone)) { @Localizer["OrCall"] @store.Phone }
+                    </div>
+                }
+            }
+            else
+            {
+                <div>@Localizer["PleaseKeepThisReceiptForYourRecords"]</div>
+                <div style="margin-top: 10px;">@Localizer["ReturnsAcceptedWithin30Days"]</div>
+                <div style="margin-top: 10px; font-size: 10px;">
+                    @Localizer["QuestionsVisitUsAt"] www.yourstore.com<br>
+                    @Localizer["OrCall"] (123) 456-7890
+                </div>
+            }
+        </div>
+
+        <!-- Receipt ID for Reference -->
+        <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #999;">
+            @Localizer["OrderID"]: @Model.Id | @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+        </div>
+    </div>
+
+    <script>
+        // Auto-print option (uncomment if needed)
+        // window.onload = function() {
+        //     setTimeout(function() { window.print(); }, 500);
+        // };
+
+        // Detect if this is being rendered for thermal printing
+        // This can be detected by checking if we're in a headless browser context
+        // or by passing a query parameter
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isThermalMode = urlParams.get('thermal') === 'true' || 
+                                 window.navigator.webdriver || 
+                                 window.location.pathname.includes('/thermal');
+            
+            if (isThermalMode) {
+                document.body.classList.add('thermal-mode');
+                // Hide print actions for thermal mode
+                const printActions = document.querySelector('.print-actions');
+                if (printActions) {
+                    printActions.style.display = 'none';
+                }
+            }
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+P or Cmd+P for print
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+            // Escape to close
+            if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+    </script>
+</body>
+</html>

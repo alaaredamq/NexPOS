@@ -1,0 +1,8 @@
+@inject Web.Services.ILocaleCatalog LocaleCatalog
+@{
+    var lang = ViewBag.CurrentLanguage?.ToString() ?? "en";
+}
+<script>
+    window.__translations = @LocaleCatalog.Json(lang);
+    window.__currentLanguage = '@lang';
+</script>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="StoreSettings" xml:space="preserve">
+    <value>Store Settings</value>
+  </data>
+  <data name="StoreSettingsDescription" xml:space="preserve">
+    <value>Configure your store information and receipt settings</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>Reset to Defaults</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="StoreInformation" xml:space="preserve">
+    <value>Store Information</value>
+  </data>
+  <data name="StoreName" xml:space="preserve">
+    <value>Store Name</value>
+  </data>
+  <data name="StoreNameHint" xml:space="preserve">
+    <value>This name will appear on all receipts</value>
+  </data>
+  <data name="AddressLine1" xml:space="preserve">
+    <value>Address Line 1</value>
+  </data>
+  <data name="AddressLine1Hint" xml:space="preserve">
+    <value>Street address</value>
+  </data>
+  <data name="AddressLine2" xml:space="preserve">
+    <value>Address Line 2</value>
+  </data>
+  <data name="AddressLine2Hint" xml:space="preserve">
+    <value>City, State, ZIP</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="TaxId" xml:space="preserve">
+    <value>Tax ID</value>
+  </data>
+  <data name="TaxIdHint" xml:space="preserve">
+    <value>VAT/Tax registration number</value>
+  </data>
+  <data name="BusinessRegistrationNumber" xml:space="preserve">
+    <value>Business Registration Number</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Website</value>
+  </data>
+  <data name="SocialMedia" xml:space="preserve">
+    <value>Social Media</value>
+  </data>
+  <data name="ReceiptSettings" xml:space="preserve">
+    <value>Receipt Settings</value>
+  </data>
+  <data name="ReceiptFooterMessage" xml:space="preserve">
+    <value>Footer Message</value>
+  </data>
+  <data name="ReceiptFooterMessageHint" xml:space="preserve">
+    <value>Thank you message displayed at the bottom of receipts</value>
+  </data>
+  <data name="FooterLine1" xml:space="preserve">
+    <value>Footer Line 1</value>
+  </data>
+  <data name="FooterLine2" xml:space="preserve">
+    <value>Footer Line 2</value>
+  </data>
+  <data name="FooterLine3" xml:space="preserve">
+    <value>Footer Line 3</value>
+  </data>
+  <data name="CurrencySymbol" xml:space="preserve">
+    <value>Currency Symbol</value>
+  </data>
+  <data name="DefaultLanguage" xml:space="preserve">
+    <value>Default Language</value>
+  </data>
+  <data name="ReturnPolicyDays" xml:space="preserve">
+    <value>Return Policy Days</value>
+  </data>
+  <data name="ReturnPolicyDaysHint" xml:space="preserve">
+    <value>Number of days for the return policy</value>
+  </data>
+  <data name="PrintLogo" xml:space="preserve">
+    <value>Print Logo</value>
+  </data>
+  <data name="PrintBarcode" xml:space="preserve">
+    <value>Print Barcode</value>
+  </data>
+  <data name="ShowTaxBreakdown" xml:space="preserve">
+    <value>Show Tax Breakdown</value>
+  </data>
+  <data name="LogoPath" xml:space="preserve">
+    <value>Logo Path</value>
+  </data>
+  <data name="LogoPathHint" xml:space="preserve">
+    <value>Path to the logo image file</value>
+  </data>
+  <data name="ReceiptPreview" xml:space="preserve">
+    <value>Receipt Preview</value>
+  </data>
+  <data name="SettingsSavedSuccessfully" xml:space="preserve">
+    <value>Settings saved successfully</value>
+  </data>
+  <data name="ErrorSavingSettings" xml:space="preserve">
+    <value>Error saving settings</value>
+  </data>
+  <data name="ConfirmResetToDefaults" xml:space="preserve">
+    <value>Are you sure you want to reset all store settings to defaults?</value>
+  </data>
+  <data name="SettingsResetSuccessfully" xml:space="preserve">
+    <value>Settings reset successfully</value>
+  </data>
+  <data name="ErrorResettingSettings" xml:space="preserve">
+    <value>Error resetting settings</value>
+  </data>
+</root>

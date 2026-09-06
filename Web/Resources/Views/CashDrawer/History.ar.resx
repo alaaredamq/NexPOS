@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="CashDrawerHistory" xml:space="preserve">
+    <value>سجل درج النقود</value>
+  </data>
+  <data name="ViewPastCashDrawerSessionsAndZReports" xml:space="preserve">
+    <value>عرض جلسات درج النقود السابقة وتقارير Z</value>
+  </data>
+  <data name="BackToDashboard" xml:space="preserve">
+    <value>العودة إلى لوحة التحكم</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>تاريخ البداية</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>تاريخ النهاية</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="SessionHistory" xml:space="preserve">
+    <value>سجل الجلسات</value>
+  </data>
+  <data name="SessionId" xml:space="preserve">
+    <value>معرف الجلسة</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>تم الفتح في</value>
+  </data>
+  <data name="ClosedAt" xml:space="preserve">
+    <value>تم الإغلاق في</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>النقد الافتتاحي</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="CashDifference" xml:space="preserve">
+    <value>فرق النقد</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>مفتوح</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>مغلق</value>
+  </data>
+  <data name="LoadingHistory" xml:space="preserve">
+    <value>جاري تحميل السجل...</value>
+  </data>
+  <data name="NoSessionsFoundForTheSelectedDateRange" xml:space="preserve">
+    <value>لم يتم العثور على جلسات للنطاق الزمني المحدد</value>
+  </data>
+  <data name="FailedToLoadHistory" xml:space="preserve">
+    <value>فشل في تحميل السجل</value>
+  </data>
+</root>

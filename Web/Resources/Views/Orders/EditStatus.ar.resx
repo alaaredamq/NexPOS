@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="UpdateOrderStatus" xml:space="preserve">
+    <value>تحديث حالة الطلب</value>
+  </data>
+  <data name="BackToOrders" xml:space="preserve">
+    <value>العودة إلى الطلبات</value>
+  </data>
+  <data name="CurrentOrderInformation" xml:space="preserve">
+    <value>معلومات الطلب الحالية</value>
+  </data>
+  <data name="OrderID" xml:space="preserve">
+    <value>رقم الطلب</value>
+  </data>
+  <data name="CurrentStatus" xml:space="preserve">
+    <value>الحالة الحالية</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>معلق</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>قيد المعالجة</value>
+  </data>
+  <data name="Shipped" xml:space="preserve">
+    <value>تم الشحن</value>
+  </data>
+  <data name="Delivered" xml:space="preserve">
+    <value>تم التسليم</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>ملغي</value>
+  </data>
+  <data name="Returned" xml:space="preserve">
+    <value>مرتجع</value>
+  </data>
+  <data name="NewStatus" xml:space="preserve">
+    <value>الحالة الجديدة</value>
+  </data>
+  <data name="SelectStatus" xml:space="preserve">
+    <value>اختر الحالة</value>
+  </data>
+  <data name="StatusDescription" xml:space="preserve">
+    <value>وصف الحالة</value>
+  </data>
+  <data name="AdditionalNotesOptional" xml:space="preserve">
+    <value>ملاحظات إضافية (اختياري)</value>
+  </data>
+  <data name="AddAnyNotesAboutThisStatusChange" xml:space="preserve">
+    <value>أضف أي ملاحظات حول تغيير الحالة هذا...</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="UpdateStatus" xml:space="preserve">
+    <value>تحديث الحالة</value>
+  </data>
+  <data name="OrderStatusInformation" xml:space="preserve">
+    <value>معلومات حالة الطلب</value>
+  </data>
+  <data name="StatusFlow" xml:space="preserve">
+    <value>تدفق الحالة</value>
+  </data>
+  <data name="StatusMeanings" xml:space="preserve">
+    <value>معاني الحالات</value>
+  </data>
+  <data name="PendingDescription" xml:space="preserve">
+    <value>تم استلام الطلب، في انتظار المعالجة</value>
+  </data>
+  <data name="ProcessingDescription" xml:space="preserve">
+    <value>جاري تجهيز الطلب</value>
+  </data>
+  <data name="ShippedDescription" xml:space="preserve">
+    <value>تم شحن الطلب</value>
+  </data>
+  <data name="DeliveredDescription" xml:space="preserve">
+    <value>تم تسليم الطلب</value>
+  </data>
+  <data name="CancelledDescription" xml:space="preserve">
+    <value>تم إلغاء الطلب</value>
+  </data>
+  <data name="ReturnedDescription" xml:space="preserve">
+    <value>تم إرجاع الطلب</value>
+  </data>
+  <data name="PendingFullDescription" xml:space="preserve">
+    <value>تم استلام الطلب وهو في انتظار المعالجة. هذه هي الحالة الأولية عند تقديم الطلب.</value>
+  </data>
+  <data name="ProcessingFullDescription" xml:space="preserve">
+    <value>جاري معالجة الطلب وتجهيزه للشحن. يتم جمع العناصر وتغليفها.</value>
+  </data>
+  <data name="ShippedFullDescription" xml:space="preserve">
+    <value>تم شحن الطلب وهو في طريقه إلى العميل. قد تتوفر معلومات التتبع.</value>
+  </data>
+  <data name="DeliveredFullDescription" xml:space="preserve">
+    <value>تم تسليم الطلب بنجاح إلى العميل. هذه هي الحالة النهائية الناجحة.</value>
+  </data>
+  <data name="CancelledFullDescription" xml:space="preserve">
+    <value>تم إلغاء الطلب. يمكن أن يحدث هذا لأسباب مختلفة مثل طلب العميل أو مشاكل في المخزون.</value>
+  </data>
+  <data name="ReturnedFullDescription" xml:space="preserve">
+    <value>تم إرجاع الطلب من قبل العميل. يحدث هذا عادةً بعد التسليم لأسباب مختلفة.</value>
+  </data>
+</root>

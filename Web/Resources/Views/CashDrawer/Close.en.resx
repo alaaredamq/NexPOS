@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="CloseCashDrawer" xml:space="preserve">
+    <value>Close Cash Drawer</value>
+  </data>
+  <data name="SessionSummary" xml:space="preserve">
+    <value>Session Summary</value>
+  </data>
+  <data name="SessionId" xml:space="preserve">
+    <value>Session ID</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>Opened At</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>Opening Cash</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>Transactions</value>
+  </data>
+  <data name="CashDrops" xml:space="preserve">
+    <value>Cash Drops</value>
+  </data>
+  <data name="ExpectedCash" xml:space="preserve">
+    <value>Expected Cash</value>
+  </data>
+  <data name="CashReconciliation" xml:space="preserve">
+    <value>Cash Reconciliation</value>
+  </data>
+  <data name="Important" xml:space="preserve">
+    <value>Important</value>
+  </data>
+  <data name="CountCashCarefully" xml:space="preserve">
+    <value>Count your cash carefully before closing. Any discrepancy will be recorded.</value>
+  </data>
+  <data name="ActualCashInDrawer" xml:space="preserve">
+    <value>Actual Cash in Drawer</value>
+  </data>
+  <data name="ExpectedAmount" xml:space="preserve">
+    <value>Expected amount</value>
+  </data>
+  <data name="CashDifference" xml:space="preserve">
+    <value>Cash Difference</value>
+  </data>
+  <data name="ClosingNotes" xml:space="preserve">
+    <value>Closing Notes</value>
+  </data>
+  <data name="ClosingNotesPlaceholder" xml:space="preserve">
+    <value>Add any notes about this session closing...</value>
+  </data>
+  <data name="ClosingNotesHint" xml:space="preserve">
+    <value>Note: Any cash discrepancy should be explained here.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PleaseEnterValidActualCash" xml:space="preserve">
+    <value>Please enter a valid actual cash amount</value>
+  </data>
+  <data name="SignificantCashDifferenceWarning" xml:space="preserve">
+    <value>There is a significant cash difference of ${0}. Are you sure you want to close without adding notes?</value>
+  </data>
+  <data name="ClosingProcessing" xml:space="preserve">
+    <value>Closing...</value>
+  </data>
+  <data name="CashDrawerClosedSuccessfully" xml:space="preserve">
+    <value>Cash drawer closed successfully!</value>
+  </data>
+  <data name="FailedToCloseCashDrawer" xml:space="preserve">
+    <value>Failed to close cash drawer</value>
+  </data>
+  <data name="CashOverage" xml:space="preserve">
+    <value>Cash Overage</value>
+  </data>
+  <data name="CashShortage" xml:space="preserve">
+    <value>Cash Shortage</value>
+  </data>
+  <data name="PerfectBalance" xml:space="preserve">
+    <value>Perfect Balance</value>
+  </data>
+  <data name="Surplus" xml:space="preserve">
+    <value>Surplus</value>
+  </data>
+  <data name="Deficit" xml:space="preserve">
+    <value>Deficit</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>Balanced</value>
+  </data>
+</root>

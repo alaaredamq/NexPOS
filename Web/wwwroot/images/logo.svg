@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 372 120" role="img" aria-label="NexPos">
+  <defs>
+    <linearGradient id="nexposLogo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0AA2A2"/>
+      <stop offset="1" stop-color="#00706F"/>
+    </linearGradient>
+  </defs>
+  <svg x="10" y="12" width="96" height="96" viewBox="0 0 512 512">
+    <rect x="40" y="40" width="432" height="432" rx="112" fill="url(#nexposLogo)"/>
+    <g fill="#FFFFFF">
+      <rect x="150" y="150" width="56" height="212" rx="6"/>
+      <rect x="306" y="150" width="56" height="212" rx="6"/>
+      <polygon points="150,150 206,150 362,362 306,362"/>
+    </g>
+    <circle cx="392" cy="140" r="22" fill="#8CE8E4"/>
+  </svg>
+  <text x="122" y="80" font-family="'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" font-size="66" font-weight="700" letter-spacing="-1">
+    <tspan fill="#0F172A">Nex</tspan><tspan fill="#00807F">Pos</tspan>
+  </text>
+</svg>

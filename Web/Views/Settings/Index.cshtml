@@ -1,0 +1,313 @@
+@model IEnumerable<Application.DTOs.Settings.SettingCategoryDTO>
+
+@{
+    ViewData["Title"] = "System Settings";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-cog me-2"></i>
+                            System Settings
+                        </h4>
+                        <p class="card-subtitle text-muted mb-0">Configure system preferences and behavior</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" onclick="exportSettings()">
+                            <i class="fas fa-download me-1"></i>Export
+                        </button>
+                        <button class="btn btn-outline-info me-2" onclick="showImportModal()">
+                            <i class="fas fa-upload me-1"></i>Import
+                        </button>
+                        <button class="btn btn-outline-warning me-2" onclick="resetToDefaults()">
+                            <i class="fas fa-undo me-1"></i>Reset Defaults
+                        </button>
+                        <a href="@Url.Action("AppSettings")" class="btn btn-primary">
+                            <i class="fas fa-sliders-h me-1"></i>App Settings
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Settings Categories -->
+                    <div class="row">
+                        @foreach (var category in Model)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 settings-category-card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">
+                                            <i class="@category.Icon me-2"></i>
+                                            @category.DisplayName
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text text-muted small">@category.Description</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">@category.Settings.Count() settings</span>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="showCategorySettings('@category.CategoryName')">
+                                                <i class="fas fa-edit me-1"></i>Configure
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Settings Modal -->
+<div class="modal fade" id="categorySettingsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categorySettingsModalTitle">Category Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="categorySettingsModalBody">
+                <!-- Settings will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveCategorySettings()">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Settings Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="settingsFile" class="form-label">Select Settings File</label>
+                    <input type="file" class="form-control" id="settingsFile" accept=".json">
+                    <div class="form-text">Select a JSON file containing system settings.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="importSettings()">
+                    <i class="fas fa-upload me-1"></i>Import
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentCategory = '';
+        let pendingChanges = {};
+
+        function showCategorySettings(category) {
+            currentCategory = category;
+            pendingChanges = {};
+            
+            $('#categorySettingsModalTitle').text(category + ' Settings');
+            $('#categorySettingsModalBody').html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+            
+            $('#categorySettingsModal').modal('show');
+            
+            loadCategorySettings(category);
+        }
+
+        function loadCategorySettings(category) {
+            $.get('@Url.Action("GetByCategory", "Settings")', { category: category }, function(response) {
+                if (response.success) {
+                    renderCategorySettings(response.data);
+                } else {
+                    $('#categorySettingsModalBody').html('<div class="erp-alert erp-alert-danger">Error loading settings: ' + response.message + '</div>');
+                }
+            });
+        }
+
+        function renderCategorySettings(settings) {
+            let html = '<div class="row">';
+            
+            settings.forEach(setting => {
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">${setting.description || setting.settingKey}</label>
+                        ${renderSettingInput(setting)}
+                        <div class="form-text">Key: ${setting.settingKey}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            $('#categorySettingsModalBody').html(html);
+        }
+
+        function renderSettingInput(setting) {
+            const inputId = 'setting_' + setting.settingKey.replace(/[^a-zA-Z0-9]/g, '_');
+            
+            switch (setting.settingType.toLowerCase()) {
+                case 'bool':
+                    return `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="${inputId}" 
+                                   ${setting.settingValue === 'true' ? 'checked' : ''} 
+                                   onchange="updatePendingChange('${setting.settingKey}', this.checked ? 'true' : 'false')">
+                            <label class="form-check-label" for="${inputId}">
+                                ${setting.settingValue === 'true' ? 'Enabled' : 'Disabled'}
+                            </label>
+                        </div>
+                    `;
+                case 'int':
+                    return `
+                        <input type="number" class="form-control" id="${inputId}" 
+                               value="${setting.settingValue}" 
+                               onchange="updatePendingChange('${setting.settingKey}', this.value)">
+                    `;
+                case 'decimal':
+                    return `
+                        <input type="number" class="form-control" id="${inputId}" 
+                               value="${setting.settingValue}" step="0.01" 
+                               onchange="updatePendingChange('${setting.settingKey}', this.value)">
+                    `;
+                default:
+                    return `
+                        <input type="text" class="form-control" id="${inputId}" 
+                               value="${setting.settingValue}" 
+                               onchange="updatePendingChange('${setting.settingKey}', this.value)">
+                    `;
+            }
+        }
+
+        function updatePendingChange(key, value) {
+            pendingChanges[key] = value;
+        }
+
+        function saveCategorySettings() {
+            if (Object.keys(pendingChanges).length === 0) {
+                toastr.info('No changes to save');
+                return;
+            }
+
+            const bulkRequest = {
+                settings: Object.keys(pendingChanges).map(key => ({
+                    settingKey: key,
+                    settingValue: pendingChanges[key]
+                }))
+            };
+
+            $.post('@Url.Action("UpdateBulk", "Settings")', bulkRequest, function(response) {
+                if (response.success) {
+                    toastr.success('Settings updated successfully');
+                    $('#categorySettingsModal').modal('hide');
+                    pendingChanges = {};
+                } else {
+                    toastr.error('Error updating settings: ' + response.message);
+                }
+            });
+        }
+
+        function exportSettings() {
+            window.location.href = '@Url.Action("Export", "Settings")';
+        }
+
+        function showImportModal() {
+            $('#importModal').modal('show');
+        }
+
+        function importSettings() {
+            const fileInput = document.getElementById('settingsFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                toastr.warning('Please select a file to import');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            $.ajax({
+                url: '@Url.Action("Import", "Settings")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('Settings imported successfully');
+                        $('#importModal').modal('hide');
+                        location.reload();
+                    } else {
+                        toastr.error('Error importing settings: ' + response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('Error uploading file');
+                }
+            });
+        }
+
+        function resetToDefaults() {
+            Swal.fire({
+                title: 'Reset to Defaults?',
+                text: "This will reset all settings to their default values. This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, reset!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('@Url.Action("ResetToDefaults", "Settings")', function(response) {
+                        if (response.success) {
+                            Swal.fire('Reset!', 'Settings have been reset to defaults.', 'success').then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            toastr.error('Error resetting settings: ' + response.message);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Add some styling for the category cards
+        $(document).ready(function() {
+            $('.settings-category-card').hover(
+                function() {
+                    $(this).addClass('shadow-sm');
+                },
+                function() {
+                    $(this).removeClass('shadow-sm');
+                }
+            );
+        });
+    </script>
+}

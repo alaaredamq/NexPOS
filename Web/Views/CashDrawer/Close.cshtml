@@ -1,0 +1,487 @@
+@model Core.Entities.Sales.CashDrawerSession
+@{
+    ViewData["Title"] = Localizer["CloseCashDrawer"];
+    var summary = (Application.IServices.Sales.SessionSummary)ViewData["SessionSummary"]!;
+}
+
+<div class="container-fluid px-2 px-md-3 py-3">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            
+            <!-- Page Header -->
+            <div class="d-flex align-items-center mb-3">
+                <a href="@Url.Action("Index")" class="back-btn me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h4 class="mb-0 fw-semibold" style="color: var(--text-primary);">@Localizer["CloseCashDrawer"]</h4>
+                    <small style="font-size: 12px; color: var(--text-muted);">@Localizer["SessionId"]: #@Model.Id · @Model.OpenedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                </div>
+            </div>
+
+            <!-- Session Info Cards -->
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="info-card">
+                        <div class="info-label">@Localizer["OpeningCash"]</div>
+                        <div class="info-value" style="color: var(--text-secondary);">$@Model.OpeningCash.ToString("F2")</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="info-card">
+                        <div class="info-label">@Localizer["TotalSales"]</div>
+                        <div class="info-value" style="color: var(--success-strong);">$@summary.TotalSales.ToString("F2")</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="info-card">
+                        <div class="info-label">@Localizer["CashDrops"]</div>
+                        <div class="info-value" style="color: var(--warning-dark);">$@summary.TotalCashDrops.ToString("F2")</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="info-card-primary">
+                        <div class="info-label-light">@Localizer["ExpectedCash"]</div>
+                        <div class="info-value-light">$@summary.ExpectedCash.ToString("F2")</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="main-card">
+                <div class="card-body p-3 p-md-4">
+                    
+                    <!-- Cash Input Section -->
+                    <div class="mb-3">
+                        <label class="form-label fw-medium mb-2" style="font-size: 14px; color: var(--text-secondary);">
+                            <i class="fas fa-money-bill-wave me-2" style="color: var(--primary-color);"></i>
+                            @Localizer["ActualCashInDrawer"]
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text cash-input-prefix">$</span>
+                            <input type="number" 
+                                   class="form-control cash-input" 
+                                   id="actualCashInput" 
+                                   name="actualCash"
+                                   step="0.01" 
+                                   min="0" 
+                                   placeholder="0.00">
+                        </div>
+                        <div class="mt-1" style="font-size: 12px; color: var(--text-muted);">
+                            @Localizer["ExpectedAmount"]: <span style="color: var(--primary-color); font-weight: 600;">$@summary.ExpectedCash.ToString("F2")</span>
+                        </div>
+                    </div>
+
+                    <!-- Difference Result Box -->
+                    <div id="resultBox" class="mb-3" style="display: none;"></div>
+
+                    <!-- Notes Section -->
+                    <div class="mb-3">
+                        <label class="form-label fw-medium mb-2" style="font-size: 14px; color: var(--text-secondary);">
+                            <i class="fas fa-sticky-note me-2" style="color: var(--neutral-400);"></i>
+                            @Localizer["ClosingNotes"]
+                        </label>
+                        <textarea class="form-control notes-input" 
+                                  id="closingNotesInput" 
+                                  name="notes"
+                                  rows="2" 
+                                  placeholder="@Localizer["ClosingNotesPlaceholder"]"></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" class="btn-submit" id="submitCloseBtn">
+                            <i class="fas fa-lock me-2"></i>
+                            @Localizer["CloseCashDrawer"]
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn-cancel">
+                            @Localizer["Cancel"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Back Button */
+    .back-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--neutral-100);
+        border-radius: 50%;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+        background: var(--neutral-200);
+        color: var(--text-secondary);
+    }
+
+    /* Info Cards */
+    .info-card {
+        background: var(--neutral-100);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        height: 100%;
+    }
+    .info-card-primary {
+        background: var(--gradient-primary);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        height: 100%;
+    }
+    .info-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+    .info-label-light {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-inverse-soft);
+        margin-bottom: 4px;
+    }
+    .info-value {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    .info-value-light {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-inverse);
+    }
+
+    /* Main Card */
+    .main-card {
+        background: var(--surface-elevated);
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Cash Input */
+    .cash-input-prefix {
+        background: var(--primary-color);
+        color: var(--text-inverse);
+        border: none;
+        font-weight: 500;
+    }
+    .cash-input {
+        background: var(--neutral-100);
+        border: none;
+        font-size: 20px;
+        font-weight: 600;
+        padding: 12px 16px;
+        color: var(--text-primary);
+    }
+    .cash-input:focus {
+        background: var(--neutral-100);
+        box-shadow: var(--focus-ring);
+    }
+
+    /* Notes Input */
+    .notes-input {
+        background: var(--neutral-100);
+        border: none;
+        font-size: 14px;
+        resize: none;
+        color: var(--text-primary);
+    }
+    .notes-input:focus {
+        background: var(--neutral-100);
+        box-shadow: 0 0 0 0.15rem var(--overlay-teal-15);
+    }
+
+    /* Buttons */
+    .btn-submit {
+        background: var(--gradient-primary);
+        color: var(--text-inverse);
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    .btn-submit:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .btn-cancel {
+        display: block;
+        text-align: center;
+        background: var(--neutral-100);
+        color: var(--text-muted);
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-cancel:hover {
+        background: var(--neutral-200);
+        color: var(--text-secondary);
+    }
+
+    /* Result Cards */
+    .result-card {
+        border-radius: 10px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .result-card.gain {
+        background: var(--success-muted);
+        border: 1px solid var(--success-muted-strong);
+    }
+    .result-card.loss {
+        background: var(--danger-muted);
+        border: 1px solid var(--danger-muted-strong);
+    }
+    .result-card.balanced {
+        background: var(--info-muted);
+        border: 1px solid var(--info-color);
+    }
+
+    .result-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .result-icon.gain { background: var(--success-strong); color: var(--text-inverse); }
+    .result-icon.loss { background: var(--danger-color); color: var(--text-inverse); }
+    .result-icon.balanced { background: var(--info-color); color: var(--text-inverse); }
+    .result-icon i { font-size: 20px; }
+
+    .result-info { flex-grow: 1; }
+
+    .result-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .result-label.gain { color: var(--success-text); }
+    .result-label.loss { color: var(--danger-text); }
+    .result-label.balanced { color: var(--info-dark); }
+
+    .result-amount {
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+    .result-amount.gain { color: var(--success-strong); }
+    .result-amount.loss { color: var(--danger-color); }
+    .result-amount.balanced { color: var(--info-color); }
+
+    .result-badge {
+        padding: 5px 12px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-inverse);
+    }
+    .result-badge.gain { background: var(--success-strong); }
+    .result-badge.loss { background: var(--danger-color); }
+    .result-badge.balanced { background: var(--info-color); }
+</style>
+
+<script>
+    (function() {
+        var CONFIG = {
+            expectedCash: @summary.ExpectedCash,
+            sessionId: @Model.Id,
+            closeUrl: '@Url.Action("CloseDrawer")',
+            zReportUrl: '@Url.Action("ZReport", new { id = Model.Id })',
+            dashboardUrl: '@Url.Action("Index", "Dashboard")',
+            messages: {
+                enterCash: '@Html.Raw(Localizer["PleaseEnterValidActualCash"].Value.Replace("'", "\\'"))',
+                confirmDiff: '@Html.Raw(Localizer["SignificantCashDifferenceWarning"].Value.Replace("'", "\\'"))',
+                closing: '@Html.Raw(Localizer["ClosingProcessing"].Value.Replace("'", "\\'"))',
+                success: '@Html.Raw(Localizer["CashDrawerClosedSuccessfully"].Value.Replace("'", "\\'"))',
+                error: '@Html.Raw(Localizer["FailedToCloseCashDrawer"].Value.Replace("'", "\\'"))',
+                surplus: '@Html.Raw(Localizer["Surplus"].Value.Replace("'", "\\'"))',
+                deficit: '@Html.Raw(Localizer["Deficit"].Value.Replace("'", "\\'"))',
+                balanced: '@Html.Raw(Localizer["Balanced"].Value.Replace("'", "\\'"))',
+                overage: '@Html.Raw(Localizer["CashOverage"].Value.Replace("'", "\\'"))',
+                shortage: '@Html.Raw(Localizer["CashShortage"].Value.Replace("'", "\\'"))',
+                perfect: '@Html.Raw(Localizer["PerfectBalance"].Value.Replace("'", "\\'"))',
+                confirmClose: '@Html.Raw(Localizer["CloseCashDrawer"].Value.Replace("'", "\\'"))',
+                cancel: '@Html.Raw(Localizer["Cancel"].Value.Replace("'", "\\'"))'
+            }
+        };
+
+        function init() {
+            var cashInput = document.getElementById('actualCashInput');
+            var submitBtn = document.getElementById('submitCloseBtn');
+            var resultBox = document.getElementById('resultBox');
+
+            if (!cashInput || !submitBtn || !resultBox) return;
+
+            cashInput.addEventListener('input', updateDifferenceDisplay);
+            cashInput.addEventListener('change', updateDifferenceDisplay);
+            submitBtn.addEventListener('click', function(e) { e.preventDefault(); handleSubmit(); });
+            cashInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); } });
+        }
+
+        function updateDifferenceDisplay() {
+            var cashInput = document.getElementById('actualCashInput');
+            var resultBox = document.getElementById('resultBox');
+            var actualCash = parseFloat(cashInput.value) || 0;
+            var difference = actualCash - CONFIG.expectedCash;
+
+            if (actualCash <= 0) { resultBox.style.display = 'none'; return; }
+
+            resultBox.style.display = 'block';
+            var html = '';
+
+            if (difference > 0) {
+                html = '<div class="result-card gain">' +
+                    '<div class="result-icon gain"><i class="fas fa-arrow-up"></i></div>' +
+                    '<div class="result-info"><div class="result-label gain">' + CONFIG.messages.overage + '</div>' +
+                    '<div class="result-amount gain">+$' + difference.toFixed(2) + '</div></div>' +
+                    '<div class="result-badge gain">' + CONFIG.messages.surplus + '</div></div>';
+            } else if (difference < 0) {
+                html = '<div class="result-card loss">' +
+                    '<div class="result-icon loss"><i class="fas fa-arrow-down"></i></div>' +
+                    '<div class="result-info"><div class="result-label loss">' + CONFIG.messages.shortage + '</div>' +
+                    '<div class="result-amount loss">-$' + Math.abs(difference).toFixed(2) + '</div></div>' +
+                    '<div class="result-badge loss">' + CONFIG.messages.deficit + '</div></div>';
+            } else {
+                html = '<div class="result-card balanced">' +
+                    '<div class="result-icon balanced"><i class="fas fa-check"></i></div>' +
+                    '<div class="result-info"><div class="result-label balanced">' + CONFIG.messages.perfect + '</div>' +
+                    '<div class="result-amount balanced">$0.00</div></div>' +
+                    '<div class="result-badge balanced">' + CONFIG.messages.balanced + '</div></div>';
+            }
+            resultBox.innerHTML = html;
+        }
+
+        function handleSubmit() {
+            var cashInput = document.getElementById('actualCashInput');
+            var notesInput = document.getElementById('closingNotesInput');
+            var submitBtn = document.getElementById('submitCloseBtn');
+            var actualCash = parseFloat(cashInput.value);
+            var notes = notesInput.value || '';
+            var difference = actualCash - CONFIG.expectedCash;
+
+            // Validate
+            if (!actualCash || actualCash < 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: CONFIG.messages.enterCash,
+                    confirmButtonColor: '#008080'
+                });
+                return;
+            }
+
+            // Warn on significant difference without notes
+            if (Math.abs(difference) > 5 && !notes.trim()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: CONFIG.messages.confirmDiff.replace('{0}', Math.abs(difference).toFixed(2)),
+                    showCancelButton: true,
+                    confirmButtonText: CONFIG.messages.confirmClose,
+                    cancelButtonText: CONFIG.messages.cancel,
+                    confirmButtonColor: '#008080',
+                    cancelButtonColor: '#6c757d'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        performClose(actualCash, notes, submitBtn);
+                    }
+                });
+            } else {
+                performClose(actualCash, notes, submitBtn);
+            }
+        }
+
+        function performClose(actualCash, notes, submitBtn) {
+            var originalHtml = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + CONFIG.messages.closing;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', CONFIG.closeUrl, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                // Open Z-Report in new tab
+                                window.open(CONFIG.zReportUrl, '_blank');
+                                
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: CONFIG.messages.success,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(function() {
+                                    // Navigate to dashboard
+                                    window.location.href = CONFIG.dashboardUrl;
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: response.message || CONFIG.messages.error,
+                                    confirmButtonColor: '#008080'
+                                });
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalHtml;
+                            }
+                        } catch (e) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: CONFIG.messages.error,
+                                confirmButtonColor: '#008080'
+                            });
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: CONFIG.messages.error,
+                            confirmButtonColor: '#008080'
+                        });
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHtml;
+                    }
+                }
+            };
+            xhr.send(JSON.stringify({ sessionId: CONFIG.sessionId, actualCash: actualCash, notes: notes }));
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+    })();
+</script>

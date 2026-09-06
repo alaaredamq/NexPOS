@@ -1,0 +1,44 @@
+@using System.Globalization
+@{
+    Layout = null;
+    var currentCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var isRtl = currentCulture == "ar";
+    var noSidebar = ViewBag.NoSidebar as bool? ?? false;
+    if (!noSidebar && Context.Request.Query.ContainsKey("noSidebar"))
+    {
+        noSidebar = Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+    var pageTitle = ViewData["Title"]?.ToString() ?? "NexPos";
+}
+@* Lightweight fragment returned for X-Partial:shell requests (language switch).
+   No <head>, no base scripts/CSS — the live document keeps those. *@
+<div id="shell-meta"
+     data-title="@pageTitle"
+     data-dir="@(isRtl ? "rtl" : "ltr")"
+     data-lang="@currentCulture"
+     hidden></div>
+
+<div class="@(noSidebar ? "container-fluid px-0" : "container-fluid")">
+    <div class="row @(noSidebar ? "g-0" : "")">
+        @await Html.PartialAsync("_Sidebar")
+
+        <main class="@(noSidebar ? "col-12" : "col-md-9 ms-sm-auto col-lg-10") @(noSidebar ? "px-3" : "px-0")">
+            @await Html.PartialAsync("_TopBar")
+
+            <div class="content-wrapper" data-page-controller="@ViewContext.RouteData.Values["Controller"]" data-page-action="@ViewContext.RouteData.Values["Action"]">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+</div>
+
+<div id="shell-translations">
+    <partial name="_TranslationsScript" />
+</div>
+
+<div id="shell-styles">
+    @await RenderSectionAsync("Styles", required: false)
+</div>
+<div id="shell-scripts">
+    @await RenderSectionAsync("Scripts", required: false)
+</div>

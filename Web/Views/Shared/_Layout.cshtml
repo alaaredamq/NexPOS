@@ -1,0 +1,128 @@
+@using System.Globalization
+@{
+    var currentCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var isRtl = currentCulture == "ar";
+    var noSidebar = ViewBag.NoSidebar as bool? ?? false;
+    // Also check query parameter
+    if (!noSidebar && Context.Request.Query.ContainsKey("noSidebar"))
+    {
+        noSidebar = Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+<!DOCTYPE html>
+<html lang="@currentCulture" dir="@(isRtl ? "rtl" : "ltr")" data-kt-theme="true" data-kt-theme-mode="light">
+<head>
+    <meta charset="utf-8" />
+    <title>@(ViewData["Title"]?.ToString() ?? "NexPos") - NexPos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    <link rel="alternate icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="apple-touch-icon" href="~/images/logo-icon-256.png" />
+
+    <!-- local Font -->
+    <link href="/css/Fonts.css" rel="stylesheet" />
+
+    <link href="/Metronics/assets/plugins/global/plugins.bundle.css" rel="stylesheet">
+    <link href="/Metronics/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet">
+    <link href="/Metronics/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/lib/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="/css/Toastr.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="~/css/colors.css" rel="stylesheet" asp-append-version="true" />
+    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
+
+    <!-- RTL CSS for Arabic (id used by lang-switch.js to toggle without a full reload) -->
+    <link id="rtl-css" href="~/css/rtl.css" rel="stylesheet" asp-append-version="true" media="@(isRtl ? "all" : "not all")" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light @(noSidebar ? "no-sidebar" : "")">
+    <!-- Main Container -->
+    <div class="@(noSidebar ? "container-fluid px-0" : "container-fluid")">
+        <div class="row @(noSidebar ? "g-0" : "")">
+            @await Html.PartialAsync("_Sidebar")
+
+            <!-- Main Content -->
+            <main class="@(noSidebar ? "col-12" : "col-md-9 ms-sm-auto col-lg-10") @(noSidebar ? "px-3" : "px-0")">
+                @await Html.PartialAsync("_TopBar")
+
+                <!-- Main Content Area -->
+                <div class="content-wrapper" data-page-controller="@ViewContext.RouteData.Values["Controller"]" data-page-action="@ViewContext.RouteData.Values["Action"]">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/chart.js/dist/chart.umd.min.js"></script>
+    <script src="~/lib/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/sweetalert2/sweetalert2.min.js"></script>
+    <script src="~/lib/toastr/toastr.min.js"></script>
+
+    <!-- Inject JSON translations based on current language -->
+    <partial name="_TranslationsScript" />
+
+    <!-- Localization must load before other scripts that use it -->
+    <script src="~/js/localization.js" asp-append-version="true"></script>
+    <script src="~/js/lang-switch.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Pass TempData messages to JavaScript -->
+    <script>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>window.successMessage = '@Html.Raw(TempData["SuccessMessage"].ToString())';</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>window.errorMessage = '@Html.Raw(TempData["ErrorMessage"].ToString())';</text>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <text>window.infoMessage = '@Html.Raw(TempData["InfoMessage"].ToString())';</text>
+        }
+        @if (TempData["WarningMessage"] != null)
+        {
+            <text>window.warningMessage = '@Html.Raw(TempData["WarningMessage"].ToString())';</text>
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Management Layout Scripts -->
+    <script>
+        // Update notification badge
+        function updateManagementNotificationBadge() {
+            $.get('/Notifications/GetUnreadCount', function(response) {
+                if (response.success && response.count > 0) {
+                    $('#managementNotificationBadge').text(response.count).show();
+                } else {
+                    $('#managementNotificationBadge').hide();
+                }
+            }).fail(function() {
+                // Silently fail if notifications service is not available
+            });
+        }
+
+        @if (!noSidebar)
+        {
+            <text>
+            $(document).ready(function() {
+                updateManagementNotificationBadge();
+                if (!window.__notifBadgeTimer) {
+                    window.__notifBadgeTimer = setInterval(updateManagementNotificationBadge, 30000);
+                }
+            });
+            </text>
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="StockValueReport" xml:space="preserve">
+    <value>Stock Value Report</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>Print Report</value>
+  </data>
+  <data name="ExportExcel" xml:space="preserve">
+    <value>Export Excel</value>
+  </data>
+  <data name="BackToInventory" xml:space="preserve">
+    <value>Back to Inventory</value>
+  </data>
+  <data name="TotalStockValue" xml:space="preserve">
+    <value>Total Stock Value</value>
+  </data>
+  <data name="TotalProducts" xml:space="preserve">
+    <value>Total Products</value>
+  </data>
+  <data name="AvgStockValue" xml:space="preserve">
+    <value>Avg Stock Value</value>
+  </data>
+  <data name="TotalUnits" xml:space="preserve">
+    <value>Total Units</value>
+  </data>
+  <data name="StockValueByCategory" xml:space="preserve">
+    <value>Stock Value by Category</value>
+  </data>
+  <data name="Top10ProductsByValue" xml:space="preserve">
+    <value>Top 10 Products by Value</value>
+  </data>
+  <data name="StockValueDetails" xml:space="preserve">
+    <value>Stock Value Details</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="SearchProducts" xml:space="preserve">
+    <value>Search products...</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="StockQuantity" xml:space="preserve">
+    <value>Stock Quantity</value>
+  </data>
+  <data name="CostPrice" xml:space="preserve">
+    <value>Cost Price</value>
+  </data>
+  <data name="StockValue" xml:space="preserve">
+    <value>Stock Value</value>
+  </data>
+  <data name="ValuePercentage" xml:space="preserve">
+    <value>Value %</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>View Details</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>Adjust Stock</value>
+  </data>
+  <data name="LoadingStockValueData" xml:space="preserve">
+    <value>Loading stock value data...</value>
+  </data>
+  <data name="NoStockValueDataAvailable" xml:space="preserve">
+    <value>No stock value data available</value>
+  </data>
+  <data name="NoMatchingRecordsFound" xml:space="preserve">
+    <value>No matching records found</value>
+  </data>
+  <data name="ExcelExportComingSoon" xml:space="preserve">
+    <value>Excel export functionality will be implemented soon.</value>
+  </data>
+  <data name="ProductDetailsComingSoon" xml:space="preserve">
+    <value>Product details view will be implemented soon.</value>
+  </data>
+  <data name="StockAdjustmentComingSoon" xml:space="preserve">
+    <value>Stock adjustment for will be implemented soon</value>
+  </data>
+</root>

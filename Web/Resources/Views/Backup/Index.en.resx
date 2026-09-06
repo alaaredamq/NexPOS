@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="BackupAndRestore" xml:space="preserve">
+    <value>Backup &amp; Restore</value>
+  </data>
+  <data name="BackupAndRestoreManagement" xml:space="preserve">
+    <value>Backup &amp; Restore Management</value>
+  </data>
+  <data name="ManageDatabaseBackupsAndRestoreOperations" xml:space="preserve">
+    <value>Manage database backups and restore operations</value>
+  </data>
+  <data name="TestConnections" xml:space="preserve">
+    <value>Test Connections</value>
+  </data>
+  <data name="CreateBackup" xml:space="preserve">
+    <value>Create Backup</value>
+  </data>
+  <data name="Emergency" xml:space="preserve">
+    <value>Emergency</value>
+  </data>
+  <data name="TotalBackups" xml:space="preserve">
+    <value>Total Backups</value>
+  </data>
+  <data name="Successful" xml:space="preserve">
+    <value>Successful</value>
+  </data>
+  <data name="TotalSize" xml:space="preserve">
+    <value>Total Size</value>
+  </data>
+  <data name="Scheduled" xml:space="preserve">
+    <value>Scheduled</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>failed</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Backups" xml:space="preserve">
+    <value>Backups</value>
+  </data>
+  <data name="Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Schedule" xml:space="preserve">
+    <value>Schedule</value>
+  </data>
+  <data name="Reports" xml:space="preserve">
+    <value>Reports</value>
+  </data>
+  <data name="BackupHistory" xml:space="preserve">
+    <value>Backup History</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Debug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="BulkDelete" xml:space="preserve">
+    <value>Bulk Delete</value>
+  </data>
+  <data name="ValidateAll" xml:space="preserve">
+    <value>Validate All</value>
+  </data>
+  <data name="RestoreFromBackup" xml:space="preserve">
+    <value>Restore from Backup</value>
+  </data>
+  <data name="SelectBackup" xml:space="preserve">
+    <value>Select Backup</value>
+  </data>
+  <data name="ChooseBackupToRestore" xml:space="preserve">
+    <value>Choose a backup to restore...</value>
+  </data>
+  <data name="RestoreOptions" xml:space="preserve">
+    <value>Restore Options</value>
+  </data>
+  <data name="RestoreData" xml:space="preserve">
+    <value>Restore Data</value>
+  </data>
+  <data name="RestoreSchema" xml:space="preserve">
+    <value>Restore Schema</value>
+  </data>
+  <data name="CreateBackupBeforeRestore" xml:space="preserve">
+    <value>Create backup before restore</value>
+  </data>
+  <data name="RestoreDescription" xml:space="preserve">
+    <value>Restore Description</value>
+  </data>
+  <data name="DescribeWhyRestoring" xml:space="preserve">
+    <value>Describe why you are restoring this backup...</value>
+  </data>
+  <data name="StartRestore" xml:space="preserve">
+    <value>Start Restore</value>
+  </data>
+  <data name="BackupSchedules" xml:space="preserve">
+    <value>Backup Schedules</value>
+  </data>
+  <data name="CreateSchedule" xml:space="preserve">
+    <value>Create Schedule</value>
+  </data>
+  <data name="BackupReports" xml:space="preserve">
+    <value>Backup Reports</value>
+  </data>
+  <data name="GenerateReport" xml:space="preserve">
+    <value>Generate Report</value>
+  </data>
+  <data name="FromDate" xml:space="preserve">
+    <value>From Date</value>
+  </data>
+  <data name="ToDate" xml:space="preserve">
+    <value>To Date</value>
+  </data>
+  <data name="SystemInformation" xml:space="preserve">
+    <value>System Information</value>
+  </data>
+  <data name="LoadSystemInfo" xml:space="preserve">
+    <value>Load System Info</value>
+  </data>
+  <data name="CreateNewBackup" xml:space="preserve">
+    <value>Create New Backup</value>
+  </data>
+  <data name="BackupName" xml:space="preserve">
+    <value>Backup Name</value>
+  </data>
+  <data name="EnterBackupName" xml:space="preserve">
+    <value>Enter backup name</value>
+  </data>
+  <data name="DefaultNameAutoGenerated" xml:space="preserve">
+    <value>A default name will be generated automatically</value>
+  </data>
+  <data name="BackupType" xml:space="preserve">
+    <value>Backup Type</value>
+  </data>
+  <data name="SelectBackupType" xml:space="preserve">
+    <value>Select backup type</value>
+  </data>
+  <data name="FullBackup" xml:space="preserve">
+    <value>Full Backup</value>
+  </data>
+  <data name="IncrementalBackup" xml:space="preserve">
+    <value>Incremental Backup</value>
+  </data>
+  <data name="DifferentialBackup" xml:space="preserve">
+    <value>Differential Backup</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="IncludeData" xml:space="preserve">
+    <value>Include Data</value>
+  </data>
+  <data name="IncludeSchema" xml:space="preserve">
+    <value>Include Schema</value>
+  </data>
+  <data name="EncryptBackup" xml:space="preserve">
+    <value>Encrypt Backup</value>
+  </data>
+  <data name="Compression" xml:space="preserve">
+    <value>Compression</value>
+  </data>
+  <data name="SelectCompressionType" xml:space="preserve">
+    <value>Select compression type</value>
+  </data>
+  <data name="NoCompression" xml:space="preserve">
+    <value>No Compression</value>
+  </data>
+  <data name="GZipCompression" xml:space="preserve">
+    <value>GZip Compression</value>
+  </data>
+  <data name="ZIPCompression" xml:space="preserve">
+    <value>ZIP Compression</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="OperationInProgress" xml:space="preserve">
+    <value>Operation in Progress</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>Initializing...</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="NoBackupsFound" xml:space="preserve">
+    <value>No backups found. Create your first backup using the button above.</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Validate" xml:space="preserve">
+    <value>Validate</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ScheduleManagementComingSoon" xml:space="preserve">
+    <value>Schedule management coming soon.</value>
+  </data>
+  <data name="successful" xml:space="preserve">
+    <value>successful</value>
+  </data>
+  <data name="TestingConnections" xml:space="preserve">
+    <value>Testing connections...</value>
+  </data>
+  <data name="AllConnectionsSuccessful" xml:space="preserve">
+    <value>All connections successful</value>
+  </data>
+  <data name="ConnectionTestFailed" xml:space="preserve">
+    <value>Connection test failed</value>
+  </data>
+  <data name="RefreshingBackupList" xml:space="preserve">
+    <value>Refreshing backup list...</value>
+  </data>
+  <data name="PleaseEnterBackupName" xml:space="preserve">
+    <value>Please enter a backup name</value>
+  </data>
+  <data name="PleaseSelectBackupType" xml:space="preserve">
+    <value>Please select a backup type</value>
+  </data>
+  <data name="StartingBackupOperation" xml:space="preserve">
+    <value>Starting backup operation...</value>
+  </data>
+  <data name="BackupStartedSuccessfully" xml:space="preserve">
+    <value>Backup started successfully</value>
+  </data>
+  <data name="FailedToCreateBackup" xml:space="preserve">
+    <value>Failed to create backup</value>
+  </data>
+  <data name="OperationCompletedSuccessfully" xml:space="preserve">
+    <value>Operation completed successfully</value>
+  </data>
+  <data name="OperationFailed" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>Operation cancelled</value>
+  </data>
+  <data name="FailedToCancelOperation" xml:space="preserve">
+    <value>Failed to cancel operation</value>
+  </data>
+  <data name="BackupIsValid" xml:space="preserve">
+    <value>Backup is valid</value>
+  </data>
+  <data name="BackupValidationFailed" xml:space="preserve">
+    <value>Backup validation failed</value>
+  </data>
+  <data name="FailedToValidateBackup" xml:space="preserve">
+    <value>Failed to validate backup</value>
+  </data>
+  <data name="ConfirmDeleteBackup" xml:space="preserve">
+    <value>Are you sure you want to delete this backup?</value>
+  </data>
+  <data name="BackupDeletedSuccessfully" xml:space="preserve">
+    <value>Backup deleted successfully</value>
+  </data>
+  <data name="FailedToDeleteBackup" xml:space="preserve">
+    <value>Failed to delete backup</value>
+  </data>
+  <data name="PleaseSelectBackupsToDelete" xml:space="preserve">
+    <value>Please select backups to delete</value>
+  </data>
+  <data name="ConfirmDeleteBackups" xml:space="preserve">
+    <value>Are you sure you want to delete {0} backup(s)?</value>
+  </data>
+  <data name="FailedToDeleteBackups" xml:space="preserve">
+    <value>Failed to delete backups</value>
+  </data>
+  <data name="PleaseSelectBackupsToValidate" xml:space="preserve">
+    <value>Please select backups to validate</value>
+  </data>
+  <data name="FailedToValidateBackups" xml:space="preserve">
+    <value>Failed to validate backups</value>
+  </data>
+  <data name="PleaseSelectBackupToRestore" xml:space="preserve">
+    <value>Please select a backup to restore</value>
+  </data>
+  <data name="RestoreStartedSuccessfully" xml:space="preserve">
+    <value>Restore started successfully</value>
+  </data>
+  <data name="FailedToStartRestore" xml:space="preserve">
+    <value>Failed to start restore</value>
+  </data>
+  <data name="EmergencyOptionsComingSoon" xml:space="preserve">
+    <value>Emergency options coming soon</value>
+  </data>
+  <data name="ScheduleManagement" xml:space="preserve">
+    <value>Schedule management coming soon</value>
+  </data>
+  <data name="RetentionDays" xml:space="preserve">
+    <value>Retention Days</value>
+  </data>
+  <data name="RetentionDaysPlaceholder" xml:space="preserve">
+    <value>e.g., 30</value>
+  </data>
+  <data name="RetentionDaysHint" xml:space="preserve">
+    <value>Backups older than this will be automatically deleted. Leave empty to keep all backups.</value>
+  </data>
+  <data name="EnterScheduleName" xml:space="preserve">
+    <value>Enter schedule name</value>
+  </data>
+  <data name="EnterScheduleDescription" xml:space="preserve">
+    <value>Enter schedule description</value>
+  </data>
+  <data name="ActiveScheduleHint" xml:space="preserve">
+    <value>When enabled, backups will run automatically according to the schedule</value>
+  </data>
+  <data name="PleaseEnterScheduleName" xml:space="preserve">
+    <value>Please enter a schedule name</value>
+  </data>
+  <data name="ScheduleCreatedSuccessfully" xml:space="preserve">
+    <value>Schedule created successfully</value>
+  </data>
+  <data name="ScheduleUpdatedSuccessfully" xml:space="preserve">
+    <value>Schedule updated successfully</value>
+  </data>
+  <data name="ScheduleDeletedSuccessfully" xml:space="preserve">
+    <value>Schedule deleted successfully</value>
+  </data>
+  <data name="FailedToCreateSchedule" xml:space="preserve">
+    <value>Failed to create schedule</value>
+  </data>
+  <data name="FailedToUpdateSchedule" xml:space="preserve">
+    <value>Failed to update schedule</value>
+  </data>
+  <data name="FailedToDeleteSchedule" xml:space="preserve">
+    <value>Failed to delete schedule</value>
+  </data>
+  <data name="EditSchedule" xml:space="preserve">
+    <value>Edit Schedule</value>
+  </data>
+  <data name="NoSchedulesFound" xml:space="preserve">
+    <value>No schedules found</value>
+  </data>
+  <data name="RunNow" xml:space="preserve">
+    <value>Run Now</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ScheduleRunStarted" xml:space="preserve">
+    <value>Schedule run started</value>
+  </data>
+  <data name="FailedToRunSchedule" xml:space="preserve">
+    <value>Failed to run schedule</value>
+  </data>
+  <data name="ScheduleEnabled" xml:space="preserve">
+    <value>Schedule enabled</value>
+  </data>
+  <data name="ScheduleDisabled" xml:space="preserve">
+    <value>Schedule disabled</value>
+  </data>
+  <data name="FailedToToggleSchedule" xml:space="preserve">
+    <value>Failed to toggle schedule status</value>
+  </data>
+  <data name="ConfirmDeleteSchedule" xml:space="preserve">
+    <value>Are you sure you want to delete this schedule?</value>
+  </data>
+  <data name="StorageUsed" xml:space="preserve">
+    <value>Storage Used</value>
+  </data>
+  <data name="LastBackup" xml:space="preserve">
+    <value>Last Backup</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="DayOfWeek" xml:space="preserve">
+    <value>Day of Week</value>
+  </data>
+  <data name="DayOfMonth" xml:space="preserve">
+    <value>Day of Month</value>
+  </data>
+  <data name="Sunday" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="Monday" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="Tuesday" xml:space="preserve">
+    <value>Tuesday</value>
+  </data>
+  <data name="Wednesday" xml:space="preserve">
+    <value>Wednesday</value>
+  </data>
+  <data name="Thursday" xml:space="preserve">
+    <value>Thursday</value>
+  </data>
+  <data name="Friday" xml:space="preserve">
+    <value>Friday</value>
+  </data>
+  <data name="Saturday" xml:space="preserve">
+    <value>Saturday</value>
+  </data>
+  <data name="ActiveSchedule" xml:space="preserve">
+    <value>Active Schedule</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="DownloadStarted" xml:space="preserve">
+    <value>Download started</value>
+  </data>
+  <data name="FailedToDownloadBackup" xml:space="preserve">
+    <value>Failed to download backup</value>
+  </data>
+  <data name="DeleteBackupTitle" xml:space="preserve">
+    <value>Delete Backup</value>
+  </data>
+  <data name="DeleteScheduleTitle" xml:space="preserve">
+    <value>Delete Schedule</value>
+  </data>
+  <data name="BulkDeleteTitle" xml:space="preserve">
+    <value>Delete Multiple Backups</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Yes, Delete</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="ScheduleName" xml:space="preserve">
+    <value>Schedule Name</value>
+  </data>
+  <data name="NextRun" xml:space="preserve">
+    <value>Next Run</value>
+  </data>
+  <data name="LastRun" xml:space="preserve">
+    <value>Last Run</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="ScheduleEnabledSuccessfully" xml:space="preserve">
+    <value>Schedule enabled successfully</value>
+  </data>
+  <data name="ScheduleDisabledSuccessfully" xml:space="preserve">
+    <value>Schedule disabled successfully</value>
+  </data>
+  <data name="FailedToSaveSchedule" xml:space="preserve">
+    <value>Failed to save schedule</value>
+  </data>
+  <data name="BackupStartedFromSchedule" xml:space="preserve">
+    <value>Backup started from schedule</value>
+  </data>
+  <data name="DeleteBackup" xml:space="preserve">
+    <value>Delete Backup</value>
+  </data>
+  <data name="DeleteSchedule" xml:space="preserve">
+    <value>Delete Schedule</value>
+  </data>
+  <data name="DeleteMultipleBackups" xml:space="preserve">
+    <value>Delete Multiple Backups</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+</root>

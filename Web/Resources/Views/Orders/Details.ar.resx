@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="OrderDetails" xml:space="preserve">
+    <value>تفاصيل الطلب</value>
+  </data>
+  <data name="BackToOrders" xml:space="preserve">
+    <value>العودة إلى الطلبات</value>
+  </data>
+  <data name="UpdateStatus" xml:space="preserve">
+    <value>تحديث الحالة</value>
+  </data>
+  <data name="PrintReceipt" xml:space="preserve">
+    <value>طباعة الإيصال</value>
+  </data>
+  <data name="OrderInformation" xml:space="preserve">
+    <value>معلومات الطلب</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>مكتمل</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>ملغي</value>
+  </data>
+  <data name="Returned" xml:space="preserve">
+    <value>مرتجع</value>
+  </data>
+  <data name="OrderNumber" xml:space="preserve">
+    <value>رقم الطلب</value>
+  </data>
+  <data name="OrderDate" xml:space="preserve">
+    <value>تاريخ الطلب</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>العميل</value>
+  </data>
+  <data name="TotalAmount" xml:space="preserve">
+    <value>المبلغ الإجمالي</value>
+  </data>
+  <data name="OrderItems" xml:space="preserve">
+    <value>عناصر الطلب</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Qty" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="UnitPrice" xml:space="preserve">
+    <value>سعر الوحدة</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="LoadingOrderItems" xml:space="preserve">
+    <value>جاري تحميل عناصر الطلب...</value>
+  </data>
+  <data name="OrderSummary" xml:space="preserve">
+    <value>ملخص الطلب</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>المجموع الفرعي</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>الخصم</value>
+  </data>
+  <data name="Surcharge" xml:space="preserve">
+    <value>رسوم إضافية</value>
+  </data>
+  <data name="Adjustment" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="Tax" xml:space="preserve">
+    <value>الضريبة</value>
+  </data>
+  <data name="OrderTimeline" xml:space="preserve">
+    <value>الجدول الزمني للطلب</value>
+  </data>
+  <data name="OrderPlaced" xml:space="preserve">
+    <value>تم تقديم الطلب</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>تم تحديث الحالة</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>إجراءات سريعة</value>
+  </data>
+  <data name="ViewCustomer" xml:space="preserve">
+    <value>عرض العميل</value>
+  </data>
+  <data name="ViewCart" xml:space="preserve">
+    <value>عرض السلة</value>
+  </data>
+  <data name="DuplicateOrder" xml:space="preserve">
+    <value>تكرار الطلب</value>
+  </data>
+  <data name="OrderNotes" xml:space="preserve">
+    <value>ملاحظات الطلب</value>
+  </data>
+  <data name="AddNote" xml:space="preserve">
+    <value>إضافة ملاحظة</value>
+  </data>
+  <data name="AddNoteAboutThisOrder" xml:space="preserve">
+    <value>أضف ملاحظة حول هذا الطلب...</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>حفظ الملاحظة</value>
+  </data>
+  <data name="NoItemsFoundInThisOrder" xml:space="preserve">
+    <value>لم يتم العثور على عناصر في هذا الطلب</value>
+  </data>
+  <data name="FailedToLoadOrderItems" xml:space="preserve">
+    <value>فشل في تحميل عناصر الطلب</value>
+  </data>
+  <data name="AreYouSureYouWantToDuplicateThisOrder" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد تكرار هذا الطلب؟</value>
+  </data>
+  <data name="OrderDuplicationFeatureWillBeImplementedSoon" xml:space="preserve">
+    <value>سيتم تنفيذ ميزة تكرار الطلب قريباً.</value>
+  </data>
+  <data name="NoteSaved" xml:space="preserve">
+    <value>تم حفظ الملاحظة</value>
+  </data>
+</root>

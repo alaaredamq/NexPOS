@@ -1,0 +1,160 @@
+@model Web.Controllers.StockAdjustmentRequest
+@{
+    ViewData["Title"] = Localizer["AdjustStock"];
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow">
+                <div class="card-header bg-teal text-white">
+                    <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+                    <p class="card-subtitle mb-0">@ViewData["Subtitle"]</p>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AdjustStock" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <!-- Product Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">@Localizer["ProductName"]</label>
+                                <input type="text" class="form-control" value="@Model.ProductName" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">@Localizer["CurrentStock"]</label>
+                                <input type="text" class="form-control" value="@Model.CurrentStock" readonly />
+                            </div>
+                        </div>
+
+                        <!-- Adjustment Details -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="AdjustmentType" class="form-label">@Localizer["AdjustmentType"]</label>
+                                @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                {
+                                    Id = "adjustmentType",
+                                    Name = "AdjustmentType",
+                                    Placeholder = Localizer["SelectAdjustmentType"].Value,
+                                    Required = true,
+                                    Items = new List<Web.Models.Shared.Select2Item>
+                                    {
+                                        new() { Id = "Add", Text = Localizer["AddStock"].Value },
+                                        new() { Id = "Remove", Text = Localizer["RemoveStock"].Value }
+                                    }
+                                })
+                                <span asp-validation-for="AdjustmentType" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Quantity" class="form-label">@Localizer["Quantity"]</label>
+                                <input asp-for="Quantity" class="form-control" min="1" required />
+                                <span asp-validation-for="Quantity" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label asp-for="Reason" class="form-label">@Localizer["ReasonForAdjustment"]</label>
+                                <textarea asp-for="Reason" class="form-control" rows="3" placeholder="@Localizer["EnterReasonPlaceholder"]"></textarea>
+                                <span asp-validation-for="Reason" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="erp-alert erp-alert-info" id="adjustmentPreview">
+                                    <h6 class="erp-alert-heading">@Localizer["AdjustmentPreview"]</h6>
+                                    <p class="mb-0" id="previewText">
+                                        @Localizer["CurrentStockLabel"]: @Model.CurrentStock<br>
+                                        @Localizer["ActionLabel"]: <span id="actionText">@Localizer["Add"]</span> <span id="quantityText">0</span> @Localizer["Units"]<br>
+                                        @Localizer["NewStockLabel"]: <span id="newStockText">@Model.CurrentStock</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" asp-for="ProductId" />
+                        <input type="hidden" asp-for="ProductName" />
+                        <input type="hidden" asp-for="CurrentStock" />
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
+                            </a>
+                            <button type="submit" class="btn btn-teal" id="submitBtn">
+                                <i class="fas fa-save me-1"></i>@Localizer["AdjustStock"]
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Localized strings for JavaScript
+        window.inventoryLocalizedStrings = {
+            add: '@Html.Raw(Localizer["Add"].Value)',
+            remove: '@Html.Raw(Localizer["Remove"].Value)',
+            addStock: '@Html.Raw(Localizer["AddStock"].Value)',
+            removeStock: '@Html.Raw(Localizer["RemoveStock"].Value)',
+            insufficientStock: '@Html.Raw(Localizer["InsufficientStock"].Value)',
+            units: '@Html.Raw(Localizer["Units"].Value)'
+        };
+
+        function updateAdjustmentUI() {
+            const adjustmentType = document.getElementById('adjustmentType').value;
+            const quantityInput = document.querySelector('input[name="Quantity"]');
+            const quantity = parseInt(quantityInput.value) || 0;
+            const currentStock = @Model.CurrentStock;
+            
+            const actionText = document.getElementById('actionText');
+            const quantityText = document.getElementById('quantityText');
+            const newStockText = document.getElementById('newStockText');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (adjustmentType === 'Add') {
+                actionText.textContent = window.inventoryLocalizedStrings.add;
+                quantityText.textContent = quantity;
+                newStockText.textContent = currentStock + quantity;
+                submitBtn.innerHTML = '<i class="fas fa-plus me-1"></i>' + window.inventoryLocalizedStrings.addStock;
+                submitBtn.className = 'btn btn-success';
+            } else {
+                actionText.textContent = window.inventoryLocalizedStrings.remove;
+                quantityText.textContent = quantity;
+                newStockText.textContent = Math.max(0, currentStock - quantity);
+                submitBtn.innerHTML = '<i class="fas fa-minus me-1"></i>' + window.inventoryLocalizedStrings.removeStock;
+                submitBtn.className = 'btn btn-warning';
+                
+                // Check if removal would result in negative stock
+                if (quantity > currentStock) {
+                    newStockText.textContent = '0 (' + window.inventoryLocalizedStrings.insufficientStock + ')';
+                    newStockText.style.color = 'red';
+                    submitBtn.disabled = true;
+                } else {
+                    newStockText.style.color = '';
+                    submitBtn.disabled = false;
+                }
+            }
+        }
+
+        // Update preview when quantity changes
+        document.querySelector('input[name="Quantity"]').addEventListener('input', updateAdjustmentUI);
+        
+        // Handle Select2 change event
+        $(document).ready(function() {
+            $('#adjustmentType').on('change', function() {
+                updateAdjustmentUI();
+            });
+        });
+        
+        // Initial update
+        updateAdjustmentUI();
+    </script>
+}

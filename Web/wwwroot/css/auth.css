@@ -1,0 +1,483 @@
+/* =====================================================
+   Auth Pages CSS - Modern Teal Theme
+   ===================================================== */
+
+/* =====================================================
+   Base Styles
+   ===================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--success-color) 50%, var(--info-color) 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(32, 201, 151, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(23, 162, 184, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 128, 128, 0.05) 0%, transparent 50%);
+    z-index: -1;
+}
+
+/* =====================================================
+   Primary Colors
+   ===================================================== */
+
+.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+}
+
+/* =====================================================
+   Form Controls
+   ===================================================== */
+
+.form-control {
+    border: 2px solid var(--gray-300);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: var(--white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: var(--gray-500);
+    font-weight: 400;
+}
+
+/* =====================================================
+   Buttons
+   ===================================================== */
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 128, 128, 0.4);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 128, 128, 0.3);
+}
+
+/* =====================================================
+   Input Groups
+   ===================================================== */
+
+.input-group-text {
+    background-color: var(--primary-lighter);
+    border: 2px solid var(--gray-300);
+    border-right: none;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* =====================================================
+   Cards
+   ===================================================== */
+
+.card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color), var(--info-color));
+}
+
+/* =====================================================
+   Form Labels
+   ===================================================== */
+
+.form-label {
+    color: var(--gray-700);
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* =====================================================
+   Text Colors
+   ===================================================== */
+
+.text-muted {
+    color: var(--gray-600) !important;
+}
+
+.small {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* =====================================================
+   ERP Alerts
+   ===================================================== */
+
+.erp-alert {
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.erp-alert-info {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+    color: var(--info-color);
+    border-left: 4px solid var(--info-color);
+}
+
+/* =====================================================
+   Language Buttons
+   ===================================================== */
+
+.language-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    text-decoration: none;
+    display: inline-block;
+    margin: 0 4px;
+}
+
+.language-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+.language-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+}
+
+/* =====================================================
+   Floating Shapes
+   ===================================================== */
+
+.floating-shapes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.shape {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 20s infinite linear;
+}
+
+.shape:nth-child(1) {
+    width: 80px;
+    height: 80px;
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.shape:nth-child(2) {
+    width: 120px;
+    height: 120px;
+    top: 60%;
+    left: 80%;
+    animation-delay: -5s;
+}
+
+.shape:nth-child(3) {
+    width: 60px;
+    height: 60px;
+    top: 80%;
+    left: 20%;
+    animation-delay: -10s;
+}
+
+.shape:nth-child(4) {
+    width: 100px;
+    height: 100px;
+    top: 10%;
+    left: 70%;
+    animation-delay: -15s;
+}
+
+/* =====================================================
+   Animations
+   ===================================================== */
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.8s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* =====================================================
+   Feature Cards
+   ===================================================== */
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    height: 100%;
+}
+
+.feature-card:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* =====================================================
+   Demo Credentials
+   ===================================================== */
+
+.demo-credentials {
+    background: linear-gradient(135deg, rgba(32, 201, 151, 0.1), rgba(23, 162, 184, 0.05));
+    border: 1px solid rgba(32, 201, 151, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.demo-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.875rem;
+}
+
+.demo-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* =====================================================
+   Language Switcher
+   ===================================================== */
+
+.language-switcher {
+    margin-top: 20px;
+}
+
+/* =====================================================
+   Responsive Design
+   ===================================================== */
+
+@media (max-width: 991.98px) {
+    .feature-card {
+        margin-bottom: 15px;
+    }
+    
+    .language-switcher {
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .container-fluid {
+        padding: 15px;
+    }
+    
+    .card {
+        margin: 0;
+        border-radius: 15px;
+    }
+    
+    .feature-card {
+        padding: 15px 10px;
+    }
+    
+    .feature-icon {
+        font-size: 1.5rem;
+    }
+}
+
+/* =====================================================
+   RTL Support
+   ===================================================== */
+
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+.rtl .form-control {
+    order: 1;
+}
+
+.rtl .btn-group {
+    direction: ltr;
+}
+
+.rtl .text-end {
+    text-align: left !important;
+}
+
+.rtl .text-start {
+    text-align: right !important;
+}
+
+.rtl .me-1 {
+    margin-left: 0.25rem !important;
+    margin-right: 0 !important;
+}
+
+.rtl .me-2 {
+    margin-left: 0.5rem !important;
+    margin-right: 0 !important;
+}
+
+.rtl .ms-1 {
+    margin-right: 0.25rem !important;
+    margin-left: 0 !important;
+}
+
+.rtl .ms-2 {
+    margin-right: 0.5rem !important;
+    margin-left: 0 !important;
+}
+
+/* =====================================================
+   Additional Utilities
+   ===================================================== */
+
+.opacity-75 {
+    opacity: 0.75 !important;
+}
+
+.opacity-90 {
+    opacity: 0.90 !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-info {
+    color: var(--info-color) !important;
+}
+
+.bg-primary.bg-opacity-10 {
+    background-color: rgba(0, 128, 128, 0.1) !important;
+}
+
+.bg-white.bg-opacity-20 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}

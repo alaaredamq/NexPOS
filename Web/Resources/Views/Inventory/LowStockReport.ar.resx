@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="LowStockReport" xml:space="preserve">
+    <value>تقرير نقص المخزون</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>طباعة التقرير</value>
+  </data>
+  <data name="ExportPDF" xml:space="preserve">
+    <value>تصدير PDF</value>
+  </data>
+  <data name="BackToInventory" xml:space="preserve">
+    <value>العودة إلى المخزون</value>
+  </data>
+  <data name="LowStockAlertSummary" xml:space="preserve">
+    <value>ملخص تنبيهات نقص المخزون</value>
+  </data>
+  <data name="ProductsWithLowStock" xml:space="preserve">
+    <value>منتجات بمخزون منخفض</value>
+  </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>نفاد المخزون</value>
+  </data>
+  <data name="TotalUnitsAvailable" xml:space="preserve">
+    <value>إجمالي الوحدات المتاحة</value>
+  </data>
+  <data name="TotalValueAtRisk" xml:space="preserve">
+    <value>إجمالي القيمة المعرضة للخطر</value>
+  </data>
+  <data name="LowStockProductsDetails" xml:space="preserve">
+    <value>تفاصيل منتجات المخزون المنخفض</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>الباركود</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>المخزون الحالي</value>
+  </data>
+  <data name="MinimumStock" xml:space="preserve">
+    <value>الحد الأدنى للمخزون</value>
+  </data>
+  <data name="StockDeficit" xml:space="preserve">
+    <value>عجز المخزون</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Priority" xml:space="preserve">
+    <value>الأولوية</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>حرج</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>عالي</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>متوسط</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>بدون فئة</value>
+  </data>
+  <data name="AdjustCriticalStock" xml:space="preserve">
+    <value>تعديل المخزون الحرج</value>
+  </data>
+  <data name="CreateBulkReorder" xml:space="preserve">
+    <value>إنشاء طلب شراء جماعي</value>
+  </data>
+  <data name="GenerateReorderReport" xml:space="preserve">
+    <value>إنشاء تقرير إعادة الطلب</value>
+  </data>
+  <data name="GreatNews" xml:space="preserve">
+    <value>أخبار رائعة!</value>
+  </data>
+  <data name="AllProductsHaveSufficientStockLevels" xml:space="preserve">
+    <value>جميع المنتجات لديها مستويات مخزون كافية.</value>
+  </data>
+  <data name="AllProductsSufficientStock" xml:space="preserve">
+    <value>جميع المنتجات لديها مستويات مخزون كافية.</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="CreateReorder" xml:space="preserve">
+    <value>إنشاء طلب شراء</value>
+  </data>
+  <data name="CreateReorderText" xml:space="preserve">
+    <value>سيتم إنشاء طلب شراء لهذا المنتج.</value>
+  </data>
+  <data name="ConfirmCreateReorder" xml:space="preserve">
+    <value>إنشاء طلب شراء</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="ReorderCreatedSuccess" xml:space="preserve">
+    <value>تم إنشاء طلب الشراء بنجاح!</value>
+  </data>
+  <data name="SetMinimumStock" xml:space="preserve">
+    <value>تعيين الحد الأدنى للمخزون</value>
+  </data>
+  <data name="MinimumStockLevel" xml:space="preserve">
+    <value>مستوى الحد الأدنى للمخزون</value>
+  </data>
+  <data name="EnterMinimumStockLevel" xml:space="preserve">
+    <value>أدخل مستوى الحد الأدنى للمخزون</value>
+  </data>
+  <data name="Set" xml:space="preserve">
+    <value>تعيين</value>
+  </data>
+  <data name="PleaseEnterValidMinimumStock" xml:space="preserve">
+    <value>الرجاء إدخال مستوى حد أدنى صالح للمخزون</value>
+  </data>
+  <data name="MinimumStockUpdatedSuccess" xml:space="preserve">
+    <value>تم تحديث مستوى الحد الأدنى للمخزون بنجاح!</value>
+  </data>
+  <data name="FailedToUpdateMinimumStock" xml:space="preserve">
+    <value>فشل تحديث مستوى الحد الأدنى للمخزون</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>حدث خطأ أثناء تحديث مستوى الحد الأدنى للمخزون</value>
+  </data>
+  <data name="AdjustCriticalStockText" xml:space="preserve">
+    <value>سيساعدك هذا في تعديل المخزون لجميع المنتجات الحرجة.</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>متابعة</value>
+  </data>
+  <data name="BulkStockAdjustmentComingSoon" xml:space="preserve">
+    <value>ميزة تعديل المخزون الجماعي ستتوفر قريباً.</value>
+  </data>
+  <data name="CreateBulkReorderText" xml:space="preserve">
+    <value>سيتم إنشاء طلبات شراء لجميع منتجات المخزون المنخفض.</value>
+  </data>
+  <data name="CreateOrders" xml:space="preserve">
+    <value>إنشاء الطلبات</value>
+  </data>
+  <data name="BulkReorderCreatedSuccess" xml:space="preserve">
+    <value>تم إنشاء طلب الشراء الجماعي بنجاح!</value>
+  </data>
+  <data name="ReorderReportComingSoon" xml:space="preserve">
+    <value>ميزة إنشاء تقرير إعادة الطلب ستتوفر قريباً.</value>
+  </data>
+  <data name="PDFExportComingSoon" xml:space="preserve">
+    <value>ميزة تصدير PDF ستتوفر قريباً.</value>
+  </data>
+</root>

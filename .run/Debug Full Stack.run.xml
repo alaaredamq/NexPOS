@@ -1,0 +1,14 @@
+&lt;component name="ProjectRunConfigurationManager"&gt;
+  &lt;configuration default="false" name="Debug Full Stack" type="js.build_tools.npm"&gt;
+    &lt;package-json value="$PROJECT_DIR$/package.json" /&gt;
+    &lt;command value="run" /&gt;
+    &lt;scripts&gt;
+      &lt;script value="dev" /&gt;
+    &lt;/scripts&gt;
+    &lt;node-interpreter value="project" /&gt;
+    &lt;envs&gt;
+      &lt;env name="NODE_ENV" value="development" /&gt;
+    &lt;/envs&gt;
+    &lt;method v="2" /&gt;
+  &lt;/configuration&gt;
+&lt;/component&gt;

@@ -1,0 +1,244 @@
+@model Web.Models.Shared.PaginationModel
+@{
+    var startItem = ((Model.CurrentPage - 1) * Model.PageSize) + 1;
+    var endItem = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems);
+    var startPage = Math.Max(1, Model.CurrentPage - Model.MaxVisiblePages / 2);
+    var endPage = Math.Min(Model.TotalPages, startPage + Model.MaxVisiblePages - 1);
+    
+    if (endPage - startPage < Model.MaxVisiblePages - 1)
+    {
+        startPage = Math.Max(1, endPage - Model.MaxVisiblePages + 1);
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center">
+    @if (Model.ShowInfo)
+    {
+        <div class="pagination-info">
+            @if (Model.Language == "ar")
+            {
+                <text>
+                عرض @startItem إلى @endItem من أصل @Model.TotalItems عنصر
+                </text>
+            }
+            else
+            {
+                <text>
+                Showing @startItem to @endItem of @Model.TotalItems entries
+                </text>
+            }
+        </div>
+    }
+    
+    @if (Model.ShowPageSizeSelector)
+    {
+        <div class="page-size-selector">
+            <label class="form-label me-2">
+                @if (Model.Language == "ar")
+                {
+                    <text>عناصر في الصفحة:</text>
+                }
+                else
+                {
+                    <text>Items per page:</text>
+                }
+            </label>
+            <select id="page-size-selector" class="form-select form-select-sm" style="width: auto;">
+                @foreach (var size in Model.PageSizeOptions)
+                {
+                    @if (size == Model.PageSize)
+                    {
+                        <option value="@size" selected>@size</option>
+                    }
+                    else
+                    {
+                        <option value="@size">@size</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination @Model.Class @(!string.IsNullOrEmpty(Model.Size) ? $"pagination-{Model.Size}" : "") justify-content-center">
+            @if (Model.ShowFirstLast && Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="1" aria-label="First">
+                        @if (Model.Language == "ar")
+                        {
+                            <text>الأول</text>
+                        }
+                        else
+                        {
+                            <text>First</text>
+                        }
+                    </a>
+                </li>
+            }
+            
+            @if (Model.ShowPreviousNext && Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="@(Model.CurrentPage - 1)" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                        @if (Model.Language == "ar")
+                        {
+                            <text>السابق</text>
+                        }
+                        else
+                        {
+                            <text>Previous</text>
+                        }
+                    </a>
+                </li>
+            }
+            
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="#" data-page="@i">@i</a>
+                </li>
+            }
+            
+            @if (Model.ShowPreviousNext && Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="@(Model.CurrentPage + 1)" aria-label="Next">
+                        @if (Model.Language == "ar")
+                        {
+                            <text>التالي</text>
+                        }
+                        else
+                        {
+                            <text>Next</text>
+                        }
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            }
+            
+            @if (Model.ShowFirstLast && Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="@Model.TotalPages" aria-label="Last">
+                        @if (Model.Language == "ar")
+                        {
+                            <text>الأخير</text>
+                        }
+                        else
+                        {
+                            <text>Last</text>
+                        }
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<script>
+    $(document).ready(function() {
+        // Page change handler
+        $('.pagination .page-link').on('click', function(e) {
+            e.preventDefault();
+            var page = $(this).data('page');
+            if (page && page !== @Model.CurrentPage) {
+                @if (!string.IsNullOrEmpty(Model.OnPageChange))
+                {
+                    <text>
+                    if (typeof window[@Model.OnPageChange] === 'function') {
+                        window[@Model.OnPageChange](page);
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    // Default page change behavior - trigger custom event
+                    $(document).trigger('pageChange', [page]);
+                    </text>
+                }
+            }
+        });
+
+        // Page size change handler
+        @if (Model.ShowPageSizeSelector)
+        {
+            <text>
+            $('#page-size-selector').on('change', function() {
+                var pageSize = $(this).val();
+                @if (!string.IsNullOrEmpty(Model.OnPageSizeChange))
+                {
+                    <text>
+                    if (typeof window[@Model.OnPageSizeChange] === 'function') {
+                        window[@Model.OnPageSizeChange](pageSize);
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    // Default page size change behavior - trigger custom event
+                    $(document).trigger('pageSizeChange', [pageSize]);
+                    </text>
+                }
+            });
+            </text>
+        }
+
+        // Expose pagination functions globally
+        window.pagination = {
+            goToPage: function(page) {
+                @if (!string.IsNullOrEmpty(Model.OnPageChange))
+                {
+                    <text>
+                    if (typeof window[@Model.OnPageChange] === 'function') {
+                        window[@Model.OnPageChange](page);
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    $(document).trigger('pageChange', [page]);
+                    </text>
+                }
+            },
+            changePageSize: function(pageSize) {
+                @if (Model.ShowPageSizeSelector)
+                {
+                    <text>
+                    $('#page-size-selector').val(pageSize);
+                    @if (!string.IsNullOrEmpty(Model.OnPageSizeChange))
+                    {
+                        <text>
+                        if (typeof window[@Model.OnPageSizeChange] === 'function') {
+                            window[@Model.OnPageSizeChange](pageSize);
+                        }
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        $(document).trigger('pageSizeChange', [pageSize]);
+                        </text>
+                    }
+                    </text>
+                }
+            },
+            getCurrentPage: function() {
+                return @Model.CurrentPage;
+            },
+            getTotalPages: function() {
+                return @Model.TotalPages;
+            },
+            getPageSize: function() {
+                return @Model.PageSize;
+            }
+        };
+    });
+</script>

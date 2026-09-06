@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="EditSupplier" xml:space="preserve">
+    <value>تعديل المورد</value>
+  </data>
+  <data name="UpdateSupplierInformation" xml:space="preserve">
+    <value>تحديث معلومات المورد</value>
+  </data>
+  <data name="BackToSuppliers" xml:space="preserve">
+    <value>العودة إلى الموردين</value>
+  </data>
+  <data name="SupplierInformation" xml:space="preserve">
+    <value>معلومات المورد</value>
+  </data>
+  <data name="SupplierName" xml:space="preserve">
+    <value>اسم المورد</value>
+  </data>
+  <data name="EnterSupplierName" xml:space="preserve">
+    <value>أدخل اسم المورد</value>
+  </data>
+  <data name="DefaultCurrency" xml:space="preserve">
+    <value>العملة الافتراضية</value>
+  </data>
+  <data name="SelectCurrency" xml:space="preserve">
+    <value>-- اختر العملة --</value>
+  </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>البريد الإلكتروني</value>
+  </data>
+  <data name="EnterEmailAddress" xml:space="preserve">
+    <value>أدخل البريد الإلكتروني</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>رقم الهاتف</value>
+  </data>
+  <data name="EnterPhoneNumber" xml:space="preserve">
+    <value>أدخل رقم الهاتف</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>العنوان</value>
+  </data>
+  <data name="EnterFullAddress" xml:space="preserve">
+    <value>أدخل العنوان الكامل</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>المدينة</value>
+  </data>
+  <data name="EnterCity" xml:space="preserve">
+    <value>أدخل المدينة</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>الدولة</value>
+  </data>
+  <data name="EnterCountry" xml:space="preserve">
+    <value>أدخل الدولة</value>
+  </data>
+  <data name="PostalCode" xml:space="preserve">
+    <value>الرمز البريدي</value>
+  </data>
+  <data name="EnterPostalCode" xml:space="preserve">
+    <value>أدخل الرمز البريدي</value>
+  </data>
+  <data name="DiscountRate" xml:space="preserve">
+    <value>نسبة الخصم</value>
+  </data>
+  <data name="DebtInformation" xml:space="preserve">
+    <value>معلومات الديون</value>
+  </data>
+  <data name="DebtToSupplier" xml:space="preserve">
+    <value>دين للمورد (أنا مدين له)</value>
+  </data>
+  <data name="AmountOfMoneyYouOweThisSupplier" xml:space="preserve">
+    <value>المبلغ الذي تدين به لهذا المورد</value>
+  </data>
+  <data name="DebtFromSupplier" xml:space="preserve">
+    <value>دين من المورد (هو مدين لي)</value>
+  </data>
+  <data name="AmountOfMoneySupplierOwesYou" xml:space="preserve">
+    <value>المبلغ الذي يدين به المورد لك</value>
+  </data>
+  <data name="NetDebt" xml:space="preserve">
+    <value>صافي الدين</value>
+  </data>
+  <data name="SupplierIsActive" xml:space="preserve">
+    <value>المورد نشط</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="UpdateSupplier" xml:space="preserve">
+    <value>تحديث المورد</value>
+  </data>
+  <data name="SupplierGuidelines" xml:space="preserve">
+    <value>إرشادات المورد</value>
+  </data>
+  <data name="UseFullCompanyOrSupplierName" xml:space="preserve">
+    <value>استخدم الاسم الكامل للشركة أو المورد</value>
+  </data>
+  <data name="SelectDefaultCurrencyForSupplier" xml:space="preserve">
+    <value>اختر العملة الافتراضية لهذا المورد</value>
+  </data>
+  <data name="EmailAddressesHelpWithCommunication" xml:space="preserve">
+    <value>عناوين البريد الإلكتروني تساعد في التواصل</value>
+  </data>
+  <data name="CompleteAddressesEnableDeliveryServices" xml:space="preserve">
+    <value>العناوين الكاملة تمكن خدمات التوصيل</value>
+  </data>
+  <data name="TrackDebtsToManageFinancialRelationships" xml:space="preserve">
+    <value>تتبع الديون لإدارة العلاقات المالية</value>
+  </data>
+  <data name="YouOweThem" xml:space="preserve">
+    <value>أنت مدين لهم</value>
+  </data>
+  <data name="TheyOweYou" xml:space="preserve">
+    <value>هم مدينون لك</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>متوازن</value>
+  </data>
+</root>

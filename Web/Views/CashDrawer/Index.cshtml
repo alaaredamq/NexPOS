@@ -1,0 +1,323 @@
+@{
+    ViewData["Title"] = Localizer["CashDrawerManagement"];
+    var hasOpenSession = (bool)(ViewData["HasOpenSession"] ?? false);
+    var openSessionId = (int?)(ViewData["OpenSessionId"]);
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+            <p class="text-muted">@Localizer["ManageYourCashDrawerSessionsAndEndOfDayReports"]</p>
+        </div>
+        <div class="btn-group">
+            @if (!hasOpenSession)
+            {
+                <a href="@Url.Action("Open")" class="btn btn-success">
+                    <i class="fas fa-cash-register me-2"></i>@Localizer["OpenCashDrawer"]
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Close", new { id = openSessionId })" class="btn btn-warning">
+                    <i class="fas fa-check-circle me-2"></i>@Localizer["CloseDrawer"]
+                </a>
+                <button type="button" class="btn btn-outline-primary" onclick="showCashDropModal()">
+                    <i class="fas fa-money-bill-transfer me-2"></i>@Localizer["CashDrop"]
+                </button>
+            }
+            <a href="@Url.Action("History")" class="btn btn-outline-secondary">
+                <i class="fas fa-history me-2"></i>@Localizer["History"]
+            </a>
+        </div>
+    </div>
+
+    <!-- Current Session Card -->
+    @if (hasOpenSession)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4 border-success">
+                    <div class="card-header bg-success text-white py-3">
+                        <h6 class="m-0 font-weight-bold">
+                            <i class="fas fa-cash-register me-2"></i>@Localizer["CurrentOpenSession"]
+                        </h6>
+                    </div>
+                    <div class="card-body" id="currentSessionCard">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">@Localizer["Loading"]...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- No Open Session Message -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-cash-register fa-4x text-muted mb-3"></i>
+                        <h4>@Localizer["NoOpenCashDrawerSession"]</h4>
+                        <p class="text-muted">@Localizer["YouNeedToOpenACashDrawerToStartProcessingSales"]</p>
+                        <a href="@Url.Action("Open")" class="btn btn-success btn-lg">
+                            <i class="fas fa-cash-register me-2"></i>@Localizer["OpenCashDrawer"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card shadow mb-4 border-left-primary">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">@Localizer["TodaysSales"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todaySales">$0.00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow mb-4 border-left-success">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">@Localizer["Transactions"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayTransactions">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow mb-4 border-left-info">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">@Localizer["ExpectedCash"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="expectedCash">$0.00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calculator fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow mb-4 border-left-warning">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">@Localizer["CashDrops"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="cashDrops">$0.00</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-transfer fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Drop Modal -->
+<div class="modal fade" id="cashDropModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["RecordCashDrop"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cashDropForm">
+                    <div class="mb-3">
+                        <label for="cashDropAmount" class="form-label">@Localizer["Amount"] *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="cashDropAmount" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cashDropReason" class="form-label">@Localizer["Reason"]</label>
+                        <select class="form-select" id="cashDropReason">
+                            <option value="Safe Deposit">@Localizer["SafeDeposit"]</option>
+                            <option value="Bank Deposit">@Localizer["BankDeposit"]</option>
+                            <option value="Excess Cash">@Localizer["ExcessCash"]</option>
+                            <option value="Other">@Localizer["Other"]</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cashDropNotes" class="form-label">@Localizer["Notes"]</label>
+                        <textarea class="form-control" id="cashDropNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" onclick="submitCashDrop()">@Localizer["RecordCashDrop"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Localized strings for JavaScript
+        window.cashDrawerLocalizedStrings = {
+            openedAt: '@Html.Raw(Localizer["OpenedAt"].Value)',
+            openingCash: '@Html.Raw(Localizer["OpeningCash"].Value)',
+            sessionId: '@Html.Raw(Localizer["SessionId"].Value)',
+            totalSales: '@Html.Raw(Localizer["TotalSales"].Value)',
+            transactions: '@Html.Raw(Localizer["Transactions"].Value)',
+            expectedCash: '@Html.Raw(Localizer["ExpectedCash"].Value)',
+            cashDrops: '@Html.Raw(Localizer["CashDrops"].Value)',
+            pleaseEnterValidAmount: '@Html.Raw(Localizer["PleaseEnterValidAmount"].Value)',
+            cashDropRecordedSuccess: '@Html.Raw(Localizer["CashDropRecordedSuccess"].Value)',
+            failedToRecordCashDrop: '@Html.Raw(Localizer["FailedToRecordCashDrop"].Value)'
+        };
+
+        $(document).ready(function() {
+            @if (hasOpenSession)
+            {
+                <text>
+                loadCurrentSession();
+                setInterval(loadCurrentSession, 30000); // Refresh every 30 seconds
+                </text>
+            }
+        });
+
+        function loadCurrentSession() {
+            $.get('@Url.Action("GetOpenSession")', function(response) {
+                if (response.success) {
+                    const summary = response.data.summary;
+                    const session = response.data;
+                    
+                    // Update stats
+                    $('#todaySales').text('$' + summary.totalSales.toFixed(2));
+                    $('#todayTransactions').text(summary.totalTransactions);
+                    $('#expectedCash').text('$' + summary.expectedCash.toFixed(2));
+                    $('#cashDrops').text('$' + summary.totalCashDrops.toFixed(2));
+                    
+                    // Update session card
+                    const html = `
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.openedAt}</small>
+                                <h6>${new Date(session.openedAt).toLocaleString()}</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.openingCash}</small>
+                                <h6>$${session.openingCash.toFixed(2)}</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.sessionId}</small>
+                                <h6>#${session.sessionId}</h6>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.totalSales}</small>
+                                <h5 class="text-success">$${summary.totalSales.toFixed(2)}</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.transactions}</small>
+                                <h5>${summary.totalTransactions}</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.expectedCash}</small>
+                                <h5 class="text-info">$${summary.expectedCash.toFixed(2)}</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">${window.cashDrawerLocalizedStrings.cashDrops}</small>
+                                <h5 class="text-warning">$${summary.totalCashDrops.toFixed(2)}</h5>
+                            </div>
+                        </div>
+                    `;
+                    $('#currentSessionCard').html(html);
+                }
+            });
+        }
+
+        let cashDropModal;
+        function showCashDropModal() {
+            if (!cashDropModal) {
+                cashDropModal = new bootstrap.Modal(document.getElementById('cashDropModal'));
+            }
+            cashDropModal.show();
+        }
+
+        function submitCashDrop() {
+            const amount = parseFloat($('#cashDropAmount').val());
+            const reason = $('#cashDropReason').val();
+            const notes = $('#cashDropNotes').val();
+
+            if (!amount || amount <= 0) {
+                toastr.error(window.cashDrawerLocalizedStrings.pleaseEnterValidAmount);
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("AddCashDrop")',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    sessionId: @(openSessionId ?? 0),
+                    amount: amount,
+                    reason: reason,
+                    notes: notes
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(window.cashDrawerLocalizedStrings.cashDropRecordedSuccess);
+                        cashDropModal.hide();
+                        $('#cashDropForm')[0].reset();
+                        loadCurrentSession();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error(window.cashDrawerLocalizedStrings.failedToRecordCashDrop);
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+</style>

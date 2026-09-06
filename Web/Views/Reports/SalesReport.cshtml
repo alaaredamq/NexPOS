@@ -1,0 +1,426 @@
+@model Application.DTOs.Reports.SalesReportRequest
+
+@{
+    ViewData["Title"] = "Sales Report";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Sales Report Generator
+                    </h4>
+                    <p class="card-subtitle text-muted">Generate detailed sales reports with custom filters</p>
+                </div>
+                <div class="card-body">
+                    <!-- Report Filters -->
+                    <form id="salesReportForm" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDate" value="@Model.StartDate.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate" value="@Model.EndDate.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">Report Type</label>
+                                    @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                    {
+                                        Id = "reportType",
+                                        Name = "reportType",
+                                        Placeholder = "Select report type",
+                                        Items = new List<Web.Models.Shared.Select2Item>
+                                        {
+                                            new() { Id = "daily", Text = "Daily", Selected = Model.ReportType == "daily" },
+                                            new() { Id = "weekly", Text = "Weekly", Selected = Model.ReportType == "weekly" },
+                                            new() { Id = "monthly", Text = "Monthly", Selected = Model.ReportType == "monthly" },
+                                            new() { Id = "yearly", Text = "Yearly", Selected = Model.ReportType == "yearly" }
+                                        }
+                                    })
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button type="button" class="btn btn-primary" onclick="generateReport()">
+                                            <i class="fas fa-chart-bar me-2"></i>Generate Report
+                                        </button>
+                                        <button type="button" class="btn btn-success" onclick="exportReport()">
+                                            <i class="fas fa-download me-2"></i>Export
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeProductDetails" @(Model.IncludeProductDetails ? "checked" : "")>
+                                    <label class="form-check-label" for="includeProductDetails">
+                                        Include Product Details
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeCategoryBreakdown" @(Model.IncludeCategoryBreakdown ? "checked" : "")>
+                                    <label class="form-check-label" for="includeCategoryBreakdown">
+                                        Include Category Breakdown
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includePaymentMethodBreakdown" @(Model.IncludePaymentMethodBreakdown ? "checked" : "")>
+                                    <label class="form-check-label" for="includePaymentMethodBreakdown">
+                                        Include Payment Method Breakdown
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Loading Indicator -->
+                    <div id="loadingIndicator" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Generating report...</p>
+                    </div>
+
+                    <!-- Report Results -->
+                    <div id="reportResults" style="display: none;">
+                        <!-- Summary Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Total Sales</h6>
+                                                <h3 id="totalSales">$0.00</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-dollar-sign fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Total Orders</h6>
+                                                <h3 id="totalOrders">0</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-shopping-cart fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Avg Order Value</h6>
+                                                <h3 id="avgOrderValue">$0.00</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-chart-line fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Items Sold</h6>
+                                                <h3 id="totalItemsSold">0</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-box fa-2x"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts and Tables -->
+                        <div class="row">
+                            <!-- Daily Sales Chart -->
+                            <div class="col-md-6" id="dailySalesSection" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Daily Sales Trend</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="dailySalesChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Top Products Table -->
+                            <div class="col-md-6" id="topProductsSection" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Top Products</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped" id="topProductsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Product</th>
+                                                        <th>Quantity</th>
+                                                        <th>Revenue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Category Breakdown -->
+                            <div class="col-md-6" id="categorySection" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Sales by Category</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="categoryChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method Breakdown -->
+                            <div class="col-md-6" id="paymentMethodSection" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Sales by Payment Method</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="paymentMethodChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Chart.js (UMD) is loaded globally by _Layout — no per-page CDN include (works offline). *@
+    <script>
+        function generateReport() {
+            const request = {
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                reportType: $('#reportType').val(),
+                includeProductDetails: $('#includeProductDetails').is(':checked'),
+                includeCategoryBreakdown: $('#includeCategoryBreakdown').is(':checked'),
+                includePaymentMethodBreakdown: $('#includePaymentMethodBreakdown').is(':checked')
+            };
+
+            $('#loadingIndicator').show();
+            $('#reportResults').hide();
+
+            $.post('@Url.Action("GenerateSalesReport", "Reports")', request, function(response) {
+                $('#loadingIndicator').hide();
+                
+                if (response.success) {
+                    displayReport(response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            }).fail(function() {
+                $('#loadingIndicator').hide();
+                toastr.error('An error occurred while generating the report');
+            });
+        }
+
+        function displayReport(data) {
+            // Update summary cards
+            $('#totalSales').text('$' + data.totalSales.toFixed(2));
+            $('#totalOrders').text(data.totalOrders);
+            $('#avgOrderValue').text('$' + data.averageOrderValue.toFixed(2));
+            $('#totalItemsSold').text(data.totalItemsSold);
+
+            // Show daily sales chart if data available
+            if (data.dailySales && data.dailySales.length > 0) {
+                $('#dailySalesSection').show();
+                createDailySalesChart(data.dailySales);
+            }
+
+            // Show top products if data available
+            if (data.topProducts && data.topProducts.length > 0) {
+                $('#topProductsSection').show();
+                populateTopProductsTable(data.topProducts);
+            }
+
+            // Show category breakdown if data available
+            if (data.categorySales && data.categorySales.length > 0) {
+                $('#categorySection').show();
+                createCategoryChart(data.categorySales);
+            }
+
+            // Show payment method breakdown if data available
+            if (data.paymentMethodSales && data.paymentMethodSales.length > 0) {
+                $('#paymentMethodSection').show();
+                createPaymentMethodChart(data.paymentMethodSales);
+            }
+
+            $('#reportResults').show();
+        }
+
+        function createDailySalesChart(dailySales) {
+            const ctx = document.getElementById('dailySalesChart').getContext('2d');
+            
+            if (window.dailySalesChart) {
+                window.dailySalesChart.destroy();
+            }
+
+            window.dailySalesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dailySales.map(d => formatDate(d.date)),
+                    datasets: [{
+                        label: 'Sales ($)',
+                        data: dailySales.map(d => d.sales),
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateTopProductsTable(topProducts) {
+            const tbody = $('#topProductsTable tbody');
+            tbody.empty();
+
+            topProducts.forEach(product => {
+                tbody.append(`
+                    <tr>
+                        <td>${product.productName}</td>
+                        <td>${product.quantitySold}</td>
+                        <td>$${product.totalRevenue.toFixed(2)}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function createCategoryChart(categorySales) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            if (window.categoryChart) {
+                window.categoryChart.destroy();
+            }
+
+            window.categoryChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: categorySales.map(c => c.categoryName),
+                    datasets: [{
+                        data: categorySales.map(c => c.totalSales),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                            '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPaymentMethodChart(paymentMethodSales) {
+            const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+            
+            if (window.paymentMethodChart) {
+                window.paymentMethodChart.destroy();
+            }
+
+            window.paymentMethodChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentMethodSales.map(p => p.paymentMethodName),
+                    datasets: [{
+                        data: paymentMethodSales.map(p => p.totalSales),
+                        backgroundColor: [
+                            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportReport() {
+            const request = {
+                startDate: $('#startDate').val(),
+                endDate: $('#endDate').val(),
+                reportType: $('#reportType').val(),
+                includeProductDetails: $('#includeProductDetails').is(':checked'),
+                includeCategoryBreakdown: $('#includeCategoryBreakdown').is(':checked'),
+                includePaymentMethodBreakdown: $('#includePaymentMethodBreakdown').is(':checked')
+            };
+
+            $.post('@Url.Action("ExportSalesReport", "Reports")', request, function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+    </script>
+}

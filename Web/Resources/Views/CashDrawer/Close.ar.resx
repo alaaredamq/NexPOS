@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="CloseCashDrawer" xml:space="preserve">
+    <value>إغلاق درج النقود</value>
+  </data>
+  <data name="SessionSummary" xml:space="preserve">
+    <value>ملخص الجلسة</value>
+  </data>
+  <data name="SessionId" xml:space="preserve">
+    <value>معرف الجلسة</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>تم الفتح في</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>النقد الافتتاحي</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="CashDrops" xml:space="preserve">
+    <value>إيداعات النقود</value>
+  </data>
+  <data name="ExpectedCash" xml:space="preserve">
+    <value>النقد المتوقع</value>
+  </data>
+  <data name="CashReconciliation" xml:space="preserve">
+    <value>تسوية النقد</value>
+  </data>
+  <data name="Important" xml:space="preserve">
+    <value>مهم</value>
+  </data>
+  <data name="CountCashCarefully" xml:space="preserve">
+    <value>عد النقود بعناية قبل الإغلاق. سيتم تسجيل أي فرق.</value>
+  </data>
+  <data name="ActualCashInDrawer" xml:space="preserve">
+    <value>النقد الفعلي في الدرج</value>
+  </data>
+  <data name="ExpectedAmount" xml:space="preserve">
+    <value>المبلغ المتوقع</value>
+  </data>
+  <data name="CashDifference" xml:space="preserve">
+    <value>فرق النقد</value>
+  </data>
+  <data name="ClosingNotes" xml:space="preserve">
+    <value>ملاحظات الإغلاق</value>
+  </data>
+  <data name="ClosingNotesPlaceholder" xml:space="preserve">
+    <value>أضف أي ملاحظات حول إغلاق هذه الجلسة...</value>
+  </data>
+  <data name="ClosingNotesHint" xml:space="preserve">
+    <value>ملاحظة: يجب شرح أي فرق في النقد هنا.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="PleaseEnterValidActualCash" xml:space="preserve">
+    <value>الرجاء إدخال مبلغ نقدي فعلي صالح</value>
+  </data>
+  <data name="SignificantCashDifferenceWarning" xml:space="preserve">
+    <value>يوجد فرق نقدي كبير بقيمة ${0}. هل أنت متأكد من الإغلاق دون إضافة ملاحظات؟</value>
+  </data>
+  <data name="ClosingProcessing" xml:space="preserve">
+    <value>جاري الإغلاق...</value>
+  </data>
+  <data name="CashDrawerClosedSuccessfully" xml:space="preserve">
+    <value>تم إغلاق درج النقود بنجاح!</value>
+  </data>
+  <data name="FailedToCloseCashDrawer" xml:space="preserve">
+    <value>فشل في إغلاق درج النقود</value>
+  </data>
+  <data name="CashOverage" xml:space="preserve">
+    <value>فائض النقد</value>
+  </data>
+  <data name="CashShortage" xml:space="preserve">
+    <value>عجز النقد</value>
+  </data>
+  <data name="PerfectBalance" xml:space="preserve">
+    <value>توازن مثالي</value>
+  </data>
+  <data name="Surplus" xml:space="preserve">
+    <value>فائض</value>
+  </data>
+  <data name="Deficit" xml:space="preserve">
+    <value>عجز</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>متوازن</value>
+  </data>
+</root>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ReportsAndAnalytics" xml:space="preserve">
+    <value>Reports &amp; Analytics</value>
+  </data>
+  <data name="ReportsAndAnalyticsDashboard" xml:space="preserve">
+    <value>Reports &amp; Analytics Dashboard</value>
+  </data>
+  <data name="ComprehensiveSalesAnalyticsAndReportingTools" xml:space="preserve">
+    <value>Comprehensive sales analytics and reporting tools</value>
+  </data>
+  <data name="TodaysSales" xml:space="preserve">
+    <value>Today's Sales</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>This Month</value>
+  </data>
+  <data name="ThisYear" xml:space="preserve">
+    <value>This Year</value>
+  </data>
+  <data name="AverageOrder" xml:space="preserve">
+    <value>Average Order</value>
+  </data>
+  <data name="PerTransaction" xml:space="preserve">
+    <value>Per transaction</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>orders</value>
+  </data>
+  <data name="SalesReports" xml:space="preserve">
+    <value>Sales Reports</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>Analytics</value>
+  </data>
+  <data name="SalesReport" xml:space="preserve">
+    <value>Sales Report</value>
+  </data>
+  <data name="CustomPeriod" xml:space="preserve">
+    <value>Custom period</value>
+  </data>
+  <data name="GenerateDetailedSalesReportsWithCustomDateRangesAndFilters" xml:space="preserve">
+    <value>Generate detailed sales reports with custom date ranges and filters.</value>
+  </data>
+  <data name="DailySalesReport" xml:space="preserve">
+    <value>Daily Sales Report</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="ViewTodaysSalesPerformanceAndKeyMetrics" xml:space="preserve">
+    <value>View today's sales performance and key metrics.</value>
+  </data>
+  <data name="MonthlySalesReport" xml:space="preserve">
+    <value>Monthly Sales Report</value>
+  </data>
+  <data name="ComprehensiveMonthlySalesAnalysisAndTrends" xml:space="preserve">
+    <value>Comprehensive monthly sales analysis and trends.</value>
+  </data>
+  <data name="YearlySalesReport" xml:space="preserve">
+    <value>Yearly Sales Report</value>
+  </data>
+  <data name="AnnualSalesOverviewAndYearOverYearComparisons" xml:space="preserve">
+    <value>Annual sales overview and year-over-year comparisons.</value>
+  </data>
+  <data name="TopProducts" xml:space="preserve">
+    <value>Top Products</value>
+  </data>
+  <data name="BestSellers" xml:space="preserve">
+    <value>Best sellers</value>
+  </data>
+  <data name="ViewYourBestSellingProductsAndPerformanceMetrics" xml:space="preserve">
+    <value>View your best-selling products and performance metrics.</value>
+  </data>
+  <data name="CategoryAnalysis" xml:space="preserve">
+    <value>Category Analysis</value>
+  </data>
+  <data name="ByCategory" xml:space="preserve">
+    <value>By category</value>
+  </data>
+  <data name="SalesBreakdownByProductCategories" xml:space="preserve">
+    <value>Sales breakdown by product categories.</value>
+  </data>
+  <data name="SalesTrend" xml:space="preserve">
+    <value>Sales Trend</value>
+  </data>
+  <data name="TimeSeries" xml:space="preserve">
+    <value>Time series</value>
+  </data>
+  <data name="VisualizeSalesTrendsOverTimeWithInteractiveCharts" xml:space="preserve">
+    <value>Visualize sales trends over time with interactive charts.</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>Payment Methods</value>
+  </data>
+  <data name="PaymentAnalysis" xml:space="preserve">
+    <value>Payment analysis</value>
+  </data>
+  <data name="AnalyzeSalesPerformanceByPaymentMethods" xml:space="preserve">
+    <value>Analyze sales performance by payment methods.</value>
+  </data>
+  <data name="Report" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="TotalOrders" xml:space="preserve">
+    <value>Total Orders</value>
+  </data>
+  <data name="AverageOrderValue" xml:space="preserve">
+    <value>Average Order Value</value>
+  </data>
+  <data name="ItemsSold" xml:space="preserve">
+    <value>Items Sold</value>
+  </data>
+  <data name="TopProductsLast30Days" xml:space="preserve">
+    <value>Top Products (Last 30 Days)</value>
+  </data>
+  <data name="CategoryAnalysisLast30Days" xml:space="preserve">
+    <value>Category Analysis (Last 30 Days)</value>
+  </data>
+  <data name="SalesTrendLast30Days" xml:space="preserve">
+    <value>Sales Trend (Last 30 Days)</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Rank</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="QuantitySold" xml:space="preserve">
+    <value>Quantity Sold</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="AvgPrice" xml:space="preserve">
+    <value>Avg Price</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Sales" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+  <data name="Percentage" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplemented" xml:space="preserve">
+    <value>Export functionality will be implemented with PDF/Excel generation</value>
+  </data>
+  <data name="Avg" xml:space="preserve">
+    <value>Avg</value>
+  </data>
+</root>

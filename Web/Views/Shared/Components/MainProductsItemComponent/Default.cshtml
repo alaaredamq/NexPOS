@@ -1,0 +1,57 @@
+@using Microsoft.EntityFrameworkCore
+@model List<Core.DTOs.ProductDTO>
+@foreach (var product in Model) {
+    var currencyNotation = product.Currency?.Notation ?? "LBP";
+    var currencyCode = product.Currency?.Code ?? "LBP";
+    var hasDiscount = product.HasSupplierDiscount;
+    var effectivePrice = product.EffectivePrice;
+    <div class="product-card add-to-cart-btn" 
+         data-category="@product.CategoryId" 
+         data-product-id="@product.Id"
+         data-product-name="@product.Name"
+         data-product-price="@effectivePrice"
+         data-original-price="@product.SellingPrice"
+         data-supplier-discount="@product.SupplierDiscountRate"
+         data-product-sku="@product.Barcode"
+         data-currency-id="@product.CurrencyId"
+         data-currency-code="@currencyCode"
+         data-currency-notation="@currencyNotation"
+         data-is-pack="@(product.IsPack ? "true" : "false")"
+         data-pack-size="@(product.PackSize ?? 0)"
+         data-single-product-id="@(product.SingleProductId ?? 0)"
+         data-product-unit="@(product.Unit ?? "piece")">
+        
+        <div class="product-info">
+            <div class="product-name">
+                @product.Name
+                @if (product.IsPack)
+                {
+                    <span class="badge bg-info ms-2">Pack of @(product.PackSize ?? 0)</span>
+                }
+            </div>
+            @if (hasDiscount)
+            {
+                <div class="product-price">@currencyNotation @effectivePrice.ToString("N2")</div>
+                <div class="product-original-price" style="text-decoration: line-through; color: #6c757d; font-size: 0.75rem;">@currencyNotation @product.SellingPrice.ToString("N2")</div>
+            }
+            else
+            {
+                <div class="product-price">@currencyNotation @product.SellingPrice.ToString("N2")</div>
+            }
+            <div class="product-stock @(product.StockQuantity <= 0 ? "out-of-stock" : product.StockQuantity <= (product.MinimumStock ?? 5) ? "low-stock" : "")">
+                @if (product.StockQuantity <= 0)
+                {
+                    @:<i class="fas fa-times-circle"></i> Out of Stock
+                }
+                else if (product.StockQuantity <= (product.MinimumStock ?? 5))
+                {
+                    @:<i class="fas fa-exclamation-triangle"></i> Low Stock
+                }
+                else
+                {
+                    @:<i class="fas fa-check-circle"></i> @product.StockQuantity units
+                }
+            </div>
+        </div>
+    </div>
+}

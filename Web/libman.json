@@ -1,0 +1,88 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "select2@4.1.0-rc.0",
+      "destination": "wwwroot/lib/select2/",
+      "files": [
+        "css/select2.min.css",
+        "js/select2.min.js"
+      ]
+    },
+    {
+      "library": "datatables.net@1.13.6",
+      "destination": "wwwroot/lib/datatables/",
+      "files": [
+        "jquery.dataTables.min.js"
+      ]
+    },
+    {
+      "library": "datatables.net-dt@1.13.6",
+      "destination": "wwwroot/lib/datatables/",
+      "files": [
+        "css/jquery.dataTables.min.css"
+      ]
+    },
+    {
+      "library": "chart.js@4.4.0",
+      "destination": "wwwroot/lib/chart.js/",
+      "provider": "jsdelivr",
+      "files": [
+        "dist/chart.umd.min.js"
+      ]
+    },
+    {
+      "library": "toastr.js@2.1.4",
+      "destination": "wwwroot/lib/toastr/",
+      "files": [
+        "toastr.min.css",
+        "toastr.min.js"
+      ]
+    },
+    {
+      "library": "sweetalert2@11.7.32",
+      "destination": "wwwroot/lib/sweetalert2/",
+      "files": [
+        "sweetalert2.min.css",
+        "sweetalert2.min.js"
+      ]
+    },
+    {
+      "library": "moment.js@2.29.4",
+      "destination": "wwwroot/lib/moment.js/",
+      "files": [
+        "moment.min.js"
+      ]
+    },
+    {
+      "library": "lodash.js@4.17.21",
+      "destination": "wwwroot/lib/lodash/",
+      "files": [
+        "lodash.min.js"
+      ]
+    },
+    {
+      "library": "axios@1.5.0",
+      "destination": "wwwroot/lib/axios/",
+      "files": [
+        "axios.min.js"
+      ]
+    },
+    {
+      "library": "font-awesome@6.4.2",
+      "destination": "wwwroot/lib/font-awesome/",
+      "files": [
+        "css/all.min.css",
+        "webfonts/fa-brands-400.ttf",
+        "webfonts/fa-brands-400.woff2",
+        "webfonts/fa-regular-400.ttf",
+        "webfonts/fa-regular-400.woff2",
+        "webfonts/fa-solid-900.ttf",
+        "webfonts/fa-solid-900.woff2",
+        "webfonts/fa-v4compatibility.ttf",
+        "webfonts/fa-v4compatibility.woff2"
+      ]
+    }
+  ]
+}

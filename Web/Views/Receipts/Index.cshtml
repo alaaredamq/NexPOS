@@ -1,0 +1,404 @@
+@{
+    ViewData["Title"] = Localizer["ReceiptManagement"].Value;
+    ViewData["Subtitle"] = Localizer["ManageAndViewSalesReceipts"].Value;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-receipt me-2"></i>@Localizer["ReceiptManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageAndViewSalesReceiptsGenerateReportsAndHandleVoidTransactions"]</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#searchModal">
+                    <i class="fas fa-search me-1"></i>@Localizer["SearchReceipts"]
+                </button>
+                <button class="btn btn-success" onclick="exportReceipts()">
+                    <i class="fas fa-download me-1"></i>@Localizer["Export"]
+                </button>
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#dateRangeModal">
+                    <i class="fas fa-calendar me-1"></i>@Localizer["DateRange"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon sales-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+5.2%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalSales">$0</div>
+                <div class="stats-label">@Localizer["TotalSales"]</div>
+                <div class="stats-change">@Localizer["VsYesterday"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon receipts-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+12</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalReceipts">0</div>
+                <div class="stats-label">@Localizer["TotalReceipts"]</div>
+                <div class="stats-change">@Localizer["Today"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon void-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="voidReceipts">0</div>
+                <div class="stats-label">@Localizer["VoidReceipts"]</div>
+                <div class="stats-change">@Localizer["Today"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon average-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+2.1%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="averageReceipt">$0</div>
+                <div class="stats-label">@Localizer["AverageReceipt"]</div>
+                <div class="stats-change">@Localizer["VsYesterday"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <ul class="nav nav-tabs card-header-tabs" id="receiptTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-receipts-tab" data-bs-toggle="tab" data-bs-target="#all-receipts" type="button" role="tab">
+                            <i class="fas fa-list me-1"></i>@Localizer["AllReceipts"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="recent-receipts-tab" data-bs-toggle="tab" data-bs-target="#recent-receipts" type="button" role="tab">
+                            <i class="fas fa-clock me-1"></i>@Localizer["RecentReceipts"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="void-receipts-tab" data-bs-toggle="tab" data-bs-target="#void-receipts" type="button" role="tab">
+                            <i class="fas fa-ban me-1"></i>@Localizer["VoidReceipts"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">
+                            <i class="fas fa-chart-bar me-1"></i>@Localizer["Analytics"]
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="receiptTabsContent">
+                    <!-- All Receipts Tab -->
+                    <div class="tab-pane fade show active" id="all-receipts" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "receiptsTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetReceipts", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 25,
+                            PageLengthMenu = new List<int> { 10, 25, 50, 100 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "receiptNumber", Title = Localizer["Receipt"].Value + " #", ClassName = "fw-bold" },
+                                new() { Data = "customerName", Title = Localizer["Customer"].Value },
+                                new() { Data = "cashierName", Title = Localizer["Cashier"].Value },
+                                new() { Data = "receiptDate", Title = Localizer["Date"].Value },
+                                new() { Data = "totalAmount", Title = Localizer["Amount"].Value, ClassName = "text-end fw-bold" },
+                                new() { Data = "paymentMethod", Title = Localizer["Payment"].Value },
+                                new() { Data = "statusBadge", Title = Localizer["Status"].Value, Orderable = false, ClassName = "text-center" },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 120
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[3, 'desc']]"
+                            }
+                        })
+                    </div>
+
+                    <!-- Recent Receipts Tab -->
+                    <div class="tab-pane fade" id="recent-receipts" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "recentReceiptsTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetRecentReceipts", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 10,
+                            PageLengthMenu = new List<int> { 10, 25, 50 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "receiptNumber", Title = Localizer["Receipt"].Value + " #", ClassName = "fw-bold" },
+                                new() { Data = "customerName", Title = Localizer["Customer"].Value },
+                                new() { Data = "totalAmount", Title = Localizer["Amount"].Value, ClassName = "text-end fw-bold" },
+                                new() { Data = "receiptDate", Title = Localizer["Date"].Value },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 120
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[3, 'desc']]"
+                            }
+                        })
+                    </div>
+
+                    <!-- Void Receipts Tab -->
+                    <div class="tab-pane fade" id="void-receipts" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "voidReceiptsTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetVoidReceipts", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 25,
+                            PageLengthMenu = new List<int> { 10, 25, 50, 100 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "receiptNumber", Title = Localizer["Receipt"].Value + " #", ClassName = "fw-bold" },
+                                new() { Data = "customerName", Title = Localizer["Customer"].Value },
+                                new() { Data = "totalAmount", Title = Localizer["Amount"].Value, ClassName = "text-end fw-bold" },
+                                new() { Data = "voidDate", Title = Localizer["VoidDate"].Value },
+                                new() { Data = "voidReason", Title = Localizer["Reason"].Value },
+                                new() { Data = "voidedBy", Title = Localizer["VoidedBy"].Value },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 80
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[3, 'desc']]"
+                            }
+                        })
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div class="tab-pane fade" id="analytics" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <h6>Payment Methods</h6>
+                                    <canvas id="paymentMethodsChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <h6>Daily Sales Trend</h6>
+                                    <canvas id="dailySalesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["SearchReceipts"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">@Localizer["SearchTerm"]</label>
+                    <input type="text" class="form-control" id="searchTerm" placeholder="@Localizer["ReceiptNumberCustomerNameOrPhone"]">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" onclick="searchReceipts()">@Localizer["Search"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Range Modal -->
+<div class="modal fade" id="dateRangeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["FilterByDateRange"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["StartDate"]</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["EndDate"]</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="filterByDateRange()">@Localizer["ApplyFilter"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Void Receipt Modal -->
+<div class="modal fade" id="voidReceiptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["VoidReceipt"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">@Localizer["ReasonForVoiding"]</label>
+                    <textarea class="form-control" id="voidReason" rows="3" placeholder="@Localizer["EnterReasonForVoidingThisReceipt"]"></textarea>
+                </div>
+                <div class="erp-alert erp-alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @Localizer["ThisActionCannotBeUndoneTheReceiptWillBeMarkedAsVoid"]
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmVoidReceipt()">@Localizer["VoidReceipt"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap5.min.js"></script>
+    <link href="~/lib/datatables/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.receiptsLocalizedStrings = {
+            pleaseEnterASearchTerm: '@Html.Raw(Localizer["PleaseEnterASearchTerm"].Value)',
+            pleaseSelectBothStartAndEndDates: '@Html.Raw(Localizer["PleaseSelectBothStartAndEndDates"].Value)',
+            pleaseEnterAReasonForVoiding: '@Html.Raw(Localizer["PleaseEnterAReasonForVoiding"].Value)',
+            receiptVoidedSuccessfully: '@Html.Raw(Localizer["ReceiptVoidedSuccessfully"].Value)',
+            failedToVoidReceipt: '@Html.Raw(Localizer["FailedToVoidReceipt"].Value)',
+            exportFunctionalityWillBeImplemented: '@Html.Raw(Localizer["ExportFunctionalityWillBeImplemented"].Value)'
+        };
+        
+        window.receiptsUrls = {
+            getStatsUrl: '@Url.Action("GetStats", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            getReceiptsUrl: '@Url.Action("GetReceipts", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            detailsUrl: '@Url.Action("Details", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            downloadPdfUrl: '@Url.Action("DownloadPdf", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            voidReceiptUrl: '@Url.Action("VoidReceipt", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+        };
+    </script>
+    <script src="~/js/Pages/Receipts/Index.js"></script>
+}

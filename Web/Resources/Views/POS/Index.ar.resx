@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PointOfSale" xml:space="preserve">
+    <value>نقطة البيع</value>
+  </data>
+  <data name="ERPSystem" xml:space="preserve">
+    <value>NexPos</value>
+  </data>
+  <data name="Management" xml:space="preserve">
+    <value>الإدارة</value>
+  </data>
+  <data name="GoToManagement" xml:space="preserve">
+    <value>الذهاب إلى لوحة تحكم الإدارة</value>
+  </data>
+  <data name="ShoppingCart" xml:space="preserve">
+    <value>سلة التسوق</value>
+  </data>
+  <data name="ScanProductsToAdd" xml:space="preserve">
+    <value>امسح المنتجات للإضافة</value>
+  </data>
+  <data name="ScanBarcode" xml:space="preserve">
+    <value>امسح الباركود</value>
+  </data>
+  <data name="CartIsEmpty" xml:space="preserve">
+    <value>السلة فارغة</value>
+  </data>
+  <data name="StartAddingProductsToBegin" xml:space="preserve">
+    <value>ابدأ بإضافة المنتجات لبدء الدفع</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Qty" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>السعر</value>
+  </data>
+  <data name="Del" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="TotalUSD" xml:space="preserve">
+    <value>الإجمالي (دولار)</value>
+  </data>
+  <data name="TotalLBP" xml:space="preserve">
+    <value>الإجمالي (ليرة)</value>
+  </data>
+  <data name="Checkout" xml:space="preserve">
+    <value>الدفع</value>
+  </data>
+  <data name="Hold" xml:space="preserve">
+    <value>تعليق</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>مسح</value>
+  </data>
+  <data name="ProductCatalog" xml:space="preserve">
+    <value>كتالوج المنتجات</value>
+  </data>
+  <data name="BrowseAndAddProducts" xml:space="preserve">
+    <value>تصفح وأضف المنتجات</value>
+  </data>
+  <data name="AllProducts" xml:space="preserve">
+    <value>جميع المنتجات</value>
+  </data>
+  <data name="Retrieve" xml:space="preserve">
+    <value>استرجاع</value>
+  </data>
+  <data name="HeldCart" xml:space="preserve">
+    <value>سلة معلقة</value>
+  </data>
+  <data name="RetrieveHeldCart" xml:space="preserve">
+    <value>استرجاع السلة المعلقة</value>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>إضافة عنصر</value>
+  </data>
+  <data name="AddItemManual" xml:space="preserve">
+    <value>إضافة عنصر (يدوي)</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>يدوي</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>خصم</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>تطبيق</value>
+  </data>
+  <data name="ApplyDiscount" xml:space="preserve">
+    <value>تطبيق الخصم</value>
+  </data>
+  <data name="PriceCheck" xml:space="preserve">
+    <value>فحص السعر</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>فحص</value>
+  </data>
+  <data name="DeleteAll" xml:space="preserve">
+    <value>حذف الكل</value>
+  </data>
+  <data name="HeldCarts" xml:space="preserve">
+    <value>السلات المعلقة</value>
+  </data>
+  <data name="DeleteAllHeldCarts" xml:space="preserve">
+    <value>حذف جميع السلات المعلقة</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+</root>
+

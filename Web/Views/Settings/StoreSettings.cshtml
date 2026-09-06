@@ -1,0 +1,370 @@
+@model Application.DTOs.Settings.StoreSettingsDTO
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = Localizer["StoreSettings"];
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title">
+                            <i class="fas fa-store me-2"></i>
+                            @Localizer["StoreSettings"]
+                        </h4>
+                        <p class="card-subtitle text-muted">@Localizer["StoreSettingsDescription"]</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary" id="resetToDefaults">
+                            <i class="fas fa-undo me-1"></i> @Localizer["ResetToDefaults"]
+                        </button>
+                        <button type="button" class="btn btn-primary" id="saveSettings">
+                            <i class="fas fa-save me-1"></i> @Localizer["SaveChanges"]
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form id="storeSettingsForm">
+                        <div class="row">
+                            <!-- Store Information -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-building me-2"></i>@Localizer["StoreInformation"]</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="storeName" class="form-label">@Localizer["StoreName"] <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="storeName" value="@Model.StoreName" maxlength="200" required />
+                                            <div class="form-text">@Localizer["StoreNameHint"]</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="addressLine1" class="form-label">@Localizer["AddressLine1"]</label>
+                                            <input type="text" class="form-control" id="addressLine1" value="@Model.AddressLine1" maxlength="200" />
+                                            <div class="form-text">@Localizer["AddressLine1Hint"]</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="addressLine2" class="form-label">@Localizer["AddressLine2"]</label>
+                                            <input type="text" class="form-control" id="addressLine2" value="@Model.AddressLine2" maxlength="200" />
+                                            <div class="form-text">@Localizer["AddressLine2Hint"]</div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phone" class="form-label">@Localizer["Phone"]</label>
+                                                    <input type="text" class="form-control" id="phone" value="@Model.Phone" maxlength="50" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">@Localizer["Email"]</label>
+                                                    <input type="email" class="form-control" id="email" value="@Model.Email" maxlength="200" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="taxId" class="form-label">@Localizer["TaxId"]</label>
+                                                    <input type="text" class="form-control" id="taxId" value="@Model.TaxId" maxlength="50" />
+                                                    <div class="form-text">@Localizer["TaxIdHint"]</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="businessRegistrationNumber" class="form-label">@Localizer["BusinessRegistrationNumber"]</label>
+                                                    <input type="text" class="form-control" id="businessRegistrationNumber" value="@Model.BusinessRegistrationNumber" maxlength="50" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="website" class="form-label">@Localizer["Website"]</label>
+                                            <input type="text" class="form-control" id="website" value="@Model.Website" maxlength="200" placeholder="www.yourstore.com" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="socialMedia" class="form-label">@Localizer["SocialMedia"]</label>
+                                            <input type="text" class="form-control" id="socialMedia" value="@Model.SocialMedia" maxlength="100" placeholder="@@yourstore" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Receipt Settings -->
+                            <div class="col-lg-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>@Localizer["ReceiptSettings"]</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="receiptFooterMessage" class="form-label">@Localizer["ReceiptFooterMessage"]</label>
+                                            <input type="text" class="form-control" id="receiptFooterMessage" value="@Model.ReceiptFooterMessage" maxlength="500" />
+                                            <div class="form-text">@Localizer["ReceiptFooterMessageHint"]</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="footerLine1" class="form-label">@Localizer["FooterLine1"]</label>
+                                            <input type="text" class="form-control" id="footerLine1" value="@Model.FooterLine1" maxlength="200" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="footerLine2" class="form-label">@Localizer["FooterLine2"]</label>
+                                            <input type="text" class="form-control" id="footerLine2" value="@Model.FooterLine2" maxlength="200" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="footerLine3" class="form-label">@Localizer["FooterLine3"]</label>
+                                            <input type="text" class="form-control" id="footerLine3" value="@Model.FooterLine3" maxlength="200" />
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="currencySymbol" class="form-label">@Localizer["CurrencySymbol"]</label>
+                                                    <input type="text" class="form-control" id="currencySymbol" value="@Model.CurrencySymbol" maxlength="10" />
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="defaultLanguage" class="form-label">@Localizer["DefaultLanguage"]</label>
+                                                    <select class="form-select" id="defaultLanguage">
+                                                        @if (Model.DefaultLanguage == "en")
+                                                        {
+                                                            <option value="en" selected>English</option>
+                                                            <option value="ar">العربية</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="en">English</option>
+                                                            <option value="ar" selected>العربية</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="returnPolicyDays" class="form-label">@Localizer["ReturnPolicyDays"]</label>
+                                            <input type="number" class="form-control" id="returnPolicyDays" value="@Model.ReturnPolicyDays" min="0" max="365" />
+                                            <div class="form-text">@Localizer["ReturnPolicyDaysHint"]</div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="printLogo" @(Model.PrintLogo ? "checked" : "") />
+                                                    <label class="form-check-label" for="printLogo">@Localizer["PrintLogo"]</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="printBarcode" @(Model.PrintBarcode ? "checked" : "") />
+                                                    <label class="form-check-label" for="printBarcode">@Localizer["PrintBarcode"]</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="showTaxBreakdown" @(Model.ShowTaxBreakdown ? "checked" : "") />
+                                                    <label class="form-check-label" for="showTaxBreakdown">@Localizer["ShowTaxBreakdown"]</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" id="logoPathContainer" style="display: @(Model.PrintLogo ? "block" : "none");">
+                                            <label for="logoPath" class="form-label">@Localizer["LogoPath"]</label>
+                                            <input type="text" class="form-control" id="logoPath" value="@Model.LogoPath" maxlength="500" />
+                                            <div class="form-text">@Localizer["LogoPathHint"]</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Receipt Preview -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-eye me-2"></i>@Localizer["ReceiptPreview"]</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="receipt-preview bg-white p-4 mx-auto" style="max-width: 400px; border: 1px dashed #ccc; font-family: 'Courier New', monospace;">
+                                            <div class="text-center">
+                                                <h4 id="previewStoreName" class="mb-1">@Model.StoreName</h4>
+                                                <p id="previewAddress1" class="mb-0 small">@Model.AddressLine1</p>
+                                                <p id="previewAddress2" class="mb-0 small">@Model.AddressLine2</p>
+                                                <p id="previewPhone" class="mb-0 small">Phone: @Model.Phone</p>
+                                                <p id="previewTaxId" class="mb-2 small">Tax ID: @Model.TaxId</p>
+                                            </div>
+                                            <hr />
+                                            <p class="small mb-1">Receipt #: ORD-000001</p>
+                                            <p class="small mb-1">Date: @DateTime.Now.ToString("yyyy-MM-dd HH:mm")</p>
+                                            <p class="small mb-2">Customer: Walk-in Customer</p>
+                                            <hr />
+                                            <p class="small mb-1"><strong>Sample Product</strong></p>
+                                            <p class="small mb-2">1 x <span id="previewCurrency">@Model.CurrencySymbol</span>10.00 = <span id="previewCurrency2">@Model.CurrencySymbol</span>10.00</p>
+                                            <hr />
+                                            <p class="small mb-1"><strong>TOTAL: <span id="previewCurrency3">@Model.CurrencySymbol</span>10.00</strong></p>
+                                            <hr />
+                                            <div class="text-center">
+                                                <p id="previewFooterMessage" class="small mb-1"><strong>@Model.ReceiptFooterMessage.ToUpper()</strong></p>
+                                                <p id="previewFooterLine1" class="small mb-0">@Model.FooterLine1</p>
+                                                <p id="previewFooterLine2" class="small mb-0">@Model.FooterLine2</p>
+                                                <p id="previewFooterLine3" class="small mb-0">@Model.FooterLine3</p>
+                                                <p id="previewWebsite" class="small mt-2">Questions? Visit us at @Model.Website</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Live preview updates
+            $('#storeName').on('input', function() {
+                $('#previewStoreName').text($(this).val() || 'Store Name');
+            });
+            
+            $('#addressLine1').on('input', function() {
+                $('#previewAddress1').text($(this).val());
+            });
+            
+            $('#addressLine2').on('input', function() {
+                $('#previewAddress2').text($(this).val());
+            });
+            
+            $('#phone').on('input', function() {
+                $('#previewPhone').text('Phone: ' + $(this).val());
+            });
+            
+            $('#taxId').on('input', function() {
+                $('#previewTaxId').text('Tax ID: ' + $(this).val());
+            });
+            
+            $('#currencySymbol').on('input', function() {
+                var currency = $(this).val() || '$';
+                $('#previewCurrency, #previewCurrency2, #previewCurrency3').text(currency);
+            });
+            
+            $('#receiptFooterMessage').on('input', function() {
+                $('#previewFooterMessage').html('<strong>' + ($(this).val() || 'Thank you!').toUpperCase() + '</strong>');
+            });
+            
+            $('#footerLine1').on('input', function() {
+                $('#previewFooterLine1').text($(this).val());
+            });
+            
+            $('#footerLine2').on('input', function() {
+                $('#previewFooterLine2').text($(this).val());
+            });
+            
+            $('#footerLine3').on('input', function() {
+                $('#previewFooterLine3').text($(this).val());
+            });
+            
+            $('#website').on('input', function() {
+                var website = $(this).val();
+                if (website) {
+                    $('#previewWebsite').text('Questions? Visit us at ' + website);
+                } else {
+                    $('#previewWebsite').text('');
+                }
+            });
+            
+            // Toggle logo path visibility
+            $('#printLogo').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#logoPathContainer').slideDown();
+                } else {
+                    $('#logoPathContainer').slideUp();
+                }
+            });
+            
+            // Save settings
+            $('#saveSettings').on('click', function() {
+                var data = {
+                    storeName: $('#storeName').val(),
+                    addressLine1: $('#addressLine1').val(),
+                    addressLine2: $('#addressLine2').val(),
+                    phone: $('#phone').val(),
+                    email: $('#email').val(),
+                    taxId: $('#taxId').val(),
+                    website: $('#website').val(),
+                    receiptFooterMessage: $('#receiptFooterMessage').val(),
+                    footerLine1: $('#footerLine1').val(),
+                    footerLine2: $('#footerLine2').val(),
+                    footerLine3: $('#footerLine3').val(),
+                    currencySymbol: $('#currencySymbol').val(),
+                    defaultLanguage: $('#defaultLanguage').val(),
+                    printLogo: $('#printLogo').is(':checked'),
+                    logoPath: $('#logoPath').val(),
+                    returnPolicyDays: parseInt($('#returnPolicyDays').val()) || 30,
+                    showTaxBreakdown: $('#showTaxBreakdown').is(':checked'),
+                    printBarcode: $('#printBarcode').is(':checked'),
+                    socialMedia: $('#socialMedia').val(),
+                    businessRegistrationNumber: $('#businessRegistrationNumber').val()
+                };
+                
+                $.ajax({
+                    url: '@Url.Action("UpdateStoreSettings", "Settings")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message || '@Localizer["SettingsSavedSuccessfully"]');
+                        } else {
+                            toastr.error(response.message || '@Localizer["ErrorSavingSettings"]');
+                        }
+                    },
+                    error: function() {
+                        toastr.error('@Localizer["ErrorSavingSettings"]');
+                    }
+                });
+            });
+            
+            // Reset to defaults
+            $('#resetToDefaults').on('click', function() {
+                if (confirm('@Localizer["ConfirmResetToDefaults"]')) {
+                    $.ajax({
+                        url: '@Url.Action("ResetStoreSettings", "Settings")',
+                        type: 'POST',
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(response.message || '@Localizer["SettingsResetSuccessfully"]');
+                                // Reload page to show reset values
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            } else {
+                                toastr.error(response.message || '@Localizer["ErrorResettingSettings"]');
+                            }
+                        },
+                        error: function() {
+                            toastr.error('@Localizer["ErrorResettingSettings"]');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

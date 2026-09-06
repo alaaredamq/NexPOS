@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="LowStockReport" xml:space="preserve">
+    <value>Low Stock Report</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>Print Report</value>
+  </data>
+  <data name="ExportPDF" xml:space="preserve">
+    <value>Export PDF</value>
+  </data>
+  <data name="BackToInventory" xml:space="preserve">
+    <value>Back to Inventory</value>
+  </data>
+  <data name="LowStockAlertSummary" xml:space="preserve">
+    <value>Low Stock Alert Summary</value>
+  </data>
+  <data name="ProductsWithLowStock" xml:space="preserve">
+    <value>Products with Low Stock</value>
+  </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Out of Stock</value>
+  </data>
+  <data name="TotalUnitsAvailable" xml:space="preserve">
+    <value>Total Units Available</value>
+  </data>
+  <data name="TotalValueAtRisk" xml:space="preserve">
+    <value>Total Value at Risk</value>
+  </data>
+  <data name="LowStockProductsDetails" xml:space="preserve">
+    <value>Low Stock Products Details</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>Current Stock</value>
+  </data>
+  <data name="MinimumStock" xml:space="preserve">
+    <value>Minimum Stock</value>
+  </data>
+  <data name="StockDeficit" xml:space="preserve">
+    <value>Stock Deficit</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Priority" xml:space="preserve">
+    <value>Priority</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>High</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>No Category</value>
+  </data>
+  <data name="AdjustCriticalStock" xml:space="preserve">
+    <value>Adjust Critical Stock</value>
+  </data>
+  <data name="CreateBulkReorder" xml:space="preserve">
+    <value>Create Bulk Reorder</value>
+  </data>
+  <data name="GenerateReorderReport" xml:space="preserve">
+    <value>Generate Reorder Report</value>
+  </data>
+  <data name="GreatNews" xml:space="preserve">
+    <value>Great News!</value>
+  </data>
+  <data name="AllProductsHaveSufficientStockLevels" xml:space="preserve">
+    <value>All products have sufficient stock levels.</value>
+  </data>
+  <data name="AllProductsSufficientStock" xml:space="preserve">
+    <value>All products have sufficient stock levels.</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>Adjust Stock</value>
+  </data>
+  <data name="CreateReorder" xml:space="preserve">
+    <value>Create Reorder</value>
+  </data>
+  <data name="CreateReorderText" xml:space="preserve">
+    <value>This will create a purchase order for this product.</value>
+  </data>
+  <data name="ConfirmCreateReorder" xml:space="preserve">
+    <value>Create Reorder</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ReorderCreatedSuccess" xml:space="preserve">
+    <value>Reorder created successfully!</value>
+  </data>
+  <data name="SetMinimumStock" xml:space="preserve">
+    <value>Set Minimum Stock</value>
+  </data>
+  <data name="MinimumStockLevel" xml:space="preserve">
+    <value>Minimum Stock Level</value>
+  </data>
+  <data name="EnterMinimumStockLevel" xml:space="preserve">
+    <value>Enter minimum stock level</value>
+  </data>
+  <data name="Set" xml:space="preserve">
+    <value>Set</value>
+  </data>
+  <data name="PleaseEnterValidMinimumStock" xml:space="preserve">
+    <value>Please enter a valid minimum stock level</value>
+  </data>
+  <data name="MinimumStockUpdatedSuccess" xml:space="preserve">
+    <value>Minimum stock level updated successfully!</value>
+  </data>
+  <data name="FailedToUpdateMinimumStock" xml:space="preserve">
+    <value>Failed to update minimum stock level</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>An error occurred while updating minimum stock level</value>
+  </data>
+  <data name="AdjustCriticalStockText" xml:space="preserve">
+    <value>This will help you adjust stock for all critical products.</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="BulkStockAdjustmentComingSoon" xml:space="preserve">
+    <value>Bulk stock adjustment feature will be implemented soon.</value>
+  </data>
+  <data name="CreateBulkReorderText" xml:space="preserve">
+    <value>This will create purchase orders for all low stock products.</value>
+  </data>
+  <data name="CreateOrders" xml:space="preserve">
+    <value>Create Orders</value>
+  </data>
+  <data name="BulkReorderCreatedSuccess" xml:space="preserve">
+    <value>Bulk reorder created successfully!</value>
+  </data>
+  <data name="ReorderReportComingSoon" xml:space="preserve">
+    <value>Reorder report generation will be implemented soon.</value>
+  </data>
+  <data name="PDFExportComingSoon" xml:space="preserve">
+    <value>PDF export functionality will be implemented soon.</value>
+  </data>
+</root>

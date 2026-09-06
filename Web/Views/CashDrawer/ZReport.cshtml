@@ -1,0 +1,355 @@
+@model Application.IServices.Sales.ZReport
+@{
+    ViewData["Title"] = "Z-Report";
+    Layout = null; // No layout for clean printing
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Report - Session @Model.SessionId</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .report-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .report-header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .report-section {
+            padding: 20px 30px;
+            border-bottom: 2px dashed #ddd;
+        }
+
+        .report-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .total-row {
+            font-size: 20px;
+            padding: 15px 0;
+            background: #f8f9fa;
+            margin: 10px -10px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .cash-difference {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .difference-positive {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .difference-negative {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .difference-zero {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .print-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .transactions-table {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .transactions-table th {
+            background: #f8f9fa;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .transactions-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        @@media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .report-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+
+            .print-actions {
+                display: none !important;
+            }
+
+            .report-section {
+                page-break-inside: avoid;
+            }
+
+            @@page {
+                margin: 1cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Print Actions -->
+    <div class="print-actions">
+        <button class="btn btn-success btn-lg me-2" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+        <a href="@Url.Action("Index", "CashDrawer")" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times me-2"></i>Close
+        </a>
+    </div>
+
+    <div class="report-container">
+        <!-- Header -->
+        <div class="report-header">
+            <h1><i class="fas fa-file-invoice-dollar me-2"></i>Z-REPORT</h1>
+            <h3>End of Day Summary</h3>
+            <p class="mb-0">Session #@Model.SessionId</p>
+        </div>
+
+        <!-- Session Information -->
+        <div class="report-section">
+            <div class="section-title">SESSION INFORMATION</div>
+            <div class="info-row">
+                <span class="info-label">Cashier:</span>
+                <span class="info-value">@Model.CashierName</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Opened At:</span>
+                <span class="info-value">@Model.OpenedAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Closed At:</span>
+                <span class="info-value">@Model.ClosedAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Duration:</span>
+                <span class="info-value">@((Model.ClosedAt - Model.OpenedAt).TotalHours.ToString("F1")) hours</span>
+            </div>
+        </div>
+
+        <!-- Sales Summary -->
+        <div class="report-section">
+            <div class="section-title">SALES SUMMARY</div>
+            <div class="info-row">
+                <span class="info-label">Total Transactions:</span>
+                <span class="info-value">@Model.TotalTransactions</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Gross Sales:</span>
+                <span class="info-value">$@Model.TotalSales.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Discounts:</span>
+                <span class="info-value text-danger">-$@Model.TotalDiscounts.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Adjustments:</span>
+                <span class="info-value">@(Model.TotalAdjustments >= 0 ? "+" : "")$@Model.TotalAdjustments.ToString("F2")</span>
+            </div>
+            <div class="info-row total-row">
+                <span class="info-label">Net Sales:</span>
+                <span class="info-value text-success">$@Model.NetSales.ToString("F2")</span>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="report-section">
+            <div class="section-title">PAYMENT METHODS</div>
+            <div class="info-row">
+                <span class="info-label">Cash:</span>
+                <span class="info-value">$@Model.CashSales.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Card:</span>
+                <span class="info-value">$@Model.CardSales.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Other:</span>
+                <span class="info-value">$@Model.OtherPayments.ToString("F2")</span>
+            </div>
+        </div>
+
+        <!-- Cash Reconciliation -->
+        <div class="report-section">
+            <div class="section-title">CASH RECONCILIATION</div>
+            <div class="info-row">
+                <span class="info-label">Opening Cash:</span>
+                <span class="info-value">$@Model.OpeningCash.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Cash Sales:</span>
+                <span class="info-value">+$@Model.CashSales.ToString("F2")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Cash Drops (@Model.CashDropCount):</span>
+                <span class="info-value text-warning">-$@Model.TotalCashDrops.ToString("F2")</span>
+            </div>
+            <div class="info-row total-row">
+                <span class="info-label">Expected Cash:</span>
+                <span class="info-value">$@Model.ExpectedCash.ToString("F2")</span>
+            </div>
+            <div class="info-row total-row">
+                <span class="info-label">Actual Cash:</span>
+                <span class="info-value">$@Model.ActualCash.ToString("F2")</span>
+            </div>
+            
+            <!-- Cash Difference -->
+            <div class="cash-difference @(Model.CashDifference == 0 ? "difference-zero" : Model.CashDifference > 0 ? "difference-positive" : "difference-negative")">
+                @if (Model.CashDifference == 0)
+                {
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span>PERFECT BALANCE!</span>
+                }
+                else if (Model.CashDifference > 0)
+                {
+                    <i class="fas fa-arrow-up me-2"></i>
+                    <span>OVERAGE: +$@Model.CashDifference.ToString("F2")</span>
+                }
+                else
+                {
+                    <i class="fas fa-arrow-down me-2"></i>
+                    <span>SHORTAGE: -$@Math.Abs(Model.CashDifference).ToString("F2")</span>
+                }
+            </div>
+        </div>
+
+        <!-- Cash Drops -->
+        @if (Model.CashDrops.Any())
+        {
+            <div class="report-section">
+                <div class="section-title">CASH DROPS DETAIL</div>
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var drop in Model.CashDrops)
+                        {
+                            <tr>
+                                <td>@drop.DroppedAt.ToString("HH:mm:ss")</td>
+                                <td>$@drop.Amount.ToString("F2")</td>
+                                <td>@(drop.Reason ?? "-")</td>
+                                <td>@(drop.Notes ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Transactions -->
+        @if (Model.Orders.Any())
+        {
+            <div class="report-section">
+                <div class="section-title">TRANSACTION DETAILS</div>
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Time</th>
+                            <th>Customer</th>
+                            <th>Payment</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.OrderDate.ToString("HH:mm:ss")</td>
+                                <td>@order.CustomerName</td>
+                                <td>@order.PaymentMethod</td>
+                                <td class="text-end">$@order.TotalAmount.ToString("F2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Footer -->
+        <div class="report-section text-center">
+            <p class="mb-2"><strong>Generated:</strong> @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")</p>
+            <p class="mb-0 text-muted">This is an official cash drawer reconciliation report</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

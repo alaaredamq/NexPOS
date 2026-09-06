@@ -1,0 +1,397 @@
+@model Core.Entities.Products.ProductCategory
+
+@{
+    ViewData["Title"] = "Category Details";
+    ViewData["Subtitle"] = Model.Name;
+}
+
+<!-- Category Details Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-tags me-3"></i>
+                Category Details
+            </h2>
+            <p class="products-subtitle">View category information and products</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("Edit", "Categories", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal me-2">
+                <i class="fas fa-edit me-2"></i>Edit Category
+            </a>
+            <a href="@Url.Action("Index", "Categories", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Categories
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Category Details Content -->
+<div class="row">
+    <!-- Category Information Card -->
+    <div class="col-lg-8">
+        <div class="products-table-card mb-4">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Category Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="detail-label">Category Name</label>
+                        <p class="detail-value">@Model.Name</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="detail-label">Status</label>
+                        <p class="detail-value">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>Inactive
+                                </span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="detail-label">Description</label>
+                        <p class="detail-value">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                @Model.Description
+                            }
+                            else
+                            {
+                                <span class="text-muted">No description provided</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="detail-label">Created Date</label>
+                        <p class="detail-value">
+                            <i class="fas fa-calendar me-2"></i>@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="detail-label">Total Products</label>
+                        <p class="detail-value">
+                            <i class="fas fa-box me-2"></i><strong>@(Model.Products?.Count ?? 0)</strong> products
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products in Category -->
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-box me-2"></i>
+                    Products in this Category
+                </h5>
+            </div>
+            <div class="products-card-body">
+                @if (Model.Products != null && Model.Products.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Barcode</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-center">Stock</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in Model.Products.Where(p => !p.IsDeleted).Take(20))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@product.Name</div>
+                                            @if (!string.IsNullOrEmpty(product.Description))
+                                            {
+                                                <small class="text-muted">@product.Description.Substring(0, Math.Min(50, product.Description.Length))@(product.Description.Length > 50 ? "..." : "")</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <code>@product.Barcode</code>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>@FormatCurrency(product.SellingPrice, product.Currency?.Notation)</strong>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (product.StockQuantity <= (product.MinimumStock ?? 0))
+                                            {
+                                                <span class="badge bg-danger">@product.StockQuantity</span>
+                                            }
+                                            else if (product.StockQuantity <= (product.MinimumStock ?? 0) * 2)
+                                            {
+                                                <span class="badge bg-warning">@product.StockQuantity</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">@product.StockQuantity</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (product.IsActive)
+                                            {
+                                                <span class="badge bg-success">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactive</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="@Url.Action("Details", "Products", new { id = product.Id })" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (Model.Products.Count(p => !p.IsDeleted) > 20)
+                    {
+                        <div class="text-center mt-3">
+                            <a href="@Url.Action("Index", "Products", new { categoryId = Model.Id })" class="btn btn-outline-teal">
+                                View All Products (@Model.Products.Count(p => !p.IsDeleted))
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No products in this category</p>
+                        <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-teal">
+                            <i class="fas fa-plus me-2"></i>Add First Product
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Summary Card -->
+    <div class="col-lg-4">
+        <div class="products-table-card mb-4">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Category Summary
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="category-icon text-center mb-4">
+                    <div class="icon-circle mx-auto">
+                        <i class="fas fa-tags fa-3x"></i>
+                    </div>
+                    <h5 class="mt-3 mb-1">@Model.Name</h5>
+                    <p class="text-muted small">Category ID: #@Model.Id</p>
+                </div>
+
+                <hr>
+
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Products</div>
+                            <div class="stat-value">@(Model.Products?.Count(p => !p.IsDeleted) ?? 0)</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Active Products</div>
+                            <div class="stat-value">@(Model.Products?.Count(p => !p.IsDeleted && p.IsActive) ?? 0)</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Stock</div>
+                            <div class="stat-value">@(Model.Products?.Where(p => !p.IsDeleted).Sum(p => p.StockQuantity) ?? 0)</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Value</div>
+                            <div class="stat-value">
+                                @ViewBag.TotalValueFormatted
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", "Categories", new { id = Model.Id })" class="btn btn-outline-teal">
+                        <i class="fas fa-edit me-2"></i>Edit Category
+                    </a>
+                    <a href="@Url.Action("Index", "Products", new { categoryId = Model.Id })" class="btn btn-outline-primary">
+                        <i class="fas fa-box me-2"></i>View All Products
+                    </a>
+                    <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-outline-success">
+                        <i class="fas fa-plus me-2"></i>Add Product
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteCategory(@Model.Id)">
+                        <i class="fas fa-trash me-2"></i>Delete Category
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteCategory(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone! All products in this category will need to be reassigned.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Categories")',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    window.location.href = '@Url.Action("Index", "Categories")';
+                                });
+                            } else {
+                                Swal.fire('Error!', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error!', 'An error occurred while deleting the category.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .detail-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            color: var(--gray-800);
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+
+        .icon-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-primary), var(--teal-darker));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+        }
+
+        .summary-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--teal-lighter);
+            color: var(--teal-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-content {
+            flex: 1;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-600);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+    </style>
+}

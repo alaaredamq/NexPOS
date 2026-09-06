@@ -1,0 +1,348 @@
+@{
+    ViewData["Title"] = Localizer["StockValueReport"];
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-dark fw-bold">@ViewData["Title"]</h1>
+                    <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-primary" onclick="printReport()">
+                        <i class="fas fa-print me-1"></i>@Localizer["PrintReport"]
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="exportReport()">
+                        <i class="fas fa-download me-1"></i>@Localizer["ExportExcel"]
+                    </button>
+                    <a href="@Url.Action("Index", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">@Localizer["TotalStockValue"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalStockValueFormatted</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">@Localizer["TotalProducts"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.StockValueData.Count</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-box fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">@Localizer["AvgStockValue"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.AvgStockValueFormatted</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">@Localizer["TotalUnits"]</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@(((List<dynamic>)ViewBag.StockValueData)?.Sum(p => p.StockQuantity) ?? 0)</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cubes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>@Localizer["StockValueByCategory"]
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>@Localizer["Top10ProductsByValue"]
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="topProductsChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Value Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>@Localizer["StockValueDetails"]
+                    </h6>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshData()">
+                            <i class="fas fa-sync-alt me-1"></i>@Localizer["Refresh"]
+                        </button>
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <input type="text" class="form-control" placeholder="@Localizer["SearchProducts"]" id="searchInput">
+                            <button class="btn btn-outline-secondary" type="button" onclick="searchProducts()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="stockValueTable" class="table table-bordered table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>@Localizer["Product"]</th>
+                                    <th>@Localizer["Category"]</th>
+                                    <th>@Localizer["StockQuantity"]</th>
+                                    <th>@Localizer["CostPrice"]</th>
+                                    <th>@Localizer["StockValue"]</th>
+                                    <th>@Localizer["ValuePercentage"]</th>
+                                    <th>@Localizer["Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.StockValueData)
+                                {
+                                    var valuePercentage = ViewBag.TotalStockValue > 0 ? (item.StockValue / ViewBag.TotalStockValue * 100) : 0;
+                                    
+                                    <tr>
+                                        <td>
+                                            <strong>@item.ProductName</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@item.Category</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold">@item.StockQuantity</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-success">@item.CostPriceFormatted</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-primary">@item.StockValueFormatted</span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-primary" role="progressbar" 
+                                                     style="width: @(valuePercentage)%" 
+                                                     aria-valuenow="@valuePercentage" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    @valuePercentage.ToString("F1")%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                                        onclick="viewProductDetails('@item.ProductName')" title="@Localizer["ViewDetails"]">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                        onclick="adjustStock('@item.ProductName')" title="@Localizer["AdjustStock"]">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Chart.js (UMD) is loaded globally by _Layout — no per-page CDN include (works offline). *@
+    <script>
+        // Localized strings for JavaScript
+        window.stockValueLocalizedStrings = {
+            loadingStockValueData: '@Html.Raw(Localizer["LoadingStockValueData"].Value)',
+            noStockValueDataAvailable: '@Html.Raw(Localizer["NoStockValueDataAvailable"].Value)',
+            noMatchingRecordsFound: '@Html.Raw(Localizer["NoMatchingRecordsFound"].Value)',
+            excelExportComingSoon: '@Html.Raw(Localizer["ExcelExportComingSoon"].Value)',
+            productDetailsComingSoon: '@Html.Raw(Localizer["ProductDetailsComingSoon"].Value)',
+            stockAdjustmentComingSoon: '@Html.Raw(Localizer["StockAdjustmentComingSoon"].Value)',
+            stockValue: '@Html.Raw(Localizer["StockValue"].Value)'
+        };
+
+        $(document).ready(function() {
+            initializeCharts();
+            initializeTable();
+        });
+
+        function initializeCharts() {
+            // Category Chart Data
+            var categoryData = [];
+            var categoryLabels = [];
+            var categoryValues = [];
+
+            // Category Pie Chart
+            var categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryValues,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40',
+                            '#FF6384',
+                            '#C9CBCF'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Top Products Chart Data
+            var topProductsData = [];
+            var topProductNames = [];
+            var topProductValues = [];
+
+            // Top Products Bar Chart
+            var topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+            new Chart(topProductsCtx, {
+                type: 'bar',
+                data: {
+                    labels: topProductNames.map(name => name.length > 15 ? name.substring(0, 15) + '...' : name),
+                    datasets: [{
+                        label: window.stockValueLocalizedStrings.stockValue,
+                        data: topProductValues,
+                        backgroundColor: '#36A2EB'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeTable() {
+            $('#stockValueTable').DataTable({
+                order: [[4, 'desc']], // Sort by stock value descending
+                pageLength: 25,
+                responsive: true,
+                language: {
+                    processing: window.stockValueLocalizedStrings.loadingStockValueData,
+                    emptyTable: window.stockValueLocalizedStrings.noStockValueDataAvailable,
+                    zeroRecords: window.stockValueLocalizedStrings.noMatchingRecordsFound
+                }
+            });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportReport() {
+            toastr.info(window.stockValueLocalizedStrings.excelExportComingSoon);
+        }
+
+        function refreshData() {
+            location.reload();
+        }
+
+        function searchProducts() {
+            var searchTerm = $('#searchInput').val();
+            $('#stockValueTable').DataTable().search(searchTerm).draw();
+        }
+
+        function viewProductDetails(productName) {
+            toastr.info(window.stockValueLocalizedStrings.productDetailsComingSoon);
+        }
+
+        function adjustStock(productName) {
+            toastr.info(window.stockValueLocalizedStrings.stockAdjustmentComingSoon + ': ' + productName);
+        }
+
+        // Search on Enter key
+        $('#searchInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                searchProducts();
+            }
+        });
+    </script>
+}

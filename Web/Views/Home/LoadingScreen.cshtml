@@ -1,0 +1,413 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Loading...";
+    Layout = null;
+    var currentCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var isRtl = currentCulture == "ar";
+}
+
+<!DOCTYPE html>
+<html lang="@currentCulture" dir="@(isRtl ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+
+    <!-- Bootstrap CSS -->
+    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="~/css/colors.css" rel="stylesheet" asp-append-version="true" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .loading-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 80px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .loading-icon {
+            font-size: 64px;
+            color: #667eea;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @@keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .loading-subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .progress-container {
+            margin-bottom: 30px;
+        }
+        
+        .progress {
+            height: 12px;
+            border-radius: 10px;
+            background-color: #e9ecef;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+        
+        @@keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        
+        .progress-text {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        
+        .loading-status {
+            color: #888;
+            font-size: 14px;
+            margin-top: 20px;
+            min-height: 20px;
+        }
+        
+        .loading-steps {
+            text-align: left;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .loading-step {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            color: #666;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .loading-step.completed {
+            color: #28a745;
+        }
+        
+        .loading-step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .loading-step i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .loading-step.completed i {
+            color: #28a745;
+        }
+        
+        .loading-step.active i {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="loading-icon">
+            <img src="~/images/logo-mark.svg" alt="NexPos" width="88" height="88" />
+        </div>
+        <h1>Loading NexPos</h1>
+        <p class="loading-subtitle">Preparing your workspace...</p>
+        
+        <div class="progress-container">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+        
+        <div class="loading-status" id="loadingStatus">Initializing...</div>
+        
+        <div class="loading-steps">
+            <div class="loading-step" id="step1">
+                <i class="fas fa-circle"></i>
+                <span>Refreshing product cache...</span>
+            </div>
+            <div class="loading-step" id="step2">
+                <i class="fas fa-circle"></i>
+                <span>Loading currencies...</span>
+            </div>
+            <div class="loading-step" id="step3">
+                <i class="fas fa-circle"></i>
+                <span>Loading products...</span>
+            </div>
+            <div class="loading-step" id="step4">
+                <i class="fas fa-circle"></i>
+                <span>Loading customers...</span>
+            </div>
+            <div class="loading-step" id="step5">
+                <i class="fas fa-circle"></i>
+                <span>Loading payment methods...</span>
+            </div>
+            <div class="loading-step" id="step6">
+                <i class="fas fa-circle"></i>
+                <span>Loading discounts...</span>
+            </div>
+            <div class="loading-step" id="step7">
+                <i class="fas fa-circle"></i>
+                <span>Finalizing...</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        class LoadingScreen {
+            constructor() {
+                this.totalSteps = 7;
+                this.currentStep = 0;
+                // Get current language from URL
+                const pathParts = window.location.pathname.split('/').filter(p => p);
+                this.currentLang = pathParts[0] && (pathParts[0] === 'en' || pathParts[0] === 'ar') ? pathParts[0] : 'en';
+                this.baseUrl = `/${this.currentLang}`;
+                
+                this.steps = [
+                    { id: 'step1', name: 'Refreshing product cache...', endpoint: `${this.baseUrl}/POS/RefreshCache`, method: 'POST' },
+                    { id: 'step2', name: 'Loading currencies...', endpoint: `${this.baseUrl}/POS/GetCurrencies`, method: 'GET' },
+                    { id: 'step3', name: 'Loading products...', endpoint: `${this.baseUrl}/POS/GetAllProducts`, method: 'GET' },
+                    { id: 'step4', name: 'Loading customers...', endpoint: `${this.baseUrl}/POS/GetCustomers`, method: 'GET' },
+                    { id: 'step5', name: 'Loading payment methods...', endpoint: `${this.baseUrl}/POS/GetPaymentMethods`, method: 'GET' },
+                    { id: 'step6', name: 'Loading discounts...', endpoint: `${this.baseUrl}/POS/GetAvailableDiscounts`, method: 'GET' },
+                    { id: 'step7', name: 'Finalizing...', endpoint: null, method: null }
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.updateProgress(0, 'Initializing...');
+                this.startLoading();
+            }
+            
+            async startLoading() {
+                try {
+                    // Load default currency first (needed for other operations)
+                    await this.loadDefaultCurrency();
+                    
+                    // Execute all caching steps
+                    for (let i = 0; i < this.steps.length - 1; i++) {
+                        await this.executeStep(i);
+                    }
+                    
+                    // Final step - just a delay for smooth transition
+                    await this.finalize();
+                    
+                    // Redirect to POS
+                    this.redirectToPOS();
+                } catch (error) {
+                    console.error('Error during loading:', error);
+                    this.handleError(error);
+                }
+            }
+            
+            async loadDefaultCurrency() {
+                try {
+                    this.updateStatus('Loading default currency...');
+                    const response = await $.ajax({
+                        url: `${this.baseUrl}/POS/GetDefaultCurrency`,
+                        method: 'GET',
+                        timeout: 30000
+                    });
+                    
+                    if (response && response.success) {
+                        console.log('Default currency loaded:', response.data);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load default currency:', error);
+                    // Continue anyway - not critical for initial load
+                }
+            }
+            
+            async executeStep(stepIndex) {
+                const step = this.steps[stepIndex];
+                this.setStepActive(stepIndex);
+                this.updateStatus(step.name);
+                
+                try {
+                    if (step.endpoint) {
+                        const response = await $.ajax({
+                            url: step.endpoint,
+                            method: step.method,
+                            timeout: 60000, // 60 second timeout for cache operations
+                            error: function(xhr, status, error) {
+                                console.warn(`Request failed for ${step.name}:`, status, error);
+                            }
+                        });
+                        
+                        if (response && response.success !== false) {
+                            console.log(`✅ ${step.name} completed`);
+                        } else {
+                            console.warn(`⚠️ ${step.name} returned warning:`, response?.message || 'Unknown error');
+                        }
+                    }
+                    
+                    this.setStepCompleted(stepIndex);
+                    this.currentStep++;
+                    const progress = Math.round((this.currentStep / this.totalSteps) * 100);
+                    this.updateProgress(progress, `${progress}%`);
+                    
+                    // Small delay for visual feedback
+                    await this.delay(200);
+                } catch (error) {
+                    console.error(`❌ Error in ${step.name}:`, error);
+                    // Mark as completed anyway to continue - don't block on errors
+                    this.setStepCompleted(stepIndex);
+                    this.currentStep++;
+                    const progress = Math.round((this.currentStep / this.totalSteps) * 100);
+                    this.updateProgress(progress, `${progress}%`);
+                }
+            }
+            
+            async finalize() {
+                const stepIndex = this.steps.length - 1;
+                this.setStepActive(stepIndex);
+                this.updateStatus('Finalizing...');
+                this.currentStep++;
+                const progress = Math.round((this.currentStep / this.totalSteps) * 100);
+                this.updateProgress(progress, `${progress}%`);
+                
+                await this.delay(300);
+                this.setStepCompleted(stepIndex);
+                this.updateProgress(100, '100%');
+                this.updateStatus('Ready!');
+            }
+            
+            setStepActive(stepIndex) {
+                const step = this.steps[stepIndex];
+                const $stepElement = $(`#${step.id}`);
+                $stepElement.addClass('active').removeClass('completed');
+                $stepElement.find('i').removeClass('fa-circle fa-check-circle').addClass('fa-spinner fa-spin');
+            }
+            
+            setStepCompleted(stepIndex) {
+                const step = this.steps[stepIndex];
+                const $stepElement = $(`#${step.id}`);
+                $stepElement.removeClass('active').addClass('completed');
+                $stepElement.find('i').removeClass('fa-spinner fa-spin fa-circle').addClass('fa-check-circle');
+            }
+            
+            updateProgress(percentage, text) {
+                $('#progressBar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+                $('#progressText').text(text);
+            }
+            
+            updateStatus(message) {
+                $('#loadingStatus').text(message);
+            }
+            
+            redirectToPOS() {
+                setTimeout(() => {
+                    window.location.href = `${this.baseUrl}/POS`;
+                }, 500);
+            }
+            
+            handleError(error) {
+                this.updateStatus('An error occurred. Redirecting anyway...');
+                setTimeout(() => {
+                    window.location.href = `${this.baseUrl}/POS`;
+                }, 2000);
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        
+        // Start loading when document is ready
+        $(document).ready(function() {
+            window.loadingScreen = new LoadingScreen();
+        });
+    </script>
+</body>
+</html>

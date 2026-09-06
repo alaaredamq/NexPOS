@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+      <UserSecretsId>707edb39-2b26-4e6c-ad8b-bf4c47c1dc7b</UserSecretsId>
+  </PropertyGroup>
+
+  <!-- Release builds: let tiered PGO optimise hot paths. ReadyToRun (needs a RID) is passed
+       on the publish command line in build-electron.ps1. Views compile into the assembly on publish. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.3.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Localization" Version="2.3.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
+      <PackageReference Include="Serilog" Version="4.3.1-dev-02387" />
+      <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+      <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+      <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.6" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
+      <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
+      <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="logs\" />
+      <Folder Include="Views\Shared\Components\" />
+    </ItemGroup>
+
+    <!-- The Metronic theme ships a ~225 MB demo site under wwwroot/Metronics/html that
+         nothing references. Keep it out of build/publish output (and the Electron installer). -->
+    <ItemGroup>
+      <Content Remove="wwwroot\Metronics\html\**" />
+      <None Include="wwwroot\Metronics\html\**" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Application\Application.csproj" />
+      <ProjectReference Include="..\Core\Core.csproj" />
+      <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

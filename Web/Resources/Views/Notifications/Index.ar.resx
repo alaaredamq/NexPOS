@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="NotificationsAndAlerts" xml:space="preserve">
+    <value>الإشعارات والتنبيهات</value>
+  </data>
+  <data name="ManageSystemNotificationsAndAlerts" xml:space="preserve">
+    <value>إدارة إشعارات وتنبيهات النظام</value>
+  </data>
+  <data name="Cleanup" xml:space="preserve">
+    <value>تنظيف</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="TotalNotifications" xml:space="preserve">
+    <value>إجمالي الإشعارات</value>
+  </data>
+  <data name="Unread" xml:space="preserve">
+    <value>غير مقروءة</value>
+  </data>
+  <data name="ActiveAlerts" xml:space="preserve">
+    <value>التنبيهات النشطة</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>حرجة</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>مخزون منخفض</value>
+  </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>نفاد المخزون</value>
+  </data>
+  <data name="SystemStatus" xml:space="preserve">
+    <value>حالة النظام</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>موافق</value>
+  </data>
+  <data name="AllSystemsOperational" xml:space="preserve">
+    <value>جميع الأنظمة تعمل بشكل طبيعي</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>الإشعارات</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>التنبيهات</value>
+  </data>
+  <data name="Recent" xml:space="preserve">
+    <value>الأخيرة</value>
+  </data>
+  <data name="MarkAllRead" xml:space="preserve">
+    <value>تحديد الكل كمقروء</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>مسح الكل</value>
+  </data>
+  <data name="DismissAll" xml:space="preserve">
+    <value>تجاهل الكل</value>
+  </data>
+  <data name="RecentActivity" xml:space="preserve">
+    <value>النشاط الأخير</value>
+  </data>
+  <data name="NoNotificationsFound" xml:space="preserve">
+    <value>لم يتم العثور على إشعارات.</value>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>لا توجد تنبيهات نشطة.</value>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>لا توجد إشعارات حديثة.</value>
+  </data>
+  <data name="NotificationMarkedAsRead" xml:space="preserve">
+    <value>تم تحديد الإشعار كمقروء</value>
+  </data>
+  <data name="AlertDismissed" xml:space="preserve">
+    <value>تم تجاهل التنبيه</value>
+  </data>
+  <data name="NotificationDeleted" xml:space="preserve">
+    <value>تم حذف الإشعار</value>
+  </data>
+  <data name="AlertDeleted" xml:space="preserve">
+    <value>تم حذف التنبيه</value>
+  </data>
+  <data name="FeatureComingSoon" xml:space="preserve">
+    <value>الميزة قادمة قريباً</value>
+  </data>
+  <data name="CleanupCompleted" xml:space="preserve">
+    <value>اكتمل التنظيف</value>
+  </data>
+  <data name="AreYouSureYouWantToDeleteThisNotification" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد حذف هذا الإشعار؟</value>
+  </data>
+  <data name="AreYouSureYouWantToDeleteThisAlert" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد حذف هذا التنبيه؟</value>
+  </data>
+  <data name="MarkAllNotificationsAsRead" xml:space="preserve">
+    <value>تحديد جميع الإشعارات كمقروءة؟</value>
+  </data>
+  <data name="DismissAllActiveAlerts" xml:space="preserve">
+    <value>تجاهل جميع التنبيهات النشطة؟</value>
+  </data>
+  <data name="ClearAllNotifications" xml:space="preserve">
+    <value>مسح جميع الإشعارات؟ لا يمكن التراجع عن هذا الإجراء.</value>
+  </data>
+  <data name="CleanUpOldNotificationsAndDismissedAlerts" xml:space="preserve">
+    <value>تنظيف الإشعارات القديمة والتنبيهات المتجاهلة؟</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>إجراءات سريعة</value>
+  </data>
+  <data name="ViewLowStockItems" xml:space="preserve">
+    <value>عرض المنتجات ذات المخزون المنخفض</value>
+  </data>
+  <data name="RefreshInventoryAlerts" xml:space="preserve">
+    <value>تحديث تنبيهات المخزون</value>
+  </data>
+  <data name="NotificationSettings" xml:space="preserve">
+    <value>إعدادات الإشعارات</value>
+  </data>
+</root>

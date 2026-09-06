@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="StockValueReport" xml:space="preserve">
+    <value>تقرير قيمة المخزون</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>طباعة التقرير</value>
+  </data>
+  <data name="ExportExcel" xml:space="preserve">
+    <value>تصدير إكسل</value>
+  </data>
+  <data name="BackToInventory" xml:space="preserve">
+    <value>العودة إلى المخزون</value>
+  </data>
+  <data name="TotalStockValue" xml:space="preserve">
+    <value>إجمالي قيمة المخزون</value>
+  </data>
+  <data name="TotalProducts" xml:space="preserve">
+    <value>إجمالي المنتجات</value>
+  </data>
+  <data name="AvgStockValue" xml:space="preserve">
+    <value>متوسط قيمة المخزون</value>
+  </data>
+  <data name="TotalUnits" xml:space="preserve">
+    <value>إجمالي الوحدات</value>
+  </data>
+  <data name="StockValueByCategory" xml:space="preserve">
+    <value>قيمة المخزون حسب الفئة</value>
+  </data>
+  <data name="Top10ProductsByValue" xml:space="preserve">
+    <value>أعلى 10 منتجات من حيث القيمة</value>
+  </data>
+  <data name="StockValueDetails" xml:space="preserve">
+    <value>تفاصيل قيمة المخزون</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="SearchProducts" xml:space="preserve">
+    <value>البحث عن منتجات...</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="StockQuantity" xml:space="preserve">
+    <value>كمية المخزون</value>
+  </data>
+  <data name="CostPrice" xml:space="preserve">
+    <value>سعر التكلفة</value>
+  </data>
+  <data name="StockValue" xml:space="preserve">
+    <value>قيمة المخزون</value>
+  </data>
+  <data name="ValuePercentage" xml:space="preserve">
+    <value>النسبة المئوية</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>عرض التفاصيل</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="LoadingStockValueData" xml:space="preserve">
+    <value>جاري تحميل بيانات قيمة المخزون...</value>
+  </data>
+  <data name="NoStockValueDataAvailable" xml:space="preserve">
+    <value>لا توجد بيانات قيمة مخزون متاحة</value>
+  </data>
+  <data name="NoMatchingRecordsFound" xml:space="preserve">
+    <value>لم يتم العثور على سجلات مطابقة</value>
+  </data>
+  <data name="ExcelExportComingSoon" xml:space="preserve">
+    <value>ميزة تصدير إكسل ستتوفر قريباً.</value>
+  </data>
+  <data name="ProductDetailsComingSoon" xml:space="preserve">
+    <value>عرض تفاصيل المنتج سيتوفر قريباً.</value>
+  </data>
+  <data name="StockAdjustmentComingSoon" xml:space="preserve">
+    <value>تعديل المخزون لـ سيتوفر قريباً</value>
+  </data>
+</root>

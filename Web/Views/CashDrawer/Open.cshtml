@@ -1,0 +1,143 @@
+@{
+    ViewData["Title"] = "Open Cash Drawer";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="m-0">
+                        <i class="fas fa-cash-register me-2"></i>Open Cash Drawer
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Enter the starting cash amount in your drawer to begin your shift.
+                    </p>
+
+                    <form id="openDrawerForm">
+                        <div class="mb-4">
+                            <label for="openingCash" class="form-label fw-bold">Starting Cash Amount *</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </span>
+                                <input type="number" class="form-control" id="openingCash" 
+                                       step="0.01" min="0" required 
+                                       placeholder="0.00" 
+                                       autofocus>
+                            </div>
+                            <small class="form-text text-muted">
+                                Count all bills and coins in your drawer
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="openingNotes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="openingNotes" rows="3" 
+                                      placeholder="Add any notes about this session..."></textarea>
+                        </div>
+
+                        <div class="erp-alert erp-alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Tip:</strong> Make sure to count your starting cash carefully. 
+                            This amount will be used to calculate your end-of-day reconciliation.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-cash-register me-2"></i>Open Cash Drawer
+                            </button>
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Reference Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header py-2">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Opening Checklist
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Count all cash in drawer
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Verify bills and coins
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Check for damaged bills
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Record starting amount accurately
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Ready to process sales!
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#openDrawerForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const openingCash = parseFloat($('#openingCash').val());
+                const notes = $('#openingNotes').val();
+
+                if (!openingCash || openingCash < 0) {
+                    toastr.error('Please enter a valid opening cash amount');
+                    return;
+                }
+
+                // Disable button to prevent double submission
+                const submitBtn = $(this).find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Opening...');
+
+                $.ajax({
+                    url: '@Url.Action("OpenDrawer")',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        openingCash: openingCash,
+                        notes: notes
+                    }),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Cash drawer opened successfully!');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index")';
+                            }, 1000);
+                        } else {
+                            toastr.error(response.message);
+                            submitBtn.prop('disabled', false).html(originalText);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Failed to open cash drawer');
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+        });
+    </script>
+}
+

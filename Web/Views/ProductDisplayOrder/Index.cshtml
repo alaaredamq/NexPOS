@@ -1,0 +1,527 @@
+@model IEnumerable<Core.Entities.Products.ProductDisplayOrder>
+
+@{
+    ViewData["Title"] = Localizer["ProductDisplayOrderManagement"];
+    ViewData["Subtitle"] = Localizer["ManageWhichProductsAppearOnThePOSMainScreenAndTheirOrder"];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-sort-amount-down me-2"></i>@Localizer["ProductDisplayOrderManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageWhichProductsAppearOnThePOSMainScreenAndTheirOrder"]</p>
+            </div>
+            <div class="page-actions">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="fas fa-plus me-1"></i>@Localizer["AddProduct"]
+                </button>
+                <button type="button" class="btn btn-success" id="saveOrderBtn">
+                    <i class="fas fa-save me-1"></i>@Localizer["SaveOrder"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon products-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>@Model.Count()</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@Model.Count()</div>
+                <div class="stats-label">@Localizer["TotalProducts"]</div>
+                <div class="stats-change">@Localizer["InDisplayOrder"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check"></i>
+                    <span>@Model.Count(x => x.IsActive)</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@Model.Count(x => x.IsActive)</div>
+                <div class="stats-label">@Localizer["Active"]</div>
+                <div class="stats-change">@Localizer["VisibleOnPOS"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon void-icon">
+                    <i class="fas fa-eye-slash"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>@Model.Count(x => !x.IsActive)</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@Model.Count(x => !x.IsActive)</div>
+                <div class="stats-label">@Localizer["Inactive"]</div>
+                <div class="stats-change">@Localizer["HiddenFromPOS"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon stock-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>@Model.Count(x => x.Product.StockQuantity <= (x.Product.MinimumStock ?? 0))</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@Model.Count(x => x.Product.StockQuantity <= (x.Product.MinimumStock ?? 0))</div>
+                <div class="stats-label">@Localizer["LowStock"]</div>
+                <div class="stats-change">@Localizer["NeedsAttention"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>@Localizer["DisplayOrder"]</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table" id="displayOrderTable">
+                        <thead>
+                            <tr>
+                                <th width="5%">@Localizer["Order"]</th>
+                                <th width="10%">@Localizer["Image"]</th>
+                                <th width="25%">@Localizer["ProductName"]</th>
+                                <th width="15%">@Localizer["Category"]</th>
+                                <th width="10%">@Localizer["Price"]</th>
+                                <th width="10%">@Localizer["Stock"]</th>
+                                <th width="15%">@Localizer["Status"]</th>
+                                <th width="10%">@Localizer["Actions"]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sortableTableBody">
+                            @foreach (var item in Model.OrderBy(x => x.DisplayOrder))
+                            {
+                                <tr data-id="@item.Id" data-product-id="@item.ProductId">
+                                    <td>
+                                        <i class="fas fa-grip-vertical text-muted cursor-move"></i>
+                                        <span class="order-number">@item.DisplayOrder</span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Product.Image))
+                                        {
+                                            <img src="@item.Product.Image" alt="@item.Product.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@item.Product.Name</strong>
+                                            @if (!string.IsNullOrEmpty(item.Product.Description))
+                                            {
+                                                <br><small class="text-muted">@item.Product.Description</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@(item.Product.Category?.Name ?? Localizer["NoCategory"].Value)</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">@FormatCurrency(item.Product.SellingPrice, item.Product.Currency?.Notation)</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(item.Product.StockQuantity <= item.Product.MinimumStock ? "bg-danger" : "bg-success")">
+                                            @item.Product.StockQuantity
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(item.IsActive ? "bg-success" : "bg-secondary")">
+                                            @(item.IsActive ? Localizer["Active"].Value : Localizer["Inactive"].Value)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProduct(@item.Id)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["AddProductToDisplayOrder"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-3" id="addProductTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="existing-tab" data-bs-toggle="tab" data-bs-target="#existing-product" type="button">
+                            <i class="fas fa-search me-2"></i>@Localizer["ExistingProducts"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="quick-add-tab" data-bs-toggle="tab" data-bs-target="#quick-add-product" type="button">
+                            <i class="fas fa-plus-circle me-2"></i>@Localizer["QuickAddProduct"]
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="addProductTabsContent">
+                    <!-- Existing Products Tab -->
+                    <div class="tab-pane fade show active" id="existing-product" role="tabpanel">
+                        <div class="mb-3">
+                            <label class="form-label">@Localizer["SearchProducts"]:</label>
+                            <input type="text" class="form-control" id="productSearch" placeholder="@Localizer["TypeToSearchProducts"]">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="availableProductsTable">
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer["Image"]</th>
+                                        <th>@Localizer["ProductName"]</th>
+                                        <th>@Localizer["Category"]</th>
+                                        <th>@Localizer["Price"]</th>
+                                        <th>@Localizer["Action"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="availableProductsBody">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Product Tab -->
+                    <div class="tab-pane fade" id="quick-add-product" role="tabpanel">
+                        <form id="quickAddForm">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">@Localizer["ProductName"] *</label>
+                                    <input type="text" class="form-control" id="quickProductName" placeholder="@Localizer["EnterProductName"]" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">@Localizer["Description"]</label>
+                                    <textarea class="form-control" id="quickProductDescription" rows="2" placeholder="@Localizer["EnterProductDescription"]"></textarea>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">@Localizer["Barcode"]</label>
+                                    <input type="text" class="form-control" id="quickProductBarcode" placeholder="@Localizer["LeaveEmptyToAutoGenerate"]">
+                                    <small class="form-text text-muted">@Localizer["LeaveEmptyOrCheckBelow"]</small>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="generateBarcodeCheck" checked>
+                                        <label class="form-check-label" for="generateBarcodeCheck">
+                                            @Localizer["AutoGenerate"]
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">@Localizer["Price"] *</label>
+                                    <input type="number" class="form-control" id="quickProductPrice" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">@Localizer["Currency"] *</label>
+                                    <select class="form-select" id="quickProductCurrency">
+                                        @{
+                                            var currencies = ViewBag.Currencies as List<Core.Entities.Sales.Currency> ?? new List<Core.Entities.Sales.Currency>();
+                                            var defaultCurrency = ViewBag.DefaultCurrency as Core.Entities.Sales.Currency;
+                                        }
+                                        @foreach (var currency in currencies)
+                                        {
+                                            @if (defaultCurrency != null && defaultCurrency.Id == currency.Id)
+                                            {
+                                                <option value="@currency.Id" selected>@currency.Code (@currency.Notation)</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@currency.Id">@currency.Code (@currency.Notation)</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">@Localizer["StockQuantity"]</label>
+                                    <input type="number" class="form-control" id="quickProductStock" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                            <div class="erp-alert erp-alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>@Localizer["QuickAdd"]:</strong> @Localizer["QuickAddInfo"]
+                            </div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>@Localizer["CreateAndAddProduct"]
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        // Localized strings for JavaScript
+        window.productDisplayLocalizedStrings = {
+            confirmRemoveProduct: '@Html.Raw(Localizer["AreYouSureYouWantToRemoveThisProductFromTheDisplayOrder"].Value)',
+            productNameIsRequired: '@Html.Raw(Localizer["ProductNameIsRequired"].Value)',
+            priceMustBeGreaterThan0: '@Html.Raw(Localizer["PriceMustBeGreaterThan0"].Value)',
+            errorCreatingProduct: '@Html.Raw(Localizer["AnErrorOccurredWhileCreatingTheProduct"].Value)',
+            errorSavingOrder: '@Html.Raw(Localizer["AnErrorOccurredWhileSavingTheOrder"].Value)',
+            add: '@Html.Raw(Localizer["Add"].Value)',
+            willBeAutoGenerated: '@Html.Raw(Localizer["WillBeAutoGenerated"].Value)',
+            enterBarcodeManually: '@Html.Raw(Localizer["EnterBarcodeManually"].Value)'
+        };
+
+        $(document).ready(function() {
+            // Initialize sortable table
+            const sortable = new Sortable(document.getElementById('sortableTableBody'), {
+                animation: 150,
+                handle: '.cursor-move',
+                onEnd: function(evt) {
+                    updateOrderNumbers();
+                }
+            });
+
+            // Update order numbers after sorting
+            function updateOrderNumbers() {
+                $('#sortableTableBody tr').each(function(index) {
+                    $(this).find('.order-number').text(index + 1);
+                });
+            }
+
+            // Load available products
+            loadAvailableProducts();
+
+            // Product search
+            $('#productSearch').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $('#availableProductsBody tr').each(function() {
+                    const productName = $(this).find('td:nth-child(2)').text().toLowerCase();
+                    if (productName.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Generate barcode checkbox
+            $('#generateBarcodeCheck').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#quickProductBarcode').prop('disabled', true).val('').attr('placeholder', window.productDisplayLocalizedStrings.willBeAutoGenerated);
+                } else {
+                    $('#quickProductBarcode').prop('disabled', false).attr('placeholder', window.productDisplayLocalizedStrings.enterBarcodeManually);
+                }
+            });
+
+            // Initialize the barcode field state
+            $('#generateBarcodeCheck').trigger('change');
+
+            // Quick Add Product Form Submit
+            $('#quickAddForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const productData = {
+                    name: $('#quickProductName').val().trim(),
+                    description: $('#quickProductDescription').val().trim(),
+                    barcode: $('#quickProductBarcode').val().trim(),
+                    generateBarcode: $('#generateBarcodeCheck').is(':checked'),
+                    price: parseFloat($('#quickProductPrice').val()) || 0,
+                    stockQuantity: parseInt($('#quickProductStock').val()) || 0,
+                    categoryId: 1, // Default category
+                    supplierId: 1, // Default supplier
+                    currencyId: parseInt($('#quickProductCurrency').val()) || 0
+                };
+
+                if (!productData.name) {
+                    toastr.warning(window.productDisplayLocalizedStrings.productNameIsRequired);
+                    return;
+                }
+
+                if (productData.price <= 0) {
+                    toastr.warning(window.productDisplayLocalizedStrings.priceMustBeGreaterThan0);
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("QuickAddProduct", "ProductDisplayOrder")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(productData),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message + (response.barcode ? ' (Barcode: ' + response.barcode + ')' : ''));
+                            $('#addProductModal').modal('hide');
+                            $('#quickAddForm')[0].reset();
+                            location.reload();
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        toastr.error(window.productDisplayLocalizedStrings.errorCreatingProduct + ': ' + error);
+                    }
+                });
+            });
+
+            // Save order
+            $('#saveOrderBtn').click(function() {
+                const displayOrders = [];
+                $('#sortableTableBody tr').each(function(index) {
+                    const id = $(this).data('id');
+                    displayOrders.push({
+                        Id: id,
+                        DisplayOrder: index + 1
+                    });
+                });
+
+                $.ajax({
+                    url: '@Url.Action("UpdateOrder", "ProductDisplayOrder")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(displayOrders),
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error(window.productDisplayLocalizedStrings.errorSavingOrder);
+                    }
+                });
+            });
+        });
+
+        function loadAvailableProducts() {
+            $.get('@Url.Action("GetAvailableProducts", "ProductDisplayOrder")', function(data) {
+                const tbody = $('#availableProductsBody');
+                tbody.empty();
+                
+                data.forEach(function(product) {
+                    const row = `
+                        <tr>
+                            <td>
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                            </td>
+                            <td>${product.name}</td>
+                            <td><span class="badge bg-info">${product.category}</span></td>
+                            <td><strong class="text-success">$${product.price.toFixed(2)}</strong></td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addProduct(${product.id})">
+                                    <i class="fas fa-plus"></i> ${window.productDisplayLocalizedStrings.add}
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+            });
+        }
+
+        function addProduct(productId) {
+            $.post('@Url.Action("AddProduct", "ProductDisplayOrder")', { productId: productId }, function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    location.reload();
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function removeProduct(id) {
+            if (confirm(window.productDisplayLocalizedStrings.confirmRemoveProduct)) {
+                $.post('@Url.Action("RemoveProduct", "ProductDisplayOrder")', { id: id }, function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        location.reload();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+<style>
+    .cursor-move {
+        cursor: move;
+    }
+    
+    .sortable-ghost {
+        opacity: 0.4;
+    }
+    
+    .sortable-chosen {
+        background-color: rgba(0, 128, 128, 0.1);
+    }
+</style>

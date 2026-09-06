@@ -1,0 +1,363 @@
+@model Web.Models.Shared.DataTableModel
+@using System.Text.Json
+
+@{
+    // Serialize the model to JSON for JavaScript consumption
+    var jsonOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false
+    };
+    
+    // Create a simplified model for JSON serialization
+    var modelForJson = new
+    {
+        id = Model.Id,
+        @class = Model.Class,
+        dataSource = Model.DataSource,
+        columns = Model.Columns.Select(c => new
+        {
+            data = c.Data,
+            title = c.Title?.ToString() ?? string.Empty,
+            className = c.ClassName,
+            orderable = c.Orderable,
+            searchable = c.Searchable,
+            visible = c.Visible,
+            width = c.Width,
+            hasRender = !string.IsNullOrWhiteSpace(c.Render),
+            render = c.Render // Pass the actual render function string
+        }),
+        serverSide = Model.ServerSide,
+        processing = Model.Processing,
+        ordering = Model.Ordering,
+        searching = Model.Searching,
+        paging = Model.Paging,
+        pageLength = Model.PageLength,
+        pageLengthMenu = Model.PageLengthMenu,
+        responsive = Model.Responsive,
+        scrollX = Model.ScrollX,
+        scrollY = Model.ScrollY,
+        dom = Model.Dom,
+        additionalOptions = Model.AdditionalOptions
+    };
+    
+    var modelJson = JsonSerializer.Serialize(modelForJson, jsonOptions);
+}
+
+<div class="table-responsive">
+    <table id="@Model.Id" class="@Model.Class">
+        <thead>
+            <tr>
+                @foreach (var column in Model.Columns)
+                {
+                    <th>@(column.Title?.ToString() ?? string.Empty)</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be loaded via AJAX -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+(function() {
+    // Parse config immediately
+    var config = @Html.Raw(modelJson);
+    console.log('DataTable Config Loaded:', config);
+    
+    // Function to check if DataTables is available
+    function waitForDataTables(callback, maxAttempts = 50) {
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            console.log('Checking for DataTables... Attempt:', attempts);
+            
+            if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
+                clearInterval(interval);
+                console.log('jQuery and DataTables are ready!');
+                callback();
+            } else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.error('DataTables failed to load after ' + attempts + ' attempts');
+                console.error('jQuery available:', typeof $ !== 'undefined');
+                console.error('$.fn available:', typeof $ !== 'undefined' && typeof $.fn !== 'undefined');
+                console.error('$.fn.DataTable available:', typeof $ !== 'undefined' && typeof $.fn !== 'undefined' && typeof $.fn.DataTable !== 'undefined');
+                alert('Error: DataTables library failed to load. Please refresh the page.');
+            }
+        }, 100);
+    }
+    
+    // Wait for DataTables and then initialize
+    waitForDataTables(function() {
+        try {
+            console.log('Initializing DataTable: ' + config.id);
+            initializeDataTable(config);
+        } catch (error) {
+            console.error('Failed to initialize DataTable:', error);
+            console.error('Error stack:', error.stack);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to initialize table: ' + error.message);
+            } else {
+                alert('Failed to initialize table: ' + error.message);
+            }
+        }
+    });
+})();
+
+function initializeDataTable(config) {
+    console.log('=== Starting DataTable Initialization ===');
+    console.log('Table ID:', config.id);
+    console.log('Full Config:', config);
+    
+    // Check if table element exists
+    var $table = $('#' + config.id);
+    console.log('Table element found:', $table.length > 0);
+    console.log('Table element:', $table);
+    
+    if ($table.length === 0) {
+        console.error('Table element not found with ID:', config.id);
+        throw new Error('Table element not found: #' + config.id);
+    }
+    
+    // Check if already initialized
+    if ($.fn.DataTable.isDataTable('#' + config.id)) {
+        console.warn('DataTable already initialized on', config.id, '- destroying first');
+        $table.DataTable().destroy();
+    }
+    
+    // Build columns configuration
+    var columns = [];
+    for (var i = 0; i < config.columns.length; i++) {
+        var col = config.columns[i];
+        var columnDef = {
+            data: col.data,
+            title: col.title || '',
+            orderable: col.orderable,
+            searchable: col.searchable,
+            className: col.className,
+            visible: col.visible
+        };
+        
+        if (col.width > 0) {
+            columnDef.width = col.width + 'px';
+        }
+        
+        // Handle custom render functions
+        if (col.hasRender && col.render) {
+            try {
+                // Convert string function to actual function
+                // The render string is like: "function(data, type, row) { return ... }"
+                console.log('Creating render function for column:', col.data);
+                columnDef.render = eval('(' + col.render + ')');
+            } catch (e) {
+                console.error('Failed to create render function for column ' + col.data + ':', e);
+                console.error('Render string was:', col.render);
+                // Fallback to default renderer
+                columnDef.render = getColumnRenderer(col.data, config.id);
+            }
+        }
+        
+        columns.push(columnDef);
+    }
+    
+    console.log('Columns config:', columns);
+    
+    // Build DataTable options
+    var options = {
+        processing: config.processing,
+        serverSide: config.serverSide,
+        ajax: {
+            url: config.dataSource,
+            type: 'GET',
+            data: function(d) {
+                console.log('DataTable request data:', d);
+                
+                var params = {
+                    draw: d.draw,
+                    start: d.start,
+                    length: d.length,
+                    searchValue: d.search.value || ''
+                };
+                
+                if (d.order && d.order.length > 0) {
+                    params.sortColumn = d.columns[d.order[0].column].data;
+                    params.sortDirection = d.order[0].dir;
+                }
+                
+                console.log('Sending params:', params);
+                return params;
+            },
+            dataSrc: function(json) {
+                console.log('DataTable response:', json);
+                
+                if (json.error) {
+                    console.error('Server error:', json.error);
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Error: ' + json.error);
+                    } else {
+                        alert('Error: ' + json.error);
+                    }
+                    return [];
+                }
+                
+                return json.data || [];
+            },
+            error: function(xhr, error, code) {
+                console.error('DataTable AJAX Error:', {
+                    error: error,
+                    code: code,
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    response: xhr.responseText
+                });
+                
+                var message = 'Failed to load data';
+                if (xhr.status === 401) {
+                    message = 'Please login to view this data';
+                } else if (xhr.status === 403) {
+                    message = 'You do not have permission to view this data';
+                } else if (xhr.status === 404) {
+                    message = 'Data endpoint not found';
+                } else if (xhr.status === 500) {
+                    message = 'Server error occurred';
+                }
+                
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(message);
+                } else {
+                    alert(message);
+                }
+            }
+        },
+        columns: columns,
+        pageLength: config.pageLength,
+        lengthMenu: config.pageLengthMenu,
+        ordering: config.ordering,
+        searching: config.searching,
+        paging: config.paging,
+        responsive: config.responsive,
+        scrollX: config.scrollX,
+        dom: config.dom,
+        order: [],
+        language: {
+            processing: 'Loading...',
+            emptyTable: 'No data available',
+            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+            infoEmpty: 'Showing 0 to 0 of 0 entries',
+            infoFiltered: '(filtered from _MAX_ total entries)',
+            lengthMenu: 'Show _MENU_ entries',
+            search: 'Search:',
+            zeroRecords: 'No matching records found',
+            paginate: {
+                first: 'First',
+                last: 'Last',
+                next: 'Next',
+                previous: 'Previous'
+            }
+        }
+    };
+    
+    if (config.scrollY) {
+        options.scrollY = config.scrollY;
+    }
+    
+    // Apply additional options from model
+    if (config.additionalOptions) {
+        console.log('Applying additional options:', config.additionalOptions);
+        for (var key in config.additionalOptions) {
+            if (config.additionalOptions.hasOwnProperty(key)) {
+                var value = config.additionalOptions[key];
+                
+                // Handle special cases that need eval
+                if (key === 'order' && typeof value === 'string') {
+                    try {
+                        options[key] = eval(value);
+                    } catch (e) {
+                        console.error('Failed to parse order:', e);
+                        options[key] = value;
+                    }
+                } else if (key === 'drawCallback' && typeof value === 'string') {
+                    try {
+                        options[key] = eval('(' + value + ')');
+                    } catch (e) {
+                        console.error('Failed to parse drawCallback:', e);
+                    }
+                } else {
+                    options[key] = value;
+                }
+            }
+        }
+    }
+    
+    console.log('DataTable options:', options);
+    
+    // Check if table is in a hidden tab
+    var $tableContainer = $table.closest('.tab-pane');
+    var isInTab = $tableContainer.length > 0;
+    var isTabVisible = isInTab ? $tableContainer.hasClass('active') || $tableContainer.hasClass('show') : true;
+    
+    console.log('Is in tab:', isInTab);
+    console.log('Tab is visible:', isTabVisible);
+    
+    if (isInTab && !isTabVisible) {
+        console.log('Table is in a hidden tab - will initialize when tab is shown');
+        
+        // Find the tab button that controls this pane
+        var tabPaneId = $tableContainer.attr('id');
+        var $tabButton = $('[data-bs-target="#' + tabPaneId + '"]');
+        
+        console.log('Tab pane ID:', tabPaneId);
+        console.log('Tab button found:', $tabButton.length > 0);
+        
+        // Initialize when tab is shown
+        $tabButton.one('shown.bs.tab', function() {
+            console.log('Tab shown, initializing DataTable for:', config.id);
+            var table = $('#' + config.id).DataTable(options);
+            window['dataTable_' + config.id] = table;
+            console.log('=== DataTable ' + config.id + ' initialized after tab shown ===');
+        });
+        
+        return null; // Don't initialize yet
+    }
+    
+    // Initialize the DataTable
+    console.log('Calling DataTable() on element...');
+    var table = $('#' + config.id).DataTable(options);
+    
+    console.log('DataTable object created:', table);
+    console.log('DataTable API methods available:', typeof table.ajax !== 'undefined');
+    
+    // Store reference globally
+    window['dataTable_' + config.id] = table;
+    
+    console.log('=== DataTable ' + config.id + ' initialized successfully ===');
+    console.log('Global reference stored at: window.dataTable_' + config.id);
+    
+    return table;
+}
+
+// Function to get custom render functions for columns
+function getColumnRenderer(columnName, tableId) {
+    // Add your custom render functions here
+    // Example:
+    if (columnName === 'actions') {
+        return function(data, type, row, meta) {
+            return '<button class="btn btn-sm btn-primary">Edit</button> ' +
+                   '<button class="btn btn-sm btn-danger">Delete</button>';
+        };
+    }
+    
+    if (columnName === 'isActive' || columnName === 'status') {
+        return function(data, type, row, meta) {
+            if (type === 'display') {
+                return data ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>';
+            }
+            return data;
+        };
+    }
+    
+    // Default: return the data as-is
+    return null;
+}
+</script>

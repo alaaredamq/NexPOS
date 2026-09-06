@@ -1,0 +1,407 @@
+@{
+    ViewData["Title"] = "Currency Management";
+    ViewData["Subtitle"] = "Manage currencies and exchange rates";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-coins me-2"></i>Currency Management</h3>
+                <p class="text-muted">Manage system currencies and exchange rates for Lebanese market</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCurrencyModal">
+                    <i class="fas fa-plus me-1"></i>Add Currency
+                </button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addExchangeRateModal">
+                    <i class="fas fa-exchange-alt me-1"></i>Add Exchange Rate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Currency Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon currency-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalCurrencies">2</div>
+                <div class="stats-label">Total Currencies</div>
+                <div class="stats-change">LBP & USD</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon rate-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="currentRate">1,500</div>
+                <div class="stats-label">LBP/USD Rate</div>
+                <div class="stats-change">Current rate</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon default-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="defaultCurrency">LBP</div>
+                <div class="stats-label">Default Currency</div>
+                <div class="stats-change">System default</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon update-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-history"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="lastUpdate">Today</div>
+                <div class="stats-label">Last Update</div>
+                <div class="stats-change">Exchange rates</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <ul class="nav nav-tabs card-header-tabs" id="currencyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="currencies-tab" data-bs-toggle="tab" data-bs-target="#currencies" type="button" role="tab">
+                            <i class="fas fa-coins me-1"></i>Currencies
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="rates-tab" data-bs-toggle="tab" data-bs-target="#rates" type="button" role="tab">
+                            <i class="fas fa-exchange-alt me-1"></i>Exchange Rates
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                            <i class="fas fa-cog me-1"></i>Settings
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="currencyTabsContent">
+                    <!-- Currencies Tab -->
+                    <div class="tab-pane fade show active" id="currencies" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table" id="currenciesTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Symbol</th>
+                                        <th>Is Default</th>
+                                        <th>Is Active</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="currency-code">LBP</span></td>
+                                        <td>Lebanese Pound</td>
+                                        <td>ل.ل</td>
+                                        <td><span class="badge bg-success">Yes</span></td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>2024-01-01</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="currency-code">USD</span></td>
+                                        <td>US Dollar</td>
+                                        <td>$</td>
+                                        <td><span class="badge bg-secondary">No</span></td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>2024-01-01</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Exchange Rates Tab -->
+                    <div class="tab-pane fade" id="rates" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table" id="ratesTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>From Currency</th>
+                                        <th>To Currency</th>
+                                        <th>Rate</th>
+                                        <th>Supplier</th>
+                                        <th>Valid From</th>
+                                        <th>Valid To</th>
+                                        <th>Is Active</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="currency-code">LBP</span></td>
+                                        <td><span class="currency-code">USD</span></td>
+                                        <td><span class="rate-value">1,500.00</span></td>
+                                        <td>Default</td>
+                                        <td>2024-01-01</td>
+                                        <td>-</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" title="History">
+                                                    <i class="fas fa-history"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div class="tab-pane fade" id="settings" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="settings-card">
+                                    <h5><i class="fas fa-cog me-2"></i>Default Currency Settings</h5>
+                                    <form id="defaultCurrencyForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Default System Currency</label>
+                                            <select class="form-select" id="defaultSystemCurrency">
+                                                <option value="LBP" selected>Lebanese Pound (LBP)</option>
+                                                <option value="USD">US Dollar (USD)</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>Save Settings
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="settings-card">
+                                    <h5><i class="fas fa-sync-alt me-2"></i>Auto Update Settings</h5>
+                                    <form id="autoUpdateForm">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="autoUpdateRates">
+                                                <label class="form-check-label" for="autoUpdateRates">
+                                                    Enable automatic rate updates
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Update Frequency</label>
+                                            <select class="form-select" id="updateFrequency">
+                                                <option value="daily">Daily</option>
+                                                <option value="weekly">Weekly</option>
+                                                <option value="monthly">Monthly</option>
+                                                <option value="manual" selected>Manual Only</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save me-1"></i>Save Settings
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Currency Modal -->
+<div class="modal fade" id="addCurrencyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Currency</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addCurrencyForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Currency Code</label>
+                        <input type="text" class="form-control" id="currencyCode" placeholder="e.g., LBP, USD" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Currency Name</label>
+                        <input type="text" class="form-control" id="currencyName" placeholder="e.g., Lebanese Pound" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Currency Symbol</label>
+                        <input type="text" class="form-control" id="currencySymbol" placeholder="e.g., ل.ل, $" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isDefault">
+                            <label class="form-check-label" for="isDefault">
+                                Set as default currency
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Currency
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Exchange Rate Modal -->
+<div class="modal fade" id="addExchangeRateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Exchange Rate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addExchangeRateForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">From Currency</label>
+                                <select class="form-select" id="fromCurrency" required>
+                                    <option value="">Select currency</option>
+                                    <option value="LBP">Lebanese Pound (LBP)</option>
+                                    <option value="USD">US Dollar (USD)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">To Currency</label>
+                                <select class="form-select" id="toCurrency" required>
+                                    <option value="">Select currency</option>
+                                    <option value="USD">US Dollar (USD)</option>
+                                    <option value="LBP">Lebanese Pound (LBP)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Exchange Rate</label>
+                        <input type="number" class="form-control" id="exchangeRate" step="0.01" placeholder="e.g., 1500.00" required>
+                        <div class="form-text">Enter the rate (1 from currency = ? to currency)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supplier (Optional)</label>
+                        <select class="form-select" id="supplierId">
+                            <option value="">Default Rate</option>
+                            <!-- Supplier options will be loaded dynamically -->
+                        </select>
+                        <div class="form-text">Leave empty for default system rate</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valid From</label>
+                                <input type="date" class="form-control" id="validFrom" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valid To (Optional)</label>
+                                <input type="date" class="form-control" id="validTo">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-exchange-alt me-1"></i>Add Exchange Rate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.currencyLocalizedStrings = {
+            currencyAddedSuccessfully: '@Html.Raw(Localizer["CurrencyAddedSuccessfully"].Value)',
+            failedToAddCurrency: '@Html.Raw(Localizer["FailedToAddCurrency"].Value)',
+            exchangeRateAddedSuccessfully: '@Html.Raw(Localizer["ExchangeRateAddedSuccessfully"].Value)',
+            failedToAddExchangeRate: '@Html.Raw(Localizer["FailedToAddExchangeRate"].Value)',
+            defaultCurrencySettingsSaved: '@Html.Raw(Localizer["DefaultCurrencySettingsSaved"].Value)',
+            autoUpdateSettingsSaved: '@Html.Raw(Localizer["AutoUpdateSettingsSaved"].Value)'
+        };
+        
+        window.currencyUrls = {
+            createUrl: '@Url.Action("Create", "Currency")',
+            createRateUrl: '@Url.Action("CreateRate", "Currency")',
+            getSettingsUrl: '@Url.Action("GetSettings", "Currency")'
+        };
+    </script>
+    <script src="~/js/pages/Currency/Index.js"></script>
+}

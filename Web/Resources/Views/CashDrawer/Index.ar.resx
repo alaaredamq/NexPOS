@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="CashDrawerManagement" xml:space="preserve">
+    <value>إدارة درج النقود</value>
+  </data>
+  <data name="ManageYourCashDrawerSessionsAndEndOfDayReports" xml:space="preserve">
+    <value>إدارة جلسات درج النقود وتقارير نهاية اليوم</value>
+  </data>
+  <data name="OpenCashDrawer" xml:space="preserve">
+    <value>فتح درج النقود</value>
+  </data>
+  <data name="CloseDrawer" xml:space="preserve">
+    <value>إغلاق الدرج</value>
+  </data>
+  <data name="CashDrop" xml:space="preserve">
+    <value>إيداع النقود</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>السجل</value>
+  </data>
+  <data name="CurrentOpenSession" xml:space="preserve">
+    <value>الجلسة المفتوحة الحالية</value>
+  </data>
+  <data name="NoOpenCashDrawerSession" xml:space="preserve">
+    <value>لا توجد جلسة درج نقود مفتوحة</value>
+  </data>
+  <data name="YouNeedToOpenACashDrawerToStartProcessingSales" xml:space="preserve">
+    <value>تحتاج إلى فتح درج النقود لبدء معالجة المبيعات</value>
+  </data>
+  <data name="TodaysSales" xml:space="preserve">
+    <value>مبيعات اليوم</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>المعاملات</value>
+  </data>
+  <data name="ExpectedCash" xml:space="preserve">
+    <value>النقد المتوقع</value>
+  </data>
+  <data name="CashDrops" xml:space="preserve">
+    <value>إيداعات النقود</value>
+  </data>
+  <data name="RecordCashDrop" xml:space="preserve">
+    <value>تسجيل إيداع نقود</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>المبلغ</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="SafeDeposit" xml:space="preserve">
+    <value>إيداع الخزنة</value>
+  </data>
+  <data name="BankDeposit" xml:space="preserve">
+    <value>إيداع البنك</value>
+  </data>
+  <data name="ExcessCash" xml:space="preserve">
+    <value>النقد الزائد</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>أخرى</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>تم الفتح في</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>النقد الافتتاحي</value>
+  </data>
+  <data name="SessionId" xml:space="preserve">
+    <value>معرف الجلسة</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>جاري التحميل</value>
+  </data>
+  <data name="PleaseEnterValidAmount" xml:space="preserve">
+    <value>الرجاء إدخال مبلغ صالح</value>
+  </data>
+  <data name="CashDropRecordedSuccess" xml:space="preserve">
+    <value>تم تسجيل إيداع النقود بنجاح</value>
+  </data>
+  <data name="FailedToRecordCashDrop" xml:space="preserve">
+    <value>فشل تسجيل إيداع النقود</value>
+  </data>
+</root>

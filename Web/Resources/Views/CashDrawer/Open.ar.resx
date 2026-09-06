@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="OpenCashDrawer" xml:space="preserve">
+    <value>فتح درج النقود</value>
+  </data>
+  <data name="EnterTheStartingCashAmountInYourDrawerToBeginYourShift" xml:space="preserve">
+    <value>أدخل المبلغ النقدي الافتتاحي في درجك لبدء نوبتك.</value>
+  </data>
+  <data name="StartingCashAmount" xml:space="preserve">
+    <value>المبلغ النقدي الافتتاحي</value>
+  </data>
+  <data name="CountAllBillsAndCoinsInYourDrawer" xml:space="preserve">
+    <value>عد جميع الأوراق النقدية والعملات المعدنية في درجك</value>
+  </data>
+  <data name="NotesOptional" xml:space="preserve">
+    <value>ملاحظات (اختياري)</value>
+  </data>
+  <data name="AddAnyNotesAboutThisSession" xml:space="preserve">
+    <value>أضف أي ملاحظات حول هذه الجلسة...</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>نصيحة</value>
+  </data>
+  <data name="MakeSureToCountYourStartingCashCarefully" xml:space="preserve">
+    <value>تأكد من عد النقد الافتتاحي بعناية. سيتم استخدام هذا المبلغ لحساب تسوية نهاية اليوم.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="OpeningChecklist" xml:space="preserve">
+    <value>قائمة التحقق الافتتاحية</value>
+  </data>
+  <data name="CountAllCashInDrawer" xml:space="preserve">
+    <value>عد جميع النقود في الدرج</value>
+  </data>
+  <data name="VerifyBillsAndCoins" xml:space="preserve">
+    <value>تحقق من الأوراق النقدية والعملات</value>
+  </data>
+  <data name="CheckForDamagedBills" xml:space="preserve">
+    <value>تحقق من الأوراق النقدية التالفة</value>
+  </data>
+  <data name="RecordStartingAmountAccurately" xml:space="preserve">
+    <value>سجل المبلغ الافتتاحي بدقة</value>
+  </data>
+  <data name="ReadyToProcessSales" xml:space="preserve">
+    <value>جاهز لمعالجة المبيعات!</value>
+  </data>
+  <data name="Opening" xml:space="preserve">
+    <value>جاري الفتح...</value>
+  </data>
+  <data name="PleaseEnterAValidOpeningCashAmount" xml:space="preserve">
+    <value>الرجاء إدخال مبلغ نقدي افتتاحي صالح</value>
+  </data>
+  <data name="CashDrawerOpenedSuccessfully" xml:space="preserve">
+    <value>تم فتح درج النقود بنجاح!</value>
+  </data>
+  <data name="FailedToOpenCashDrawer" xml:space="preserve">
+    <value>فشل في فتح درج النقود</value>
+  </data>
+</root>

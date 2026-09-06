@@ -1,0 +1,583 @@
+@using Core.Entities.Users
+@{
+    ViewData["Title"] = Localizer["UserManagement"].Value;
+    ViewData["Subtitle"] = Localizer["ManageSystemUsersRolesAndPermissions"].Value;
+
+    var roles = ViewBag.Roles as List<Role> ?? new List<Role>();
+    var stats = ViewBag.Stats as Web.Controllers.UserStatsDto;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-users-cog me-2"></i>@Localizer["UserManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageSystemUsersRolesAndPermissions"]</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="fas fa-user-plus me-1"></i>@Localizer["AddUser"]
+                </button>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                    <i class="fas fa-plus-circle me-1"></i>@Localizer["AddRole"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon users-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+2</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalUsers">@(stats?.TotalUsers ?? 0)</div>
+                <div class="stats-label">@Localizer["TotalUsers"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon roles-icon">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalRoles">@(stats?.TotalRoles ?? 0)</div>
+                <div class="stats-label">@Localizer["TotalRoles"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="activeUsers">@(stats?.ActiveUsers ?? 0)</div>
+                <div class="stats-label">@Localizer["ActiveUsers"]</div>
+                <div class="stats-change">@Localizer["CurrentlyOnline"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon admin-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="adminUsers">@(stats?.AdminUsers ?? 0)</div>
+                <div class="stats-label">@Localizer["AdminUsers"]</div>
+                <div class="stats-change">@Localizer["SystemAdministrators"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Tabs -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <ul class="nav nav-tabs card-header-tabs" id="userTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                            <i class="fas fa-users me-1"></i>@Localizer["Users"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button" role="tab">
+                            <i class="fas fa-user-tag me-1"></i>@Localizer["Roles"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="permissions-tab" data-bs-toggle="tab" data-bs-target="#permissions" type="button" role="tab">
+                            <i class="fas fa-key me-1"></i>@Localizer["Permissions"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button" role="tab">
+                            <i class="fas fa-clock me-1"></i>@Localizer["ActiveSessions"]
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="userTabsContent">
+                    <!-- Users Tab -->
+                    <div class="tab-pane fade show active" id="users" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "usersTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetUsers", "Users", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 10,
+                            PageLengthMenu = new List<int> { 10, 25, 50 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "userDisplay", Title = Localizer["User"].Value, Orderable = false },
+                                new() { Data = "email", Title = Localizer["Email"].Value },
+                                new() { Data = "roleBadge", Title = Localizer["Role"].Value, Orderable = false },
+                                new() { Data = "statusBadge", Title = Localizer["Status"].Value, Orderable = false, ClassName = "text-center" },
+                                new() { Data = "lastLogin", Title = Localizer["LastLogin"].Value },
+                                new() { Data = "created", Title = Localizer["Created"].Value },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 120
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[5, 'desc']]"
+                            }
+                        })
+                    </div>
+
+                    <!-- Roles Tab -->
+                    <div class="tab-pane fade" id="roles" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "rolesTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetRoles", "Users", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 10,
+                            PageLengthMenu = new List<int> { 10, 25, 50 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "roleDisplay", Title = Localizer["RoleName"].Value, Orderable = false },
+                                new() { Data = "description", Title = Localizer["Description"].Value },
+                                new() { Data = "userCount", Title = Localizer["Users"].Value, ClassName = "text-center" },
+                                new() { Data = "permissionCount", Title = Localizer["Permissions"].Value, ClassName = "text-center" },
+                                new() { Data = "created", Title = Localizer["Created"].Value },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 120
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[0, 'asc']]"
+                            }
+                        })
+                    </div>
+
+                    <!-- Permissions Tab -->
+                    <div class="tab-pane fade" id="permissions" role="tabpanel">
+                        @{
+                            var allPermissions = Web.Helpers.PermissionHelper.Permissions.All
+                                .OrderBy(p => p)
+                                .ToList();
+                            var permissionCategories = allPermissions
+                                .GroupBy(p => p.Contains('.') ? p.Substring(0, p.IndexOf('.')) : p)
+                                .OrderBy(g => g.Key)
+                                .ToList();
+                            var permissionRoles = Web.Helpers.PermissionHelper.RolePermissions
+                                .OrderByDescending(kvp => kvp.Value.Length)
+                                .ToList();
+                        }
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="permissions-grid">
+                                    @foreach (var category in permissionCategories)
+                                    {
+                                        <div class="permission-category">
+                                            <h6><i class="fas fa-key me-2"></i>@category.Key</h6>
+                                            <div class="permission-items">
+                                                @foreach (var permission in category)
+                                                {
+                                                    <div class="permission-item">
+                                                        <span class="permission-name">@permission</span>
+                                                        <span class="permission-desc">@(permission.Contains('.') ? permission.Substring(permission.IndexOf('.') + 1) : permission)</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="permission-summary">
+                                    <h6>Permission Summary</h6>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Total Permissions:</span>
+                                        <span class="summary-value">@allPermissions.Count</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Categories:</span>
+                                        <span class="summary-value">@permissionCategories.Count</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-label">Roles:</span>
+                                        <span class="summary-value">@permissionRoles.Count</span>
+                                    </div>
+                                </div>
+                                <div class="permission-summary mt-3">
+                                    <h6>Permissions per Role</h6>
+                                    @foreach (var role in permissionRoles)
+                                    {
+                                        <div class="summary-item">
+                                            <span class="summary-label">@role.Key</span>
+                                            <span class="summary-value">@role.Value.Length</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Sessions Tab -->
+                    <div class="tab-pane fade" id="sessions" role="tabpanel">
+                        @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                        {
+                            Id = "sessionsTable",
+                            Class = "table table-hover modern-table",
+                            DataSource = Url.Action("GetSessions", "Users", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                            ServerSide = true,
+                            Processing = true,
+                            Ordering = true,
+                            Searching = true,
+                            Paging = true,
+                            PageLength = 10,
+                            PageLengthMenu = new List<int> { 10, 25, 50 },
+                            Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                            Responsive = true,
+                            Columns = new List<Web.Models.Shared.DataTableColumn>
+                            {
+                                new() { Data = "userDisplay", Title = Localizer["User"].Value, Orderable = false },
+                                new() { Data = "deviceInfo", Title = Localizer["Device"].Value },
+                                new() { Data = "ipAddress", Title = Localizer["IPAddress"].Value },
+                                new() { Data = "location", Title = Localizer["Location"].Value },
+                                new() { Data = "loginTime", Title = Localizer["LoginTime"].Value },
+                                new() { Data = "lastActivity", Title = Localizer["LastActivity"].Value },
+                                new() { 
+                                    Data = "actions", 
+                                    Title = Localizer["Actions"].Value, 
+                                    Orderable = false, 
+                                    Searchable = false,
+                                    ClassName = "text-center",
+                                    Width = 80
+                                }
+                            },
+                            AdditionalOptions = new Dictionary<string, object>
+                            {
+                                ["order"] = "[[4, 'desc']]"
+                            }
+                        })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" placeholder="Enter first name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" placeholder="Enter last name" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Login PIN (4-6 digits)</label>
+                                <input type="text" inputmode="numeric" pattern="\d{4,6}" maxlength="6" class="form-control" id="pin" placeholder="Initial PIN" required>
+                                <small class="text-muted">The user must change this on first login.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="userRole" required>
+                                    <option value="">Select a role</option>
+                                    @foreach (var role in roles)
+                                    {
+                                        <option value="@role.Name">@role.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">
+                                Active user
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-1"></i>Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Role Modal -->
+<div class="modal fade" id="addRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addRoleForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Role Name</label>
+                        <input type="text" class="form-control" id="roleName" placeholder="Enter role name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="roleDescription" rows="3" placeholder="Enter role description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Permissions</label>
+                        <div class="permissions-selection">
+                            <!-- Permission checkboxes will be populated dynamically -->
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="perm_users_view">
+                                <label class="form-check-label" for="perm_users_view">
+                                    Users.View
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="perm_users_create">
+                                <label class="form-check-label" for="perm_users_create">
+                                    Users.Create
+                                </label>
+                            </div>
+                            <!-- More permissions... -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus-circle me-1"></i>Create Role
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" id="editUsername" disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="editFirstName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="editLastName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="editUserRole" required>
+                            @foreach (var role in roles)
+                            {
+                                <option value="@role.Id">@role.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsActive">
+                            <label class="form-check-label" for="editIsActive">
+                                Active user
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset PIN Modal -->
+<div class="modal fade" id="resetPinModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset PIN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="resetPinForm">
+                <input type="hidden" id="resetPinUserId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">New PIN (4-6 digits)</label>
+                        <input type="text" inputmode="numeric" pattern="\d{4,6}" maxlength="6" class="form-control" id="newPin" required>
+                        <small class="text-muted">The user will be prompted to change this on next login.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-hashtag me-1"></i>Reset PIN
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.usersLocalizedStrings = {
+            passwordsDoNotMatch: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PasswordsDoNotMatch"].Value)),
+            userCreatedSuccessfully: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["UserCreatedSuccessfully"].Value)),
+            failedToCreateUser: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FailedToCreateUser"].Value)),
+            roleCreatedSuccessfully: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["RoleCreatedSuccessfully"].Value)),
+            failedToCreateRole: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FailedToCreateRole"].Value))
+        };
+        
+        window.usersUrls = {
+            createUrl: '@Url.Action("Create", "Users")',
+            createRoleUrl: '@Url.Action("CreateRole", "Users")',
+            getStatsUrl: '@Url.Action("GetStats", "Users")',
+            getUserUrl: '@Url.Action("GetUser", "Users")',
+            updateUserUrl: '@Url.Action("UpdateUser", "Users")',
+            deleteUserUrl: '@Url.Action("DeleteUser", "Users")',
+            resetPinUrl: '@Url.Action("ResetPin", "Users")',
+            toggleStatusUrl: '@Url.Action("ToggleUserStatus", "Users")',
+            terminateSessionUrl: '@Url.Action("TerminateSession", "Users")'
+        };
+    </script>
+    <script src="~/js/pages/Users/Index.js"></script>
+}

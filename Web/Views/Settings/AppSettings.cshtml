@@ -1,0 +1,421 @@
+@model Application.DTOs.Settings.AppSettingsDTO
+
+@{
+    ViewData["Title"] = "Application Settings";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="fas fa-sliders-h me-2"></i>
+                        Application Settings
+                    </h4>
+                    <p class="card-subtitle text-muted">Configure application-wide settings and preferences</p>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="UpdateAppSettings" method="post">
+                        <!-- General Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-building me-2"></i>General Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyName" class="form-label">Company Name</label>
+                                            <input asp-for="CompanyName" class="form-control" />
+                                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyEmail" class="form-label">Company Email</label>
+                                            <input asp-for="CompanyEmail" type="email" class="form-control" />
+                                            <span asp-validation-for="CompanyEmail" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyPhone" class="form-label">Company Phone</label>
+                                            <input asp-for="CompanyPhone" class="form-control" />
+                                            <span asp-validation-for="CompanyPhone" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyAddress" class="form-label">Company Address</label>
+                                            <textarea asp-for="CompanyAddress" class="form-control" rows="2"></textarea>
+                                            <span asp-validation-for="CompanyAddress" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="DefaultLanguage" class="form-label">Default Language</label>
+                                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                            {
+                                                Id = "DefaultLanguage",
+                                                Name = "DefaultLanguage",
+                                                Placeholder = "Select default language",
+                                                Items = new List<Web.Models.Shared.Select2Item>
+                                                {
+                                                    new() { Id = "en", Text = "English" },
+                                                    new() { Id = "ar", Text = "العربية" },
+                                                    new() { Id = "fr", Text = "Français" },
+                                                    new() { Id = "es", Text = "Español" }
+                                                }
+                                            })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="DefaultCurrency" class="form-label">Default Currency</label>
+                                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                            {
+                                                Id = "DefaultCurrency",
+                                                Name = "DefaultCurrency",
+                                                Placeholder = "Select default currency",
+                                                Items = new List<Web.Models.Shared.Select2Item>
+                                                {
+                                                    new() { Id = "USD", Text = "USD - US Dollar" },
+                                                    new() { Id = "LBP", Text = "LBP - Lebanese Pound" },
+                                                    new() { Id = "EUR", Text = "EUR - Euro" },
+                                                    new() { Id = "GBP", Text = "GBP - British Pound" }
+                                                }
+                                            })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="TimeZone" class="form-label">Time Zone</label>
+                                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                            {
+                                                Id = "TimeZone",
+                                                Name = "TimeZone",
+                                                Placeholder = "Select time zone",
+                                                Items = new List<Web.Models.Shared.Select2Item>
+                                                {
+                                                    new() { Id = "UTC", Text = "UTC" },
+                                                    new() { Id = "Asia/Beirut", Text = "Asia/Beirut" },
+                                                    new() { Id = "America/New_York", Text = "America/New_York" },
+                                                    new() { Id = "Europe/London", Text = "Europe/London" }
+                                                }
+                                            })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POS Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-cash-register me-2"></i>POS Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableBarcodeScanner" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableBarcodeScanner" class="form-check-label">Enable Barcode Scanner</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableReceiptPrinting" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableReceiptPrinting" class="form-check-label">Enable Receipt Printing</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="AutoPrintReceipt" class="form-check-input" type="checkbox" />
+                                                <label asp-for="AutoPrintReceipt" class="form-check-label">Auto Print Receipt</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="ShowProductImages" class="form-check-input" type="checkbox" />
+                                                <label asp-for="ShowProductImages" class="form-check-label">Show Product Images</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableDiscounts" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableDiscounts" class="form-check-label">Enable Discounts</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="RequireCustomerForSale" class="form-check-input" type="checkbox" />
+                                                <label asp-for="RequireCustomerForSale" class="form-check-label">Require Customer for Sale</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="ProductsPerPage" class="form-label">Products Per Page</label>
+                                            <input asp-for="ProductsPerPage" type="number" class="form-control" min="10" max="100" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="MaxDiscountPercentage" class="form-label">Max Discount %</label>
+                                            <input asp-for="MaxDiscountPercentage" type="number" class="form-control" min="0" max="100" step="0.01" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label asp-for="ReceiptPrinterName" class="form-label">Receipt Printer</label>
+                                            <div class="input-group">
+                                                <select asp-for="ReceiptPrinterName" id="receiptPrinterSelect" class="form-select">
+                                                    <option value="">-- Select a printer --</option>
+                                                    @if (!string.IsNullOrEmpty(Model.ReceiptPrinterName))
+                                                    {
+                                                        <option value="@Model.ReceiptPrinterName">@Model.ReceiptPrinterName</option>
+                                                    }
+                                                </select>
+                                                <button type="button" class="btn btn-outline-secondary" id="testPrinterBtn" title="Send a test print to the selected printer">
+                                                    <i class="fas fa-print me-1"></i>Test
+                                                </button>
+                                            </div>
+                                            <div class="form-text">Detected from printers installed on this computer. Pick one, save, and use Test to confirm it prints.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Inventory Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableLowStockAlerts" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableLowStockAlerts" class="form-check-label">Enable Low Stock Alerts</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableNegativeStock" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableNegativeStock" class="form-check-label">Allow Negative Stock</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="AutoReorderEnabled" class="form-check-input" type="checkbox" />
+                                                <label asp-for="AutoReorderEnabled" class="form-check-label">Enable Auto Reorder</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="LowStockThreshold" class="form-label">Low Stock Threshold</label>
+                                            <input asp-for="LowStockThreshold" type="number" class="form-control" min="1" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="ReorderPoint" class="form-label">Reorder Point</label>
+                                            <input asp-for="ReorderPoint" type="number" class="form-control" min="1" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="ReorderQuantity" class="form-label">Reorder Quantity</label>
+                                            <input asp-for="ReorderQuantity" type="number" class="form-control" min="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="SessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                                            <input asp-for="SessionTimeout" type="number" class="form-control" min="5" max="480" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="MaxLoginAttempts" class="form-label">Max Login Attempts</label>
+                                            <input asp-for="MaxLoginAttempts" type="number" class="form-control" min="3" max="10" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="PasswordMinLength" class="form-label">Password Min Length</label>
+                                            <input asp-for="PasswordMinLength" type="number" class="form-control" min="6" max="20" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="RequireStrongPassword" class="form-check-input" type="checkbox" />
+                                                <label asp-for="RequireStrongPassword" class="form-check-label">Require Strong Password</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableTwoFactorAuth" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableTwoFactorAuth" class="form-check-label">Enable Two-Factor Auth</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableAuditLogging" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableAuditLogging" class="form-check-label">Enable Audit Logging</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Settings -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-palette me-2"></i>Theme Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="PrimaryColor" class="form-label">Primary Color</label>
+                                            <input asp-for="PrimaryColor" type="color" class="form-control form-control-color" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label asp-for="SecondaryColor" class="form-label">Secondary Color</label>
+                                            <input asp-for="SecondaryColor" type="color" class="form-control form-control-color" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label asp-for="Theme" class="form-label">Theme</label>
+                                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                                            {
+                                                Id = "Theme",
+                                                Name = "Theme",
+                                                Placeholder = "Select theme",
+                                                Items = new List<Web.Models.Shared.Select2Item>
+                                                {
+                                                    new() { Id = "light", Text = "Light" },
+                                                    new() { Id = "dark", Text = "Dark" }
+                                                }
+                                            })
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input asp-for="EnableAnimations" class="form-check-input" type="checkbox" />
+                                                <label asp-for="EnableAnimations" class="form-check-label">Enable Animations</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Settings
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            loadAvailablePrinters();
+
+            $('#testPrinterBtn').on('click', function () {
+                var printerName = $('#receiptPrinterSelect').val();
+                if (!printerName) {
+                    toastr.warning('Select a printer first');
+                    return;
+                }
+
+                var $btn = $(this).prop('disabled', true);
+                $.post('@Url.Action("TestPrinter", "Settings")', { printerName: printerName })
+                    .done(function (res) {
+                        if (res.success) toastr.success(res.message);
+                        else toastr.error(res.message);
+                    })
+                    .fail(function () {
+                        toastr.error('Test print request failed');
+                    })
+                    .always(function () {
+                        $btn.prop('disabled', false);
+                    });
+            });
+        });
+
+        function loadAvailablePrinters() {
+            var $select = $('#receiptPrinterSelect');
+            var currentValue = $select.val();
+
+            $.get('@Url.Action("GetAvailablePrinters", "Settings")', function (res) {
+                if (!res.success) {
+                    toastr.error('Could not load installed printers: ' + res.message);
+                    return;
+                }
+
+                $select.empty();
+                $select.append($('<option>', { value: '', text: '-- Select a printer --' }));
+
+                (res.data || []).forEach(function (printerName) {
+                    $select.append($('<option>', { value: printerName, text: printerName }));
+                });
+
+                // If the currently configured printer wasn't detected on this machine
+                // (e.g. unplugged), keep it selectable so the setting isn't silently lost.
+                if (currentValue && $select.find('option[value="' + currentValue.replace(/"/g, '\\"') + '"]').length === 0) {
+                    $select.append($('<option>', { value: currentValue, text: currentValue + ' (not detected)' }));
+                }
+
+                $select.val(currentValue);
+            }).fail(function () {
+                toastr.error('Could not load installed printers');
+            });
+        }
+    </script>
+}

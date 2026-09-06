@@ -1,0 +1,224 @@
+@{
+    ViewData["Title"] = "Profile";
+    ViewData["Subtitle"] = "Your account information";
+}
+
+<!-- Profile Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-user-circle me-3"></i>
+                User Profile
+            </h2>
+            <p class="products-subtitle">Manage your account information and preferences</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("ChangePassword", "Account", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-key me-2"></i>Change PIN
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Content -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Account Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Username</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            @Model.Username
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Email Address</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            @Model.Email
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            @Model.FullName
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Role</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            <span class="badge bg-teal">@Model.Role</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">User ID</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            @Model.Id
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Role ID</label>
+                        <div class="form-control-plaintext bg-light p-2 rounded">
+                            @Model.RoleId
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="products-table-card mb-4">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("ChangePassword", "Account", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
+                        <i class="fas fa-key me-2"></i>Change PIN
+                    </a>
+                    <a href="@Url.Action("Index", "Settings", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
+                        <i class="fas fa-cog me-2"></i>Account Settings
+                    </a>
+                    <a href="@Url.Action("Index", "Dashboard", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Information -->
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Session Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="session-info">
+                    <div class="session-item">
+                        <span class="session-label">Login Time:</span>
+                        <span class="session-value" id="loginTime">Loading...</span>
+                    </div>
+                    <div class="session-item">
+                        <span class="session-label">Session Duration:</span>
+                        <span class="session-value" id="sessionDuration">Loading...</span>
+                    </div>
+                    <div class="session-item">
+                        <span class="session-label">IP Address:</span>
+                        <span class="session-value" id="ipAddress">Loading...</span>
+                    </div>
+                    <div class="session-item">
+                        <span class="session-label">Browser:</span>
+                        <span class="session-value" id="browser">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Update session information
+            updateSessionInfo();
+            
+            // Update session info every minute
+            setInterval(updateSessionInfo, 60000);
+        });
+
+        function updateSessionInfo() {
+            const now = new Date();
+            const loginTime = new Date(); // This would typically come from the server
+            const sessionDuration = Math.floor((now - loginTime) / 1000 / 60); // minutes
+            
+            $('#loginTime').text(loginTime.toLocaleString());
+            $('#sessionDuration').text(formatDuration(sessionDuration));
+            $('#ipAddress').text(getClientIP());
+            $('#browser').text(getBrowserName());
+        }
+
+        function formatDuration(minutes) {
+            if (minutes < 60) {
+                return `${minutes} minutes`;
+            } else {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                return `${hours}h ${remainingMinutes}m`;
+            }
+        }
+
+        function getClientIP() {
+            // This would typically be fetched from the server
+            return '192.168.1.100';
+        }
+
+        function getBrowserName() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes('Chrome')) return 'Chrome';
+            if (userAgent.includes('Firefox')) return 'Firefox';
+            if (userAgent.includes('Safari')) return 'Safari';
+            if (userAgent.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+    </script>
+
+    <style>
+        .form-control-plaintext {
+            border: 1px solid #e0e0e0;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        .session-info {
+            font-size: 14px;
+        }
+
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .session-item:last-child {
+            border-bottom: none;
+        }
+
+        .session-label {
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .session-value {
+            color: var(--gray-600);
+            font-family: monospace;
+        }
+
+        .badge.bg-teal {
+            background-color: var(--teal-primary) !important;
+            color: white;
+        }
+    </style>
+}

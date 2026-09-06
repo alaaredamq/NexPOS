@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="StoreSettings" xml:space="preserve">
+    <value>إعدادات المتجر</value>
+  </data>
+  <data name="StoreSettingsDescription" xml:space="preserve">
+    <value>قم بتكوين معلومات المتجر وإعدادات الإيصالات</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>إعادة التعيين للافتراضي</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>حفظ التغييرات</value>
+  </data>
+  <data name="StoreInformation" xml:space="preserve">
+    <value>معلومات المتجر</value>
+  </data>
+  <data name="StoreName" xml:space="preserve">
+    <value>اسم المتجر</value>
+  </data>
+  <data name="StoreNameHint" xml:space="preserve">
+    <value>سيظهر هذا الاسم على جميع الإيصالات</value>
+  </data>
+  <data name="AddressLine1" xml:space="preserve">
+    <value>سطر العنوان 1</value>
+  </data>
+  <data name="AddressLine1Hint" xml:space="preserve">
+    <value>عنوان الشارع</value>
+  </data>
+  <data name="AddressLine2" xml:space="preserve">
+    <value>سطر العنوان 2</value>
+  </data>
+  <data name="AddressLine2Hint" xml:space="preserve">
+    <value>المدينة، الولاية، الرمز البريدي</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>الهاتف</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>البريد الإلكتروني</value>
+  </data>
+  <data name="TaxId" xml:space="preserve">
+    <value>الرقم الضريبي</value>
+  </data>
+  <data name="TaxIdHint" xml:space="preserve">
+    <value>رقم تسجيل ضريبة القيمة المضافة</value>
+  </data>
+  <data name="BusinessRegistrationNumber" xml:space="preserve">
+    <value>رقم السجل التجاري</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>الموقع الإلكتروني</value>
+  </data>
+  <data name="SocialMedia" xml:space="preserve">
+    <value>وسائل التواصل الاجتماعي</value>
+  </data>
+  <data name="ReceiptSettings" xml:space="preserve">
+    <value>إعدادات الإيصال</value>
+  </data>
+  <data name="ReceiptFooterMessage" xml:space="preserve">
+    <value>رسالة التذييل</value>
+  </data>
+  <data name="ReceiptFooterMessageHint" xml:space="preserve">
+    <value>رسالة الشكر المعروضة في أسفل الإيصالات</value>
+  </data>
+  <data name="FooterLine1" xml:space="preserve">
+    <value>سطر التذييل 1</value>
+  </data>
+  <data name="FooterLine2" xml:space="preserve">
+    <value>سطر التذييل 2</value>
+  </data>
+  <data name="FooterLine3" xml:space="preserve">
+    <value>سطر التذييل 3</value>
+  </data>
+  <data name="CurrencySymbol" xml:space="preserve">
+    <value>رمز العملة</value>
+  </data>
+  <data name="DefaultLanguage" xml:space="preserve">
+    <value>اللغة الافتراضية</value>
+  </data>
+  <data name="ReturnPolicyDays" xml:space="preserve">
+    <value>أيام سياسة الإرجاع</value>
+  </data>
+  <data name="ReturnPolicyDaysHint" xml:space="preserve">
+    <value>عدد أيام سياسة الإرجاع</value>
+  </data>
+  <data name="PrintLogo" xml:space="preserve">
+    <value>طباعة الشعار</value>
+  </data>
+  <data name="PrintBarcode" xml:space="preserve">
+    <value>طباعة الباركود</value>
+  </data>
+  <data name="ShowTaxBreakdown" xml:space="preserve">
+    <value>إظهار تفاصيل الضريبة</value>
+  </data>
+  <data name="LogoPath" xml:space="preserve">
+    <value>مسار الشعار</value>
+  </data>
+  <data name="LogoPathHint" xml:space="preserve">
+    <value>المسار إلى ملف صورة الشعار</value>
+  </data>
+  <data name="ReceiptPreview" xml:space="preserve">
+    <value>معاينة الإيصال</value>
+  </data>
+  <data name="SettingsSavedSuccessfully" xml:space="preserve">
+    <value>تم حفظ الإعدادات بنجاح</value>
+  </data>
+  <data name="ErrorSavingSettings" xml:space="preserve">
+    <value>خطأ في حفظ الإعدادات</value>
+  </data>
+  <data name="ConfirmResetToDefaults" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد إعادة تعيين جميع إعدادات المتجر إلى الإعدادات الافتراضية؟</value>
+  </data>
+  <data name="SettingsResetSuccessfully" xml:space="preserve">
+    <value>تمت إعادة تعيين الإعدادات بنجاح</value>
+  </data>
+  <data name="ErrorResettingSettings" xml:space="preserve">
+    <value>خطأ في إعادة تعيين الإعدادات</value>
+  </data>
+</root>

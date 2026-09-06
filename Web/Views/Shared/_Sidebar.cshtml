@@ -1,0 +1,157 @@
+@{
+    var noSidebar = ViewBag.NoSidebar as bool? ?? false;
+    if (!noSidebar && Context.Request.Query.ContainsKey("noSidebar"))
+    {
+        noSidebar = Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+}
+@if (!noSidebar)
+{
+    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+        <div class="position-sticky pt-3">
+            <!-- Logo/Brand -->
+            <div class="text-center mb-4">
+                <a href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")" class="d-inline-block">
+                    <img src="~/images/logo.svg" alt="NexPos" height="40" />
+                </a>
+            </div>
+
+            <!-- Navigation Menu -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "POS" || currentController == "Home" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "POS")">
+                        <i class="fas fa-cash-register me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["PointOfSale"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Dashboard" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Dashboard"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Products" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Products")">
+                        <i class="fas fa-box me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Products"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Categories" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Categories")">
+                        <i class="fas fa-tags me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Categories"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Customers" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Customers")">
+                        <i class="fas fa-users me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Customers"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Suppliers" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Suppliers")">
+                        <i class="fas fa-truck me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Suppliers"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Orders" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Orders")">
+                        <i class="fas fa-shopping-cart me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Orders"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Inventory" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Inventory")">
+                        <i class="fas fa-warehouse me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Inventory"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Reports" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Reports")">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Reports"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "CashDrawer" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "CashDrawer")">
+                        <i class="fas fa-cash-register me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["CashDrawer"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Receipts" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Receipts")">
+                        <i class="fas fa-receipt me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Receipts"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "ProductDisplayOrder" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "ProductDisplayOrder")">
+                        <i class="fas fa-sort-amount-down me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["ProductDisplayOrder"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Notifications" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Notifications")">
+                        <i class="fas fa-bell me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Notifications"]</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(currentController == "Backup" ? "active" : "")"
+                       href="@Url.ActionWithCurrentLanguage("Index", "Backup")">
+                        <i class="fas fa-database me-2"></i>
+                        <span class="nav-text">@SharedLocalizer["Backup"]</span>
+                    </a>
+                </li>
+
+                <hr class="my-3">
+
+                @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Users" ? "active" : "")"
+                           href="@Url.ActionWithCurrentLanguage("Index", "Users")">
+                            <i class="fas fa-user-cog me-2"></i>
+                            <span class="nav-text">@SharedLocalizer["Users"]</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Currency" ? "active" : "")"
+                           href="@Url.ActionWithCurrentLanguage("Index", "Currency")">
+                            <i class="fas fa-coins me-2"></i>
+                            <span class="nav-text">@SharedLocalizer["Currency"]</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Tax" ? "active" : "")"
+                           href="@Url.ActionWithCurrentLanguage("Index", "Tax")">
+                            <i class="fas fa-percentage me-2"></i>
+                            <span class="nav-text">@SharedLocalizer["Tax"]</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Settings" ? "active" : "")"
+                           href="@Url.ActionWithCurrentLanguage("Index", "Settings")">
+                            <i class="fas fa-cog me-2"></i>
+                            <span class="nav-text">@SharedLocalizer["Settings"]</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </nav>
+}

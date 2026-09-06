@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="CashDrawerHistory" xml:space="preserve">
+    <value>Cash Drawer History</value>
+  </data>
+  <data name="ViewPastCashDrawerSessionsAndZReports" xml:space="preserve">
+    <value>View past cash drawer sessions and Z-Reports</value>
+  </data>
+  <data name="BackToDashboard" xml:space="preserve">
+    <value>Back to Dashboard</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SessionHistory" xml:space="preserve">
+    <value>Session History</value>
+  </data>
+  <data name="SessionId" xml:space="preserve">
+    <value>Session ID</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>Opened At</value>
+  </data>
+  <data name="ClosedAt" xml:space="preserve">
+    <value>Closed At</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>Opening Cash</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>Transactions</value>
+  </data>
+  <data name="CashDifference" xml:space="preserve">
+    <value>Cash Difference</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Closed" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="LoadingHistory" xml:space="preserve">
+    <value>Loading history...</value>
+  </data>
+  <data name="NoSessionsFoundForTheSelectedDateRange" xml:space="preserve">
+    <value>No sessions found for the selected date range</value>
+  </data>
+  <data name="FailedToLoadHistory" xml:space="preserve">
+    <value>Failed to load history</value>
+  </data>
+</root>

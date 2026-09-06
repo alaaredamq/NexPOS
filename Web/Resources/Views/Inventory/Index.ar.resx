@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="InventoryManagement" xml:space="preserve">
+    <value>إدارة المخزون</value>
+  </data>
+  <data name="ManageYourInventoryAndStockLevels" xml:space="preserve">
+    <value>إدارة المخزون ومستويات المخزون الخاصة بك</value>
+  </data>
+  <data name="LowStockReport" xml:space="preserve">
+    <value>تقرير نقص المخزون</value>
+  </data>
+  <data name="StockValueReport" xml:space="preserve">
+    <value>تقرير قيمة المخزون</value>
+  </data>
+  <data name="TotalProducts" xml:space="preserve">
+    <value>إجمالي المنتجات</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>مخزون منخفض</value>
+  </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>نفاد المخزون</value>
+  </data>
+  <data name="TotalStockValue" xml:space="preserve">
+    <value>إجمالي قيمة المخزون</value>
+  </data>
+  <data name="StockAlerts" xml:space="preserve">
+    <value>تنبيهات المخزون</value>
+  </data>
+  <data name="InventoryOverview" xml:space="preserve">
+    <value>نظرة عامة على المخزون</value>
+  </data>
+  <data name="LoadingInventoryData" xml:space="preserve">
+    <value>جاري تحميل بيانات المخزون...</value>
+  </data>
+  <data name="NoInventoryDataAvailable" xml:space="preserve">
+    <value>لا توجد بيانات مخزون متاحة</value>
+  </data>
+  <data name="NoMatchingRecordsFound" xml:space="preserve">
+    <value>لم يتم العثور على سجلات مطابقة</value>
+  </data>
+  <data name="InventoryDataRefreshedSuccessfully" xml:space="preserve">
+    <value>تم تحديث بيانات المخزون بنجاح</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplementedSoon" xml:space="preserve">
+    <value>سيتم تنفيذ وظيفة التصدير قريباً</value>
+  </data>
+  <data name="StockHistoryFeatureWillBeImplementedSoon" xml:space="preserve">
+    <value>سيتم تنفيذ ميزة سجل المخزون قريباً</value>
+  </data>
+  <data name="SetMinimumStock" xml:space="preserve">
+    <value>تعيين الحد الأدنى للمخزون</value>
+  </data>
+  <data name="MinimumStockLevel" xml:space="preserve">
+    <value>مستوى الحد الأدنى للمخزون</value>
+  </data>
+  <data name="EnterMinimumStockLevel" xml:space="preserve">
+    <value>أدخل الحد الأدنى لمستوى المخزون</value>
+  </data>
+  <data name="Set" xml:space="preserve">
+    <value>تعيين</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="PleaseEnterAValidMinimumStockLevel" xml:space="preserve">
+    <value>الرجاء إدخال حد أدنى صالح لمستوى المخزون</value>
+  </data>
+  <data name="MinimumStockLevelUpdatedSuccessfully" xml:space="preserve">
+    <value>تم تحديث الحد الأدنى لمستوى المخزون بنجاح</value>
+  </data>
+  <data name="FailedToUpdateMinimumStockLevel" xml:space="preserve">
+    <value>فشل في تحديث الحد الأدنى لمستوى المخزون</value>
+  </data>
+  <data name="AnErrorOccurredWhileUpdatingMinimumStockLevel" xml:space="preserve">
+    <value>حدث خطأ أثناء تحديث الحد الأدنى لمستوى المخزون</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>الباركود</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>المخزون الحالي</value>
+  </data>
+  <data name="MinStock" xml:space="preserve">
+    <value>الحد الأدنى</value>
+  </data>
+  <data name="MaxStock" xml:space="preserve">
+    <value>الحد الأقصى</value>
+  </data>
+  <data name="CostPrice" xml:space="preserve">
+    <value>سعر التكلفة</value>
+  </data>
+  <data name="SellingPrice" xml:space="preserve">
+    <value>سعر البيع</value>
+  </data>
+  <data name="StockValue" xml:space="preserve">
+    <value>قيمة المخزون</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>متوفر</value>
+  </data>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="SetMinStock" xml:space="preserve">
+    <value>تعيين الحد الأدنى</value>
+  </data>
+  <data name="ViewHistory" xml:space="preserve">
+    <value>عرض السجل</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>بدون فئة</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>الإجمالي</value>
+  </data>
+  <data name="AllProductsInInventory" xml:space="preserve">
+    <value>جميع المنتجات في المخزون</value>
+  </data>
+  <data name="NeedsAttention" xml:space="preserve">
+    <value>يحتاج انتباه</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>جيد</value>
+  </data>
+  <data name="BelowMinimumLevel" xml:space="preserve">
+    <value>أقل من الحد الأدنى</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>حرج</value>
+  </data>
+  <data name="ZeroQuantity" xml:space="preserve">
+    <value>كمية صفر</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>القيمة</value>
+  </data>
+  <data name="AtCostPrice" xml:space="preserve">
+    <value>بسعر التكلفة</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="Showing" xml:space="preserve">
+    <value>عرض</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Of" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Entries" xml:space="preserve">
+    <value>سجلات</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>السابق</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>التالي</value>
+  </data>
+</root>

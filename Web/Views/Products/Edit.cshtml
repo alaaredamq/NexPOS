@@ -1,0 +1,368 @@
+@model Application.DTOs.Products.UpdateProductRequest
+
+@{
+    ViewData["Title"] = "Edit Product";
+    ViewData["Subtitle"] = "Update product information";
+}
+
+<!-- Edit Product Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-edit me-3"></i>
+                Edit Product
+            </h2>
+            <p class="products-subtitle">Update product information</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Products
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Product Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <form asp-action="Edit" method="post">
+                    <input asp-for="Id" type="hidden" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label">Product Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Barcode" class="form-label">Barcode</label>
+                            <div class="input-group">
+                                <input asp-for="Barcode" class="form-control" placeholder="Enter barcode" />
+                                <button type="button" class="btn btn-outline-secondary" id="generateBarcodeBtn" title="Generate a new barcode">
+                                    <i class="fas fa-wand-magic-sparkles me-1"></i>Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="Barcode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter product description"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoryId" class="form-label">Category *</label>
+                            @{
+                                var categories = ViewBag.Categories as List<Core.Entities.Products.ProductCategory> ?? new List<Core.Entities.Products.ProductCategory>();
+                                var categoryItems = categories.Select(c => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = c.Id.ToString(),
+                                    Text = c.Name
+                                }).ToList();
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "CategoryId",
+                                Name = "CategoryId",
+                                Placeholder = "Select a category",
+                                Required = true,
+                                Value = Model.CategoryId.ToString(),
+                                Items = categoryItems
+                            })
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SupplierId" class="form-label">Supplier *</label>
+                            @{
+                                var suppliers = ViewBag.Suppliers as List<Core.Entities.Products.Supplier> ?? new List<Core.Entities.Products.Supplier>();
+                                var supplierItems = suppliers.OrderBy(x => x.OrderNumber).Select(s => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = s.Id.ToString(),
+                                    Text = s.Name + (s.DiscountRate > 0 ? $" ({s.DiscountRate}% discount)" : "")
+                                }).ToList();
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "SupplierId",
+                                Name = "SupplierId",
+                                Placeholder = "Select a supplier",
+                                Required = true,
+                                Value = Model.SupplierId.ToString(),
+                                AllowClear = false,
+                                Items = supplierItems
+                            })
+                            <span asp-validation-for="SupplierId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Brand" class="form-label">Brand</label>
+                            <input asp-for="Brand" class="form-control" placeholder="Enter brand name" />
+                            <span asp-validation-for="Brand" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="PurchasePrice" class="form-label">Purchase Price *</label>
+                            <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" step="0.01" />
+                            <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="SellingPrice" class="form-label">Selling Price *</label>
+                            <input asp-for="SellingPrice" class="form-control" placeholder="0.00" step="0.01" />
+                            <span asp-validation-for="SellingPrice" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="CurrencyId" class="form-label">Currency *</label>
+                            @{
+                                var currencies = ViewBag.Currencies as List<Core.Entities.Sales.Currency> ?? new List<Core.Entities.Sales.Currency>();
+                                var currencyItems = currencies.Select(c => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = c.Id.ToString(),
+                                    Text = $"{c.Code} ({c.Notation})"
+                                }).ToList();
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "CurrencyId",
+                                Name = "CurrencyId",
+                                Placeholder = "Select currency",
+                                Value = Model.CurrencyId.ToString(),
+                                Items = currencyItems
+                            })
+                            <span asp-validation-for="CurrencyId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="Unit" class="form-label">Unit</label>
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "Unit",
+                                Name = "Unit",
+                                Placeholder = "Select unit",
+                                Value = Model.Unit,
+                                Items = new List<Web.Models.Shared.Select2Item>
+                                {
+                                    new() { Id = "piece", Text = "Piece" },
+                                    new() { Id = "kg", Text = "Kilogram" },
+                                    new() { Id = "lb", Text = "Pound" },
+                                    new() { Id = "liter", Text = "Liter" },
+                                    new() { Id = "gallon", Text = "Gallon" },
+                                    new() { Id = "box", Text = "Box" },
+                                    new() { Id = "pack", Text = "Pack" }
+                                }
+                            })
+                            <span asp-validation-for="Unit" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StockQuantity" class="form-label">Stock Quantity</label>
+                            <input asp-for="StockQuantity" class="form-control" placeholder="0" min="0" />
+                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MinStockLevel" class="form-label">Minimum Stock Level</label>
+                            <input asp-for="MinStockLevel" class="form-control" placeholder="0" min="0" />
+                            <span asp-validation-for="MinStockLevel" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Product is active
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-teal">
+                            <i class="fas fa-save me-2"></i>Update Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Product Guidelines
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="guidelines">
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Product name should be descriptive and unique</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Barcode helps with quick product identification</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Set appropriate minimum stock levels for alerts</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Selling price should be higher than purchase price</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Choose the correct category for better organization</span>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="profit-preview">
+                    <h6 class="text-muted mb-3">Profit Preview</h6>
+                    <div class="profit-item">
+                        <span>Purchase Price:</span>
+                        <span id="previewPurchasePrice">$0.00</span>
+                    </div>
+                    <div class="profit-item">
+                        <span>Selling Price:</span>
+                        <span id="previewSellingPrice">$0.00</span>
+                    </div>
+                    <div class="profit-item profit-total">
+                        <span>Profit Margin:</span>
+                        <span id="previewProfitMargin">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Calculate profit margin in real-time
+            function calculateProfitMargin() {
+                const purchasePrice = parseFloat($('#PurchasePrice').val()) || 0;
+                const sellingPrice = parseFloat($('#SellingPrice').val()) || 0;
+                const profitMargin = sellingPrice - purchasePrice;
+
+                $('#previewPurchasePrice').text('$' + purchasePrice.toFixed(2));
+                $('#previewSellingPrice').text('$' + sellingPrice.toFixed(2));
+                $('#previewProfitMargin').text('$' + profitMargin.toFixed(2));
+
+                // Color code the profit margin
+                const profitElement = $('#previewProfitMargin');
+                if (profitMargin > 0) {
+                    profitElement.removeClass('text-danger').addClass('text-success');
+                } else if (profitMargin < 0) {
+                    profitElement.removeClass('text-success').addClass('text-danger');
+                } else {
+                    profitElement.removeClass('text-success text-danger');
+                }
+            }
+
+            // Initial calculation with existing values
+            calculateProfitMargin();
+
+            $('#PurchasePrice, #SellingPrice').on('input', calculateProfitMargin);
+
+            // Generate barcode
+            $('#generateBarcodeBtn').on('click', function() {
+                const $btn = $(this);
+                const originalHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                $.getJSON('@Url.Action("GenerateBarcode", "Products")')
+                    .done(function(res) {
+                        if (res && res.success && res.barcode) {
+                            $('#Barcode').val(res.barcode).trigger('input').removeClass('input-validation-error');
+                            $('span[data-valmsg-for="Barcode"]').text('');
+                        } else {
+                            alert((res && res.message) || 'Could not generate a barcode.');
+                        }
+                    })
+                    .fail(function() { alert('Could not generate a barcode.'); })
+                    .always(function() { $btn.prop('disabled', false).html(originalHtml); });
+            });
+
+            // Form validation
+            $('form').on('submit', function(e) {
+                const purchasePrice = parseFloat($('#PurchasePrice').val()) || 0;
+                const sellingPrice = parseFloat($('#SellingPrice').val()) || 0;
+
+                if (sellingPrice <= purchasePrice) {
+                    e.preventDefault();
+                    alert('Selling price must be higher than purchase price for a profitable business!');
+                    $('#SellingPrice').focus();
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .guidelines {
+            margin-bottom: 20px;
+        }
+
+        .guideline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .profit-preview {
+            background: var(--teal-lighter);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .profit-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .profit-total {
+            font-weight: 600;
+            border-top: 1px solid var(--gray-300);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--teal-primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+    </style>
+}
+

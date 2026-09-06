@@ -1,0 +1,550 @@
+@{
+    ViewData["Title"] = Localizer["NotificationsAndAlerts"];
+    ViewData["Subtitle"] = Localizer["ManageSystemNotificationsAndAlerts"];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-bell me-2"></i>@Localizer["NotificationsAndAlerts"]</h3>
+                <p class="text-muted">@Localizer["ManageSystemNotificationsAndAlerts"]</p>
+            </div>
+            <div class="page-actions">
+                <button type="button" class="btn btn-outline-danger" onclick="cleanupNotifications()">
+                    <i class="fas fa-broom me-1"></i>@Localizer["Cleanup"]
+                </button>
+                <button type="button" class="btn btn-primary" onclick="refreshAll()">
+                    <i class="fas fa-sync me-1"></i>@Localizer["Refresh"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon receipts-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="unreadNotifications">0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalNotifications">0</div>
+                <div class="stats-label">@Localizer["TotalNotifications"]</div>
+                <div class="stats-change"><span id="unreadNotificationsLabel">0</span> @Localizer["Unread"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon stock-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span id="criticalAlerts">0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalAlerts">0</div>
+                <div class="stats-label">@Localizer["ActiveAlerts"]</div>
+                <div class="stats-change"><span id="criticalAlertsLabel">0</span> @Localizer["Critical"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon void-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span id="outOfStockCount">0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="lowStockCount">0</div>
+                <div class="stats-label">@Localizer["LowStock"]</div>
+                <div class="stats-change"><span id="outOfStockLabel">0</span> @Localizer["OutOfStock"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check"></i>
+                    <span>OK</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number"><span class="badge bg-success">@Localizer["OK"]</span></div>
+                <div class="stats-label">@Localizer["SystemStatus"]</div>
+                <div class="stats-change" id="systemStatusText">@Localizer["AllSystemsOperational"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <ul class="nav nav-tabs card-header-tabs" id="notificationTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+                            <i class="fas fa-bell me-1"></i>@Localizer["Notifications"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab">
+                            <i class="fas fa-exclamation-triangle me-1"></i>@Localizer["Alerts"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="recent-tab" data-bs-toggle="tab" data-bs-target="#recent" type="button" role="tab">
+                            <i class="fas fa-clock me-1"></i>@Localizer["Recent"]
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="notificationTabsContent">
+                    <!-- Notifications Tab -->
+                    <div class="tab-pane fade show active" id="notifications" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="markAllRead()">
+                                <i class="fas fa-check-double me-1"></i>@Localizer["MarkAllRead"]
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllNotifications()">
+                                <i class="fas fa-trash me-1"></i>@Localizer["ClearAll"]
+                            </button>
+                        </div>
+                        <div id="notificationsList" class="notification-list">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Alerts Tab -->
+                    <div class="tab-pane fade" id="alerts" role="tabpanel">
+                        <div class="d-flex justify-content-end mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="dismissAllAlerts()">
+                                <i class="fas fa-check-double me-1"></i>@Localizer["DismissAll"]
+                            </button>
+                        </div>
+                        <div id="alertsList" class="notification-list">
+                            <!-- Alerts will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Recent Tab -->
+                    <div class="tab-pane fade" id="recent" role="tabpanel">
+                        <h6 class="mb-3">@Localizer["RecentActivity"]</h6>
+                        <div id="recentList" class="notification-list">
+                            <!-- Recent notifications will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>@Localizer["QuickActions"]</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="@Url.Action("Index", "Inventory", new { filter = "lowstock" })" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        @Localizer["ViewLowStockItems"]
+                        <span class="badge bg-danger rounded-pill" id="lowStockBadge">0</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action" onclick="refreshInventoryAlerts()">
+                        <i class="fas fa-sync me-2"></i>@Localizer["RefreshInventoryAlerts"]
+                    </a>
+                    <a href="@Url.Action("Settings", "Notifications")" class="list-group-item list-group-item-action">
+                        <i class="fas fa-cog me-2"></i>@Localizer["NotificationSettings"]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Localized strings for JavaScript
+        window.notificationsLocalizedStrings = {
+            noNotificationsFound: '@Html.Raw(Localizer["NoNotificationsFound"].Value)',
+            noActiveAlerts: '@Html.Raw(Localizer["NoActiveAlerts"].Value)',
+            noRecentNotifications: '@Html.Raw(Localizer["NoRecentNotifications"].Value)',
+            notificationMarkedAsRead: '@Html.Raw(Localizer["NotificationMarkedAsRead"].Value)',
+            alertDismissed: '@Html.Raw(Localizer["AlertDismissed"].Value)',
+            notificationDeleted: '@Html.Raw(Localizer["NotificationDeleted"].Value)',
+            alertDeleted: '@Html.Raw(Localizer["AlertDeleted"].Value)',
+            featureComingSoon: '@Html.Raw(Localizer["FeatureComingSoon"].Value)',
+            cleanupCompleted: '@Html.Raw(Localizer["CleanupCompleted"].Value)',
+            confirmDeleteNotification: '@Html.Raw(Localizer["AreYouSureYouWantToDeleteThisNotification"].Value)',
+            confirmDeleteAlert: '@Html.Raw(Localizer["AreYouSureYouWantToDeleteThisAlert"].Value)',
+            confirmMarkAllRead: '@Html.Raw(Localizer["MarkAllNotificationsAsRead"].Value)',
+            confirmDismissAllAlerts: '@Html.Raw(Localizer["DismissAllActiveAlerts"].Value)',
+            confirmClearAll: '@Html.Raw(Localizer["ClearAllNotifications"].Value)',
+            confirmCleanup: '@Html.Raw(Localizer["CleanUpOldNotificationsAndDismissedAlerts"].Value)'
+        };
+
+        $(document).ready(function() {
+            loadNotifications();
+            loadAlerts();
+            loadRecentActivity();
+            loadStats();
+        });
+
+        function loadStats() {
+            $.get('@Url.Action("GetStats", "Notifications")', function(response) {
+                if (response.success) {
+                    $('#totalNotifications').text(response.data.totalNotifications);
+                    $('#unreadNotifications').text(response.data.unreadNotifications);
+                    $('#unreadNotificationsLabel').text(response.data.unreadNotifications);
+                    $('#totalAlerts').text(response.data.totalAlerts);
+                    $('#criticalAlerts').text(response.data.criticalAlerts);
+                    $('#criticalAlertsLabel').text(response.data.criticalAlerts);
+                    $('#lowStockCount').text(response.data.lowStockCount);
+                    $('#lowStockBadge').text(response.data.lowStockCount);
+                    $('#outOfStockCount').text(response.data.outOfStockCount);
+                    $('#outOfStockLabel').text(response.data.outOfStockCount);
+                }
+            });
+        }
+
+        function loadNotifications() {
+            $.get('@Url.Action("GetNotifications", "Notifications")', function(response) {
+                const list = $('#notificationsList');
+                list.empty();
+                
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(function(notification) {
+                        list.append(createNotificationItem(notification));
+                    });
+                } else {
+                    list.html(`<p class="text-muted text-center">${window.notificationsLocalizedStrings.noNotificationsFound}</p>`);
+                }
+            });
+        }
+
+        function loadAlerts() {
+            $.get('@Url.Action("GetAlerts", "Notifications")', function(response) {
+                const list = $('#alertsList');
+                list.empty();
+                
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(function(alert) {
+                        list.append(createAlertItem(alert));
+                    });
+                } else {
+                    list.html(`<p class="text-muted text-center">${window.notificationsLocalizedStrings.noActiveAlerts}</p>`);
+                }
+            });
+        }
+
+        function loadRecentActivity() {
+            $.get('@Url.Action("GetRecentActivity", "Notifications")', function(response) {
+                const list = $('#recentList');
+                list.empty();
+                
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(function(item) {
+                        list.append(createActivityItem(item));
+                    });
+                } else {
+                    list.html(`<p class="text-muted text-center">${window.notificationsLocalizedStrings.noRecentNotifications}</p>`);
+                }
+            });
+        }
+
+        function createNotificationItem(notification) {
+            const isUnread = !notification.isRead;
+            return `
+                <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notification.id}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex">
+                            <div class="notification-icon ${notification.type}">
+                                <i class="${getNotificationIcon(notification.type)}"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">${notification.title}</h6>
+                                <p class="mb-1 text-muted">${notification.message}</p>
+                                <small class="text-muted">${notification.createdAt}</small>
+                            </div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            ${isUnread ? `<button class="btn btn-outline-primary" onclick="markAsRead(${notification.id})"><i class="fas fa-check"></i></button>` : ''}
+                            <button class="btn btn-outline-danger" onclick="deleteNotification(${notification.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createAlertItem(alert) {
+            return `
+                <div class="alert-item ${alert.severity}" data-id="${alert.id}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex">
+                            <div class="alert-icon ${alert.severity}">
+                                <i class="${getAlertIcon(alert.severity)}"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">${alert.title}</h6>
+                                <p class="mb-1 text-muted">${alert.message}</p>
+                                <small class="text-muted">${alert.createdAt}</small>
+                            </div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-warning" onclick="dismissAlert(${alert.id})"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-outline-danger" onclick="deleteAlert(${alert.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createActivityItem(item) {
+            return `
+                <div class="activity-item">
+                    <div class="d-flex">
+                        <div class="activity-icon ${item.type}">
+                            <i class="${getNotificationIcon(item.type)}"></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="mb-0">${item.message}</p>
+                            <small class="text-muted">${item.time}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getNotificationIcon(type) {
+            switch(type) {
+                case 'info': return 'fas fa-info-circle';
+                case 'success': return 'fas fa-check-circle';
+                case 'warning': return 'fas fa-exclamation-triangle';
+                case 'error': return 'fas fa-times-circle';
+                default: return 'fas fa-bell';
+            }
+        }
+
+        function getAlertIcon(severity) {
+            switch(severity) {
+                case 'critical': return 'fas fa-exclamation-circle';
+                case 'high': return 'fas fa-exclamation-triangle';
+                case 'medium': return 'fas fa-exclamation';
+                case 'low': return 'fas fa-info-circle';
+                default: return 'fas fa-bell';
+            }
+        }
+
+        function markAsRead(id) {
+            $.post('@Url.Action("MarkAsRead", "Notifications")', { id: id }, function(response) {
+                if (response.success) {
+                    toastr.success(window.notificationsLocalizedStrings.notificationMarkedAsRead);
+                    loadNotifications();
+                    loadStats();
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function dismissAlert(id) {
+            $.post('@Url.Action("DismissAlert", "Notifications")', { id: id }, function(response) {
+                if (response.success) {
+                    toastr.success(window.notificationsLocalizedStrings.alertDismissed);
+                    loadAlerts();
+                    loadStats();
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function deleteNotification(id) {
+            if (confirm(window.notificationsLocalizedStrings.confirmDeleteNotification)) {
+                $.post('@Url.Action("DeleteNotification", "Notifications")', { id: id }, function(response) {
+                    if (response.success) {
+                        toastr.success(window.notificationsLocalizedStrings.notificationDeleted);
+                        loadNotifications();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function deleteAlert(id) {
+            if (confirm(window.notificationsLocalizedStrings.confirmDeleteAlert)) {
+                $.post('@Url.Action("DeleteAlert", "Notifications")', { id: id }, function(response) {
+                    if (response.success) {
+                        toastr.success(window.notificationsLocalizedStrings.alertDeleted);
+                        loadAlerts();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function markAllRead() {
+            if (confirm(window.notificationsLocalizedStrings.confirmMarkAllRead)) {
+                $.post('@Url.Action("MarkAllRead", "Notifications")', function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadNotifications();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function dismissAllAlerts() {
+            if (confirm(window.notificationsLocalizedStrings.confirmDismissAllAlerts)) {
+                $.post('@Url.Action("DismissAllAlerts", "Notifications")', function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadAlerts();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function clearAllNotifications() {
+            if (confirm(window.notificationsLocalizedStrings.confirmClearAll)) {
+                $.post('@Url.Action("ClearAll", "Notifications")', function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        loadNotifications();
+                        loadStats();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function cleanupNotifications() {
+            if (confirm(window.notificationsLocalizedStrings.confirmCleanup)) {
+                $.post('@Url.Action("Cleanup", "Notifications")', function(response) {
+                    if (response.success) {
+                        toastr.success(window.notificationsLocalizedStrings.cleanupCompleted);
+                        refreshAll();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                });
+            }
+        }
+
+        function refreshAll() {
+            loadNotifications();
+            loadAlerts();
+            loadRecentActivity();
+            loadStats();
+            toastr.info('Refreshed');
+        }
+
+        function refreshInventoryAlerts() {
+            toastr.info(window.notificationsLocalizedStrings.featureComingSoon);
+        }
+    </script>
+}
+
+<style>
+    .notification-item, .alert-item, .activity-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .notification-item.unread {
+        background-color: #f8f9fa;
+    }
+
+    .notification-icon, .alert-icon, .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-icon.info, .activity-icon.info {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .notification-icon.success, .activity-icon.success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .notification-icon.warning, .activity-icon.warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .notification-icon.error, .activity-icon.error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .alert-icon.critical {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .alert-icon.high {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .alert-icon.medium {
+        background-color: #ffeeba;
+        color: #856404;
+    }
+
+    .alert-icon.low {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .notification-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>

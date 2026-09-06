@@ -1,0 +1,238 @@
+@{
+    ViewData["Title"] = Localizer["InventoryManagement"].Value;
+    ViewData["Subtitle"] = Localizer["ManageYourInventoryAndStockLevels"].Value;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-boxes me-2"></i>@Localizer["InventoryManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageYourInventoryAndStockLevels"]</p>
+            </div>
+            <div class="page-actions">
+                <a href="@Url.Action("LowStockReport", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-outline-secondary">
+                    <i class="fas fa-exclamation-triangle me-1"></i>@Localizer["LowStockReport"]
+                </a>
+                <a href="@Url.Action("StockValueReport", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-primary">
+                    <i class="fas fa-chart-bar me-1"></i>@Localizer["StockValueReport"]
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon products-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalProducts">@ViewBag.InventoryStats.TotalProducts</div>
+                <div class="stats-label">@Localizer["TotalProducts"]</div>
+                <div class="stats-change">@Localizer["Total"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon stock-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>@ViewBag.InventoryStats.LowStockCount</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="lowStockProducts">@ViewBag.InventoryStats.LowStockCount</div>
+                <div class="stats-label">@Localizer["LowStock"]</div>
+                <div class="stats-change">@Localizer["BelowMinimumLevel"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon void-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>@ViewBag.InventoryStats.OutOfStockCount</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="outOfStockProducts">@ViewBag.InventoryStats.OutOfStockCount</div>
+                <div class="stats-label">@Localizer["OutOfStock"]</div>
+                <div class="stats-change">@Localizer["ZeroQuantity"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalStockValue">@ViewBag.InventoryStats.TotalStockValueFormatted</div>
+                <div class="stats-label">@Localizer["TotalStockValue"]</div>
+                <div class="stats-change">@Localizer["AtCostPrice"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Localized strings MUST be defined before DataTable component -->
+<script>
+    window.inventoryLocalizedStrings = {
+        inStock: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["InStock"].Value)),
+        lowStock: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LowStock"].Value)),
+        outOfStock: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OutOfStock"].Value)),
+        noCategory: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoCategory"].Value))
+    };
+</script>
+
+<!-- Inventory Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>@Localizer["InventoryOverview"]</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" id="refreshTable">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" id="exportTable">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                {
+                    Id = "inventoryTable",
+                    Class = "table table-hover modern-table",
+                    DataSource = Url.Action("GetInventory", "Inventory", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                    ServerSide = true,
+                    Processing = true,
+                    Ordering = true,
+                    Searching = true,
+                    Paging = true,
+                    PageLength = 25,
+                    PageLengthMenu = new List<int> { 10, 25, 50, 100 },
+                    Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                    Responsive = true,
+                    Columns = new List<Web.Models.Shared.DataTableColumn>
+                    {
+                        new() { Data = "name", Title = Localizer["Product"].Value, Render = "function(data, type, row) { return '<strong>' + data + '</strong>'; }" },
+                        new() { Data = "barcode", Title = Localizer["Barcode"].Value },
+                        new() { Data = "categoryName", Title = Localizer["Category"].Value },
+                        new() { 
+                            Data = "currentStock", 
+                            Title = Localizer["CurrentStock"].Value, 
+                            ClassName = "text-center",
+                            Render = "function(data, type, row) { var colorClass = data <= 0 ? 'text-danger fw-bold' : data <= row.minimumStock ? 'text-warning fw-bold' : 'text-success'; return '<span class=\"' + colorClass + '\">' + data + '</span>'; }"
+                        },
+                        new() { Data = "minimumStock", Title = Localizer["MinStock"].Value, ClassName = "text-center" },
+                        new() { Data = "maximumStock", Title = Localizer["MaxStock"].Value, ClassName = "text-center" },
+                        new() { Data = "costPrice", Title = Localizer["CostPrice"].Value, ClassName = "text-end" },
+                        new() { Data = "sellingPrice", Title = Localizer["SellingPrice"].Value, ClassName = "text-end" },
+                        new() { Data = "stockValue", Title = Localizer["StockValue"].Value, ClassName = "text-end" },
+                        new() { 
+                            Data = "stockStatus", 
+                            Title = Localizer["Status"].Value, 
+                            ClassName = "text-center",
+                            Render = "function(data, type, row) { var strings = window.inventoryLocalizedStrings || {}; var badgeClass = row.currentStock <= 0 ? 'bg-danger' : row.currentStock <= row.minimumStock ? 'bg-warning text-dark' : 'bg-success'; var statusText = row.currentStock <= 0 ? (strings.outOfStock || 'Out of Stock') : row.currentStock <= row.minimumStock ? (strings.lowStock || 'Low Stock') : (strings.inStock || 'In Stock'); return '<span class=\"badge ' + badgeClass + '\">' + statusText + '</span>'; }"
+                        },
+                        new() { 
+                            Data = "actions", 
+                            Title = Localizer["Actions"].Value, 
+                            Orderable = false, 
+                            Searchable = false, 
+                            ClassName = "text-center",
+                            Width = 120
+                        }
+                    },
+                    AdditionalOptions = new Dictionary<string, object>
+                    {
+                        ["order"] = "[[0, 'asc']]"
+                    }
+                })
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap5.min.js"></script>
+    <link href="~/lib/datatables/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
+    <script>
+        // Extend localized strings with additional strings for JS file
+        window.inventoryLocalizedStrings = Object.assign(window.inventoryLocalizedStrings || {}, {
+            loadingInventoryData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["LoadingInventoryData"].Value)),
+            noInventoryDataAvailable: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoInventoryDataAvailable"].Value)),
+            noMatchingRecordsFound: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoMatchingRecordsFound"].Value)),
+            inventoryDataRefreshedSuccessfully: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["InventoryDataRefreshedSuccessfully"].Value)),
+            exportFunctionalityWillBeImplementedSoon: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ExportFunctionalityWillBeImplementedSoon"].Value)),
+            setMinimumStock: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SetMinimumStock"].Value)),
+            minimumStockLevel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["MinimumStockLevel"].Value)),
+            enterMinimumStockLevel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["EnterMinimumStockLevel"].Value)),
+            set: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Set"].Value)),
+            cancel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Cancel"].Value)),
+            pleaseEnterAValidMinimumStockLevel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["PleaseEnterAValidMinimumStockLevel"].Value)),
+            minimumStockLevelUpdatedSuccessfully: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["MinimumStockLevelUpdatedSuccessfully"].Value)),
+            failedToUpdateMinimumStockLevel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FailedToUpdateMinimumStockLevel"].Value)),
+            anErrorOccurredWhileUpdatingMinimumStockLevel: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["AnErrorOccurredWhileUpdatingMinimumStockLevel"].Value))
+        });
+        
+        window.inventoryUrls = {
+            getInventoryUrl: '@Url.Action("GetInventory", "Inventory", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            setMinimumStockUrl: '@Url.Action("SetMinimumStock", "Inventory")',
+            adjustStockUrl: '@Url.Action("AdjustStock", "Inventory", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+        };
+    </script>
+    <script src="~/js/Pages/Inventory/Index.js"></script>
+}

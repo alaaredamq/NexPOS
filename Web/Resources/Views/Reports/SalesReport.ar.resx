@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="SalesReport" xml:space="preserve">
+    <value>تقرير المبيعات</value>
+  </data>
+  <data name="SalesReportGenerator" xml:space="preserve">
+    <value>مولد تقرير المبيعات</value>
+  </data>
+  <data name="GenerateDetailedSalesReportsWithCustomFilters" xml:space="preserve">
+    <value>إنشاء تقارير مبيعات مفصلة مع فلاتر مخصصة</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>تاريخ البداية</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>تاريخ النهاية</value>
+  </data>
+  <data name="ReportType" xml:space="preserve">
+    <value>نوع التقرير</value>
+  </data>
+  <data name="SelectReportType" xml:space="preserve">
+    <value>اختر نوع التقرير</value>
+  </data>
+  <data name="Daily" xml:space="preserve">
+    <value>يومي</value>
+  </data>
+  <data name="Weekly" xml:space="preserve">
+    <value>أسبوعي</value>
+  </data>
+  <data name="Monthly" xml:space="preserve">
+    <value>شهري</value>
+  </data>
+  <data name="Yearly" xml:space="preserve">
+    <value>سنوي</value>
+  </data>
+  <data name="GenerateReport" xml:space="preserve">
+    <value>إنشاء التقرير</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="IncludeProductDetails" xml:space="preserve">
+    <value>تضمين تفاصيل المنتج</value>
+  </data>
+  <data name="IncludeCategoryBreakdown" xml:space="preserve">
+    <value>تضمين تفصيل الفئات</value>
+  </data>
+  <data name="IncludePaymentMethodBreakdown" xml:space="preserve">
+    <value>تضمين تفصيل طرق الدفع</value>
+  </data>
+  <data name="GeneratingReport" xml:space="preserve">
+    <value>جاري إنشاء التقرير...</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="TotalOrders" xml:space="preserve">
+    <value>إجمالي الطلبات</value>
+  </data>
+  <data name="AvgOrderValue" xml:space="preserve">
+    <value>متوسط قيمة الطلب</value>
+  </data>
+  <data name="ItemsSold" xml:space="preserve">
+    <value>العناصر المباعة</value>
+  </data>
+  <data name="DailySalesTrend" xml:space="preserve">
+    <value>اتجاه المبيعات اليومية</value>
+  </data>
+  <data name="TopProducts" xml:space="preserve">
+    <value>أفضل المنتجات</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>الإيرادات</value>
+  </data>
+  <data name="SalesByCategory" xml:space="preserve">
+    <value>المبيعات حسب الفئة</value>
+  </data>
+  <data name="SalesByPaymentMethod" xml:space="preserve">
+    <value>المبيعات حسب طريقة الدفع</value>
+  </data>
+</root>

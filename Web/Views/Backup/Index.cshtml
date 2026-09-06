@@ -1,0 +1,567 @@
+@{
+    ViewData["Title"] = Localizer["BackupAndRestoreManagement"];
+    ViewData["Subtitle"] = Localizer["ManageDatabaseBackupsAndRestoreOperations"];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-database me-2"></i>@Localizer["BackupAndRestore"]</h3>
+                <p class="text-muted">@Localizer["ManageDatabaseBackupsAndRestoreOperations"]</p>
+            </div>
+            <div class="page-actions">
+                <button type="button" class="btn btn-outline-secondary" onclick="testConnections()">
+                    <i class="fas fa-plug me-1"></i>@Localizer["TestConnections"]
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                    <i class="fas fa-plus me-1"></i>@Localizer["CreateBackup"]
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="showEmergencyOptions()">
+                    <i class="fas fa-exclamation-triangle me-1"></i>@Localizer["Emergency"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon receipts-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="successfulBackups">0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalBackups">0</div>
+                <div class="stats-label">@Localizer["TotalBackups"]</div>
+                <div class="stats-change"><span id="successfulBackupsLabel">0</span> @Localizer["successful"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-hdd"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-check"></i>
+                    <span>OK</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalSize">0 MB</div>
+                <div class="stats-label">@Localizer["TotalSize"]</div>
+                <div class="stats-change">@Localizer["StorageUsed"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon average-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span id="scheduledCount">0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="scheduledCountMain">0</div>
+                <div class="stats-label">@Localizer["Scheduled"]</div>
+                <div class="stats-change">@Localizer["Next"]: <span id="nextScheduled">@Localizer["None"]</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon sales-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-clock"></i>
+                    <span>@Localizer["Last"]</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="lastBackup">@Localizer["Never"]</div>
+                <div class="stats-label">@Localizer["LastBackup"]</div>
+                <div class="stats-change" id="lastBackupStatus"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <ul class="nav nav-tabs card-header-tabs" id="backupTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="backups-tab" data-bs-toggle="tab" data-bs-target="#backups" type="button" role="tab">
+                            <i class="fas fa-database me-1"></i>@Localizer["Backups"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="restore-tab" data-bs-toggle="tab" data-bs-target="#restore" type="button" role="tab">
+                            <i class="fas fa-undo-alt me-1"></i>@Localizer["Restore"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">
+                            <i class="fas fa-clock me-1"></i>@Localizer["Schedule"]
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">
+                            <i class="fas fa-chart-bar me-1"></i>@Localizer["Reports"]
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="backupTabsContent">
+                    <!-- Backups Tab -->
+                    <div class="tab-pane fade show active" id="backups" role="tabpanel">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>@Localizer["BackupHistory"]</h5>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="refreshBackups()">
+                                    <i class="fas fa-sync me-1"></i>@Localizer["Refresh"]
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="debugBackupDirectories()">
+                                    <i class="fas fa-bug me-1"></i>@Localizer["Debug"]
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="bulkDeleteBackups()">
+                                    <i class="fas fa-trash me-1"></i>@Localizer["BulkDelete"]
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="validateAllBackups()">
+                                    <i class="fas fa-check-double me-1"></i>@Localizer["ValidateAll"]
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive" id="backupsTable">
+                            <!-- Backups table will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Restore Tab -->
+                    <div class="tab-pane fade" id="restore" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="m-0">@Localizer["RestoreFromBackup"]</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="restoreForm">
+                                            <div class="mb-3">
+                                                <label class="form-label">@Localizer["SelectBackup"] *</label>
+                                                <select class="form-select" id="restoreBackupSelect">
+                                                    <option value="">@Localizer["ChooseBackupToRestore"]</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">@Localizer["RestoreOptions"]</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="restoreData" checked>
+                                                    <label class="form-check-label" for="restoreData">@Localizer["RestoreData"]</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="restoreSchema" checked>
+                                                    <label class="form-check-label" for="restoreSchema">@Localizer["RestoreSchema"]</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="createBackupBeforeRestore" checked>
+                                                    <label class="form-check-label" for="createBackupBeforeRestore">@Localizer["CreateBackupBeforeRestore"]</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">@Localizer["RestoreDescription"]</label>
+                                                <textarea class="form-control" id="restoreDescription" rows="3" placeholder="@Localizer["DescribeWhyRestoring"]"></textarea>
+                                            </div>
+                                            <button type="button" class="btn btn-warning" onclick="startRestore()">
+                                                <i class="fas fa-undo-alt me-2"></i>@Localizer["StartRestore"]
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Tab -->
+                    <div class="tab-pane fade" id="schedule" role="tabpanel">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>@Localizer["BackupSchedules"]</h5>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" onclick="loadSchedules()">
+                                    <i class="fas fa-sync me-1"></i>@Localizer["Refresh"]
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="showScheduleModal()">
+                                    <i class="fas fa-plus me-1"></i>@Localizer["CreateSchedule"]
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive" id="schedulesTable">
+                            <!-- Schedules table will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Reports Tab -->
+                    <div class="tab-pane fade" id="reports" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="m-0">@Localizer["BackupReports"]</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["FromDate"]</label>
+                                            <input type="date" class="form-control" id="reportFromDate">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">@Localizer["ToDate"]</label>
+                                            <input type="date" class="form-control" id="reportToDate">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="generateReport()">
+                                            <i class="fas fa-chart-bar me-2"></i>@Localizer["GenerateReport"]
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="m-0">@Localizer["SystemInformation"]</h6>
+                                    </div>
+                                    <div class="card-body" id="systemInfoCard">
+                                        <button type="button" class="btn btn-outline-primary" onclick="loadSystemInfo()">
+                                            <i class="fas fa-info-circle me-2"></i>@Localizer["LoadSystemInfo"]
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Backup Modal -->
+<div class="modal fade" id="createBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["CreateNewBackup"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createBackupForm">
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["BackupName"]</label>
+                        <input type="text" class="form-control" id="backupName" placeholder="@Localizer["EnterBackupName"]">
+                        <small class="form-text text-muted">@Localizer["DefaultNameAutoGenerated"]</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["BackupType"] *</label>
+                        <select class="form-select" id="backupType" required>
+                            <option value="">@Localizer["SelectBackupType"]</option>
+                            <option value="Full">@Localizer["FullBackup"]</option>
+                            <option value="Incremental">@Localizer["IncrementalBackup"]</option>
+                            <option value="Differential">@Localizer["DifferentialBackup"]</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["Description"]</label>
+                        <textarea class="form-control" id="backupDescription" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["Options"]</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeData" checked>
+                            <label class="form-check-label" for="includeData">@Localizer["IncludeData"]</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeSchema" checked>
+                            <label class="form-check-label" for="includeSchema">@Localizer["IncludeSchema"]</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="encryptBackup">
+                            <label class="form-check-label" for="encryptBackup">@Localizer["EncryptBackup"]</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["Compression"]</label>
+                        <select class="form-select" id="compressionType">
+                            <option value="None">@Localizer["NoCompression"]</option>
+                            <option value="GZip" selected>@Localizer["GZipCompression"]</option>
+                            <option value="Zip">@Localizer["ZIPCompression"]</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" onclick="createBackup()">
+                    <i class="fas fa-plus me-2"></i>@Localizer["CreateBackup"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleModalTitle">@Localizer["CreateSchedule"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <input type="hidden" id="scheduleId" value="0">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["ScheduleName"] *</label>
+                                <input type="text" class="form-control" id="scheduleName" required placeholder="@Localizer["EnterScheduleName"]">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["BackupType"] *</label>
+                                <select class="form-select" id="scheduleBackupType" required>
+                                    <option value="Full">@Localizer["FullBackup"]</option>
+                                    <option value="Incremental">@Localizer["IncrementalBackup"]</option>
+                                    <option value="Differential">@Localizer["DifferentialBackup"]</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["Description"]</label>
+                        <textarea class="form-control" id="scheduleDescription" rows="2" placeholder="@Localizer["EnterScheduleDescription"]"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["Frequency"] *</label>
+                                <select class="form-select" id="scheduleFrequency" required onchange="toggleFrequencyOptions()">
+                                    <option value="Daily">@Localizer["Daily"]</option>
+                                    <option value="Weekly">@Localizer["Weekly"]</option>
+                                    <option value="Monthly">@Localizer["Monthly"]</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["Time"] *</label>
+                                <input type="time" class="form-control" id="scheduleTime" required value="02:00">
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="dayOfWeekContainer" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["DayOfWeek"] *</label>
+                                <select class="form-select" id="scheduleDayOfWeek">
+                                    <option value="0">@Localizer["Sunday"]</option>
+                                    <option value="1">@Localizer["Monday"]</option>
+                                    <option value="2">@Localizer["Tuesday"]</option>
+                                    <option value="3">@Localizer["Wednesday"]</option>
+                                    <option value="4">@Localizer["Thursday"]</option>
+                                    <option value="5">@Localizer["Friday"]</option>
+                                    <option value="6">@Localizer["Saturday"]</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4" id="dayOfMonthContainer" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["DayOfMonth"] *</label>
+                                <select class="form-select" id="scheduleDayOfMonth">
+                                    @for (int i = 1; i <= 28; i++)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="scheduleIsActive" checked>
+                                    <label class="form-check-label" for="scheduleIsActive">@Localizer["ActiveSchedule"]</label>
+                                </div>
+                                <small class="text-muted">@Localizer["ActiveScheduleHint"]</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["RetentionDays"]</label>
+                                <input type="number" class="form-control" id="scheduleRetentionDays" min="0" max="365" placeholder="@Localizer["RetentionDaysPlaceholder"]">
+                                <small class="text-muted">@Localizer["RetentionDaysHint"]</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-primary" onclick="saveSchedule()">
+                    <i class="fas fa-save me-2"></i>@Localizer["Save"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Localizer["OperationInProgress"]</h5>
+            </div>
+            <div class="modal-body">
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" id="progressBar" style="width: 0%"></div>
+                </div>
+                <p id="progressMessage">@Localizer["Initializing"]</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="progressCloseBtn" style="display: none;" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <button type="button" class="btn btn-danger" id="progressCancelBtn" onclick="cancelOperation()">@Localizer["Cancel"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/Pages/Backup/Index.js"></script>
+    <script>
+        // Localized strings for JavaScript
+        window.backupLocalizedStrings = {
+            noBackupsFound: '@Html.Raw(Localizer["NoBackupsFound"].Value)',
+            name: '@Html.Raw(Localizer["Name"].Value)',
+            type: '@Html.Raw(Localizer["Type"].Value)',
+            status: '@Html.Raw(Localizer["Status"].Value)',
+            size: '@Html.Raw(Localizer["Size"].Value)',
+            created: '@Html.Raw(Localizer["Created"].Value)',
+            actions: '@Html.Raw(Localizer["Actions"].Value)',
+            download: '@Html.Raw(Localizer["Download"].Value)',
+            restore: '@Html.Raw(Localizer["Restore"].Value)',
+            validate: '@Html.Raw(Localizer["Validate"].Value)',
+            delete: '@Html.Raw(Localizer["Delete"].Value)',
+            testingConnections: '@Html.Raw(Localizer["TestingConnections"].Value)',
+            allConnectionsSuccessful: '@Html.Raw(Localizer["AllConnectionsSuccessful"].Value)',
+            connectionTestFailed: '@Html.Raw(Localizer["ConnectionTestFailed"].Value)',
+            refreshingBackupList: '@Html.Raw(Localizer["RefreshingBackupList"].Value)',
+            pleaseEnterBackupName: '@Html.Raw(Localizer["PleaseEnterBackupName"].Value)',
+            pleaseSelectBackupType: '@Html.Raw(Localizer["PleaseSelectBackupType"].Value)',
+            startingBackupOperation: '@Html.Raw(Localizer["StartingBackupOperation"].Value)',
+            backupStartedSuccessfully: '@Html.Raw(Localizer["BackupStartedSuccessfully"].Value)',
+            failedToCreateBackup: '@Html.Raw(Localizer["FailedToCreateBackup"].Value)',
+            operationCompletedSuccessfully: '@Html.Raw(Localizer["OperationCompletedSuccessfully"].Value)',
+            operationFailed: '@Html.Raw(Localizer["OperationFailed"].Value)',
+            operationCancelled: '@Html.Raw(Localizer["OperationCancelled"].Value)',
+            failedToCancelOperation: '@Html.Raw(Localizer["FailedToCancelOperation"].Value)',
+            backupIsValid: '@Html.Raw(Localizer["BackupIsValid"].Value)',
+            backupValidationFailed: '@Html.Raw(Localizer["BackupValidationFailed"].Value)',
+            failedToValidateBackup: '@Html.Raw(Localizer["FailedToValidateBackup"].Value)',
+            confirmDeleteBackup: '@Html.Raw(Localizer["ConfirmDeleteBackup"].Value)',
+            backupDeletedSuccessfully: '@Html.Raw(Localizer["BackupDeletedSuccessfully"].Value)',
+            failedToDeleteBackup: '@Html.Raw(Localizer["FailedToDeleteBackup"].Value)',
+            downloadStarted: '@Html.Raw(Localizer["DownloadStarted"].Value)',
+            failedToDownloadBackup: '@Html.Raw(Localizer["FailedToDownloadBackup"].Value)',
+            deleteBackupTitle: '@Html.Raw(Localizer["DeleteBackup"].Value)',
+            deleteScheduleTitle: '@Html.Raw(Localizer["DeleteSchedule"].Value)',
+            bulkDeleteTitle: '@Html.Raw(Localizer["DeleteMultipleBackups"].Value)',
+            yesDelete: '@Html.Raw(Localizer["YesDelete"].Value)',
+            cancel: '@Html.Raw(Localizer["Cancel"].Value)',
+            deleted: '@Html.Raw(Localizer["Deleted"].Value)',
+            error: '@Html.Raw(Localizer["Error"].Value)',
+            pleaseSelectBackupsToDelete: '@Html.Raw(Localizer["PleaseSelectBackupsToDelete"].Value)',
+            confirmDeleteBackups: '@Html.Raw(Localizer["ConfirmDeleteBackups"].Value)',
+            failedToDeleteBackups: '@Html.Raw(Localizer["FailedToDeleteBackups"].Value)',
+            pleaseSelectBackupsToValidate: '@Html.Raw(Localizer["PleaseSelectBackupsToValidate"].Value)',
+            failedToValidateBackups: '@Html.Raw(Localizer["FailedToValidateBackups"].Value)',
+            pleaseSelectBackupToRestore: '@Html.Raw(Localizer["PleaseSelectBackupToRestore"].Value)',
+            restoreStartedSuccessfully: '@Html.Raw(Localizer["RestoreStartedSuccessfully"].Value)',
+            failedToStartRestore: '@Html.Raw(Localizer["FailedToStartRestore"].Value)',
+            emergencyOptionsComingSoon: '@Html.Raw(Localizer["EmergencyOptionsComingSoon"].Value)',
+            scheduleManagement: '@Html.Raw(Localizer["ScheduleManagement"].Value)',
+            noSchedulesFound: '@Html.Raw(Localizer["NoSchedulesFound"].Value)',
+            scheduleName: '@Html.Raw(Localizer["ScheduleName"].Value)',
+            frequency: '@Html.Raw(Localizer["Frequency"].Value)',
+            nextRun: '@Html.Raw(Localizer["NextRun"].Value)',
+            lastRun: '@Html.Raw(Localizer["LastRun"].Value)',
+            active: '@Html.Raw(Localizer["Active"].Value)',
+            inactive: '@Html.Raw(Localizer["Inactive"].Value)',
+            daily: '@Html.Raw(Localizer["Daily"].Value)',
+            weekly: '@Html.Raw(Localizer["Weekly"].Value)',
+            monthly: '@Html.Raw(Localizer["Monthly"].Value)',
+            never: '@Html.Raw(Localizer["Never"].Value)',
+            edit: '@Html.Raw(Localizer["Edit"].Value)',
+            enable: '@Html.Raw(Localizer["Enable"].Value)',
+            disable: '@Html.Raw(Localizer["Disable"].Value)',
+            createSchedule: '@Html.Raw(Localizer["CreateSchedule"].Value)',
+            editSchedule: '@Html.Raw(Localizer["EditSchedule"].Value)',
+            scheduleCreatedSuccessfully: '@Html.Raw(Localizer["ScheduleCreatedSuccessfully"].Value)',
+            scheduleUpdatedSuccessfully: '@Html.Raw(Localizer["ScheduleUpdatedSuccessfully"].Value)',
+            scheduleDeletedSuccessfully: '@Html.Raw(Localizer["ScheduleDeletedSuccessfully"].Value)',
+            scheduleEnabledSuccessfully: '@Html.Raw(Localizer["ScheduleEnabledSuccessfully"].Value)',
+            scheduleDisabledSuccessfully: '@Html.Raw(Localizer["ScheduleDisabledSuccessfully"].Value)',
+            failedToSaveSchedule: '@Html.Raw(Localizer["FailedToSaveSchedule"].Value)',
+            failedToDeleteSchedule: '@Html.Raw(Localizer["FailedToDeleteSchedule"].Value)',
+            confirmDeleteSchedule: '@Html.Raw(Localizer["ConfirmDeleteSchedule"].Value)',
+            pleaseEnterScheduleName: '@Html.Raw(Localizer["PleaseEnterScheduleName"].Value)',
+            createBackup: '@Html.Raw(Localizer["CreateBackup"].Value)',
+            runNow: '@Html.Raw(Localizer["RunNow"].Value)',
+            backupStartedFromSchedule: '@Html.Raw(Localizer["BackupStartedFromSchedule"].Value)',
+            failedToRunSchedule: '@Html.Raw(Localizer["FailedToRunSchedule"].Value)'
+        };
+        
+        window.backupUrls = {
+            getBackupStats: '@Url.Action("GetBackupStats", "Backup")',
+            getBackups: '@Url.Action("GetBackups", "Backup")',
+            createBackup: '@Url.Action("CreateBackup", "Backup")',
+            deleteBackup: '@Url.Action("DeleteBackup", "Backup")',
+            downloadBackup: '@Url.Action("DownloadBackup", "Backup")',
+            validateBackup: '@Url.Action("ValidateBackup", "Backup")',
+            bulkDeleteBackups: '@Url.Action("BulkDeleteBackups", "Backup")',
+            bulkValidateBackups: '@Url.Action("BulkValidateBackups", "Backup")',
+            restoreBackup: '@Url.Action("RestoreBackup", "Backup")',
+            testConnections: '@Url.Action("TestConnections", "Backup")',
+            getOperationStatus: '@Url.Action("GetOperationStatus", "Backup")',
+            cancelOperation: '@Url.Action("CancelOperation", "Backup")',
+            getSchedules: '@Url.Action("GetSchedules", "Backup")',
+            createSchedule: '@Url.Action("CreateSchedule", "Backup")',
+            updateSchedule: '@Url.Action("UpdateSchedule", "Backup")',
+            deleteSchedule: '@Url.Action("DeleteSchedule", "Backup")',
+            enableSchedule: '@Url.Action("EnableSchedule", "Backup")',
+            disableSchedule: '@Url.Action("DisableSchedule", "Backup")',
+            runScheduleNow: '@Url.Action("RunScheduleNow", "Backup")',
+            getSystemInfo: '@Url.Action("GetSystemInfo", "Backup")',
+            debugDirectories: '@Url.Action("DebugDirectories", "Backup")'
+        };
+    </script>
+}

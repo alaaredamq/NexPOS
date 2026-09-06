@@ -1,0 +1,7 @@
+&lt;component name="ProjectRunConfigurationManager"&gt;
+  &lt;configuration default="false" name="Debug Backend + Electron" type="CompoundRunConfigurationType"&gt;
+    &lt;toRun name="Web (Debug)" type="DotNetProject" /&gt;
+    &lt;toRun name="Electron Dev" type="js.build_tools.npm" /&gt;
+    &lt;method v="2" /&gt;
+  &lt;/configuration&gt;
+&lt;/component&gt;

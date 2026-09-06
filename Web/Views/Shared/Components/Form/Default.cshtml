@@ -1,0 +1,127 @@
+@model Web.Models.Shared.FormModel
+
+<form id="@Model.Id" action="@Model.Action" method="@Model.Method" class="@Model.Class" data-val="@(Model.EnableClientValidation ? "true" : "false")">
+    @if (Model.ShowValidationSummary && !string.IsNullOrEmpty(Model.ValidationSummary))
+    {
+        @Html.ValidationSummary(Model.ValidationSummary == "All", "", new { @class = "text-danger" })
+    }
+    
+    @foreach (var field in Model.Fields)
+    {
+        <div class="@field.ContainerClass">
+            <label for="@field.Name" class="@field.LabelClass">@field.Label</label>
+            
+            @switch (field.Type.ToLower())
+            {
+                case "select":
+                    <select id="@field.Name" name="@field.Name" class="@field.Class" 
+                            @if (field.Required) { <text>required</text> }
+                            @if (field.Disabled) { <text>disabled</text> }
+                            @if (field.ReadOnly) { <text>readonly</text> }
+                            @foreach (var attr in field.AdditionalAttributes)
+                            {
+                                <text>@attr.Key="@attr.Value" </text>
+                            }>
+                        @if (!string.IsNullOrEmpty(field.Placeholder))
+                        {
+                            <option value="">@field.Placeholder</option>
+                        }
+                        @foreach (var option in field.Options)
+                        {
+                            <option value="@option.Id" selected="@(option.Selected ? "selected" : null)" disabled="@(option.Disabled ? "disabled" : null)">@option.Text</option>
+                        }
+                    </select>
+                    break;
+                    
+                case "textarea":
+                    <textarea id="@field.Name" name="@field.Name" class="@field.Class" 
+                              placeholder="@field.Placeholder" rows="@field.Rows" cols="@field.Cols"
+                              @if (field.Required) { <text>required</text> }
+                              @if (field.Disabled) { <text>disabled</text> }
+                              @if (field.ReadOnly) { <text>readonly</text> }
+                              @foreach (var attr in field.AdditionalAttributes)
+                              {
+                                  <text>@attr.Key="@attr.Value" </text>
+                              }>@field.Value</textarea>
+                    break;
+                    
+                case "checkbox":
+                    <div class="form-check">
+                        <input type="checkbox" id="@field.Name" name="@field.Name" class="form-check-input" 
+                               @if (field.Required) { <text>required</text> }
+                               @if (field.Disabled) { <text>disabled</text> }
+                               @if (field.ReadOnly) { <text>readonly</text> }
+                               @if (field.Value == "true") { <text>checked</text> }
+                               @foreach (var attr in field.AdditionalAttributes)
+                               {
+                                   <text>@attr.Key="@attr.Value" </text>
+                               }>
+                        <label class="form-check-label" for="@field.Name">@field.Label</label>
+                    </div>
+                    break;
+                    
+                case "radio":
+                    @foreach (var option in field.Options)
+                    {
+                        <div class="form-check">
+                            <input type="radio" id="@(field.Name)_@option.Id" name="@field.Name" value="@option.Id" class="form-check-input"
+                                   @if (field.Required) { <text>required</text> }
+                                   @if (field.Disabled) { <text>disabled</text> }
+                                   @if (field.ReadOnly) { <text>readonly</text> }
+                                   @if (option.Selected) { <text>checked</text> }
+                                   @foreach (var attr in field.AdditionalAttributes)
+                                   {
+                                       <text>@attr.Key="@attr.Value" </text>
+                                   }>
+                            <label class="form-check-label" for="@(field.Name)_@option.Id">@option.Text</label>
+                        </div>
+                    }
+                    break;
+                    
+                default:
+                    <input type="@field.Type" id="@field.Name" name="@field.Name" class="@field.Class" 
+                           value="@field.Value" placeholder="@field.Placeholder"
+                           @if (field.Required) { <text>required</text> }
+                           @if (field.Disabled) { <text>disabled</text> }
+                           @if (field.ReadOnly) { <text>readonly</text> }
+                           @if (!string.IsNullOrEmpty(field.Min)) { <text>min="@field.Min"</text> }
+                           @if (!string.IsNullOrEmpty(field.Max)) { <text>max="@field.Max"</text> }
+                           @if (!string.IsNullOrEmpty(field.Step)) { <text>step="@field.Step"</text> }
+                           @foreach (var attr in field.AdditionalAttributes)
+                           {
+                               <text>@attr.Key="@attr.Value" </text>
+                           }>
+                    break;
+            }
+            
+            @if (!string.IsNullOrEmpty(field.ValidationMessage))
+            {
+                <div class="invalid-feedback">
+                    @field.ValidationMessage
+                </div>
+            }
+        </div>
+    }
+    
+    @if (Model.Buttons.Any())
+    {
+        <div class="d-flex justify-content-end gap-2">
+            @foreach (var button in Model.Buttons)
+            {
+                <button type="@button.Type" class="@button.Class" 
+                        @if (!string.IsNullOrEmpty(button.OnClick)) { <text>onclick="@button.OnClick"</text> }
+                        @if (button.Disabled) { <text>disabled</text> }
+                        @foreach (var attr in button.AdditionalAttributes)
+                        {
+                            <text>@attr.Key="@attr.Value" </text>
+                        }>
+                    @if (!string.IsNullOrEmpty(button.Icon))
+                    {
+                        <i class="@button.Icon"></i>
+                    }
+                    @button.Text
+                </button>
+            }
+        </div>
+    }
+</form>

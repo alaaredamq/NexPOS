@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="OpenCashDrawer" xml:space="preserve">
+    <value>Open Cash Drawer</value>
+  </data>
+  <data name="EnterTheStartingCashAmountInYourDrawerToBeginYourShift" xml:space="preserve">
+    <value>Enter the starting cash amount in your drawer to begin your shift.</value>
+  </data>
+  <data name="StartingCashAmount" xml:space="preserve">
+    <value>Starting Cash Amount</value>
+  </data>
+  <data name="CountAllBillsAndCoinsInYourDrawer" xml:space="preserve">
+    <value>Count all bills and coins in your drawer</value>
+  </data>
+  <data name="NotesOptional" xml:space="preserve">
+    <value>Notes (Optional)</value>
+  </data>
+  <data name="AddAnyNotesAboutThisSession" xml:space="preserve">
+    <value>Add any notes about this session...</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>Tip</value>
+  </data>
+  <data name="MakeSureToCountYourStartingCashCarefully" xml:space="preserve">
+    <value>Make sure to count your starting cash carefully. This amount will be used to calculate your end-of-day reconciliation.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="OpeningChecklist" xml:space="preserve">
+    <value>Opening Checklist</value>
+  </data>
+  <data name="CountAllCashInDrawer" xml:space="preserve">
+    <value>Count all cash in drawer</value>
+  </data>
+  <data name="VerifyBillsAndCoins" xml:space="preserve">
+    <value>Verify bills and coins</value>
+  </data>
+  <data name="CheckForDamagedBills" xml:space="preserve">
+    <value>Check for damaged bills</value>
+  </data>
+  <data name="RecordStartingAmountAccurately" xml:space="preserve">
+    <value>Record starting amount accurately</value>
+  </data>
+  <data name="ReadyToProcessSales" xml:space="preserve">
+    <value>Ready to process sales!</value>
+  </data>
+  <data name="Opening" xml:space="preserve">
+    <value>Opening...</value>
+  </data>
+  <data name="PleaseEnterAValidOpeningCashAmount" xml:space="preserve">
+    <value>Please enter a valid opening cash amount</value>
+  </data>
+  <data name="CashDrawerOpenedSuccessfully" xml:space="preserve">
+    <value>Cash drawer opened successfully!</value>
+  </data>
+  <data name="FailedToOpenCashDrawer" xml:space="preserve">
+    <value>Failed to open cash drawer</value>
+  </data>
+</root>

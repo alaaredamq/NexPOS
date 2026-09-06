@@ -1,0 +1,243 @@
+@model Application.DTOs.Suppliers.CreateSupplierRequest
+
+@{
+    ViewData["Title"] = Localizer["CreateSupplier"];
+    ViewData["Subtitle"] = Localizer["AddNewSupplierToDatabase"];
+}
+
+<!-- Create Supplier Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-truck me-3"></i>
+                @Localizer["CreateNewSupplier"]
+            </h2>
+            <p class="products-subtitle">@Localizer["AddNewSupplierToDatabase"]</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("Index", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>@Localizer["BackToSuppliers"]
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Create Supplier Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    @Localizer["SupplierInformation"]
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label">@Localizer["SupplierName"] *</label>
+                            <input asp-for="Name" class="form-control" placeholder="@Localizer["EnterSupplierName"]" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CurrencyId" class="form-label">@Localizer["DefaultCurrency"] *</label>
+                            <select asp-for="CurrencyId" asp-items="ViewBag.Currencies" class="form-select">
+                                <option value="">@Localizer["SelectCurrency"]</option>
+                            </select>
+                            <span asp-validation-for="CurrencyId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label">@Localizer["EmailAddress"]</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="@Localizer["EnterEmailAddress"]" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Phone" class="form-label">@Localizer["PhoneNumber"]</label>
+                            <input asp-for="Phone" type="tel" class="form-control" placeholder="@Localizer["EnterPhoneNumber"]" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">@Localizer["Address"]</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="@Localizer["EnterFullAddress"]"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="City" class="form-label">@Localizer["City"]</label>
+                            <input asp-for="City" class="form-control" placeholder="@Localizer["EnterCity"]" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Country" class="form-label">@Localizer["Country"]</label>
+                            <input asp-for="Country" class="form-control" placeholder="@Localizer["EnterCountry"]" />
+                            <span asp-validation-for="Country" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="PostalCode" class="form-label">@Localizer["PostalCode"]</label>
+                            <input asp-for="PostalCode" class="form-control" placeholder="@Localizer["EnterPostalCode"]" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DiscountRate" class="form-label">@Localizer["DiscountRate"] (%)</label>
+                            <input asp-for="DiscountRate" type="number" step="0.01" min="0" max="100" class="form-control" placeholder="0.00" />
+                            <span asp-validation-for="DiscountRate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3"><i class="fas fa-money-bill-wave me-2"></i>@Localizer["DebtInformation"]</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DebtToSupplier" class="form-label">@Localizer["DebtToSupplier"]</label>
+                            <input asp-for="DebtToSupplier" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
+                            <small class="form-text text-muted">@Localizer["AmountOfMoneyYouOweThisSupplier"]</small>
+                            <span asp-validation-for="DebtToSupplier" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DebtFromSupplier" class="form-label">@Localizer["DebtFromSupplier"]</label>
+                            <input asp-for="DebtFromSupplier" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
+                            <small class="form-text text-muted">@Localizer["AmountOfMoneySupplierOwesYou"]</small>
+                            <span asp-validation-for="DebtFromSupplier" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="erp-alert erp-alert-info" id="netDebtDisplay">
+                        <strong>@Localizer["NetDebt"]:</strong> <span id="netDebtAmount">0.00</span>
+                        <span id="netDebtDirection" class="ms-2"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                @Localizer["SupplierIsActive"]
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="@Url.Action("Index", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>@Localizer["Cancel"]
+                        </a>
+                        <button type="submit" class="btn btn-teal">
+                            <i class="fas fa-save me-2"></i>@Localizer["CreateSupplierButton"]
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    @Localizer["SupplierGuidelines"]
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="guidelines">
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>@Localizer["UseFullCompanyOrSupplierName"]</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>@Localizer["SelectDefaultCurrencyForSupplier"]</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>@Localizer["EmailAddressesHelpWithCommunication"]</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>@Localizer["CompleteAddressesEnableDeliveryServices"]</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>@Localizer["TrackDebtsToManageFinancialRelationships"]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function updateNetDebt() {
+                var debtToSupplier = parseFloat($('#DebtToSupplier').val()) || 0;
+                var debtFromSupplier = parseFloat($('#DebtFromSupplier').val()) || 0;
+                var netDebt = debtToSupplier - debtFromSupplier;
+                
+                $('#netDebtAmount').text(Math.abs(netDebt).toFixed(2));
+                
+                var $direction = $('#netDebtDirection');
+                var youOweThem = '@Html.Raw(Localizer["YouOweThem"].Value)';
+                var theyOweYou = '@Html.Raw(Localizer["TheyOweYou"].Value)';
+                var balanced = '@Html.Raw(Localizer["Balanced"].Value)';
+                if (netDebt > 0) {
+                    $direction.html('<span class="badge bg-danger">' + youOweThem + '</span>');
+                    $('#netDebtDisplay').removeClass('alert-info alert-success').addClass('alert-danger');
+                } else if (netDebt < 0) {
+                    $direction.html('<span class="badge bg-success">' + theyOweYou + '</span>');
+                    $('#netDebtDisplay').removeClass('alert-info alert-danger').addClass('alert-success');
+                } else {
+                    $direction.html('<span class="badge bg-secondary">' + balanced + '</span>');
+                    $('#netDebtDisplay').removeClass('alert-danger alert-success').addClass('alert-info');
+                }
+            }
+
+            $('#DebtToSupplier, #DebtFromSupplier').on('input', updateNetDebt);
+            updateNetDebt();
+        });
+    </script>
+
+    <style>
+        .guidelines {
+            margin-bottom: 20px;
+        }
+
+        .guideline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+    </style>
+}
+

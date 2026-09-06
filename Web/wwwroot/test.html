@@ -1,0 +1,305 @@
+<!--<!DOCTYPE html>-->
+<!--&lt;!&ndash;-->
+<!--Author: Keenthemes-->
+<!--Product Name: Metronic-->
+<!--Product Version: 8.2.9-->
+<!--Purchase: https://1.envato.market/Vm7VRE-->
+<!--Website: http://www.keenthemes.com-->
+<!--Contact: support@keenthemes.com-->
+<!--Follow: www.twitter.com/keenthemes-->
+<!--License: For each use you must have a valid license purchased only from above link in order to legally use the theme for your project.-->
+<!--&ndash;&gt;-->
+<!--<html lang="en">-->
+<!--&lt;!&ndash;begin::Head&ndash;&gt;-->
+<!--<head>-->
+<!--    <title>@ViewData["Title"] - Supermarket System / نظام السوبرماركت</title>-->
+<!--    <meta charset="utf-8" />-->
+<!--    <meta name="description" content="ERP Supermarket System - Advanced inventory management and POS system" />-->
+<!--    <meta name="keywords" content="supermarket, erp, pos, inventory, metronic, bootstrap" />-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1" />-->
+<!--    <meta property="og:locale" content="en_US" />-->
+<!--    <meta property="og:type" content="article" />-->
+<!--    <meta property="og:title" content="Supermarket System / نظام السوبرماركت" />-->
+<!--    <link rel="shortcut icon" href="~/assets/icon.png" />-->
+<!--    &lt;!&ndash;begin::Fonts(mandatory for all pages)&ndash;&gt;-->
+<!--    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />-->
+<!--    &lt;!&ndash;end::Fonts&ndash;&gt;-->
+<!--    &lt;!&ndash;begin::Vendor Stylesheets(used for this page only)&ndash;&gt;-->
+<!--    <link href="Metronics/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet" type="text/css" />-->
+<!--    <link href="Metronics/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />-->
+<!--    &lt;!&ndash;end::Vendor Stylesheets&ndash;&gt;-->
+<!--    &lt;!&ndash;begin::Global Stylesheets Bundle(mandatory for all pages)&ndash;&gt;-->
+<!--    <link href="Metronics/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />-->
+<!--    <link href="Metronics/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />-->
+<!--    &lt;!&ndash;end::Global Stylesheets Bundle&ndash;&gt;-->
+<!--    <script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>-->
+<!--</head>-->
+<!--&lt;!&ndash;end::Head&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Body&ndash;&gt;-->
+<!--<body id="kt_app_body" data-kt-app-layout="light-header" data-kt-app-header-fixed="true" data-kt-app-sidebar-enabled="false" data-kt-app-toolbar-enabled="true" class="app-default">-->
+<!--&lt;!&ndash;begin::Theme mode setup on page load&ndash;&gt;-->
+<!--<script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>-->
+<!--&lt;!&ndash;end::Theme mode setup on page load&ndash;&gt;-->
+<!--&lt;!&ndash;begin::App&ndash;&gt;-->
+<!--<div class="d-flex flex-column flex-root app-root" id="kt_app_root">-->
+<!--    &lt;!&ndash;begin::Page&ndash;&gt;-->
+<!--    <div class="app-page flex-column flex-column-fluid" id="kt_app_page">-->
+<!--        &lt;!&ndash;begin::Header&ndash;&gt;-->
+<!--        <div id="kt_app_header" class="app-header" data-kt-sticky="true" data-kt-sticky-activate="{default: true, lg: true}" data-kt-sticky-name="app-header-minimize" data-kt-sticky-offset="{default: '200px', lg: '0'}" data-kt-sticky-animation="false">-->
+<!--            &lt;!&ndash;begin::Header container&ndash;&gt;-->
+<!--            <div class="app-container container-fluid d-flex align-items-stretch justify-content-between" id="kt_app_header_container">-->
+<!--                &lt;!&ndash;begin::Logo&ndash;&gt;-->
+<!--                <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0 me-lg-15">-->
+<!--                    <a href="~/">-->
+<!--                        <img alt="Logo" src="~/assets/icon.png" class="h-20px h-lg-30px app-sidebar-logo-default" />-->
+<!--                    </a>-->
+<!--                </div>-->
+<!--                &lt;!&ndash;end::Logo&ndash;&gt;-->
+<!--                &lt;!&ndash;begin::Header wrapper&ndash;&gt;-->
+<!--                <div class="d-flex align-items-stretch justify-content-between flex-lg-grow-1" id="kt_app_header_wrapper">-->
+<!--                    &lt;!&ndash;begin::Menu wrapper&ndash;&gt;-->
+<!--                    <div class="app-header-menu app-header-mobile-drawer align-items-stretch" data-kt-drawer="true" data-kt-drawer-name="app-header-menu" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="250px" data-kt-drawer-direction="end" data-kt-drawer-toggle="#kt_app_header_menu_toggle" data-kt-swapper="true" data-kt-swapper-mode="{default: 'append', lg: 'prepend'}" data-kt-swapper-parent="{default: '#kt_app_body', lg: '#kt_app_header_wrapper'}">-->
+<!--                        &lt;!&ndash;begin::Menu&ndash;&gt;-->
+<!--                        <div class="menu menu-rounded menu-column menu-lg-row my-5 my-lg-0 align-items-stretch fw-semibold px-2 px-lg-0" id="kt_app_header_menu" data-kt-menu="true">-->
+<!--                            &lt;!&ndash;begin:Menu item&ndash;&gt;-->
+<!--                            <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-0 me-lg-2">-->
+<!--                                &lt;!&ndash;begin:Menu link&ndash;&gt;-->
+<!--                                <span class="menu-link">-->
+<!--											<span class="menu-title">Dashboard</span>-->
+<!--											<span class="menu-arrow d-lg-none"></span>-->
+<!--										</span>-->
+<!--                                &lt;!&ndash;end:Menu link&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end:Menu item&ndash;&gt;-->
+<!--                            &lt;!&ndash;begin:Menu item&ndash;&gt;-->
+<!--                            <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-0 me-lg-2">-->
+<!--                                &lt;!&ndash;begin:Menu link&ndash;&gt;-->
+<!--                                <span class="menu-link">-->
+<!--											<span class="menu-title">Products</span>-->
+<!--											<span class="menu-arrow d-lg-none"></span>-->
+<!--										</span>-->
+<!--                                &lt;!&ndash;end:Menu link&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end:Menu item&ndash;&gt;-->
+<!--                            &lt;!&ndash;begin:Menu item&ndash;&gt;-->
+<!--                            <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-0 me-lg-2">-->
+<!--                                &lt;!&ndash;begin:Menu link&ndash;&gt;-->
+<!--                                <span class="menu-link">-->
+<!--											<span class="menu-title">Sales</span>-->
+<!--											<span class="menu-arrow d-lg-none"></span>-->
+<!--										</span>-->
+<!--                                &lt;!&ndash;end:Menu link&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end:Menu item&ndash;&gt;-->
+<!--                            &lt;!&ndash;begin:Menu item&ndash;&gt;-->
+<!--                            <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-0 me-lg-2">-->
+<!--                                &lt;!&ndash;begin:Menu link&ndash;&gt;-->
+<!--                                <span class="menu-link">-->
+<!--											<span class="menu-title">Inventory</span>-->
+<!--											<span class="menu-arrow d-lg-none"></span>-->
+<!--										</span>-->
+<!--                                &lt;!&ndash;end:Menu link&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end:Menu item&ndash;&gt;-->
+<!--                            &lt;!&ndash;begin:Menu item&ndash;&gt;-->
+<!--                            <div data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="bottom-start" class="menu-item menu-lg-down-accordion me-0 me-lg-2">-->
+<!--                                &lt;!&ndash;begin:Menu link&ndash;&gt;-->
+<!--                                <span class="menu-link">-->
+<!--											<span class="menu-title">Reports</span>-->
+<!--											<span class="menu-arrow d-lg-none"></span>-->
+<!--										</span>-->
+<!--                                &lt;!&ndash;end:Menu link&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end:Menu item&ndash;&gt;-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Menu&ndash;&gt;-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;end::Menu wrapper&ndash;&gt;-->
+<!--                    &lt;!&ndash;begin::Navbar&ndash;&gt;-->
+<!--                    <div class="app-navbar flex-shrink-0">-->
+<!--                        &lt;!&ndash;begin::Search&ndash;&gt;-->
+<!--                        <div class="app-navbar-item align-items-stretch ms-1 ms-lg-3">-->
+<!--                            &lt;!&ndash;begin::Search&ndash;&gt;-->
+<!--                            <div id="kt_header_search" class="header-search d-flex align-items-stretch" data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter" data-kt-search-layout="menu" data-kt-menu-trigger="auto" data-kt-menu-overflow="false" data-kt-menu-permanent="true" data-kt-menu-placement="bottom-end">-->
+<!--                                &lt;!&ndash;begin::Search toggle&ndash;&gt;-->
+<!--                                <div class="d-flex align-items-center" data-kt-search-element="toggle" id="kt_header_search_toggle">-->
+<!--                                    <div class="btn btn-icon btn-custom btn-icon-muted btn-active-light btn-active-color-primary w-30px h-30px w-md-40px h-md-40px">-->
+<!--                                        <i class="ki-duotone ki-magnifier fs-2 fs-md-1">-->
+<!--                                            <span class="path1"></span>-->
+<!--                                            <span class="path2"></span>-->
+<!--                                        </i>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                                &lt;!&ndash;end::Search toggle&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end::Search&ndash;&gt;-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Search&ndash;&gt;-->
+<!--                        &lt;!&ndash;begin::User menu&ndash;&gt;-->
+<!--                        <div class="app-navbar-item ms-1 ms-lg-3" id="kt_header_user_menu_toggle">-->
+<!--                            &lt;!&ndash;begin::Menu wrapper&ndash;&gt;-->
+<!--                            <div class="cursor-pointer symbol symbol-30px symbol-md-40px" data-kt-menu-trigger="click" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">-->
+<!--                                <img src="Metronics/assets/media/avatars/300-1.jpg" alt="user" />-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end::Menu wrapper&ndash;&gt;-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::User menu&ndash;&gt;-->
+<!--                        &lt;!&ndash;begin::Header menu toggle&ndash;&gt;-->
+<!--                        <div class="app-navbar-item d-lg-none ms-2 me-n3" title="Show header menu">-->
+<!--                            <div class="btn btn-icon btn-active-color-primary w-30px h-30px w-md-35px h-md-35px" id="kt_app_header_menu_toggle">-->
+<!--                                <i class="ki-duotone ki-text-align-left fs-2 fs-md-1">-->
+<!--                                    <span class="path1"></span>-->
+<!--                                    <span class="path2"></span>-->
+<!--                                    <span class="path3"></span>-->
+<!--                                    <span class="path4"></span>-->
+<!--                                </i>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Header menu toggle&ndash;&gt;-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;end::Navbar&ndash;&gt;-->
+<!--                </div>-->
+<!--                &lt;!&ndash;end::Header wrapper&ndash;&gt;-->
+<!--            </div>-->
+<!--            &lt;!&ndash;end::Header container&ndash;&gt;-->
+<!--        </div>-->
+<!--        &lt;!&ndash;end::Header&ndash;&gt;-->
+<!--        &lt;!&ndash;begin::Wrapper&ndash;&gt;-->
+<!--        <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">-->
+<!--            &lt;!&ndash;begin::Main&ndash;&gt;-->
+<!--            <div class="app-main flex-column flex-row-fluid" id="kt_app_main">-->
+<!--                &lt;!&ndash;begin::Content wrapper&ndash;&gt;-->
+<!--                <div class="d-flex flex-column flex-column-fluid">-->
+<!--                    &lt;!&ndash;begin::Toolbar&ndash;&gt;-->
+<!--                    <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">-->
+<!--                        &lt;!&ndash;begin::Toolbar container&ndash;&gt;-->
+<!--                        <div id="kt_app_toolbar_container" class="app-container container-fluid d-flex flex-stack">-->
+<!--                            &lt;!&ndash;begin::Page title&ndash;&gt;-->
+<!--                            <div class="page-title d-flex flex-column justify-content-center flex-wrap me-3">-->
+<!--                                &lt;!&ndash;begin::Title&ndash;&gt;-->
+<!--                                <h1 class="page-heading d-flex text-dark fw-bold fs-3 flex-column justify-content-center my-0">@ViewData["Title"]</h1>-->
+<!--                                &lt;!&ndash;end::Title&ndash;&gt;-->
+<!--                                &lt;!&ndash;begin::Breadcrumb&ndash;&gt;-->
+<!--                                <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">-->
+<!--                                    &lt;!&ndash;begin::Item&ndash;&gt;-->
+<!--                                    <li class="breadcrumb-item text-muted">-->
+<!--                                        <a href="~/" class="text-muted text-hover-primary">Dashboard</a>-->
+<!--                                    </li>-->
+<!--                                    &lt;!&ndash;end::Item&ndash;&gt;-->
+<!--                                    &lt;!&ndash;begin::Item&ndash;&gt;-->
+<!--                                    <li class="breadcrumb-item">-->
+<!--                                        <span class="bullet bg-gray-400 w-5px h-2px"></span>-->
+<!--                                    </li>-->
+<!--                                    &lt;!&ndash;end::Item&ndash;&gt;-->
+<!--                                    &lt;!&ndash;begin::Item&ndash;&gt;-->
+<!--                                    <li class="breadcrumb-item text-muted">@ViewData["Title"]</li>-->
+<!--                                    &lt;!&ndash;end::Item&ndash;&gt;-->
+<!--                                </ul>-->
+<!--                                &lt;!&ndash;end::Breadcrumb&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end::Page title&ndash;&gt;-->
+<!--                            &lt;!&ndash;begin::Actions&ndash;&gt;-->
+<!--                            <div class="d-flex align-items-center gap-2 gap-lg-3">-->
+<!--                                &lt;!&ndash;begin::Filter menu&ndash;&gt;-->
+<!--                                <div class="m-0">-->
+<!--                                    &lt;!&ndash;begin::Menu toggle&ndash;&gt;-->
+<!--                                    <a href="#" class="btn btn-sm btn-flex bg-body btn-color-gray-700 btn-active-color-primary fw-bold" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">-->
+<!--                                        <i class="ki-duotone ki-filter fs-6 text-muted me-1">-->
+<!--                                            <span class="path1"></span>-->
+<!--                                            <span class="path2"></span>-->
+<!--                                        </i>Filter</a>-->
+<!--                                    &lt;!&ndash;end::Menu toggle&ndash;&gt;-->
+<!--                                </div>-->
+<!--                                &lt;!&ndash;end::Filter menu&ndash;&gt;-->
+<!--                                &lt;!&ndash;begin::Secondary button&ndash;&gt;-->
+<!--                                <a href="#" class="btn btn-sm fw-bold btn-secondary" id="kt_toolbar_secondary_button">Secondary</a>-->
+<!--                                &lt;!&ndash;end::Secondary button&ndash;&gt;-->
+<!--                                &lt;!&ndash;begin::Primary button&ndash;&gt;-->
+<!--                                <a href="#" class="btn btn-sm fw-bold btn-primary" id="kt_toolbar_primary_button">Primary</a>-->
+<!--                                &lt;!&ndash;end::Primary button&ndash;&gt;-->
+<!--                            </div>-->
+<!--                            &lt;!&ndash;end::Actions&ndash;&gt;-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Toolbar container&ndash;&gt;-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;end::Toolbar&ndash;&gt;-->
+<!--                    &lt;!&ndash;begin::Content&ndash;&gt;-->
+<!--                    <div id="kt_app_content" class="app-content flex-column-fluid">-->
+<!--                        &lt;!&ndash;begin::Content container&ndash;&gt;-->
+<!--                        <div id="kt_app_content_container" class="app-container container-fluid">-->
+<!--                            @RenderBody()-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Content container&ndash;&gt;-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;end::Content&ndash;&gt;-->
+<!--                </div>-->
+<!--                &lt;!&ndash;end::Content wrapper&ndash;&gt;-->
+<!--                &lt;!&ndash;begin::Footer&ndash;&gt;-->
+<!--                <div id="kt_app_footer" class="app-footer">-->
+<!--                    &lt;!&ndash;begin::Footer container&ndash;&gt;-->
+<!--                    <div class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack py-3">-->
+<!--                        &lt;!&ndash;begin::Copyright&ndash;&gt;-->
+<!--                        <div class="text-dark order-2 order-md-1">-->
+<!--                            <span class="text-muted fw-semibold me-1">2025&copy;</span>-->
+<!--                            <a href="#" target="_blank" class="text-gray-800 text-hover-primary">Supermarket System</a>-->
+<!--                        </div>-->
+<!--                        &lt;!&ndash;end::Copyright&ndash;&gt;-->
+<!--                        &lt;!&ndash;begin::Menu&ndash;&gt;-->
+<!--                        <ul class="menu menu-gray-600 menu-hover-primary fw-semibold order-1">-->
+<!--                            <li class="menu-item">-->
+<!--                                <a href="#" target="_blank" class="menu-link px-2">About</a>-->
+<!--                            </li>-->
+<!--                            <li class="menu-item">-->
+<!--                                <a href="#" target="_blank" class="menu-link px-2">Support</a>-->
+<!--                            </li>-->
+<!--                            <li class="menu-item">-->
+<!--                                <a href="#" target="_blank" class="menu-link px-2">Purchase</a>-->
+<!--                            </li>-->
+<!--                        </ul>-->
+<!--                        &lt;!&ndash;end::Menu&ndash;&gt;-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;end::Footer container&ndash;&gt;-->
+<!--                </div>-->
+<!--                &lt;!&ndash;end::Footer&ndash;&gt;-->
+<!--            </div>-->
+<!--            &lt;!&ndash;end::Main&ndash;&gt;-->
+<!--        </div>-->
+<!--        &lt;!&ndash;end::Wrapper&ndash;&gt;-->
+<!--    </div>-->
+<!--    &lt;!&ndash;end::Page&ndash;&gt;-->
+<!--</div>-->
+<!--&lt;!&ndash;end::App&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Drawers&ndash;&gt;-->
+<!--&lt;!&ndash;end::Drawers&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Scrolltop&ndash;&gt;-->
+<!--<div id="kt_scrolltop" class="scrolltop" data-kt-scrolltop="true">-->
+<!--    <i class="ki-duotone ki-arrow-up">-->
+<!--        <span class="path1"></span>-->
+<!--        <span class="path2"></span>-->
+<!--    </i>-->
+<!--</div>-->
+<!--&lt;!&ndash;end::Scrolltop&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Javascript&ndash;&gt;-->
+<!--<script>var hostUrl = "Metronics/assets/";</script>-->
+<!--&lt;!&ndash;begin::Global Javascript Bundle(mandatory for all pages)&ndash;&gt;-->
+<!--<script src="Metronics/assets/plugins/global/plugins.bundle.js"></script>-->
+<!--<script src="Metronics/assets/js/scripts.bundle.js"></script>-->
+<!--&lt;!&ndash;end::Global Javascript Bundle&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Vendors Javascript(used for this page only)&ndash;&gt;-->
+<!--<script src="Metronics/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>-->
+<!--<script src="~/lib/jquery/dist/jquery.min.js"></script>-->
+<!--&lt;!&ndash;end::Vendors Javascript&ndash;&gt;-->
+<!--&lt;!&ndash;begin::Custom Javascript(used for this page only)&ndash;&gt;-->
+<!--<script src="Metronics/assets/js/widgets.bundle.js"></script>-->
+<!--<script src="Metronics/assets/js/widgets.bundle.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/widgets.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/apps/chat/chat.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/utilities/modals/upgrade-plan.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/utilities/modals/create-app.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/utilities/modals/new-target.js"></script>-->
+<!--<script src="Metronics/assets/js/custom/utilities/modals/users-search.js"></script>-->
+<!--&lt;!&ndash;end::Custom Javascript&ndash;&gt;-->
+<!--@await RenderSectionAsync("Scripts", required: false)-->
+<!--&lt;!&ndash;end::Javascript&ndash;&gt;-->
+<!--</body>-->
+<!--</html>-->

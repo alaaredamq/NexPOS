@@ -1,0 +1,474 @@
+@{
+    ViewData["Title"] = Localizer["ReportsAndAnalytics"];
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        @Localizer["ReportsAndAnalyticsDashboard"]
+                    </h4>
+                    <p class="card-subtitle text-muted">@Localizer["ComprehensiveSalesAnalyticsAndReportingTools"]</p>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card modern-card">
+                                <div class="stats-header">
+                                    <div class="stats-icon sales-icon">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </div>
+                                    <div class="stats-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span id="todayOrders">0</span>
+                                    </div>
+                                </div>
+                                <div class="stats-content">
+                                    <div class="stats-number" id="todaySales">$0.00</div>
+                                    <div class="stats-label">@Localizer["TodaysSales"]</div>
+                                    <div class="stats-change">@Localizer["Orders"]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card modern-card">
+                                <div class="stats-header">
+                                    <div class="stats-icon active-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <div class="stats-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span id="monthOrders">0</span>
+                                    </div>
+                                </div>
+                                <div class="stats-content">
+                                    <div class="stats-number" id="monthSales">$0.00</div>
+                                    <div class="stats-label">@Localizer["ThisMonth"]</div>
+                                    <div class="stats-change">@Localizer["Orders"]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card modern-card">
+                                <div class="stats-header">
+                                    <div class="stats-icon receipts-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="stats-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span id="yearOrders">0</span>
+                                    </div>
+                                </div>
+                                <div class="stats-content">
+                                    <div class="stats-number" id="yearSales">$0.00</div>
+                                    <div class="stats-label">@Localizer["ThisYear"]</div>
+                                    <div class="stats-change">@Localizer["Orders"]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card modern-card">
+                                <div class="stats-header">
+                                    <div class="stats-icon average-icon">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                    <div class="stats-trend neutral">
+                                        <i class="fas fa-minus"></i>
+                                        <span>@Localizer["Avg"]</span>
+                                    </div>
+                                </div>
+                                <div class="stats-content">
+                                    <div class="stats-number" id="avgOrder">$0.00</div>
+                                    <div class="stats-label">@Localizer["AverageOrder"]</div>
+                                    <div class="stats-change">@Localizer["PerTransaction"]</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Types -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-pie me-2"></i>@Localizer["SalesReports"]</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <a href="@Url.Action("SalesReport")" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["SalesReport"]</h6>
+                                                <small class="text-muted">@Localizer["CustomPeriod"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["GenerateDetailedSalesReportsWithCustomDateRangesAndFilters"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="generateDailyReport()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["DailySalesReport"]</h6>
+                                                <small class="text-muted">@Localizer["Today"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["ViewTodaysSalesPerformanceAndKeyMetrics"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="generateMonthlyReport()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["MonthlySalesReport"]</h6>
+                                                <small class="text-muted">@Localizer["ThisMonth"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["ComprehensiveMonthlySalesAnalysisAndTrends"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="generateYearlyReport()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["YearlySalesReport"]</h6>
+                                                <small class="text-muted">@Localizer["ThisYear"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["AnnualSalesOverviewAndYearOverYearComparisons"]</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-bar me-2"></i>@Localizer["Analytics"]</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="showTopProducts()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["TopProducts"]</h6>
+                                                <small class="text-muted">@Localizer["BestSellers"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["ViewYourBestSellingProductsAndPerformanceMetrics"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="showCategoryAnalysis()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["CategoryAnalysis"]</h6>
+                                                <small class="text-muted">@Localizer["ByCategory"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["SalesBreakdownByProductCategories"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="showSalesTrend()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["SalesTrend"]</h6>
+                                                <small class="text-muted">@Localizer["TimeSeries"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["VisualizeSalesTrendsOverTimeWithInteractiveCharts"]</p>
+                                        </a>
+                                        <a href="#" class="list-group-item list-group-item-action" onclick="showPaymentMethods()">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <h6 class="mb-1">@Localizer["PaymentMethods"]</h6>
+                                                <small class="text-muted">@Localizer["PaymentAnalysis"]</small>
+                                            </div>
+                                            <p class="mb-1">@Localizer["AnalyzeSalesPerformanceByPaymentMethods"]</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Modal -->
+<div class="modal fade" id="reportsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportsModalTitle">@Localizer["Report"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="reportsModalBody">
+                <!-- Report content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <button type="button" class="btn btn-primary" onclick="exportReport()">
+                    <i class="fas fa-download me-2"></i>@Localizer["Export"]
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Chart.js (UMD) is loaded globally by _Layout — no per-page CDN include (works offline). *@
+    <script>
+        // Localized strings for JavaScript
+        window.reportsLocalizedStrings = {
+            orders: '@Html.Raw(Localizer["Orders"].Value)',
+            summary: '@Html.Raw(Localizer["Summary"].Value)',
+            period: '@Html.Raw(Localizer["Period"].Value)',
+            totalSales: '@Html.Raw(Localizer["TotalSales"].Value)',
+            totalOrders: '@Html.Raw(Localizer["TotalOrders"].Value)',
+            averageOrderValue: '@Html.Raw(Localizer["AverageOrderValue"].Value)',
+            itemsSold: '@Html.Raw(Localizer["ItemsSold"].Value)',
+            dailySalesReport: '@Html.Raw(Localizer["DailySalesReport"].Value)',
+            monthlySalesReport: '@Html.Raw(Localizer["MonthlySalesReport"].Value)',
+            yearlySalesReport: '@Html.Raw(Localizer["YearlySalesReport"].Value)',
+            topProductsLast30Days: '@Html.Raw(Localizer["TopProductsLast30Days"].Value)',
+            categoryAnalysisLast30Days: '@Html.Raw(Localizer["CategoryAnalysisLast30Days"].Value)',
+            salesTrendLast30Days: '@Html.Raw(Localizer["SalesTrendLast30Days"].Value)',
+            rank: '@Html.Raw(Localizer["Rank"].Value)',
+            product: '@Html.Raw(Localizer["Product"].Value)',
+            quantitySold: '@Html.Raw(Localizer["QuantitySold"].Value)',
+            revenue: '@Html.Raw(Localizer["Revenue"].Value)',
+            avgPrice: '@Html.Raw(Localizer["AvgPrice"].Value)',
+            category: '@Html.Raw(Localizer["Category"].Value)',
+            sales: '@Html.Raw(Localizer["Sales"].Value)',
+            percentage: '@Html.Raw(Localizer["Percentage"].Value)',
+            exportFunctionalityWillBeImplemented: '@Html.Raw(Localizer["ExportFunctionalityWillBeImplemented"].Value)'
+        };
+
+        $(document).ready(function() {
+            loadDashboardStats();
+        });
+
+        function loadDashboardStats() {
+            $.get('@Url.Action("GetDashboardStats", "Reports")', function(response) {
+                if (response.success) {
+                    const data = response.data;
+                    $('#todaySales').text('$' + data.Today.Sales.toFixed(2));
+                    $('#todayOrders').text(data.Today.Orders + ' ' + window.reportsLocalizedStrings.orders);
+                    $('#monthSales').text('$' + data.ThisMonth.Sales.toFixed(2));
+                    $('#monthOrders').text(data.ThisMonth.Orders + ' ' + window.reportsLocalizedStrings.orders);
+                    $('#yearSales').text('$' + data.ThisYear.Sales.toFixed(2));
+                    $('#yearOrders').text(data.ThisYear.Orders + ' ' + window.reportsLocalizedStrings.orders);
+                    
+                    const avgOrder = data.ThisMonth.Orders > 0 ? data.ThisMonth.Sales / data.ThisMonth.Orders : 0;
+                    $('#avgOrder').text('$' + avgOrder.toFixed(2));
+                }
+            });
+        }
+
+        function generateDailyReport() {
+            const today = new Date();
+            $.get('@Url.Action("GetDailySalesReport", "Reports")', { date: today.toISOString() }, function(response) {
+                if (response.success) {
+                    showReportModal(window.reportsLocalizedStrings.dailySalesReport, response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function generateMonthlyReport() {
+            const today = new Date();
+            $.get('@Url.Action("GetMonthlySalesReport", "Reports")', { 
+                year: today.getFullYear(), 
+                month: today.getMonth() + 1 
+            }, function(response) {
+                if (response.success) {
+                    showReportModal(window.reportsLocalizedStrings.monthlySalesReport, response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function generateYearlyReport() {
+            const today = new Date();
+            $.get('@Url.Action("GetYearlySalesReport", "Reports")', { 
+                year: today.getFullYear() 
+            }, function(response) {
+                if (response.success) {
+                    showReportModal(window.reportsLocalizedStrings.yearlySalesReport, response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function showTopProducts() {
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            $.get('@Url.Action("GetTopProducts", "Reports")', { 
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                limit: 10
+            }, function(response) {
+                if (response.success) {
+                    showTopProductsModal(response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function showCategoryAnalysis() {
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            $.get('@Url.Action("GetCategorySales", "Reports")', { 
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            }, function(response) {
+                if (response.success) {
+                    showCategoryAnalysisModal(response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function showSalesTrend() {
+            const endDate = new Date();
+            const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            $.get('@Url.Action("GetSalesTrend", "Reports")', { 
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            }, function(response) {
+                if (response.success) {
+                    showSalesTrendModal(response.data);
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function showReportModal(title, data) {
+            $('#reportsModalTitle').text(title);
+            
+            const html = `
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="erp-alert erp-alert-info">
+                            <h6>${window.reportsLocalizedStrings.summary}</h6>
+                            <p><strong>${window.reportsLocalizedStrings.period}:</strong> ${formatDate(data.startDate)} - ${formatDate(data.endDate)}</p>
+                            <p><strong>${window.reportsLocalizedStrings.totalSales}:</strong> $${data.totalSales.toFixed(2)}</p>
+                            <p><strong>${window.reportsLocalizedStrings.totalOrders}:</strong> ${data.totalOrders}</p>
+                            <p><strong>${window.reportsLocalizedStrings.averageOrderValue}:</strong> $${data.averageOrderValue.toFixed(2)}</p>
+                            <p><strong>${window.reportsLocalizedStrings.itemsSold}:</strong> ${data.totalItemsSold}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('#reportsModalBody').html(html);
+            $('#reportsModal').modal('show');
+        }
+
+        function showTopProductsModal(data) {
+            $('#reportsModalTitle').text(window.reportsLocalizedStrings.topProductsLast30Days);
+            
+            let html = `<div class="table-responsive"><table class="table table-striped"><thead><tr><th>${window.reportsLocalizedStrings.rank}</th><th>${window.reportsLocalizedStrings.product}</th><th>${window.reportsLocalizedStrings.quantitySold}</th><th>${window.reportsLocalizedStrings.revenue}</th><th>${window.reportsLocalizedStrings.avgPrice}</th></tr></thead><tbody>`;
+            
+            data.forEach((product, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${product.productName}</td>
+                        <td>${product.quantitySold}</td>
+                        <td>$${product.totalRevenue.toFixed(2)}</td>
+                        <td>$${product.averagePrice.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            $('#reportsModalBody').html(html);
+            $('#reportsModal').modal('show');
+        }
+
+        function showCategoryAnalysisModal(data) {
+            $('#reportsModalTitle').text(window.reportsLocalizedStrings.categoryAnalysisLast30Days);
+            
+            let html = `<div class="row"><div class="col-md-6"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>${window.reportsLocalizedStrings.category}</th><th>${window.reportsLocalizedStrings.sales}</th><th>${window.reportsLocalizedStrings.orders}</th><th>${window.reportsLocalizedStrings.percentage}</th></tr></thead><tbody>`;
+            
+            data.forEach(category => {
+                html += `
+                    <tr>
+                        <td>${category.categoryName}</td>
+                        <td>$${category.totalSales.toFixed(2)}</td>
+                        <td>${category.totalOrders}</td>
+                        <td>${category.percentage.toFixed(1)}%</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div></div><div class="col-md-6"><canvas id="categoryChart"></canvas></div></div>';
+            $('#reportsModalBody').html(html);
+            $('#reportsModal').modal('show');
+            
+            setTimeout(() => {
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: data.map(c => c.categoryName),
+                        datasets: [{
+                            data: data.map(c => c.totalSales),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                                '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function showSalesTrendModal(data) {
+            $('#reportsModalTitle').text(window.reportsLocalizedStrings.salesTrendLast30Days);
+            
+            const html = '<div class="row"><div class="col-md-12"><canvas id="salesTrendChart"></canvas></div></div>';
+            $('#reportsModalBody').html(html);
+            $('#reportsModal').modal('show');
+            
+            setTimeout(() => {
+                const ctx = document.getElementById('salesTrendChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => formatDate(d.date)),
+                        datasets: [{
+                            label: window.reportsLocalizedStrings.sales,
+                            data: data.map(d => d.sales),
+                            borderColor: '#36A2EB',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+
+        function exportReport() {
+            toastr.info(window.reportsLocalizedStrings.exportFunctionalityWillBeImplemented);
+        }
+
+        function showPaymentMethods() {
+            toastr.info('Payment methods analysis coming soon');
+        }
+    </script>
+}

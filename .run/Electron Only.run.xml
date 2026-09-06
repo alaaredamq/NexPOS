@@ -1,0 +1,13 @@
+&lt;component name="ProjectRunConfigurationManager"&gt;
+  &lt;configuration default="false" name="Electron Only" type="NodeJSConfigurationType"&gt;
+    &lt;node-interpreter value="project" /&gt;
+    &lt;node-options value="" /&gt;
+    &lt;working-dir value="$PROJECT_DIR$" /&gt;
+    &lt;js-file value="$PROJECT_DIR$/electron-main-connect-only.js" /&gt;
+    &lt;application-parameters value="" /&gt;
+    &lt;envs&gt;
+      &lt;env name="NODE_ENV" value="development" /&gt;
+    &lt;/envs&gt;
+    &lt;method v="2" /&gt;
+  &lt;/configuration&gt;
+&lt;/component&gt;

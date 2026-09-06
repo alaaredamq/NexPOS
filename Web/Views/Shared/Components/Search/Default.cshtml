@@ -1,0 +1,191 @@
+@model Web.Components.Shared.SearchModel
+
+<div class="@Model.ContainerClass">
+    <div class="input-group">
+        <input type="text" 
+               id="@Model.Id" 
+               class="@Model.Class" 
+               placeholder="@Model.Placeholder"
+               @foreach (var attr in Model.AdditionalAttributes)
+               {
+                   <text>@attr.Key="@attr.Value"</text>
+               }>
+        
+        @if (Model.ShowButton)
+        {
+            <button class="@Model.ButtonClass" type="button" id="@Model.Id-search-btn">
+                @if (Model.ShowIcon)
+                {
+                    <i class="@Model.IconClass"></i>
+                }
+                @if (Model.Language == "ar")
+                {
+                    <text>بحث</text>
+                }
+                else
+                {
+                    <text>Search</text>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        var searchInput = $('#@Model.Id');
+        var searchButton = $('#@Model.Id-search-btn');
+        var searchTimeout;
+
+        // Auto search functionality
+        @if (Model.AutoSearch)
+        {
+            <text>
+            searchInput.on('input', function() {
+                var value = $(this).val();
+                
+                clearTimeout(searchTimeout);
+                
+                if (value.length >= @Model.MinimumLength) {
+                    searchTimeout = setTimeout(function() {
+                        @if (!string.IsNullOrEmpty(Model.OnSearch))
+                        {
+                            <text>
+                            if (typeof window[@Model.OnSearch] === 'function') {
+                                window[@Model.OnSearch](value);
+                            }
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                            // Default search behavior - trigger custom event
+                            searchInput.trigger('search', [value]);
+                            </text>
+                        }
+                    }, @Model.Delay);
+                } else if (value.length === 0) {
+                    @if (!string.IsNullOrEmpty(Model.OnClear))
+                    {
+                        <text>
+                        if (typeof window[@Model.OnClear] === 'function') {
+                            window[@Model.OnClear]();
+                        }
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        // Default clear behavior - trigger custom event
+                        searchInput.trigger('clear');
+                        </text>
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Manual search button click
+        @if (Model.ShowButton)
+        {
+            <text>
+            searchButton.on('click', function() {
+                var value = searchInput.val();
+                
+                if (value.length >= @Model.MinimumLength) {
+                    @if (!string.IsNullOrEmpty(Model.OnSearch))
+                    {
+                        <text>
+                        if (typeof window[@Model.OnSearch] === 'function') {
+                            window[@Model.OnSearch](value);
+                        }
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        searchInput.trigger('search', [value]);
+                        </text>
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Enter key support
+        searchInput.on('keypress', function(e) {
+            if (e.which === 13) { // Enter key
+                e.preventDefault();
+                searchButton.click();
+            }
+        });
+
+        // Clear search on Escape key
+        searchInput.on('keydown', function(e) {
+            if (e.which === 27) { // Escape key
+                $(this).val('');
+                @if (!string.IsNullOrEmpty(Model.OnClear))
+                {
+                    <text>
+                    if (typeof window[@Model.OnClear] === 'function') {
+                        window[@Model.OnClear]();
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    $(this).trigger('clear');
+                    </text>
+                }
+            }
+        });
+
+        // Expose search functions globally
+        @{
+            var searchIdClean = Model.Id.Replace("-", "_");
+        }
+        window.search_@searchIdClean = {
+            clear: function() {
+                searchInput.val('');
+                @if (!string.IsNullOrEmpty(Model.OnClear))
+                {
+                    <text>
+                    if (typeof window[@Model.OnClear] === 'function') {
+                        window[@Model.OnClear]();
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    searchInput.trigger('clear');
+                    </text>
+                }
+            },
+            search: function(value) {
+                if (value) {
+                    searchInput.val(value);
+                }
+                var searchValue = searchInput.val();
+                @if (!string.IsNullOrEmpty(Model.OnSearch))
+                {
+                    <text>
+                    if (typeof window[@Model.OnSearch] === 'function') {
+                        window[@Model.OnSearch](searchValue);
+                    }
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    searchInput.trigger('search', [searchValue]);
+                    </text>
+                }
+            },
+            getValue: function() {
+                return searchInput.val();
+            }
+        };
+    });
+</script>

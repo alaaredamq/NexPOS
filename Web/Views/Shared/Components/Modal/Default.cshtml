@@ -1,0 +1,48 @@
+@model Web.Models.Shared.ModalModel
+
+<div class="modal fade" id="@Model.Id" tabindex="-1" aria-labelledby="@(Model.Id)Label" aria-hidden="true" 
+     @if (Model.Centered) { <text>data-bs-backdrop="static"</text> }
+     @if (!Model.Backdrop) { <text>data-bs-backdrop="false"</text> }
+     @if (!Model.Keyboard) { <text>data-bs-keyboard="false"</text> }>
+    <div class="modal-dialog @Model.Size @(Model.Centered ? "modal-dialog-centered" : "") @(Model.Scrollable ? "modal-dialog-scrollable" : "")">
+        <div class="modal-content @Model.Class">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@(Model.Id)Label">@Model.Title</h5>
+                @if (Model.ShowCloseButton)
+                {
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                }
+            </div>
+            <div class="modal-body">
+                @RenderBody()
+            </div>
+            @if (Model.FooterButtons.Any() || Model.ShowCloseButton)
+            {
+                <div class="modal-footer">
+                    @foreach (var button in Model.FooterButtons)
+                    {
+                        <button type="@button.Type" class="@button.Class" 
+                                @if (!string.IsNullOrEmpty(button.OnClick)) { <text>onclick="@button.OnClick"</text> }
+                                @if (button.Dismiss) { <text>data-bs-dismiss="modal"</text> }
+                                @foreach (var attr in button.AdditionalAttributes)
+                                {
+                                    <text>@attr.Key="@attr.Value" </text>
+                                }>
+                            @if (!string.IsNullOrEmpty(button.Icon))
+                            {
+                                <i class="@button.Icon"></i>
+                            }
+                            @button.Text
+                        </button>
+                    }
+                    @if (Model.ShowCloseButton)
+                    {
+                        <button type="button" class="@Model.CloseButtonClass" data-bs-dismiss="modal">
+                            @Model.CloseButtonText
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

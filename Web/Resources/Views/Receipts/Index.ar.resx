@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ReceiptManagement" xml:space="preserve">
+    <value>إدارة الإيصالات</value>
+  </data>
+  <data name="ManageAndViewSalesReceipts" xml:space="preserve">
+    <value>إدارة وعرض إيصالات المبيعات</value>
+  </data>
+  <data name="ManageAndViewSalesReceiptsGenerateReportsAndHandleVoidTransactions" xml:space="preserve">
+    <value>إدارة وعرض إيصالات المبيعات وإنشاء التقارير ومعالجة المعاملات الملغاة</value>
+  </data>
+  <data name="SearchReceipts" xml:space="preserve">
+    <value>بحث في الإيصالات</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="DateRange" xml:space="preserve">
+    <value>نطاق التاريخ</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="VsYesterday" xml:space="preserve">
+    <value>مقارنة بالأمس</value>
+  </data>
+  <data name="TotalReceipts" xml:space="preserve">
+    <value>إجمالي الإيصالات</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>اليوم</value>
+  </data>
+  <data name="VoidReceipts" xml:space="preserve">
+    <value>الإيصالات الملغاة</value>
+  </data>
+  <data name="AverageReceipt" xml:space="preserve">
+    <value>متوسط الإيصال</value>
+  </data>
+  <data name="AllReceipts" xml:space="preserve">
+    <value>جميع الإيصالات</value>
+  </data>
+  <data name="RecentReceipts" xml:space="preserve">
+    <value>الأخيرة</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>التحليلات</value>
+  </data>
+  <data name="Receipt" xml:space="preserve">
+    <value>إيصال</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>العميل</value>
+  </data>
+  <data name="Cashier" xml:space="preserve">
+    <value>أمين الصندوق</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>المبلغ</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>الدفع</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="VoidDate" xml:space="preserve">
+    <value>تاريخ الإلغاء</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="VoidedBy" xml:space="preserve">
+    <value>ألغى بواسطة</value>
+  </data>
+  <data name="SearchTerm" xml:space="preserve">
+    <value>مصطلح البحث</value>
+  </data>
+  <data name="ReceiptNumberCustomerNameOrPhone" xml:space="preserve">
+    <value>رقم الإيصال أو اسم العميل أو الهاتف</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="FilterByDateRange" xml:space="preserve">
+    <value>تصفية حسب نطاق التاريخ</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>تاريخ البدء</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>تاريخ الانتهاء</value>
+  </data>
+  <data name="ApplyFilter" xml:space="preserve">
+    <value>تطبيق التصفية</value>
+  </data>
+  <data name="VoidReceipt" xml:space="preserve">
+    <value>إلغاء الإيصال</value>
+  </data>
+  <data name="ReasonForVoiding" xml:space="preserve">
+    <value>سبب الإلغاء</value>
+  </data>
+  <data name="EnterReasonForVoidingThisReceipt" xml:space="preserve">
+    <value>أدخل سبب إلغاء هذا الإيصال...</value>
+  </data>
+  <data name="ThisActionCannotBeUndoneTheReceiptWillBeMarkedAsVoid" xml:space="preserve">
+    <value>لا يمكن التراجع عن هذا الإجراء. سيتم تعليم الإيصال على أنه ملغى.</value>
+  </data>
+  <data name="PleaseEnterASearchTerm" xml:space="preserve">
+    <value>الرجاء إدخال مصطلح بحث</value>
+  </data>
+  <data name="PleaseSelectBothStartAndEndDates" xml:space="preserve">
+    <value>الرجاء تحديد تاريخ البدء والانتهاء</value>
+  </data>
+  <data name="PleaseEnterAReasonForVoiding" xml:space="preserve">
+    <value>الرجاء إدخال سبب الإلغاء</value>
+  </data>
+  <data name="ReceiptVoidedSuccessfully" xml:space="preserve">
+    <value>تم إلغاء الإيصال بنجاح</value>
+  </data>
+  <data name="FailedToVoidReceipt" xml:space="preserve">
+    <value>فشل إلغاء الإيصال</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplemented" xml:space="preserve">
+    <value>سيتم تنفيذ وظيفة التصدير</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>طرق الدفع</value>
+  </data>
+  <data name="DailySalesTrend" xml:space="preserve">
+    <value>اتجاه المبيعات اليومية</value>
+  </data>
+</root>

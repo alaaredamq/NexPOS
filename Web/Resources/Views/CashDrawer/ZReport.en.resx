@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ZReport" xml:space="preserve">
+    <value>Z-Report</value>
+  </data>
+  <data name="EndOfDaySummary" xml:space="preserve">
+    <value>End of Day Summary</value>
+  </data>
+  <data name="Session" xml:space="preserve">
+    <value>Session</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>Print Report</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="SessionInformation" xml:space="preserve">
+    <value>SESSION INFORMATION</value>
+  </data>
+  <data name="Cashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>Opened At</value>
+  </data>
+  <data name="ClosedAt" xml:space="preserve">
+    <value>Closed At</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>hours</value>
+  </data>
+  <data name="SalesSummary" xml:space="preserve">
+    <value>SALES SUMMARY</value>
+  </data>
+  <data name="TotalTransactions" xml:space="preserve">
+    <value>Total Transactions</value>
+  </data>
+  <data name="GrossSales" xml:space="preserve">
+    <value>Gross Sales</value>
+  </data>
+  <data name="TotalDiscounts" xml:space="preserve">
+    <value>Total Discounts</value>
+  </data>
+  <data name="Adjustments" xml:space="preserve">
+    <value>Adjustments</value>
+  </data>
+  <data name="NetSales" xml:space="preserve">
+    <value>Net Sales</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>PAYMENT METHODS</value>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="Card" xml:space="preserve">
+    <value>Card</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="CashReconciliation" xml:space="preserve">
+    <value>CASH RECONCILIATION</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>Opening Cash</value>
+  </data>
+  <data name="CashSales" xml:space="preserve">
+    <value>Cash Sales</value>
+  </data>
+  <data name="CashDrops" xml:space="preserve">
+    <value>Cash Drops</value>
+  </data>
+  <data name="ExpectedCash" xml:space="preserve">
+    <value>Expected Cash</value>
+  </data>
+  <data name="ActualCash" xml:space="preserve">
+    <value>Actual Cash</value>
+  </data>
+  <data name="PerfectBalance" xml:space="preserve">
+    <value>PERFECT BALANCE!</value>
+  </data>
+  <data name="Overage" xml:space="preserve">
+    <value>OVERAGE</value>
+  </data>
+  <data name="Shortage" xml:space="preserve">
+    <value>SHORTAGE</value>
+  </data>
+  <data name="CashDropsDetail" xml:space="preserve">
+    <value>CASH DROPS DETAIL</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="TransactionDetails" xml:space="preserve">
+    <value>TRANSACTION DETAILS</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order #</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Generated" xml:space="preserve">
+    <value>Generated</value>
+  </data>
+  <data name="OfficialCashDrawerReconciliationReport" xml:space="preserve">
+    <value>This is an official cash drawer reconciliation report</value>
+  </data>
+</root>

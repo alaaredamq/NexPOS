@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ReceiptManagement" xml:space="preserve">
+    <value>Receipt Management</value>
+  </data>
+  <data name="ManageAndViewSalesReceipts" xml:space="preserve">
+    <value>Manage and view sales receipts</value>
+  </data>
+  <data name="ManageAndViewSalesReceiptsGenerateReportsAndHandleVoidTransactions" xml:space="preserve">
+    <value>Manage and view sales receipts, generate reports, and handle void transactions</value>
+  </data>
+  <data name="SearchReceipts" xml:space="preserve">
+    <value>Search Receipts</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="DateRange" xml:space="preserve">
+    <value>Date Range</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="VsYesterday" xml:space="preserve">
+    <value>vs yesterday</value>
+  </data>
+  <data name="TotalReceipts" xml:space="preserve">
+    <value>Total Receipts</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="VoidReceipts" xml:space="preserve">
+    <value>Void Receipts</value>
+  </data>
+  <data name="AverageReceipt" xml:space="preserve">
+    <value>Average Receipt</value>
+  </data>
+  <data name="AllReceipts" xml:space="preserve">
+    <value>All Receipts</value>
+  </data>
+  <data name="RecentReceipts" xml:space="preserve">
+    <value>Recent</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>Analytics</value>
+  </data>
+  <data name="Receipt" xml:space="preserve">
+    <value>Receipt</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Cashier" xml:space="preserve">
+    <value>Cashier</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="VoidDate" xml:space="preserve">
+    <value>Void Date</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="VoidedBy" xml:space="preserve">
+    <value>Voided By</value>
+  </data>
+  <data name="SearchTerm" xml:space="preserve">
+    <value>Search Term</value>
+  </data>
+  <data name="ReceiptNumberCustomerNameOrPhone" xml:space="preserve">
+    <value>Receipt number, customer name, or phone</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="FilterByDateRange" xml:space="preserve">
+    <value>Filter by Date Range</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+  </data>
+  <data name="ApplyFilter" xml:space="preserve">
+    <value>Apply Filter</value>
+  </data>
+  <data name="VoidReceipt" xml:space="preserve">
+    <value>Void Receipt</value>
+  </data>
+  <data name="ReasonForVoiding" xml:space="preserve">
+    <value>Reason for Voiding</value>
+  </data>
+  <data name="EnterReasonForVoidingThisReceipt" xml:space="preserve">
+    <value>Enter reason for voiding this receipt...</value>
+  </data>
+  <data name="ThisActionCannotBeUndoneTheReceiptWillBeMarkedAsVoid" xml:space="preserve">
+    <value>This action cannot be undone. The receipt will be marked as void.</value>
+  </data>
+  <data name="PleaseEnterASearchTerm" xml:space="preserve">
+    <value>Please enter a search term</value>
+  </data>
+  <data name="PleaseSelectBothStartAndEndDates" xml:space="preserve">
+    <value>Please select both start and end dates</value>
+  </data>
+  <data name="PleaseEnterAReasonForVoiding" xml:space="preserve">
+    <value>Please enter a reason for voiding</value>
+  </data>
+  <data name="ReceiptVoidedSuccessfully" xml:space="preserve">
+    <value>Receipt voided successfully</value>
+  </data>
+  <data name="FailedToVoidReceipt" xml:space="preserve">
+    <value>Failed to void receipt</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplemented" xml:space="preserve">
+    <value>Export functionality will be implemented</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>Payment Methods</value>
+  </data>
+  <data name="DailySalesTrend" xml:space="preserve">
+    <value>Daily Sales Trend</value>
+  </data>
+</root>

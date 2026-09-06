@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ReportsAndAnalytics" xml:space="preserve">
+    <value>التقارير والتحليلات</value>
+  </data>
+  <data name="ReportsAndAnalyticsDashboard" xml:space="preserve">
+    <value>لوحة التقارير والتحليلات</value>
+  </data>
+  <data name="ComprehensiveSalesAnalyticsAndReportingTools" xml:space="preserve">
+    <value>أدوات شاملة لتحليلات المبيعات والتقارير</value>
+  </data>
+  <data name="TodaysSales" xml:space="preserve">
+    <value>مبيعات اليوم</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>هذا الشهر</value>
+  </data>
+  <data name="ThisYear" xml:space="preserve">
+    <value>هذا العام</value>
+  </data>
+  <data name="AverageOrder" xml:space="preserve">
+    <value>متوسط الطلب</value>
+  </data>
+  <data name="PerTransaction" xml:space="preserve">
+    <value>لكل معاملة</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>طلبات</value>
+  </data>
+  <data name="SalesReports" xml:space="preserve">
+    <value>تقارير المبيعات</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>التحليلات</value>
+  </data>
+  <data name="SalesReport" xml:space="preserve">
+    <value>تقرير المبيعات</value>
+  </data>
+  <data name="CustomPeriod" xml:space="preserve">
+    <value>فترة مخصصة</value>
+  </data>
+  <data name="GenerateDetailedSalesReportsWithCustomDateRangesAndFilters" xml:space="preserve">
+    <value>إنشاء تقارير مبيعات مفصلة مع نطاقات تاريخ وفلاتر مخصصة.</value>
+  </data>
+  <data name="DailySalesReport" xml:space="preserve">
+    <value>تقرير المبيعات اليومي</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>اليوم</value>
+  </data>
+  <data name="ViewTodaysSalesPerformanceAndKeyMetrics" xml:space="preserve">
+    <value>عرض أداء مبيعات اليوم والمقاييس الرئيسية.</value>
+  </data>
+  <data name="MonthlySalesReport" xml:space="preserve">
+    <value>تقرير المبيعات الشهري</value>
+  </data>
+  <data name="ComprehensiveMonthlySalesAnalysisAndTrends" xml:space="preserve">
+    <value>تحليل شامل للمبيعات الشهرية والاتجاهات.</value>
+  </data>
+  <data name="YearlySalesReport" xml:space="preserve">
+    <value>تقرير المبيعات السنوي</value>
+  </data>
+  <data name="AnnualSalesOverviewAndYearOverYearComparisons" xml:space="preserve">
+    <value>نظرة عامة على المبيعات السنوية ومقارنات سنة بسنة.</value>
+  </data>
+  <data name="TopProducts" xml:space="preserve">
+    <value>أفضل المنتجات</value>
+  </data>
+  <data name="BestSellers" xml:space="preserve">
+    <value>الأكثر مبيعاً</value>
+  </data>
+  <data name="ViewYourBestSellingProductsAndPerformanceMetrics" xml:space="preserve">
+    <value>عرض المنتجات الأكثر مبيعاً ومقاييس الأداء.</value>
+  </data>
+  <data name="CategoryAnalysis" xml:space="preserve">
+    <value>تحليل الفئات</value>
+  </data>
+  <data name="ByCategory" xml:space="preserve">
+    <value>حسب الفئة</value>
+  </data>
+  <data name="SalesBreakdownByProductCategories" xml:space="preserve">
+    <value>تفصيل المبيعات حسب فئات المنتجات.</value>
+  </data>
+  <data name="SalesTrend" xml:space="preserve">
+    <value>اتجاه المبيعات</value>
+  </data>
+  <data name="TimeSeries" xml:space="preserve">
+    <value>السلسلة الزمنية</value>
+  </data>
+  <data name="VisualizeSalesTrendsOverTimeWithInteractiveCharts" xml:space="preserve">
+    <value>عرض اتجاهات المبيعات عبر الوقت مع رسوم بيانية تفاعلية.</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>طرق الدفع</value>
+  </data>
+  <data name="PaymentAnalysis" xml:space="preserve">
+    <value>تحليل الدفع</value>
+  </data>
+  <data name="AnalyzeSalesPerformanceByPaymentMethods" xml:space="preserve">
+    <value>تحليل أداء المبيعات حسب طرق الدفع.</value>
+  </data>
+  <data name="Report" xml:space="preserve">
+    <value>التقرير</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>الملخص</value>
+  </data>
+  <data name="Period" xml:space="preserve">
+    <value>الفترة</value>
+  </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="TotalOrders" xml:space="preserve">
+    <value>إجمالي الطلبات</value>
+  </data>
+  <data name="AverageOrderValue" xml:space="preserve">
+    <value>متوسط قيمة الطلب</value>
+  </data>
+  <data name="ItemsSold" xml:space="preserve">
+    <value>المنتجات المباعة</value>
+  </data>
+  <data name="TopProductsLast30Days" xml:space="preserve">
+    <value>أفضل المنتجات (آخر 30 يوم)</value>
+  </data>
+  <data name="CategoryAnalysisLast30Days" xml:space="preserve">
+    <value>تحليل الفئات (آخر 30 يوم)</value>
+  </data>
+  <data name="SalesTrendLast30Days" xml:space="preserve">
+    <value>اتجاه المبيعات (آخر 30 يوم)</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>الترتيب</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="QuantitySold" xml:space="preserve">
+    <value>الكمية المباعة</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>الإيرادات</value>
+  </data>
+  <data name="AvgPrice" xml:space="preserve">
+    <value>متوسط السعر</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="Sales" xml:space="preserve">
+    <value>المبيعات</value>
+  </data>
+  <data name="Percentage" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="ExportFunctionalityWillBeImplemented" xml:space="preserve">
+    <value>سيتم تنفيذ وظيفة التصدير مع إنشاء PDF/Excel</value>
+  </data>
+  <data name="Avg" xml:space="preserve">
+    <value>متوسط</value>
+  </data>
+</root>

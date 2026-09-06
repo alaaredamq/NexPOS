@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ZReport" xml:space="preserve">
+    <value>تقرير Z</value>
+  </data>
+  <data name="EndOfDaySummary" xml:space="preserve">
+    <value>ملخص نهاية اليوم</value>
+  </data>
+  <data name="Session" xml:space="preserve">
+    <value>الجلسة</value>
+  </data>
+  <data name="PrintReport" xml:space="preserve">
+    <value>طباعة التقرير</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="SessionInformation" xml:space="preserve">
+    <value>معلومات الجلسة</value>
+  </data>
+  <data name="Cashier" xml:space="preserve">
+    <value>الكاشير</value>
+  </data>
+  <data name="OpenedAt" xml:space="preserve">
+    <value>تم الفتح في</value>
+  </data>
+  <data name="ClosedAt" xml:space="preserve">
+    <value>تم الإغلاق في</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>المدة</value>
+  </data>
+  <data name="Hours" xml:space="preserve">
+    <value>ساعات</value>
+  </data>
+  <data name="SalesSummary" xml:space="preserve">
+    <value>ملخص المبيعات</value>
+  </data>
+  <data name="TotalTransactions" xml:space="preserve">
+    <value>إجمالي المعاملات</value>
+  </data>
+  <data name="GrossSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
+  <data name="TotalDiscounts" xml:space="preserve">
+    <value>إجمالي الخصومات</value>
+  </data>
+  <data name="Adjustments" xml:space="preserve">
+    <value>التعديلات</value>
+  </data>
+  <data name="NetSales" xml:space="preserve">
+    <value>صافي المبيعات</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>طرق الدفع</value>
+  </data>
+  <data name="Cash" xml:space="preserve">
+    <value>نقداً</value>
+  </data>
+  <data name="Card" xml:space="preserve">
+    <value>بطاقة</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>أخرى</value>
+  </data>
+  <data name="CashReconciliation" xml:space="preserve">
+    <value>تسوية النقد</value>
+  </data>
+  <data name="OpeningCash" xml:space="preserve">
+    <value>النقد الافتتاحي</value>
+  </data>
+  <data name="CashSales" xml:space="preserve">
+    <value>المبيعات النقدية</value>
+  </data>
+  <data name="CashDrops" xml:space="preserve">
+    <value>إيداعات النقود</value>
+  </data>
+  <data name="ExpectedCash" xml:space="preserve">
+    <value>النقد المتوقع</value>
+  </data>
+  <data name="ActualCash" xml:space="preserve">
+    <value>النقد الفعلي</value>
+  </data>
+  <data name="PerfectBalance" xml:space="preserve">
+    <value>توازن مثالي!</value>
+  </data>
+  <data name="Overage" xml:space="preserve">
+    <value>زيادة</value>
+  </data>
+  <data name="Shortage" xml:space="preserve">
+    <value>نقص</value>
+  </data>
+  <data name="CashDropsDetail" xml:space="preserve">
+    <value>تفاصيل إيداعات النقود</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>الوقت</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>المبلغ</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>السبب</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>ملاحظات</value>
+  </data>
+  <data name="TransactionDetails" xml:space="preserve">
+    <value>تفاصيل المعاملات</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>الطلب #</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>العميل</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>الدفع</value>
+  </data>
+  <data name="Generated" xml:space="preserve">
+    <value>تم الإنشاء</value>
+  </data>
+  <data name="OfficialCashDrawerReconciliationReport" xml:space="preserve">
+    <value>هذا تقرير تسوية درج النقود الرسمي</value>
+  </data>
+</root>

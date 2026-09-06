@@ -1,0 +1,332 @@
+@{
+    ViewData["Title"] = Localizer["LowStockReport"];
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-dark fw-bold">@ViewData["Title"]</h1>
+                    <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-primary" onclick="printReport()">
+                        <i class="fas fa-print me-1"></i>@Localizer["PrintReport"]
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="exportReport()">
+                        <i class="fas fa-download me-1"></i>@Localizer["ExportPDF"]
+                    </button>
+                    <a href="@Url.Action("Index", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@Localizer["LowStockAlertSummary"]
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-warning">@ViewBag.LowStockProducts.Count</h3>
+                                <p class="mb-0">@Localizer["ProductsWithLowStock"]</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-danger">@((ViewBag.LowStockProducts as List<dynamic>)?.Count(p => p.StockQuantity <= 0) ?? 0)</h3>
+                                <p class="mb-0">@Localizer["OutOfStock"]</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">@((ViewBag.LowStockProducts as List<dynamic>)?.Sum(p => p.StockQuantity) ?? 0)</h3>
+                                <p class="mb-0">@Localizer["TotalUnitsAvailable"]</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">$0.00</h3>
+                                <p class="mb-0">@Localizer["TotalValueAtRisk"]</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Products Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>@Localizer["LowStockProductsDetails"]
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.LowStockProducts.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>@Localizer["Product"]</th>
+                                        <th>@Localizer["Barcode"]</th>
+                                        <th>@Localizer["Category"]</th>
+                                        <th>@Localizer["CurrentStock"]</th>
+                                        <th>@Localizer["MinimumStock"]</th>
+                                        <th>@Localizer["StockDeficit"]</th>
+                                        <th>@Localizer["Status"]</th>
+                                        <th>@Localizer["Priority"]</th>
+                                        <th>@Localizer["Actions"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in ViewBag.LowStockProducts)
+                                    {
+                                        var stockDeficit = Math.Max(0, (product.MinimumStock ?? 0) - product.StockQuantity);
+                                        var priority = product.StockQuantity <= 0 ? Localizer["Critical"].Value : 
+                                                     product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5 ? Localizer["High"].Value : Localizer["Medium"].Value;
+                                        var statusClass = product.StockQuantity <= 0 ? "badge-danger" : 
+                                                        product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5 ? "badge-warning" : "badge-info";
+                                        var priorityClass = priority == Localizer["Critical"].Value ? "badge-danger" : 
+                                                           priority == Localizer["High"].Value ? "badge-warning" : "badge-info";
+                                        
+                                        <tr class="@(product.StockQuantity <= 0 ? "table-danger" : "table-warning")">
+                                            <td>
+                                                <strong>@product.Name</strong>
+                                                @if (!string.IsNullOrEmpty(product.Description))
+                                                {
+                                                    <br><small class="text-muted">@product.Description</small>
+                                                }
+                                            </td>
+                                            <td>@product.Barcode</td>
+                                            <td>@(product.Category?.Name ?? Localizer["NoCategory"].Value)</td>
+                                            <td>
+                                                <span class="fw-bold @(product.StockQuantity <= 0 ? "text-danger" : "text-warning")">
+                                                    @product.StockQuantity
+                                                </span>
+                                            </td>
+                                            <td>@(product.MinimumStock ?? 0)</td>
+                                            <td>
+                                                <span class="fw-bold text-danger">@stockDeficit</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @statusClass">
+                                                    @if (product.StockQuantity <= 0)
+                                                    {
+                                                        <i class="fas fa-times-circle me-1"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @priorityClass">
+                                                    @if (priority == Localizer["Critical"].Value)
+                                                    {
+                                                        <i class="fas fa-fire me-1"></i>@priority
+                                                    }
+                                                    else if (priority == Localizer["High"].Value)
+                                                    {
+                                                        <i class="fas fa-exclamation me-1"></i>@priority
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fas fa-info-circle me-1"></i>@priority
+                                                    }
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="@Url.Action("AdjustStock", "Inventory", new { id = product.Id, lang = ViewBag.CurrentLanguage })" 
+                                                       class="btn btn-sm btn-outline-primary" title="@Localizer["AdjustStock"]">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                                            onclick="reorderProduct(@product.Id)" title="@Localizer["CreateReorder"]">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                                            onclick="setMinimumStock(@product.Id)" title="@Localizer["SetMinimumStock"]">
+                                                        <i class="fas fa-cog"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-4 text-center">
+                            <button type="button" class="btn btn-primary me-2" onclick="adjustAllCritical()">
+                                <i class="fas fa-exclamation-triangle me-1"></i>@Localizer["AdjustCriticalStock"]
+                            </button>
+                            <button type="button" class="btn btn-success me-2" onclick="createBulkReorder()">
+                                <i class="fas fa-shopping-cart me-1"></i>@Localizer["CreateBulkReorder"]
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="generateReorderReport()">
+                                <i class="fas fa-file-alt me-1"></i>@Localizer["GenerateReorderReport"]
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4 class="text-success">@Localizer["GreatNews"]</h4>
+                            <p class="text-muted">@Localizer["AllProductsSufficientStock"]</p>
+                            <a href="@Url.Action("Index", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-primary">
+                                <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Localized strings for JavaScript
+        window.lowStockLocalizedStrings = {
+            createReorder: '@Html.Raw(Localizer["CreateReorder"].Value)',
+            createReorderText: '@Html.Raw(Localizer["CreateReorderText"].Value)',
+            confirmCreateReorder: '@Html.Raw(Localizer["ConfirmCreateReorder"].Value)',
+            cancel: '@Html.Raw(Localizer["Cancel"].Value)',
+            reorderCreatedSuccess: '@Html.Raw(Localizer["ReorderCreatedSuccess"].Value)',
+            setMinimumStock: '@Html.Raw(Localizer["SetMinimumStock"].Value)',
+            minimumStockLevel: '@Html.Raw(Localizer["MinimumStockLevel"].Value)',
+            enterMinimumStockLevel: '@Html.Raw(Localizer["EnterMinimumStockLevel"].Value)',
+            set: '@Html.Raw(Localizer["Set"].Value)',
+            pleaseEnterValidMinimumStock: '@Html.Raw(Localizer["PleaseEnterValidMinimumStock"].Value)',
+            minimumStockUpdatedSuccess: '@Html.Raw(Localizer["MinimumStockUpdatedSuccess"].Value)',
+            failedToUpdateMinimumStock: '@Html.Raw(Localizer["FailedToUpdateMinimumStock"].Value)',
+            errorOccurred: '@Html.Raw(Localizer["ErrorOccurred"].Value)',
+            adjustCriticalStock: '@Html.Raw(Localizer["AdjustCriticalStock"].Value)',
+            adjustCriticalStockText: '@Html.Raw(Localizer["AdjustCriticalStockText"].Value)',
+            continue: '@Html.Raw(Localizer["Continue"].Value)',
+            bulkStockAdjustmentComingSoon: '@Html.Raw(Localizer["BulkStockAdjustmentComingSoon"].Value)',
+            createBulkReorder: '@Html.Raw(Localizer["CreateBulkReorder"].Value)',
+            createBulkReorderText: '@Html.Raw(Localizer["CreateBulkReorderText"].Value)',
+            createOrders: '@Html.Raw(Localizer["CreateOrders"].Value)',
+            bulkReorderCreatedSuccess: '@Html.Raw(Localizer["BulkReorderCreatedSuccess"].Value)',
+            reorderReportComingSoon: '@Html.Raw(Localizer["ReorderReportComingSoon"].Value)',
+            pdfExportComingSoon: '@Html.Raw(Localizer["PDFExportComingSoon"].Value)'
+        };
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportReport() {
+            toastr.info(window.lowStockLocalizedStrings.pdfExportComingSoon);
+        }
+
+        function reorderProduct(productId) {
+            Swal.fire({
+                title: window.lowStockLocalizedStrings.createReorder,
+                text: window.lowStockLocalizedStrings.createReorderText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: window.lowStockLocalizedStrings.confirmCreateReorder,
+                cancelButtonText: window.lowStockLocalizedStrings.cancel
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    toastr.success(window.lowStockLocalizedStrings.reorderCreatedSuccess);
+                }
+            });
+        }
+
+        function setMinimumStock(productId) {
+            Swal.fire({
+                title: window.lowStockLocalizedStrings.setMinimumStock,
+                input: 'number',
+                inputLabel: window.lowStockLocalizedStrings.minimumStockLevel,
+                inputPlaceholder: window.lowStockLocalizedStrings.enterMinimumStockLevel,
+                showCancelButton: true,
+                confirmButtonText: window.lowStockLocalizedStrings.set,
+                cancelButtonText: window.lowStockLocalizedStrings.cancel,
+                inputValidator: (value) => {
+                    if (!value || value < 0) {
+                        return window.lowStockLocalizedStrings.pleaseEnterValidMinimumStock;
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("SetMinimumStock", "Inventory")',
+                        type: 'POST',
+                        data: {
+                            productId: productId,
+                            minimumStock: result.value
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                toastr.success(window.lowStockLocalizedStrings.minimumStockUpdatedSuccess);
+                                location.reload();
+                            } else {
+                                toastr.error(response.message || window.lowStockLocalizedStrings.failedToUpdateMinimumStock);
+                            }
+                        },
+                        error: function() {
+                            toastr.error(window.lowStockLocalizedStrings.errorOccurred);
+                        }
+                    });
+                }
+            });
+        }
+
+        function adjustAllCritical() {
+            Swal.fire({
+                title: window.lowStockLocalizedStrings.adjustCriticalStock,
+                text: window.lowStockLocalizedStrings.adjustCriticalStockText,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: window.lowStockLocalizedStrings.continue,
+                cancelButtonText: window.lowStockLocalizedStrings.cancel
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    toastr.info(window.lowStockLocalizedStrings.bulkStockAdjustmentComingSoon);
+                }
+            });
+        }
+
+        function createBulkReorder() {
+            Swal.fire({
+                title: window.lowStockLocalizedStrings.createBulkReorder,
+                text: window.lowStockLocalizedStrings.createBulkReorderText,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: window.lowStockLocalizedStrings.createOrders,
+                cancelButtonText: window.lowStockLocalizedStrings.cancel
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    toastr.success(window.lowStockLocalizedStrings.bulkReorderCreatedSuccess);
+                }
+            });
+        }
+
+        function generateReorderReport() {
+            toastr.info(window.lowStockLocalizedStrings.reorderReportComingSoon);
+        }
+    </script>
+}

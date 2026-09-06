@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ProductDisplayOrderManagement" xml:space="preserve">
+    <value>Product Display Order Management</value>
+  </data>
+  <data name="ManageWhichProductsAppearOnThePOSMainScreenAndTheirOrder" xml:space="preserve">
+    <value>Manage which products appear on the POS main screen and their order</value>
+  </data>
+  <data name="AddProduct" xml:space="preserve">
+    <value>Add Product</value>
+  </data>
+  <data name="SaveOrder" xml:space="preserve">
+    <value>Save Order</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="ProductName" xml:space="preserve">
+    <value>Product Name</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Stock</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>No Category</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="AddProductToDisplayOrder" xml:space="preserve">
+    <value>Add Product to Display Order</value>
+  </data>
+  <data name="ExistingProducts" xml:space="preserve">
+    <value>Existing Products</value>
+  </data>
+  <data name="QuickAddProduct" xml:space="preserve">
+    <value>Quick Add Product</value>
+  </data>
+  <data name="SearchProducts" xml:space="preserve">
+    <value>Search Products</value>
+  </data>
+  <data name="TypeToSearchProducts" xml:space="preserve">
+    <value>Type to search products...</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="EnterProductDescription" xml:space="preserve">
+    <value>Enter product description</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>Barcode</value>
+  </data>
+  <data name="LeaveEmptyToAutoGenerate" xml:space="preserve">
+    <value>Leave empty to auto-generate</value>
+  </data>
+  <data name="AutoGenerate" xml:space="preserve">
+    <value>Auto-generate</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>Currency</value>
+  </data>
+  <data name="StockQuantity" xml:space="preserve">
+    <value>Stock Quantity</value>
+  </data>
+  <data name="QuickAddInfo" xml:space="preserve">
+    <value>This will create a basic product with default category and supplier. You can edit full details later in the Products section.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CreateAndAddProduct" xml:space="preserve">
+    <value>Create &amp; Add Product</value>
+  </data>
+  <data name="AreYouSureYouWantToRemoveThisProductFromTheDisplayOrder" xml:space="preserve">
+    <value>Are you sure you want to remove this product from the display order?</value>
+  </data>
+  <data name="ProductNameIsRequired" xml:space="preserve">
+    <value>Product name is required</value>
+  </data>
+  <data name="PriceMustBeGreaterThan0" xml:space="preserve">
+    <value>Price must be greater than 0</value>
+  </data>
+  <data name="AnErrorOccurredWhileCreatingTheProduct" xml:space="preserve">
+    <value>An error occurred while creating the product</value>
+  </data>
+  <data name="AnErrorOccurredWhileSavingTheOrder" xml:space="preserve">
+    <value>An error occurred while saving the order</value>
+  </data>
+  <data name="EnterProductName" xml:space="preserve">
+    <value>Enter product name</value>
+  </data>
+  <data name="LeaveEmptyOrCheckBelow" xml:space="preserve">
+    <value>Leave empty or check the box below to generate automatically</value>
+  </data>
+  <data name="QuickAdd" xml:space="preserve">
+    <value>Quick Add</value>
+  </data>
+  <data name="WillBeAutoGenerated" xml:space="preserve">
+    <value>Will be auto-generated</value>
+  </data>
+  <data name="EnterBarcodeManually" xml:space="preserve">
+    <value>Enter barcode manually</value>
+  </data>
+</root>

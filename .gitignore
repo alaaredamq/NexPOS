@@ -1,0 +1,44 @@
+# IDE / editor
+/.idea/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+project.lock.json
+*.binlog
+
+# Test output
+[Tt]est[Rr]esults/
+[Cc]overage*/
+*.coverage
+*.coveragexml
+
+# Node / Electron
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm/
+
+# Electron / dotnet publish output
+/dist/
+/publish/
+**/publish/
+*.app
+*.dmg
+*.exe.blockmap
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db

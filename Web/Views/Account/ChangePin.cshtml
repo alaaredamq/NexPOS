@@ -1,0 +1,65 @@
+@model Web.Models.Auth.ChangePinViewModel
+
+@{
+    ViewData["Title"] = "Change PIN";
+    ViewData["Subtitle"] = "Set a new PIN for logging in";
+}
+
+<!-- Change PIN Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-key me-3"></i>
+                Change PIN
+            </h2>
+            <p class="products-subtitle">Choose a new 4-digit PIN you'll use to log in from now on</p>
+        </div>
+    </div>
+</div>
+
+<!-- Change PIN Form -->
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lock me-2"></i>
+                    PIN Update
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <form asp-action="ChangePin" method="post" class="pinpad-wrap"
+                      data-pinpad data-pin-length="4" data-clear-label="@Localizer["Clear"]">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="pinpad-field is-active" data-pinpad-field>
+                        <label asp-for="NewPin" class="form-label d-block">New PIN</label>
+                        <input asp-for="NewPin" type="hidden" data-pinpad-input autocomplete="off" />
+                        <div class="pin-dots-row" data-pinpad-dots></div>
+                        <span asp-validation-for="NewPin" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="pinpad-field" data-pinpad-field>
+                        <label asp-for="ConfirmPin" class="form-label d-block">Confirm New PIN</label>
+                        <input asp-for="ConfirmPin" type="hidden" data-pinpad-input autocomplete="off" />
+                        <div class="pin-dots-row" data-pinpad-dots></div>
+                        <span asp-validation-for="ConfirmPin" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div class="pin-keypad" data-pinpad-keys></div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-teal">
+                            <i class="fas fa-save me-2"></i>Update PIN
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_PinPad" />
+}

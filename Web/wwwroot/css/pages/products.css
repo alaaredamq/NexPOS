@@ -1,0 +1,51 @@
+/* =====================================================
+   Products Page Styles
+   ===================================================== */
+
+/* Product Guidelines */
+.guidelines {
+    margin-bottom: 20px;
+}
+
+.guideline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--gray-600);
+}
+
+/* Profit Preview */
+.profit-preview {
+    background: var(--teal-lighter);
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.profit-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.profit-total {
+    font-weight: 600;
+    border-top: 1px solid var(--gray-300);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+/* Form Styles for Products Page */
+.products-page .form-control:focus,
+.products-page .form-select:focus {
+    border-color: var(--teal-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+}
+
+.products-page .form-label {
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+

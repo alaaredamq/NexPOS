@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="EditSupplier" xml:space="preserve">
+    <value>Edit Supplier</value>
+  </data>
+  <data name="UpdateSupplierInformation" xml:space="preserve">
+    <value>Update supplier information</value>
+  </data>
+  <data name="BackToSuppliers" xml:space="preserve">
+    <value>Back to Suppliers</value>
+  </data>
+  <data name="SupplierInformation" xml:space="preserve">
+    <value>Supplier Information</value>
+  </data>
+  <data name="SupplierName" xml:space="preserve">
+    <value>Supplier Name</value>
+  </data>
+  <data name="EnterSupplierName" xml:space="preserve">
+    <value>Enter supplier name</value>
+  </data>
+  <data name="DefaultCurrency" xml:space="preserve">
+    <value>Default Currency</value>
+  </data>
+  <data name="SelectCurrency" xml:space="preserve">
+    <value>-- Select Currency --</value>
+  </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>Email Address</value>
+  </data>
+  <data name="EnterEmailAddress" xml:space="preserve">
+    <value>Enter email address</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="EnterPhoneNumber" xml:space="preserve">
+    <value>Enter phone number</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="EnterFullAddress" xml:space="preserve">
+    <value>Enter full address</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="EnterCity" xml:space="preserve">
+    <value>Enter city</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+  </data>
+  <data name="EnterCountry" xml:space="preserve">
+    <value>Enter country</value>
+  </data>
+  <data name="PostalCode" xml:space="preserve">
+    <value>Postal Code</value>
+  </data>
+  <data name="EnterPostalCode" xml:space="preserve">
+    <value>Enter postal code</value>
+  </data>
+  <data name="DiscountRate" xml:space="preserve">
+    <value>Discount Rate</value>
+  </data>
+  <data name="DebtInformation" xml:space="preserve">
+    <value>Debt Information</value>
+  </data>
+  <data name="DebtToSupplier" xml:space="preserve">
+    <value>Debt to Supplier (I owe them)</value>
+  </data>
+  <data name="AmountOfMoneyYouOweThisSupplier" xml:space="preserve">
+    <value>Amount of money you owe this supplier</value>
+  </data>
+  <data name="DebtFromSupplier" xml:space="preserve">
+    <value>Debt from Supplier (They owe me)</value>
+  </data>
+  <data name="AmountOfMoneySupplierOwesYou" xml:space="preserve">
+    <value>Amount of money the supplier owes you</value>
+  </data>
+  <data name="NetDebt" xml:space="preserve">
+    <value>Net Debt</value>
+  </data>
+  <data name="SupplierIsActive" xml:space="preserve">
+    <value>Supplier is active</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="UpdateSupplier" xml:space="preserve">
+    <value>Update Supplier</value>
+  </data>
+  <data name="SupplierGuidelines" xml:space="preserve">
+    <value>Supplier Guidelines</value>
+  </data>
+  <data name="UseFullCompanyOrSupplierName" xml:space="preserve">
+    <value>Use full company or supplier name</value>
+  </data>
+  <data name="SelectDefaultCurrencyForSupplier" xml:space="preserve">
+    <value>Select the default currency for this supplier</value>
+  </data>
+  <data name="EmailAddressesHelpWithCommunication" xml:space="preserve">
+    <value>Email addresses help with communication</value>
+  </data>
+  <data name="CompleteAddressesEnableDeliveryServices" xml:space="preserve">
+    <value>Complete addresses enable delivery services</value>
+  </data>
+  <data name="TrackDebtsToManageFinancialRelationships" xml:space="preserve">
+    <value>Track debts to manage financial relationships</value>
+  </data>
+  <data name="YouOweThem" xml:space="preserve">
+    <value>You owe them</value>
+  </data>
+  <data name="TheyOweYou" xml:space="preserve">
+    <value>They owe you</value>
+  </data>
+  <data name="Balanced" xml:space="preserve">
+    <value>Balanced</value>
+  </data>
+</root>

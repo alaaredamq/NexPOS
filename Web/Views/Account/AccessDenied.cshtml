@@ -1,0 +1,179 @@
+@{
+    ViewData["Title"] = "Access Denied";
+    ViewData["Subtitle"] = "You don't have permission to access this resource";
+}
+
+<!-- Access Denied Content -->
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="products-table-card text-center">
+            <div class="products-card-body py-5">
+                <!-- Error Icon -->
+                <div class="access-denied-icon mb-4">
+                    <i class="fas fa-ban fa-4x text-danger"></i>
+                </div>
+
+                <!-- Error Message -->
+                <h2 class="access-denied-title mb-3">Access Denied</h2>
+                <p class="access-denied-message mb-4">
+                    You don't have the necessary permissions to access this resource.
+                </p>
+
+                <!-- Additional Information -->
+                <div class="erp-alert erp-alert-warning mb-4" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Need Access?</strong> Contact your system administrator to request the required permissions.
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="@Url.Action("Index", "POS", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
+                        <i class="fas fa-home me-2"></i>Go to Dashboard
+                    </a>
+                    <a href="@Url.Action("Profile", "Account", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
+                        <i class="fas fa-user me-2"></i>View Profile
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </button>
+                </div>
+
+                <!-- Help Information -->
+                <div class="access-denied-help mt-5">
+                    <h6 class="text-muted mb-3">Common Reasons for Access Denied:</h6>
+                    <ul class="list-unstyled text-start">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Your account may not have the required role or permission
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            The resource may be restricted to specific user groups
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Your session may have expired or become invalid
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            The resource may be temporarily unavailable
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Information -->
+        <div class="products-table-card mt-4">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-life-ring me-2"></i>
+                    Need Help?
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="support-item">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            <span>Email Support: <a href="mailto:support@erpsystem.com">support@erpsystem.com</a></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="support-item">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            <span>Phone Support: <a href="tel:+1234567890">+1 (234) 567-890</a></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="support-item">
+                            <i class="fas fa-user-tie text-primary me-2"></i>
+                            <span>Contact Administrator for permission requests</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="support-item">
+                            <i class="fas fa-book text-primary me-2"></i>
+                            <span>User Guide: <a href="#" onclick="alert('User guide coming soon!')">View Documentation</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Add some animation to the access denied icon
+            $('.access-denied-icon i').addClass('animate__animated animate__shakeX');
+            
+            // Log access denied event (for security monitoring)
+            console.log('Access denied at:', new Date().toISOString(), 'for user:', '@User.Identity?.Name');
+        });
+    </script>
+
+    <style>
+        .access-denied-icon {
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .access-denied-title {
+            color: var(--gray-800);
+            font-weight: 700;
+        }
+
+        .access-denied-message {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+        }
+
+        .access-denied-help ul li {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .support-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .support-item a {
+            color: var(--teal-primary);
+            text-decoration: none;
+        }
+
+        .support-item a:hover {
+            text-decoration: underline;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .btn {
+            min-width: 140px;
+        }
+
+        @@media (max-width: 768px) {
+            .btn {
+                min-width: 120px;
+                font-size: 0.9rem;
+            }
+            
+            .access-denied-icon i {
+                font-size: 3rem !important;
+            }
+        }
+    </style>
+}

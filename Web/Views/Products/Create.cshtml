@@ -1,0 +1,494 @@
+@model Application.DTOs.Products.CreateProductRequest
+
+@{
+    ViewData["Title"] = "Create Product";
+    ViewData["Subtitle"] = "Add a new product to inventory";
+    // Check if noSidebar parameter is in query string
+    var noSidebar = Context.Request.Query.ContainsKey("noSidebar") && 
+                    Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
+    ViewBag.NoSidebar = noSidebar;
+}
+
+<!-- Create Product Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-plus-circle me-3"></i>
+                Create New Product
+            </h2>
+            <p class="products-subtitle">Add a new product to your inventory</p>
+        </div>
+        @if (!noSidebar)
+        {
+            <div class="products-actions">
+                <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Products
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Product Form -->
+<div class="row products-page">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Product Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <form asp-action="Create" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label">Product Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Barcode" class="form-label">Barcode *</label>
+                            <div class="input-group">
+                                <input asp-for="Barcode" class="form-control" placeholder="Enter barcode" required onkeydown="return event.key !== 'Enter';" />
+                                <button type="button" class="btn btn-outline-secondary" id="generateBarcodeBtn" title="Generate a new barcode">
+                                    <i class="fas fa-wand-magic-sparkles me-1"></i>Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="Barcode" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter product description"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoryId" class="form-label">Category *</label>
+                            @{
+                                var categories = ViewBag.Categories as List<Core.Entities.Products.ProductCategory> ?? new List<Core.Entities.Products.ProductCategory>();
+                                var categoryItems = categories.Select(c => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = c.Id.ToString(),
+                                    Text = c.Name
+                                }).ToList();
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "CategoryId",
+                                Name = "CategoryId",
+                                Placeholder = "Select a category",
+                                Required = true,
+                                Items = categoryItems
+                            })
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SupplierId" class="form-label">Supplier *</label>
+                            @{
+                                var suppliers = ViewBag.Suppliers as List<Core.Entities.Products.Supplier> ?? new List<Core.Entities.Products.Supplier>();
+                                var supplierItems = suppliers.OrderBy(x => x.OrderNumber).Select(s => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = s.Id.ToString(),
+                                    Text = s.Name + (s.DiscountRate > 0 ? $" ({s.DiscountRate}% discount)" : "")
+                                }).ToList();
+                                var noSupplier = suppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase));
+                                var defaultSupplierId = noSupplier?.Id.ToString() ?? (supplierItems.Any() ? supplierItems.First().Id : "");
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "SupplierId",
+                                Name = "SupplierId",
+                                Placeholder = "Select a supplier",
+                                Required = true,
+                                Value = defaultSupplierId,
+                                AllowClear = false,
+                                Items = supplierItems
+                            })
+                            <span asp-validation-for="SupplierId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Brand" class="form-label">Brand</label>
+                            <input asp-for="Brand" class="form-control" placeholder="Enter brand name" />
+                            <span asp-validation-for="Brand" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="PurchasePrice" class="form-label">Purchase Price *</label>
+                            <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" step="0.01" />
+                            <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="SellingPrice" class="form-label">Selling Price *</label>
+                            <input asp-for="SellingPrice" class="form-control" placeholder="0.00" step="0.01" />
+                            <span asp-validation-for="SellingPrice" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="CurrencyId" class="form-label">Currency *</label>
+                            @{
+                                var currencies = ViewBag.Currencies as List<Core.Entities.Sales.Currency> ?? new List<Core.Entities.Sales.Currency>();
+                                var defaultCurrency = ViewBag.DefaultCurrency as Core.Entities.Sales.Currency;
+                                var currencyItems = currencies.Select(c => new Web.Models.Shared.Select2Item
+                                {
+                                    Id = c.Id.ToString(),
+                                    Text = $"{c.Code} ({c.Notation})"
+                                }).ToList();
+                            }
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "CurrencyId",
+                                Name = "CurrencyId",
+                                Placeholder = "Select currency",
+                                Value = defaultCurrency?.Id.ToString(),
+                                Items = currencyItems
+                            })
+                            <span asp-validation-for="CurrencyId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label asp-for="Unit" class="form-label">Unit</label>
+                            @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                            {
+                                Id = "Unit",
+                                Name = "Unit",
+                                Placeholder = "Select unit",
+                                Items = new List<Web.Models.Shared.Select2Item>
+                                {
+                                    new() { Id = "piece", Text = "Piece" },
+                                    new() { Id = "kg", Text = "Kilogram" },
+                                    new() { Id = "lb", Text = "Pound" },
+                                    new() { Id = "liter", Text = "Liter" },
+                                    new() { Id = "gallon", Text = "Gallon" },
+                                    new() { Id = "box", Text = "Box" },
+                                    new() { Id = "pack", Text = "Pack" }
+                                }
+                            })
+                            <span asp-validation-for="Unit" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StockQuantity" class="form-label">Initial Stock Quantity</label>
+                            <input asp-for="StockQuantity" class="form-control" placeholder="0" min="0" />
+                            <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="MinStockLevel" class="form-label">Minimum Stock Level</label>
+                            <input asp-for="MinStockLevel" class="form-control" placeholder="0" min="0" />
+                            <span asp-validation-for="MinStockLevel" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Product is active
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pack Configuration -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsPack" class="form-check-input" id="IsPack" />
+                            <label asp-for="IsPack" class="form-check-label">
+                                This is a pack product
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pack Fields (shown when IsPack is checked) -->
+                    <div id="pack-fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="PackSize" class="form-label">Pack Size *</label>
+                                <input type="number" id="PackSize" name="PackSize" class="form-control" placeholder="e.g., 6" min="1" />
+                                <small class="text-muted">Number of single products in this pack</small>
+                                <span asp-validation-for="PackSize" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="SingleProductId" class="form-label">Single Product *</label>
+                                <select id="SingleProductId" name="SingleProductId" class="form-select">
+                                    <option value="">Type at least 3 characters to search...</option>
+                                </select>
+                                <small class="text-muted">The single product this pack contains (search by name or barcode)</small>
+                                <span asp-validation-for="SingleProductId" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Product Button (shown when NOT a pack and NOT in noSidebar mode) -->
+                    @if (!noSidebar)
+                    {
+                        <div id="add-product-section" class="mb-3">
+                            <button type="button" class="btn btn-outline-primary" id="add-product-btn">
+                                <i class="fas fa-plus me-2"></i>Add Product
+                            </button>
+                            <small class="text-muted d-block mt-2">Open product creation page in a new tab</small>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-end gap-3">
+                        @if (noSidebar)
+                        {
+                            <button type="button" class="btn btn-outline-secondary" id="cancel-btn">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        }
+                        <button type="submit" class="btn btn-teal" id="create-product-btn">
+                            <i class="fas fa-save me-2"></i>Create Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Product Guidelines
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="guidelines">
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Product name should be descriptive and unique</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Barcode helps with quick product identification</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Set appropriate minimum stock levels for alerts</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Selling price should be higher than purchase price</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Choose the correct category for better organization</span>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="profit-preview">
+                    <h6 class="text-muted mb-3">Profit Preview</h6>
+                    <div class="profit-item">
+                        <span>Purchase Price:</span>
+                        <span id="previewPurchasePrice">$0.00</span>
+                    </div>
+                    <div class="profit-item">
+                        <span>Selling Price:</span>
+                        <span id="previewSellingPrice">$0.00</span>
+                    </div>
+                    <div class="profit-item profit-total">
+                        <span>Profit Margin:</span>
+                        <span id="previewProfitMargin">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="~/css/pages/products.css" rel="stylesheet" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Pack/Add Product logic
+            const $isPackCheckbox = $('#IsPack');
+            const $packFields = $('#pack-fields');
+            const $addProductSection = $('#add-product-section');
+            const $singleProductSelect = $('#SingleProductId');
+            
+            // Toggle pack fields and add product button
+            function togglePackFields() {
+                const isPack = $isPackCheckbox.is(':checked');
+                if (isPack) {
+                    $packFields.slideDown();
+                    // Don't hide add product section - keep it visible
+                    // Initialize Select2 with AJAX if not already initialized
+                    if (!$singleProductSelect.hasClass('select2-hidden-accessible')) {
+                        initializeSingleProductSelect2();
+                    }
+                } else {
+                    $packFields.slideUp();
+                    // Don't show/hide add product section - keep it visible
+                    // Destroy Select2 when pack fields are hidden
+                    if ($singleProductSelect.hasClass('select2-hidden-accessible')) {
+                        $singleProductSelect.select2('destroy');
+                        $singleProductSelect.empty();
+                        $singleProductSelect.append('<option value="">Type at least 3 characters to search...</option>');
+                    }
+                }
+            }
+            
+            // Initialize Select2 with AJAX for single product search
+            function initializeSingleProductSelect2() {
+                $singleProductSelect.select2({
+                    placeholder: 'Type at least 3 characters to search...',
+                    allowClear: true,
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: '/POS/SearchProductsForSelect2',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page || 1,
+                                pageSize: 20
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data.results || [],
+                                pagination: {
+                                    more: data.pagination && data.pagination.more
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    escapeMarkup: function (markup) {
+                        return markup; // let our custom formatter work
+                    },
+                    templateResult: function(product) {
+                        if (product.loading) {
+                            return product.text;
+                        }
+                        return $('<span>' + product.text + '</span>');
+                    },
+                    templateSelection: function(product) {
+                        return product.text || product.id;
+                    }
+                });
+            }
+            
+            // Handle IsPack checkbox change
+            $isPackCheckbox.on('change', togglePackFields);
+            
+            // Initialize on page load
+            togglePackFields();
+            
+            // Handle "Add Product" button click
+            $('#add-product-btn').on('click', function() {
+                const currentLang = window.location.pathname.split('/')[1] || 'en';
+                const createUrl = `/${currentLang}/Products/Create?noSidebar=true`;
+                window.open(createUrl, '_blank');
+            });
+            
+            // Handle Cancel button in noSidebar mode
+            $('#cancel-btn').on('click', function() {
+                window.close();
+            });
+            
+            // Calculate profit margin in real-time
+            function calculateProfitMargin() {
+                const purchasePrice = parseFloat($('#PurchasePrice').val()) || 0;
+                const sellingPrice = parseFloat($('#SellingPrice').val()) || 0;
+                const profitMargin = sellingPrice - purchasePrice;
+
+                $('#previewPurchasePrice').text('$' + purchasePrice.toFixed(2));
+                $('#previewSellingPrice').text('$' + sellingPrice.toFixed(2));
+                $('#previewProfitMargin').text('$' + profitMargin.toFixed(2));
+
+                // Color code the profit margin
+                const profitElement = $('#previewProfitMargin');
+                if (profitMargin > 0) {
+                    profitElement.removeClass('text-danger').addClass('text-success');
+                } else if (profitMargin < 0) {
+                    profitElement.removeClass('text-success').addClass('text-danger');
+                } else {
+                    profitElement.removeClass('text-success text-danger');
+                }
+            }
+
+            $('#PurchasePrice, #SellingPrice').on('input', calculateProfitMargin);
+
+            // Generate barcode
+            $('#generateBarcodeBtn').on('click', function() {
+                const $btn = $(this);
+                const originalHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+                $.getJSON('@Url.Action("GenerateBarcode", "Products")')
+                    .done(function(res) {
+                        if (res && res.success && res.barcode) {
+                            $('#Barcode').val(res.barcode).trigger('input').removeClass('input-validation-error');
+                            $('span[data-valmsg-for="Barcode"]').text('');
+                        } else {
+                            alert((res && res.message) || 'Could not generate a barcode.');
+                        }
+                    })
+                    .fail(function() { alert('Could not generate a barcode.'); })
+                    .always(function() { $btn.prop('disabled', false).html(originalHtml); });
+            });
+
+            // Form validation
+            $('form').on('submit', function(e) {
+                const purchasePrice = parseFloat($('#PurchasePrice').val()) || 0;
+                const sellingPrice = parseFloat($('#SellingPrice').val()) || 0;
+
+                if (sellingPrice <= purchasePrice) {
+                    e.preventDefault();
+                    alert('Selling price must be higher than purchase price for a profitable business!');
+                    $('#SellingPrice').focus();
+                }
+            });
+        });
+    </script>
+    
+    @if (noSidebar)
+    {
+        <script>
+            // Handle form submission in noSidebar mode
+            $(document).ready(function() {
+                $('form').on('submit', function(e) {
+                    // Let the form submit normally, but we'll handle the redirect in the controller
+                    // Store a flag to close window after successful creation
+                    sessionStorage.setItem('closeProductCreateWindow', 'true');
+                });
+            });
+            
+            // Check if we should close the window (after successful creation)
+            // This runs when the page loads after a successful redirect
+            if (sessionStorage.getItem('closeProductCreateWindow') === 'true') {
+                sessionStorage.removeItem('closeProductCreateWindow');
+                setTimeout(function() {
+                    window.close();
+                    // If window.close() doesn't work (some browsers block it), try to notify parent
+                    if (window.opener) {
+                        window.opener.postMessage({ type: 'productCreated', success: true }, '*');
+                    }
+                }, 500);
+            }
+        </script>
+    }
+}

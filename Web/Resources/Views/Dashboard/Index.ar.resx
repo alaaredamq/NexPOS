@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Dashboard" xml:space="preserve">
+    <value>لوحة التحكم</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>نظرة عامة</value>
+  </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>مرحباً بعودتك</value>
+  </data>
+  <data name="DashboardSubtitle" xml:space="preserve">
+    <value>إليك ما يحدث في عملك اليوم.</value>
+  </data>
+  <data name="TotalRevenue" xml:space="preserve">
+    <value>إجمالي الإيرادات</value>
+  </data>
+  <data name="TotalOrders" xml:space="preserve">
+    <value>إجمالي الطلبات</value>
+  </data>
+  <data name="TotalCustomers" xml:space="preserve">
+    <value>إجمالي العملاء</value>
+  </data>
+  <data name="TotalProducts" xml:space="preserve">
+    <value>إجمالي المنتجات</value>
+  </data>
+  <data name="VsLastMonth" xml:space="preserve">
+    <value>مقارنة بالشهر الماضي</value>
+  </data>
+  <data name="SalesAnalytics" xml:space="preserve">
+    <value>تحليلات المبيعات</value>
+  </data>
+  <data name="Month" xml:space="preserve">
+    <value>شهر</value>
+  </data>
+  <data name="Quarter" xml:space="preserve">
+    <value>ربع سنوي</value>
+  </data>
+  <data name="Year" xml:space="preserve">
+    <value>سنة</value>
+  </data>
+  <data name="TopCategories" xml:space="preserve">
+    <value>أفضل الفئات</value>
+  </data>
+  <data name="Electronics" xml:space="preserve">
+    <value>إلكترونيات</value>
+  </data>
+  <data name="Clothing" xml:space="preserve">
+    <value>ملابس</value>
+  </data>
+  <data name="Books" xml:space="preserve">
+    <value>كتب</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>منزل</value>
+  </data>
+  <data name="Sports" xml:space="preserve">
+    <value>رياضة</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>إجراءات سريعة</value>
+  </data>
+  <data name="MainPOSTerminal" xml:space="preserve">
+    <value>محطة نقطة البيع الرئيسية</value>
+  </data>
+  <data name="AddNewInventory" xml:space="preserve">
+    <value>إضافة مخزون جديد</value>
+  </data>
+  <data name="NewCustomer" xml:space="preserve">
+    <value>عميل جديد</value>
+  </data>
+  <data name="RegisterCustomer" xml:space="preserve">
+    <value>تسجيل عميل</value>
+  </data>
+  <data name="ViewReports" xml:space="preserve">
+    <value>عرض التقارير</value>
+  </data>
+  <data name="BusinessAnalytics" xml:space="preserve">
+    <value>تحليلات الأعمال</value>
+  </data>
+  <data name="RecentOrders" xml:space="preserve">
+    <value>الطلبات الأخيرة</value>
+  </data>
+  <data name="OrderID" xml:space="preserve">
+    <value>رقم الطلب</value>
+  </data>
+  <data name="Customer" xml:space="preserve">
+    <value>العميل</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>المبلغ</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>مكتمل</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>عرض التفاصيل</value>
+  </data>
+  <data name="PrintReceipt" xml:space="preserve">
+    <value>طباعة الإيصال</value>
+  </data>
+  <data name="SalesRevenue" xml:space="preserve">
+    <value>إيرادات المبيعات</value>
+  </data>
+  <data name="Profit" xml:space="preserve">
+    <value>الربح</value>
+  </data>
+  <data name="FailedToLoadChartData" xml:space="preserve">
+    <value>فشل تحميل بيانات المخطط.</value>
+  </data>
+  <data name="PointOfSale" xml:space="preserve">
+    <value>نقطة البيع</value>
+  </data>
+  <data name="AddProduct" xml:space="preserve">
+    <value>إضافة منتج</value>
+  </data>
+  <data name="ViewAll" xml:space="preserve">
+    <value>عرض الكل</value>
+  </data>
+</root>
+

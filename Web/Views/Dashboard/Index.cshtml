@@ -1,0 +1,315 @@
+@{
+    ViewData["Title"] = Localizer["Dashboard"].Value;
+    ViewData["Subtitle"] = Localizer["Overview"].Value;
+}
+
+<!-- Welcome Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="welcome-card">
+            <div class="welcome-content">
+                <div class="welcome-text">
+                    <h2 class="welcome-title">@Localizer["WelcomeBack"] 👋</h2>
+                    <p class="welcome-subtitle">@Localizer["DashboardSubtitle"]</p>
+                </div>
+                <div class="welcome-time">
+                    <div class="time-display">
+                        <span class="time-text" id="currentTime"></span>
+                        <span class="date-text" id="currentDate"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon revenue-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+12.5%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@ViewBag.Stats.TotalSalesFormatted</div>
+                <div class="stats-label">@Localizer["TotalRevenue"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]: @ViewBag.Stats.TotalSalesChange.ToString("+0.0;-0.0;0")%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon orders-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+8.2%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@ViewBag.Stats.TotalOrders.ToString("N0")</div>
+                <div class="stats-label">@Localizer["TotalOrders"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]: @ViewBag.Stats.TotalOrdersChange.ToString("+0.0;-0.0;0")%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon customers-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+5.7%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@ViewBag.Stats.TotalCustomers.ToString("N0")</div>
+                <div class="stats-label">@Localizer["TotalCustomers"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]: @ViewBag.Stats.TotalCustomersChange.ToString("+0.0;-0.0;0")%</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon products-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@ViewBag.Stats.TotalProducts.ToString("N0")</div>
+                <div class="stats-label">@Localizer["TotalProducts"]</div>
+                <div class="stats-change">@Localizer["VsLastMonth"]: @ViewBag.Stats.TotalProductsChange.ToString("+0.0;-0.0;0")%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>
+                        @Localizer["SalesAnalytics"]
+                    </h5>
+                    <div class="chart-controls">
+                        <button class="btn btn-sm btn-outline-primary active" data-period="month">@Localizer["Month"]</button>
+                        <button class="btn btn-sm btn-outline-primary" data-period="quarter">@Localizer["Quarter"]</button>
+                        <button class="btn btn-sm btn-outline-primary" data-period="year">@Localizer["Year"]</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2 text-success"></i>
+                    @Localizer["TopCategories"]
+                </h5>
+            </div>
+            <div class="card-body" style="position: relative; height: 300px;">
+                <canvas id="productsChart"></canvas>
+                <div class="chart-legend mt-3">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #008080;"></span>
+                        <span class="legend-label">@Localizer["Electronics"]</span>
+                        <span class="legend-value">30%</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #20c997;"></span>
+                        <span class="legend-label">@Localizer["Clothing"]</span>
+                        <span class="legend-value">25%</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #17a2b8;"></span>
+                        <span class="legend-label">@Localizer["Books"]</span>
+                        <span class="legend-value">20%</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #ffc107;"></span>
+                        <span class="legend-label">@Localizer["Home"]</span>
+                        <span class="legend-value">15%</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: #dc3545;"></span>
+                        <span class="legend-label">@Localizer["Sports"]</span>
+                        <span class="legend-value">10%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>
+                    @Localizer["QuickActions"]
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <a href="@Url.ActionWithCurrentLanguage("Index", "POS")" class="quick-action-btn">
+                                <div class="quick-action-icon bg-primary">
+                                    <i class="fas fa-cash-register"></i>
+                                </div>
+                                <div class="quick-action-text">
+                                    <h6>@Localizer["PointOfSale"]</h6>
+                                    <small>@Localizer["MainPOSTerminal"]</small>
+                                </div>
+                            </a>
+                        </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="@Url.ActionWithCurrentLanguage("Index", "Products")" class="quick-action-btn">
+                            <div class="quick-action-icon bg-success">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h6>@Localizer["AddProduct"]</h6>
+                                <small>@Localizer["AddNewInventory"]</small>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="@Url.ActionWithCurrentLanguage("Index", "Customers")" class="quick-action-btn">
+                            <div class="quick-action-icon bg-info">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h6>@Localizer["NewCustomer"]</h6>
+                                <small>@Localizer["RegisterCustomer"]</small>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="@Url.ActionWithCurrentLanguage("Index", "Reports")" class="quick-action-btn">
+                            <div class="quick-action-icon bg-warning">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="quick-action-text">
+                                <h6>@Localizer["ViewReports"]</h6>
+                                <small>@Localizer["BusinessAnalytics"]</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-receipt me-2 text-info"></i>
+                    @Localizer["RecentOrders"]
+                </h5>
+                <a href="@Url.ActionWithCurrentLanguage("Index", "Orders")" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-eye me-1"></i>@Localizer["ViewAll"]
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">@Localizer["OrderID"]</th>
+                                <th class="border-0">@Localizer["Customer"]</th>
+                                <th class="border-0">@Localizer["Amount"]</th>
+                                <th class="border-0">@Localizer["Date"]</th>
+                                <th class="border-0">@Localizer["Status"]</th>
+                                <th class="border-0">@Localizer["Actions"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in ViewBag.RecentOrders)
+                            {
+                                <tr class="order-row">
+                                    <td class="fw-bold text-primary">#@order.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                        <div class="customer-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <span class="ms-2">@order.CustomerName</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold">@order.AmountFormatted</td>
+                                    <td>
+                                        <div class="date-info">
+                                            <div class="date-text">@order.OrderDate.ToString("d", System.Globalization.CultureInfo.CurrentUICulture)</div>
+                                            <small class="text-muted">@order.OrderDate.ToString("t", System.Globalization.CultureInfo.CurrentUICulture)</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge completed">
+                                            <i class="fas fa-check-circle me-1"></i>@Localizer["Completed"]
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-outline-primary" title="@Localizer["ViewDetails"]">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" title="@Localizer["PrintReceipt"]">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* Chart.js is already loaded from ~/lib in the layout — no CDN (works offline). *@
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.dashboardLocalizedStrings = {
+            salesRevenue: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["SalesRevenue"].Value)),
+            profit: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Profit"].Value)),
+            failedToLoadChartData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["FailedToLoadChartData"].Value))
+        };
+        
+        window.dashboardUrls = {
+            getSalesAnalyticsUrl: '@Url.Action("GetSalesAnalytics", "Dashboard")',
+            getCategoryAnalyticsUrl: '@Url.Action("GetCategoryAnalytics", "Dashboard")'
+        };
+    </script>
+    <script src="~/js/pages/Dashboard/Index.js"></script>
+}

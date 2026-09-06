@@ -1,0 +1,208 @@
+@{
+    ViewData["Title"] = Localizer["Suppliers"].Value;
+    ViewData["Subtitle"] = Localizer["ManageSupplierInformation"].Value;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-truck me-2"></i>@Localizer["SuppliersManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageYourSupplierDatabaseAndRelationships"]</p>
+            </div>
+            <div class="page-actions">
+                <a href="@Url.Action("Create", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>@Localizer["AddSupplier"]
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suppliers Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon suppliers-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalSuppliers">0</div>
+                <div class="stats-label">@Localizer["TotalSuppliers"]</div>
+                <div class="stats-change">@Localizer["Total"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="activeSuppliers">0</div>
+                <div class="stats-label">@Localizer["ActiveSuppliers"]</div>
+                <div class="stats-change">@Localizer["Active"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon inactive-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="inactiveSuppliers">0</div>
+                <div class="stats-label">@Localizer["InactiveSuppliers"]</div>
+                <div class="stats-change">@Localizer["Inactive"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon average-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalContracts">0</div>
+                <div class="stats-label">@Localizer["ActiveContracts"]</div>
+                <div class="stats-change">@Localizer["Contracts"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suppliers Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>@Localizer["SuppliersList"]</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" id="refreshTable">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" id="exportTable">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+                {
+                    Id = "suppliersTable",
+                    Class = "table table-hover modern-table",
+                    DataSource = Url.Action("GetSuppliers", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                    ServerSide = true,
+                    Processing = true,
+                    Ordering = true,
+                    Searching = true,
+                    Paging = true,
+                    PageLength = 25,
+                    PageLengthMenu = new List<int> { 10, 25, 50, 100 },
+                    Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                    Responsive = true,
+                    Columns = new List<Web.Models.Shared.DataTableColumn>
+                    {
+                        new() { Data = "id", Title = Localizer["ID"].Value, Width = 50, ClassName = "text-center" },
+                        new() { Data = "name", Title = Localizer["Name"].Value, Render = "function(data, type, row) { return '<strong>' + data + '</strong>'; }" },
+                        new() { Data = "contactPerson", Title = Localizer["ContactPerson"].Value, Render = "function(data, type, row) { return data || (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
+                        new() { Data = "email", Title = Localizer["Email"].Value, Render = "function(data, type, row) { return data ? '<a href=\"mailto:' + data + '\" class=\"text-decoration-none\">' + data + '</a>' : (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
+                        new() { Data = "phoneNumber", Title = Localizer["Phone"].Value, Render = "function(data, type, row) { return data ? '<a href=\"tel:' + data + '\" class=\"text-decoration-none\">' + data + '</a>' : (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
+                        new() { Data = "address", Title = Localizer["Address"].Value, Render = "function(data, type, row) { return data || (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
+                        new() { 
+                            Data = "isActive", 
+                            Title = Localizer["Status"].Value, 
+                            ClassName = "text-center",
+                            Render = "function(data, type, row) { var badgeClass = data ? 'bg-success' : 'bg-secondary'; var activeText = window.i18n && window.i18n.t ? window.i18n.t('common.active', 'Active') : 'Active'; var inactiveText = window.i18n && window.i18n.t ? window.i18n.t('common.inactive', 'Inactive') : 'Inactive'; var statusText = data ? activeText : inactiveText; return '<span class=\"badge ' + badgeClass + '\">' + statusText + '</span>'; }"
+                        },
+                        new() { 
+                            Data = "actions", 
+                            Title = Localizer["Actions"].Value, 
+                            Orderable = false, 
+                            Searchable = false, 
+                            ClassName = "text-center",
+                            Width = 120
+                        }
+                    },
+                    AdditionalOptions = new Dictionary<string, object>
+                    {
+                        ["order"] = "[[1, 'asc']]",
+                        ["drawCallback"] = "function(settings) { updateSupplierStats(); }"
+                    }
+                })
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap5.min.js"></script>
+    <link href="~/lib/datatables/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.suppliersLocalizedStrings = {
+            deleteConfirm: '@Html.Raw(Localizer["AreYouSureYouWantToDeleteThisSupplier"].Value)',
+            deleteError: '@Html.Raw(Localizer["AnErrorOccurredWhileDeletingTheSupplier"].Value)'
+        };
+        
+        window.suppliersUrls = {
+            getSuppliersUrl: '@Url.Action("GetSuppliers", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            exportUrl: '@Url.Action("ExportSuppliers", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            detailsUrl: '@Url.Action("Details", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            editUrl: '@Url.Action("Edit", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            deleteUrl: '@Url.Action("Delete", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+        };
+    </script>
+    <script src="~/js/Pages/Suppliers/Index.js"></script>
+}

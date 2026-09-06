@@ -1,0 +1,224 @@
+:root {
+    /* Primary Teal Palette */
+    --primary-color: #008080;
+    --primary-dark: #006666;
+    --primary-darker: #004d4d;
+    --primary-light: #00a3a3;
+    --primary-bright: #00a896;
+    --primary-lighter: #e6f7f7;
+    --primary-contrast: #ffffff;
+
+    /* Semantic Aliases */
+    --primary: #008080;
+    --primary-dark-alt: var(--primary-dark);
+    --success: #20c997;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --secondary: #6c757d;
+
+    /* Supporting Accent Colors */
+    --success-color: #20c997;
+    --success-strong: #28a745;
+    --success-dark: #218838;
+    --success-muted: #d4edda;
+    --success-muted-strong: #c3e6cb;
+    --success-text: #155724;
+
+    --danger-color: #dc3545;
+    --danger-strong: #c82333;
+    --danger-bright: #ff4757;
+    --danger-accent: #ff3838;
+    --danger-muted: #f8d7da;
+    --danger-muted-strong: #f5c6cb;
+    --danger-text: #721c24;
+
+    --warning-color: #ffc107;
+    --warning-dark: #e0a800;
+    --warning-muted: #fff3cd;
+    --warning-text: #856404;
+
+    --info-color: #17a2b8;
+    --info-accent: #4facfe;
+    --info-bright: #00f2fe;
+    --info-muted: #d1ecf1;
+    --info-dark: #138496;
+
+    --secondary-color: #6c757d;
+    --secondary-accent: #2c3e50;
+
+    /* Neutral Palette */
+    --white: #ffffff;
+    --neutral-25: #fdfefe;
+    --neutral-50: #fafbfc;
+    --neutral-75: #f5f7fa;
+    --neutral-100: #f8f9fa;
+    --neutral-150: #f1f3f4;
+    --neutral-175: #f1f1f1;
+    --neutral-200: #e9ecef;
+    --neutral-250: #e6f7f7;
+    --neutral-300: #dee2e6;
+    --neutral-350: #ced4da;
+    --neutral-375: #adb5bd;
+    --neutral-400: #adb5bd;
+    --neutral-425: #95a5a6;
+    --neutral-450: #90a4ae;
+    --neutral-500: #6c757d;
+    --neutral-550: #5c6770;
+    --neutral-600: #495057;
+    --neutral-650: #3a3f44;
+    --neutral-700: #343a40;
+    --neutral-750: #333333;
+    --neutral-775: #2d3748;
+    --neutral-800: #2c3e50;
+    --neutral-850: #212529;
+
+    /* Legacy Gray Aliases */
+    --gray-50: var(--neutral-50);
+    --gray-100: var(--neutral-100);
+    --gray-200: var(--neutral-200);
+    --gray-300: var(--neutral-300);
+    --gray-400: var(--neutral-350);
+    --gray-500: var(--neutral-375);
+    --gray-600: var(--neutral-500);
+    --gray-700: var(--neutral-600);
+    --gray-800: var(--neutral-700);
+    --gray-900: var(--neutral-850);
+
+    /* Legacy Semantic Aliases */
+    --light-color: var(--neutral-100);
+    --dark-color: var(--neutral-800);
+    --secondary-surface: var(--surface-secondary);
+
+    /* Surface Colors */
+    --surface-body: var(--neutral-75);
+    --surface-secondary: var(--neutral-100);
+    --surface-elevated: var(--white);
+    --surface-muted: var(--neutral-150);
+
+    /* Text Colors */
+    --text-primary: var(--neutral-850);
+    --text-secondary: var(--neutral-600);
+    --text-muted: var(--neutral-500);
+    --text-inverse: var(--white);
+    --text-inverse-soft: rgba(255, 255, 255, 0.9);
+
+    /* Status Colors */
+    --status-online: #90ee90;
+    --status-mint: #e0ffff;
+    --accent-indigo: #667eea;
+    --accent-purple: #764ba2;
+    --status-warning: var(--warning-color);
+    --status-danger: var(--danger-color);
+
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.2);
+    --border-strong: rgba(255, 255, 255, 0.3);
+    --border-primary: var(--primary-color);
+    --border-muted: var(--neutral-300);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --shadow: var(--shadow-md);
+    --shadow-teal-sm: 0 4px 12px rgba(0, 128, 128, 0.25);
+    --shadow-teal-md: 0 4px 16px rgba(0, 128, 128, 0.25);
+    --shadow-teal-lg: 0 4px 20px rgba(0, 128, 128, 0.3);
+    --shadow-danger: 0 4px 12px rgba(220, 53, 69, 0.3);
+    --shadow-success: 0 4px 16px rgba(40, 167, 69, 0.3);
+
+    /* Overlays & Transparency */
+    --overlay-white-05: rgba(255, 255, 255, 0.05);
+    --overlay-white-10: rgba(255, 255, 255, 0.1);
+    --overlay-white-15: rgba(255, 255, 255, 0.15);
+    --overlay-white-20: rgba(255, 255, 255, 0.2);
+    --overlay-white-25: rgba(255, 255, 255, 0.25);
+    --overlay-white-30: rgba(255, 255, 255, 0.3);
+    --overlay-white-50: rgba(255, 255, 255, 0.5);
+    --overlay-teal-05: rgba(0, 128, 128, 0.05);
+    --overlay-teal-10: rgba(0, 128, 128, 0.1);
+    --overlay-teal-15: rgba(0, 128, 128, 0.15);
+    --overlay-teal-25: rgba(0, 128, 128, 0.25);
+    --overlay-teal-30: rgba(0, 128, 128, 0.3);
+    --overlay-danger-20: rgba(220, 53, 69, 0.2);
+    --overlay-success-10: rgba(40, 167, 69, 0.1);
+    --overlay-danger-10: rgba(220, 53, 69, 0.1);
+    --overlay-warning-15: rgba(255, 193, 7, 0.15);
+    --overlay-coral-25: rgba(255, 107, 107, 0.25);
+    --overlay-coral-40: rgba(255, 107, 107, 0.4);
+    --overlay-success-40: rgba(40, 167, 69, 0.4);
+    --overlay-info-40: rgba(23, 162, 184, 0.4);
+    --overlay-danger-40: rgba(220, 53, 69, 0.4);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    --gradient-primary-strong: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    --gradient-primary-bright: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-bright) 100%);
+    --gradient-success: linear-gradient(135deg, var(--success-strong) 0%, var(--success-color) 100%);
+    --gradient-success-reverse: linear-gradient(135deg, var(--success-color) 0%, var(--success-strong) 100%);
+    --gradient-danger: linear-gradient(45deg, var(--danger-bright), var(--danger-accent));
+    --gradient-info: linear-gradient(135deg, var(--info-accent) 0%, var(--info-bright) 100%);
+    
+    /* Coral/Orange colors - complement teal */
+    --coral-light: #ff7b7b;
+    --coral-medium: #ff6b6b;
+    --coral-dark: #ee5a52;
+    --orange-light: #ffb84d;
+    --orange-medium: #ffa500;
+    --orange-dark: #ff8c42;
+    
+    /* Secondary gradient - coral to orange (complements teal) */
+    --gradient-secondary: linear-gradient(135deg, var(--coral-medium) 0%, var(--orange-medium) 100%);
+    --gradient-secondary-reverse: linear-gradient(135deg, var(--orange-medium) 0%, var(--coral-medium) 100%);
+    
+    /* Other gradients using variables */
+    --gradient-pink: linear-gradient(135deg, var(--coral-light) 0%, var(--coral-dark) 100%);
+    --gradient-green: linear-gradient(135deg, var(--success-color) 0%, var(--primary-bright) 100%);
+    --gradient-warm: linear-gradient(135deg, var(--warning-color) 0%, var(--orange-dark) 100%);
+    --gradient-rose: linear-gradient(135deg, var(--coral-light) 0%, var(--warning-color) 100%);
+    --gradient-cyan-violet: linear-gradient(135deg, var(--info-bright) 0%, var(--primary-dark) 100%);
+    --gradient-success-alt: linear-gradient(135deg, var(--success-strong) 0%, var(--success-color) 100%);
+    --gradient-info-alt: linear-gradient(135deg, var(--info-color) 0%, var(--info-dark) 100%);
+    --gradient-info-alt-reverse: linear-gradient(135deg, var(--info-dark) 0%, var(--info-color) 100%);
+    --gradient-danger-alt: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-strong) 100%);
+    --gradient-danger-alt-reverse: linear-gradient(135deg, var(--danger-strong) 0%, var(--danger-color) 100%);
+    --gradient-warning: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-dark) 100%);
+
+    /* POS Specific */
+    --pos-navbar-shadow: var(--shadow-teal-lg);
+    --pos-notification-gradient: linear-gradient(45deg, var(--danger-bright), var(--danger-accent));
+
+    /* Badge & Highlight */
+    --badge-primary: linear-gradient(135deg, var(--primary-color), var(--primary-bright));
+    --badge-danger: linear-gradient(135deg, var(--danger-color), var(--danger-strong));
+    --badge-success: linear-gradient(135deg, var(--success-strong), var(--success-color));
+    --badge-warning: linear-gradient(135deg, var(--warning-color), var(--warning-dark));
+
+    /* Legacy Gradient Aliases */
+    --primary-gradient: var(--gradient-primary);
+
+    /* Additional Theme Tokens */
+    --focus-ring: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    --focus-ring-success: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
+    --focus-ring-info: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+
+    /* Auth Background */
+    --auth-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--success-color) 50%, var(--info-color) 100%);
+    --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(32, 201, 151, 0.1) 0%, transparent 50%);
+    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(23, 162, 184, 0.1) 0%, transparent 50%);
+    --auth-highlight-3: radial-gradient(circle at 40% 40%, rgba(0, 128, 128, 0.05) 0%, transparent 50%);
+
+    /* POS Legacy Aliases */
+    --teal-primary: var(--primary-color);
+    --teal-dark: var(--primary-dark);
+    --teal-light: var(--primary-light);
+    --teal-lighter: var(--primary-lighter);
+    --teal-gradient: var(--gradient-primary);
+
+    /* Common Border Aliases */
+    --border-color: var(--neutral-300);
+    --border-soft: var(--neutral-200);
+    --border-strong-static: var(--neutral-350);
+}
+

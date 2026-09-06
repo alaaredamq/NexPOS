@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="ProductDisplayOrderManagement" xml:space="preserve">
+    <value>إدارة ترتيب عرض المنتجات</value>
+  </data>
+  <data name="ManageWhichProductsAppearOnThePOSMainScreenAndTheirOrder" xml:space="preserve">
+    <value>إدارة المنتجات التي تظهر على الشاشة الرئيسية لنقطة البيع وترتيبها</value>
+  </data>
+  <data name="AddProduct" xml:space="preserve">
+    <value>إضافة منتج</value>
+  </data>
+  <data name="SaveOrder" xml:space="preserve">
+    <value>حفظ الترتيب</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>الترتيب</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>الصورة</value>
+  </data>
+  <data name="ProductName" xml:space="preserve">
+    <value>اسم المنتج</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>الفئة</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>السعر</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>المخزون</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="NoCategory" xml:space="preserve">
+    <value>بدون فئة</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>نشط</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>غير نشط</value>
+  </data>
+  <data name="AddProductToDisplayOrder" xml:space="preserve">
+    <value>إضافة منتج إلى ترتيب العرض</value>
+  </data>
+  <data name="ExistingProducts" xml:space="preserve">
+    <value>المنتجات الموجودة</value>
+  </data>
+  <data name="QuickAddProduct" xml:space="preserve">
+    <value>إضافة سريعة للمنتج</value>
+  </data>
+  <data name="SearchProducts" xml:space="preserve">
+    <value>البحث عن المنتجات</value>
+  </data>
+  <data name="TypeToSearchProducts" xml:space="preserve">
+    <value>اكتب للبحث عن المنتجات...</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>إضافة</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="EnterProductDescription" xml:space="preserve">
+    <value>أدخل وصف المنتج</value>
+  </data>
+  <data name="Barcode" xml:space="preserve">
+    <value>الباركود</value>
+  </data>
+  <data name="LeaveEmptyToAutoGenerate" xml:space="preserve">
+    <value>اتركه فارغاً للإنشاء التلقائي</value>
+  </data>
+  <data name="AutoGenerate" xml:space="preserve">
+    <value>إنشاء تلقائي</value>
+  </data>
+  <data name="Currency" xml:space="preserve">
+    <value>العملة</value>
+  </data>
+  <data name="StockQuantity" xml:space="preserve">
+    <value>كمية المخزون</value>
+  </data>
+  <data name="QuickAddInfo" xml:space="preserve">
+    <value>سيؤدي هذا إلى إنشاء منتج أساسي مع فئة ومورد افتراضيين. يمكنك تعديل التفاصيل الكاملة لاحقاً في قسم المنتجات.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="CreateAndAddProduct" xml:space="preserve">
+    <value>إنشاء وإضافة المنتج</value>
+  </data>
+  <data name="AreYouSureYouWantToRemoveThisProductFromTheDisplayOrder" xml:space="preserve">
+    <value>هل أنت متأكد أنك تريد إزالة هذا المنتج من ترتيب العرض؟</value>
+  </data>
+  <data name="ProductNameIsRequired" xml:space="preserve">
+    <value>اسم المنتج مطلوب</value>
+  </data>
+  <data name="PriceMustBeGreaterThan0" xml:space="preserve">
+    <value>يجب أن يكون السعر أكبر من 0</value>
+  </data>
+  <data name="AnErrorOccurredWhileCreatingTheProduct" xml:space="preserve">
+    <value>حدث خطأ أثناء إنشاء المنتج</value>
+  </data>
+  <data name="AnErrorOccurredWhileSavingTheOrder" xml:space="preserve">
+    <value>حدث خطأ أثناء حفظ الترتيب</value>
+  </data>
+  <data name="EnterProductName" xml:space="preserve">
+    <value>أدخل اسم المنتج</value>
+  </data>
+  <data name="LeaveEmptyOrCheckBelow" xml:space="preserve">
+    <value>اتركه فارغاً أو حدد المربع أدناه للإنشاء التلقائي</value>
+  </data>
+  <data name="QuickAdd" xml:space="preserve">
+    <value>إضافة سريعة</value>
+  </data>
+  <data name="WillBeAutoGenerated" xml:space="preserve">
+    <value>سيتم إنشاؤه تلقائياً</value>
+  </data>
+  <data name="EnterBarcodeManually" xml:space="preserve">
+    <value>أدخل الباركود يدوياً</value>
+  </data>
+</root>

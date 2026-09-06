@@ -1,0 +1,323 @@
+@model Application.DTOs.Customers.UpdateCustomerRequest
+
+@{
+    ViewData["Title"] = "Edit Customer";
+    ViewData["Subtitle"] = $"Edit customer information";
+}
+
+<!-- Edit Customer Header -->
+<div class="products-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="products-title">
+                <i class="fas fa-user-edit me-3"></i>
+                Edit Customer
+            </h2>
+            <p class="products-subtitle">Update customer information</p>
+        </div>
+        <div class="products-actions">
+            <a href="@Url.Action("Index", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to Customers
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Form -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>
+                    Customer Information
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FirstName" class="form-label">First Name *</label>
+                            <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="LastName" class="form-label">Last Name *</label>
+                            <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label">Email Address *</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Enter phone number" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CompanyName" class="form-label">Company Name</label>
+                            <input asp-for="CompanyName" class="form-control" placeholder="Enter company name (optional)" />
+                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TaxNumber" class="form-label">Tax Number</label>
+                            <input asp-for="TaxNumber" class="form-control" placeholder="Enter tax number (optional)" />
+                            <span asp-validation-for="TaxNumber" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Customer Type</label>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="isCompany" @(string.IsNullOrEmpty(Model.CompanyName) ? "" : "checked") />
+                                <label class="form-check-label" for="isCompany">
+                                    This is a company customer
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label">Notes</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Enter any additional notes about the customer"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Customer is active
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="@Url.Action("Index", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-teal">
+                            <i class="fas fa-save me-2"></i>Update Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="products-table-card">
+            <div class="products-card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Customer Guidelines
+                </h5>
+            </div>
+            <div class="products-card-body">
+                <div class="guidelines">
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Use full legal names for better record keeping</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Email addresses must be valid and unique</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Phone numbers help with communication</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Complete addresses enable delivery services</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Company customers can have tax numbers</span>
+                    </div>
+                    <div class="guideline-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span>Notes help track customer preferences</span>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="customer-preview">
+                    <h6 class="text-muted mb-3">Customer Preview</h6>
+                    <div class="preview-customer" id="customerPreview">
+                        <div class="preview-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="preview-content">
+                            <div class="preview-name" id="previewName">@Model.FirstName @Model.LastName</div>
+                            <div class="preview-email" id="previewEmail">@Model.Email</div>
+                            <div class="preview-phone" id="previewPhone">@(Model.PhoneNumber ?? "No phone")</div>
+                            <div class="preview-type" id="previewType">@(string.IsNullOrEmpty(Model.CompanyName) ? "Individual" : "Company")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Update customer preview in real-time
+            function updateCustomerPreview() {
+                const firstName = $('#FirstName').val() || 'First';
+                const lastName = $('#LastName').val() || 'Last';
+                const email = $('#Email').val() || 'email@example.com';
+                const phone = $('#PhoneNumber').val() || 'Phone number';
+                const isCompany = $('#isCompany').is(':checked');
+
+                $('#previewName').text(`${firstName} ${lastName}`);
+                $('#previewEmail').text(email);
+                $('#previewPhone').text(phone || 'No phone');
+                $('#previewType').text(isCompany ? 'Company' : 'Individual');
+            }
+
+            $('#FirstName, #LastName, #Email, #PhoneNumber, #isCompany').on('input change', updateCustomerPreview);
+
+            // Company checkbox functionality
+            $('#isCompany').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#CompanyName').attr('placeholder', 'Enter company name (required)');
+                    $('#TaxNumber').attr('placeholder', 'Enter tax number');
+                } else {
+                    $('#CompanyName').attr('placeholder', 'Enter company name (optional)');
+                    $('#TaxNumber').attr('placeholder', 'Enter tax number (optional)');
+                }
+                updateCustomerPreview();
+            });
+
+            // Form validation
+            $('form').on('submit', function(e) {
+                const firstName = $('#FirstName').val().trim();
+                const lastName = $('#LastName').val().trim();
+                const email = $('#Email').val().trim();
+                
+                if (!firstName || !lastName || !email) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields (First Name, Last Name, Email)!');
+                    if (!firstName) $('#FirstName').focus();
+                    else if (!lastName) $('#LastName').focus();
+                    else if (!email) $('#Email').focus();
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .guidelines {
+            margin-bottom: 20px;
+        }
+
+        .guideline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .customer-preview {
+            background: var(--teal-lighter);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .preview-customer {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--teal-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+        }
+
+        .preview-content {
+            flex: 1;
+        }
+
+        .preview-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .preview-email {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-bottom: 2px;
+        }
+
+        .preview-phone {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .preview-type {
+            font-size: 11px;
+            color: var(--teal-primary);
+            font-weight: 500;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--teal-primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--teal-primary);
+            border-color: var(--teal-primary);
+        }
+    </style>
+}
+
+

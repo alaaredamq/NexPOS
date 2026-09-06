@@ -1,0 +1,2025 @@
+using Application.DTOs.Backup;
+using Application.IServices.Backup;
+using Core.Entities.Backup;
+using Core.IRepositories.Backup;
+using Infrastructure.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using BackupEntity = Core.Entities.Backup.Backup;
+
+namespace Application.Services.Backup
+{
+    public class BackupService : IBackupService
+    {
+        private readonly IBackupRepository _backupRepository;
+        private readonly IBackupScheduleRepository _scheduleRepository;
+        private readonly ErpDbContext _context;
+        private static readonly Dictionary<string, BackupProgressDTO> _activeBackups = new();
+        private static readonly Dictionary<string, BackupProgressDTO> _activeRestores = new();
+
+        public BackupService(
+            IBackupRepository backupRepository,
+            IBackupScheduleRepository scheduleRepository,
+            ErpDbContext context)
+        {
+            _backupRepository = backupRepository;
+            _scheduleRepository = scheduleRepository;
+            _context = context;
+        }
+
+        #region Backup CRUD Operations
+
+        public async Task<IEnumerable<BackupEntity>> GetAllAsync()
+        {
+            return await _backupRepository.GetAllAsync();
+        }
+
+        public async Task<BackupEntity> GetByIdAsync(int id)
+        {
+            return await _backupRepository.GetByIdAsync(id);
+        }
+
+        public async Task<BackupEntity> CreateAsync(BackupEntity entity)
+        {
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.Status = BackupStatus.InProgress;
+            return await _backupRepository.SaveAsync(entity);
+        }
+
+        public async Task<BackupEntity> UpdateAsync(BackupEntity entity)
+        {
+            return await _backupRepository.SaveAsync(entity);
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            await _backupRepository.DeleteAsync(id);
+        }
+
+        #endregion
+
+        #region Backup Operations
+
+        public async Task<BackupDTO> CreateBackupAsync(BackupRequest request)
+        {
+            try
+            {
+                // Ensure backup directory exists
+                await EnsureBackupDirectoryExistsAsync();
+
+                // Generate backup file name and path
+                var fileName = await GenerateBackupFileNameAsync(request.BackupType, DateTime.UtcNow);
+                var backupPath = Path.Combine(await GetBackupDirectoryAsync(), fileName);
+
+                // Create backup entity - ensure no nulls for required DB columns
+                var backup = new BackupEntity
+                {
+                    Name = request.Name ?? string.Empty,
+                    Description = request.Description ?? string.Empty,
+                    FilePath = backupPath,
+                    FileName = fileName ?? string.Empty,
+                    BackupType = ParseBackupType(request.BackupType ?? "Full"),
+                    Status = BackupStatus.InProgress,
+                    CreatedBy = "System", // TODO: Get from current user
+                    IsEncrypted = request.IsEncrypted,
+                    CompressionType = request.CompressionType ?? "None",
+                    TablesIncluded = request.TablesToInclude != null ? JsonSerializer.Serialize(request.TablesToInclude) : "[]",
+                    TablesExcluded = request.TablesToExclude != null ? JsonSerializer.Serialize(request.TablesToExclude) : "[]",
+                    Metadata = string.Empty,
+                    ErrorMessage = string.Empty,
+                    Checksum = string.Empty,
+                    DeletedBy = string.Empty,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var savedBackup = await CreateAsync(backup);
+                var backupId = savedBackup.Id.ToString();
+
+                // Execute backup synchronously to avoid DbContext concurrency issues
+                // For a production system, use a proper background job queue (Hangfire, etc.)
+                await PerformBackupAsync(backupId, request, backupPath);
+
+                return MapToDTO(savedBackup);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to create backup: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<BackupProgressDTO> GetBackupProgressAsync(string backupId)
+        {
+            if (_activeBackups.TryGetValue(backupId, out var progress))
+            {
+                return progress;
+            }
+
+            var backup = await _backupRepository.GetByIdAsync(int.Parse(backupId));
+            if (backup != null)
+            {
+                return new BackupProgressDTO
+                {
+                    BackupId = backupId,
+                    Status = backup.Status.ToString(),
+                    ProgressPercentage = backup.Status == BackupStatus.Completed ? 100 : 0,
+                    StartedAt = backup.CreatedAt,
+                    ErrorMessage = backup.ErrorMessage
+                };
+            }
+
+            return new BackupProgressDTO
+            {
+                BackupId = backupId,
+                Status = "NotFound",
+                ProgressPercentage = 0
+            };
+        }
+
+        public async Task<bool> CancelBackupAsync(string backupId)
+        {
+            if (_activeBackups.TryGetValue(backupId, out var progress))
+            {
+                progress.Status = "Cancelled";
+                await _backupRepository.UpdateBackupStatusAsync(int.Parse(backupId), BackupStatus.Cancelled);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<BackupValidationDTO> ValidateBackupAsync(int backupId)
+        {
+            var backup = await _backupRepository.GetByIdAsync(backupId);
+            if (backup == null)
+            {
+                return new BackupValidationDTO
+                {
+                    IsValid = false,
+                    Errors = new List<string> { "Backup not found" }
+                };
+            }
+
+            return await ValidateBackupFileAsync(backup.FilePath);
+        }
+
+        public async Task<BackupValidationDTO> ValidateBackupFileAsync(string filePath)
+        {
+            var validation = new BackupValidationDTO { IsValid = true };
+
+            if (!File.Exists(filePath))
+            {
+                validation.IsValid = false;
+                validation.Errors.Add("Backup file does not exist");
+                return validation;
+            }
+
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                var backupInfo = new BackupInfoDTO
+                {
+                    FileSizeBytes = fileInfo.Length,
+                    FileSizeFormatted = FormatFileSize(fileInfo.Length),
+                    CreatedAt = fileInfo.CreationTime,
+                    Checksum = await CalculateBackupChecksumAsync(filePath)
+                };
+
+                validation.BackupInfo = backupInfo;
+            }
+            catch (Exception ex)
+            {
+                validation.IsValid = false;
+                validation.Errors.Add($"Failed to validate backup file: {ex.Message}");
+            }
+
+            return validation;
+        }
+
+        #endregion
+
+        #region Restore Operations
+
+        public async Task<bool> RestoreBackupAsync(RestoreRequest request)
+        {
+            try
+            {
+                var backup = await _backupRepository.GetByIdAsync(request.BackupId);
+                if (backup == null)
+                {
+                    throw new Exception("Backup not found");
+                }
+
+                var restoreId = Guid.NewGuid().ToString();
+                var progress = new BackupProgressDTO
+                {
+                    BackupId = restoreId,
+                    Status = "InProgress",
+                    StartedAt = DateTime.UtcNow
+                };
+
+                _activeRestores[restoreId] = progress;
+
+                // Execute restore synchronously to avoid DbContext concurrency issues
+                // For a production system, use a proper background job queue (Hangfire, etc.)
+                await PerformRestoreAsync(restoreId, request, backup.FilePath);
+
+                // A restore replaces the whole database, including the Backups table, so any
+                // backups taken after the restored point vanish from the list. Rebuild the
+                // catalog from the .bak files (and their sidecars) still present on disk.
+                await ReconcileBackupCatalogAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to start restore: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<BackupProgressDTO> GetRestoreProgressAsync(string restoreId)
+        {
+            if (_activeRestores.TryGetValue(restoreId, out var progress))
+            {
+                return progress;
+            }
+
+            return new BackupProgressDTO
+            {
+                BackupId = restoreId,
+                Status = "NotFound",
+                ProgressPercentage = 0
+            };
+        }
+
+        public async Task<bool> CancelRestoreAsync(string restoreId)
+        {
+            if (_activeRestores.TryGetValue(restoreId, out var progress))
+            {
+                progress.Status = "Cancelled";
+                return true;
+            }
+            return false;
+        }
+
+        #endregion
+
+        #region Backup Management
+
+        public async Task<List<BackupDTO>> GetBackupsAsync(BackupFilterRequest request)
+        {
+            try
+            {
+                // Re-register any backup files on disk that are missing from the table
+                // (e.g. after a restore reverted the Backups table).
+                await ReconcileBackupCatalogAsync();
+
+                // Get all backups - handle null
+                var allBackups = await _backupRepository.GetAllAsync();
+                IEnumerable<BackupEntity> backups = allBackups ?? new List<BackupEntity>();
+
+                // If no backups, return empty list
+                if (!backups.Any())
+                {
+                    return new List<BackupDTO>();
+                }
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(request.BackupType))
+                {
+                    var type = ParseBackupType(request.BackupType);
+                    backups = backups.Where(b => b.BackupType == type);
+                }
+
+                if (!string.IsNullOrEmpty(request.Status))
+                {
+                    var status = ParseBackupStatus(request.Status);
+                    backups = backups.Where(b => b.Status == status);
+                }
+
+                if (request.FromDate.HasValue)
+                    backups = backups.Where(b => b.CreatedAt >= request.FromDate.Value);
+
+                if (request.ToDate.HasValue)
+                    backups = backups.Where(b => b.CreatedAt <= request.ToDate.Value);
+
+                if (!string.IsNullOrEmpty(request.CreatedBy))
+                    backups = backups.Where(b => b.CreatedBy == request.CreatedBy);
+
+                if (request.IsEncrypted.HasValue)
+                    backups = backups.Where(b => b.IsEncrypted == request.IsEncrypted.Value);
+
+                // Apply sorting
+                var orderedBackups = request.SortBy.ToLower() switch
+                {
+                    "name" => request.SortDirection == "asc" ? backups.OrderBy(b => b.Name) : backups.OrderByDescending(b => b.Name),
+                    "size" => request.SortDirection == "asc" ? backups.OrderBy(b => b.FileSizeBytes) : backups.OrderByDescending(b => b.FileSizeBytes),
+                    _ => request.SortDirection == "asc" ? backups.OrderBy(b => b.CreatedAt) : backups.OrderByDescending(b => b.CreatedAt)
+                };
+
+                // Apply pagination
+                var pagedBackups = orderedBackups
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
+                // Map to DTOs - handle null
+                var result = pagedBackups.Select(MapToDTO).Where(dto => dto != null).ToList();
+                return result ?? new List<BackupDTO>();
+            }
+            catch (Exception ex)
+            {
+                // Log error and return empty list instead of throwing
+                Console.WriteLine($"Error in GetBackupsAsync: {ex.Message}");
+                return new List<BackupDTO>();
+            }
+        }
+
+        public async Task<BackupStatsDTO> GetBackupStatsAsync()
+        {
+            try
+            {
+                await ReconcileBackupCatalogAsync();
+
+                var backups = await _backupRepository.GetAllAsync();
+                var schedules = await _scheduleRepository.GetActiveSchedulesAsync();
+
+                var backupList = backups?.ToList() ?? new List<BackupEntity>();
+                var scheduleList = schedules?.ToList() ?? new List<Core.Entities.Backup.BackupSchedule>();
+
+                var stats = new BackupStatsDTO
+                {
+                    TotalBackups = backupList.Count,
+                    SuccessfulBackups = backupList.Count(b => b.Status == BackupStatus.Completed),
+                    FailedBackups = backupList.Count(b => b.Status == BackupStatus.Failed),
+                    ScheduledBackups = scheduleList.Count,
+                    TotalBackupSize = backupList.Sum(b => b.FileSizeBytes),
+                    TotalBackupSizeFormatted = FormatFileSize(backupList.Sum(b => b.FileSizeBytes)),
+                    LastBackupDate = backupList.Where(b => b.Status == BackupStatus.Completed && b.CompletedAt.HasValue).Max(b => b.CompletedAt),
+                    NextScheduledBackup = scheduleList.Where(s => s.NextRun.HasValue).Min(s => s.NextRun),
+                    RecentBackups = backupList.OrderByDescending(b => b.CreatedAt).Take(5).Select(MapToDTO).ToList(),
+                    ActiveSchedules = scheduleList.Select(MapScheduleToDTO).ToList(),
+                    BackupTypeCounts = await _backupRepository.GetBackupTypeCountsAsync() ?? new Dictionary<string, int>(),
+                    StorageUsageByMonth = await _backupRepository.GetStorageUsageByMonthAsync() ?? new Dictionary<string, long>()
+                };
+
+                return stats;
+            }
+            catch (Exception ex)
+            {
+                // Return empty stats if there's an error
+                return new BackupStatsDTO
+                {
+                    TotalBackups = 0,
+                    SuccessfulBackups = 0,
+                    FailedBackups = 0,
+                    ScheduledBackups = 0,
+                    TotalBackupSize = 0,
+                    TotalBackupSizeFormatted = "0 B",
+                    LastBackupDate = null,
+                    NextScheduledBackup = null,
+                    RecentBackups = new List<BackupDTO>(),
+                    ActiveSchedules = new List<BackupScheduleDTO>(),
+                    BackupTypeCounts = new Dictionary<string, int>(),
+                    StorageUsageByMonth = new Dictionary<string, long>()
+                };
+            }
+        }
+
+        public async Task<bool> DeleteBackupAsync(int backupId)
+        {
+            try
+            {
+                // Capture the file path before the record is gone, so we can also
+                // remove the metadata sidecar and stop reconciliation from re-adding it.
+                string? filePath = null;
+                try { filePath = (await _backupRepository.GetByIdAsync(backupId))?.FilePath; }
+                catch { /* record may not exist */ }
+
+                // Delete the file first
+                await _backupRepository.DeleteBackupFileAsync(backupId);
+
+                // Then delete the record
+                await _backupRepository.DeleteAsync(backupId);
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    DeleteBackupSidecar(filePath);
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteBackupFileAsync(int backupId)
+        {
+            return await _backupRepository.DeleteBackupFileAsync(backupId);
+        }
+
+        public async Task<bool> DownloadBackupAsync(int backupId, string downloadPath)
+        {
+            try
+            {
+                var backup = await _backupRepository.GetByIdAsync(backupId);
+                if (backup == null || !File.Exists(backup.FilePath))
+                {
+                    return false;
+                }
+
+                File.Copy(backup.FilePath, downloadPath, true);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Backup Scheduling
+
+        public async Task<BackupScheduleDTO> CreateScheduleAsync(BackupScheduleDTO schedule)
+        {
+            var entity = new Core.Entities.Backup.BackupSchedule
+            {
+                Name = schedule.Name,
+                Description = schedule.Description,
+                BackupType = ParseBackupType(schedule.BackupType),
+                ScheduleFrequency = schedule.ScheduleFrequency,
+                ScheduleTime = schedule.ScheduleTime,
+                ScheduleDayOfWeek = schedule.ScheduleDayOfWeek,
+                ScheduleDayOfMonth = schedule.ScheduleDayOfMonth,
+                IsActive = schedule.IsActive,
+                RetentionDays = schedule.RetentionDays,
+                CreatedBy = "System", // TODO: Get from current user
+                Settings = JsonSerializer.Serialize(schedule.Settings),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            entity.NextRun = CalculateNextRunTime(entity);
+            var savedSchedule = await _scheduleRepository.SaveAsync(entity);
+            return MapScheduleToDTO(savedSchedule);
+        }
+
+        public async Task<BackupScheduleDTO> UpdateScheduleAsync(BackupScheduleDTO schedule)
+        {
+            var entity = await _scheduleRepository.GetByIdAsync(schedule.Id);
+            if (entity != null)
+            {
+                entity.Name = schedule.Name;
+                entity.Description = schedule.Description;
+                entity.BackupType = ParseBackupType(schedule.BackupType);
+                entity.ScheduleFrequency = schedule.ScheduleFrequency;
+                entity.ScheduleTime = schedule.ScheduleTime;
+                entity.ScheduleDayOfWeek = schedule.ScheduleDayOfWeek;
+                entity.ScheduleDayOfMonth = schedule.ScheduleDayOfMonth;
+                entity.IsActive = schedule.IsActive;
+                entity.RetentionDays = schedule.RetentionDays;
+                entity.Settings = JsonSerializer.Serialize(schedule.Settings);
+                entity.NextRun = CalculateNextRunTime(entity);
+
+                var updatedSchedule = await _scheduleRepository.SaveAsync(entity);
+                return MapScheduleToDTO(updatedSchedule);
+            }
+
+            throw new Exception("Schedule not found");
+        }
+
+        public async Task<bool> DeleteScheduleAsync(int scheduleId)
+        {
+            await _scheduleRepository.DeleteAsync(scheduleId);
+            return true;
+        }
+
+        public async Task<List<BackupScheduleDTO>> GetSchedulesAsync()
+        {
+            var schedules = await _scheduleRepository.GetAllAsync();
+            return schedules.Select(MapScheduleToDTO).ToList();
+        }
+
+        public async Task<List<BackupScheduleDTO>> GetActiveSchedulesAsync()
+        {
+            var schedules = await _scheduleRepository.GetActiveSchedulesAsync();
+            return schedules.Select(MapScheduleToDTO).ToList();
+        }
+
+        public async Task<bool> EnableScheduleAsync(int scheduleId)
+        {
+            var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
+            if (schedule != null)
+            {
+                schedule.IsActive = true;
+                schedule.NextRun = CalculateNextRunTime(schedule);
+                await _scheduleRepository.SaveAsync(schedule);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> DisableScheduleAsync(int scheduleId)
+        {
+            var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
+            if (schedule != null)
+            {
+                schedule.IsActive = false;
+                schedule.NextRun = null;
+                await _scheduleRepository.SaveAsync(schedule);
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RunScheduleNowAsync(int scheduleId)
+        {
+            var schedule = await _scheduleRepository.GetByIdAsync(scheduleId);
+            if (schedule == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                // Create backup based on schedule settings
+                var backupRequest = new BackupRequest
+                {
+                    Name = $"Manual_{schedule.Name}_{DateTime.Now:yyyyMMdd_HHmmss}",
+                    Description = $"Manually triggered backup from schedule: {schedule.Name}",
+                    BackupType = schedule.BackupType.ToString(),
+                    IncludeData = true,
+                    IncludeSchema = true,
+                    IncludeUsers = false,
+                    IsEncrypted = false,
+                    CompressionType = "GZip"
+                };
+
+                await CreateBackupAsync(backupRequest);
+
+                // Update last run time but keep the next run as scheduled
+                schedule.LastRun = DateTime.Now;
+                await _scheduleRepository.SaveAsync(schedule);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Backup Maintenance
+
+        public async Task<bool> CleanupOldBackupsAsync(int daysToKeep = 30)
+        {
+            try
+            {
+                var oldBackups = await _backupRepository.GetOldBackupsAsync(daysToKeep);
+                foreach (var backup in oldBackups)
+                {
+                    await DeleteBackupAsync(backup.Id);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> CompressBackupAsync(int backupId)
+        {
+            try
+            {
+                var backup = await _backupRepository.GetByIdAsync(backupId);
+                if (backup == null || !File.Exists(backup.FilePath))
+                {
+                    return false;
+                }
+
+                var compressedPath = backup.FilePath + ".gz";
+                using (var sourceStream = new FileStream(backup.FilePath, FileMode.Open))
+                using (var compressedStream = new FileStream(compressedPath, FileMode.Create))
+                using (var gzipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+                {
+                    await sourceStream.CopyToAsync(gzipStream);
+                }
+
+                // Update backup record
+                backup.FilePath = compressedPath;
+                backup.FileName = Path.GetFileName(compressedPath);
+                backup.CompressionType = "GZip";
+                backup.FileSizeBytes = new FileInfo(compressedPath).Length;
+                await _backupRepository.SaveAsync(backup);
+
+                // Delete original file
+                File.Delete(backup.FilePath);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> EncryptBackupAsync(int backupId, string password)
+        {
+            // Implementation would encrypt the backup file
+            // This is a placeholder for the encryption logic
+            return await Task.FromResult(true);
+        }
+
+        public async Task<bool> DecryptBackupAsync(int backupId, string password)
+        {
+            // Implementation would decrypt the backup file
+            // This is a placeholder for the decryption logic
+            return await Task.FromResult(true);
+        }
+
+        #endregion
+
+        #region Database Operations
+
+        public async Task<List<string>> GetDatabaseTablesAsync()
+        {
+            var tables = new List<string>();
+            using var command = _context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
+            
+            await _context.Database.OpenConnectionAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            while (await reader.ReadAsync())
+            {
+                tables.Add(reader.GetString(0));
+            }
+
+            return tables;
+        }
+
+        public async Task<long> GetTableSizeAsync(string tableName)
+        {
+            using var command = _context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = $"SELECT COUNT(*) FROM [{tableName}]";
+            
+            await _context.Database.OpenConnectionAsync();
+            var result = await command.ExecuteScalarAsync();
+            
+            return Convert.ToInt64(result);
+        }
+
+        public async Task<long> GetTotalDatabaseSizeAsync()
+        {
+            using var command = _context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = @"
+                SELECT SUM(size * 8.0 * 1024) as SizeInBytes
+                FROM sys.database_files";
+            
+            await _context.Database.OpenConnectionAsync();
+            var result = await command.ExecuteScalarAsync();
+            
+            return Convert.ToInt64(result ?? 0);
+        }
+
+        public async Task<List<string>> GetDatabaseUsersAsync()
+        {
+            var users = new List<string>();
+            using var command = _context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = "SELECT name FROM sys.database_principals WHERE type = 'S'";
+            
+            await _context.Database.OpenConnectionAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            while (await reader.ReadAsync())
+            {
+                users.Add(reader.GetString(0));
+            }
+
+            return users;
+        }
+
+        #endregion
+
+        #region File Operations
+
+        public async Task<string> GenerateBackupFileNameAsync(string backupType, DateTime timestamp)
+        {
+            var type = backupType.ToLower();
+            var dateStr = timestamp.ToString("yyyyMMdd_HHmmss");
+            var extension = "bak";
+            
+            return $"ERP_{type}_backup_{dateStr}.{extension}";
+        }
+
+        public async Task<string> GetBackupDirectoryAsync()
+        {
+            // Use a path that SQL Server can access
+            // Option 1: Use SQL Server's default backup directory
+            // Option 2: Use a shared folder that both app and SQL Server can access
+            // Option 3: Use a common location like C:\Backups (needs to be created with proper permissions)
+            
+            // First, try to get SQL Server's default backup directory
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                await connection.OpenAsync();
+                using var command = connection.CreateCommand();
+                command.CommandText = @"
+                    SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
+                var result = await command.ExecuteScalarAsync();
+                
+                if (result != null && result != DBNull.Value)
+                {
+                    var sqlBackupPath = result.ToString();
+                    if (!string.IsNullOrEmpty(sqlBackupPath))
+                    {
+                        // Create a subfolder for ERP backups
+                        var erpBackupPath = Path.Combine(sqlBackupPath, "ERP");
+                        return erpBackupPath;
+                    }
+                }
+            }
+            catch
+            {
+                // Fall back to application directory if we can't get SQL Server's backup path
+            }
+            
+            // Fallback: Use application's Backups folder
+            var baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+            return baseDir;
+        }
+
+        public async Task<bool> EnsureBackupDirectoryExistsAsync()
+        {
+            try
+            {
+                var backupDir = await GetBackupDirectoryAsync();
+                if (!Directory.Exists(backupDir))
+                {
+                    Directory.CreateDirectory(backupDir);
+                }
+                return true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // If we can't create the directory, SQL Server might still be able to write there
+                // (e.g., SQL Server's default backup path)
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating backup directory: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<long> GetAvailableDiskSpaceAsync()
+        {
+            var backupDir = await GetBackupDirectoryAsync();
+            var drive = new DriveInfo(Path.GetPathRoot(backupDir));
+            return drive.AvailableFreeSpace;
+        }
+
+        public async Task<bool> CheckDiskSpaceAsync(long requiredSpace)
+        {
+            var availableSpace = await GetAvailableDiskSpaceAsync();
+            return availableSpace >= requiredSpace;
+        }
+
+        #endregion
+
+        #region Backup Verification
+
+        public async Task<bool> VerifyBackupIntegrityAsync(int backupId)
+        {
+            var backup = await _backupRepository.GetByIdAsync(backupId);
+            if (backup == null || !File.Exists(backup.FilePath))
+            {
+                return false;
+            }
+
+            try
+            {
+                // Basic file integrity check
+                var fileInfo = new FileInfo(backup.FilePath);
+                return fileInfo.Length > 0 && fileInfo.Exists;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<string> CalculateBackupChecksumAsync(string filePath)
+        {
+            using var md5 = MD5.Create();
+            using var stream = File.OpenRead(filePath);
+            var hash = await Task.Run(() => md5.ComputeHash(stream));
+            return Convert.ToBase64String(hash);
+        }
+
+        public async Task<bool> CompareBackupChecksumsAsync(int backupId1, int backupId2)
+        {
+            var backup1 = await _backupRepository.GetByIdAsync(backupId1);
+            var backup2 = await _backupRepository.GetByIdAsync(backupId2);
+
+            if (backup1 == null || backup2 == null)
+                return false;
+
+            var checksum1 = await CalculateBackupChecksumAsync(backup1.FilePath);
+            var checksum2 = await CalculateBackupChecksumAsync(backup2.FilePath);
+
+            return checksum1 == checksum2;
+        }
+
+        #endregion
+
+        #region System Operations
+
+        public async Task<bool> TestBackupConnectionAsync()
+        {
+            try
+            {
+                await _context.Database.OpenConnectionAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                await _context.Database.CloseConnectionAsync();
+            }
+        }
+
+        public async Task<bool> TestRestoreConnectionAsync()
+        {
+            // Similar to backup connection test
+            return await TestBackupConnectionAsync();
+        }
+
+        public async Task<List<string>> GetBackupHistoryAsync(int days = 30)
+        {
+            var fromDate = DateTime.UtcNow.AddDays(-days);
+            var backups = await _backupRepository.GetBackupsByDateRangeAsync(fromDate, DateTime.UtcNow);
+            
+            return backups.Select(b => $"{b.Name} - {b.CreatedAt:yyyy-MM-dd HH:mm} - {b.Status}").ToList();
+        }
+
+        public async Task<Dictionary<string, object>> GetSystemInfoAsync()
+        {
+            var info = new Dictionary<string, object>
+            {
+                ["DatabaseVersion"] = _context.Database.ProviderName,
+                ["BackupDirectory"] = await GetBackupDirectoryAsync(),
+                ["AvailableDiskSpace"] = await GetAvailableDiskSpaceAsync(),
+                ["TotalBackups"] = (await _backupRepository.GetAllAsync()).Count(),
+                ["ActiveSchedules"] = (await _scheduleRepository.GetActiveSchedulesAsync()).Count()
+            };
+
+            return info;
+        }
+
+        #endregion
+
+        #region Bulk Operations
+
+        public async Task<List<BackupDTO>> BulkDeleteBackupsAsync(List<int> backupIds)
+        {
+            var deletedBackups = new List<BackupDTO>();
+            
+            foreach (var id in backupIds)
+            {
+                var backup = await _backupRepository.GetByIdAsync(id);
+                if (backup != null)
+                {
+                    await DeleteBackupAsync(id);
+                    deletedBackups.Add(MapToDTO(backup));
+                }
+            }
+
+            return deletedBackups;
+        }
+
+        public async Task<bool> BulkRestoreBackupsAsync(List<RestoreRequest> requests)
+        {
+            var results = new List<bool>();
+            
+            foreach (var request in requests)
+            {
+                try
+                {
+                    results.Add(await RestoreBackupAsync(request));
+                }
+                catch
+                {
+                    results.Add(false);
+                }
+            }
+
+            return results.All(r => r);
+        }
+
+        public async Task<bool> BulkValidateBackupsAsync(List<int> backupIds)
+        {
+            var results = new List<bool>();
+            
+            foreach (var id in backupIds)
+            {
+                results.Add(await VerifyBackupIntegrityAsync(id));
+            }
+
+            return results.All(r => r);
+        }
+
+        #endregion
+
+        #region Export/Import
+
+        public async Task<string> ExportBackupMetadataAsync(int backupId)
+        {
+            var backup = await _backupRepository.GetByIdAsync(backupId);
+            if (backup == null)
+            {
+                return string.Empty;
+            }
+
+            var metadata = new
+            {
+                backup.Name,
+                backup.Description,
+                backup.FileName,
+                backup.FilePath,
+                backup.FileSizeBytes,
+                backup.BackupType,
+                backup.Status,
+                backup.CreatedAt,
+                backup.CompletedAt,
+                backup.CreatedBy,
+                backup.IsEncrypted,
+                backup.CompressionType,
+                TablesIncluded = JsonSerializer.Deserialize<List<string>>(backup.TablesIncluded),
+                TablesExcluded = JsonSerializer.Deserialize<List<string>>(backup.TablesExcluded)
+            };
+
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true });
+        }
+
+        public async Task<bool> ImportBackupMetadataAsync(string metadataJson)
+        {
+            try
+            {
+                var metadata = JsonSerializer.Deserialize<dynamic>(metadataJson);
+                // Implementation would import the metadata
+                return await Task.FromResult(true);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<string> GenerateBackupReportAsync(DateTime fromDate, DateTime toDate)
+        {
+            var backups = await _backupRepository.GetBackupsByDateRangeAsync(fromDate, toDate);
+            
+            var report = new StringBuilder();
+            report.AppendLine($"Backup Report - {fromDate:yyyy-MM-dd} to {toDate:yyyy-MM-dd}");
+            report.AppendLine("=" + new string('=', 50));
+            report.AppendLine($"Total Backups: {backups.Count()}");
+            report.AppendLine($"Successful: {backups.Count(b => b.Status == BackupStatus.Completed)}");
+            report.AppendLine($"Failed: {backups.Count(b => b.Status == BackupStatus.Failed)}");
+            report.AppendLine($"Total Size: {FormatFileSize(backups.Sum(b => b.FileSizeBytes))}");
+            report.AppendLine();
+            
+            foreach (var backup in backups.OrderByDescending(b => b.CreatedAt))
+            {
+                report.AppendLine($"{backup.Name} - {backup.Status} - {backup.CreatedAt:yyyy-MM-dd HH:mm}");
+            }
+
+            return report.ToString();
+        }
+
+        #endregion
+
+        #region Emergency Operations
+
+        public async Task<bool> CreateEmergencyBackupAsync()
+        {
+            var request = new BackupRequest
+            {
+                Name = $"Emergency Backup - {DateTime.UtcNow:yyyy-MM-dd HH:mm}",
+                Description = "Emergency backup created automatically",
+                BackupType = "Full",
+                CompressionType = "GZip"
+            };
+
+            try
+            {
+                await CreateBackupAsync(request);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<List<string>> GetEmergencyRestoreOptionsAsync()
+        {
+            var backups = await _backupRepository.GetAllAsync();
+            return backups
+                .Where(b => b.Status == BackupStatus.Completed)
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(10)
+                .Select(b => $"{b.Name} ({b.CreatedAt:yyyy-MM-dd HH:mm})")
+                .ToList();
+        }
+
+        public async Task<bool> EmergencyRestoreAsync(string backupFilePath)
+        {
+            var request = new RestoreRequest
+            {
+                BackupFilePath = backupFilePath,
+                RestoreData = true,
+                RestoreSchema = true,
+                CreateBackupBeforeRestore = false
+            };
+
+            try
+            {
+                return await RestoreBackupAsync(request);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Private Helper Methods
+
+        private async Task PerformBackupAsync(string backupId, BackupRequest request, string backupPath)
+        {
+            var progress = new BackupProgressDTO
+            {
+                BackupId = backupId,
+                Status = "InProgress",
+                StartedAt = DateTime.UtcNow
+            };
+
+            _activeBackups[backupId] = progress;
+
+            try
+            {
+                progress.CurrentOperation = "Preparing backup";
+                progress.ProgressPercentage = 10;
+
+                // Get database name from connection
+                var connection = _context.Database.GetDbConnection();
+                var databaseName = connection.Database;
+                
+                // Ensure we have a valid backup path that SQL Server can write to
+                var actualBackupPath = await GetValidBackupPathAsync(backupPath);
+                
+                progress.CurrentOperation = "Backing up database";
+                progress.ProgressPercentage = 30;
+
+                // Build SQL Server BACKUP command (without COMPRESSION for compatibility with SQL Express)
+                var backupType = request.BackupType?.ToLower() ?? "full";
+                string backupSql;
+                
+                if (backupType == "differential")
+                {
+                    backupSql = $@"
+                        BACKUP DATABASE [{databaseName}] 
+                        TO DISK = N'{actualBackupPath}'
+                        WITH DIFFERENTIAL,
+                             FORMAT,
+                             INIT,
+                             NAME = N'{request.Name}',
+                             STATS = 10;
+                    ";
+                }
+                else
+                {
+                    // Full backup (default)
+                    backupSql = $@"
+                        BACKUP DATABASE [{databaseName}] 
+                        TO DISK = N'{actualBackupPath}'
+                        WITH FORMAT,
+                             INIT,
+                             NAME = N'{request.Name}',
+                             STATS = 10;
+                    ";
+                }
+
+                progress.CurrentOperation = "Executing SQL Server backup";
+                progress.ProgressPercentage = 50;
+
+                // Execute backup command using a separate connection to avoid EF conflicts
+                var connectionString = connection.ConnectionString;
+                using var backupConnection = new SqlConnection(connectionString);
+                await backupConnection.OpenAsync();
+                
+                using var command = backupConnection.CreateCommand();
+                command.CommandText = backupSql;
+                command.CommandTimeout = 600; // 10 minutes timeout for large databases
+                
+                await command.ExecuteNonQueryAsync();
+                
+                // Update the backup record with the actual path used
+                var backup = await _backupRepository.GetByIdAsync(int.Parse(backupId));
+                if (backup != null && actualBackupPath != backupPath)
+                {
+                    backup.FilePath = actualBackupPath;
+                    backup.FileName = Path.GetFileName(actualBackupPath);
+                    await _backupRepository.SaveAsync(backup);
+                }
+
+                progress.CurrentOperation = "Verifying backup";
+                progress.ProgressPercentage = 90;
+
+                // Verify the backup file was actually created and get file size
+                long fileSizeBytes = 0;
+                var verifiedPath = await FindBackupFileAsync(actualBackupPath);
+                
+                if (string.IsNullOrEmpty(verifiedPath))
+                {
+                    throw new Exception($"Backup command completed but file was not created at: {actualBackupPath}. Check SQL Server permissions.");
+                }
+                
+                try
+                {
+                    var fileInfo = new FileInfo(verifiedPath);
+                    fileSizeBytes = fileInfo.Length;
+                    
+                    if (fileSizeBytes == 0)
+                    {
+                        throw new Exception("Backup file was created but is empty (0 bytes). Check SQL Server permissions.");
+                    }
+                }
+                catch (Exception ex) when (!(ex.Message.Contains("Backup")))
+                {
+                    // File access error but backup might still be valid
+                    Console.WriteLine($"Warning: Could not verify backup file size: {ex.Message}");
+                }
+                
+                // Update the backup record
+                backup = await _backupRepository.GetByIdAsync(int.Parse(backupId));
+                if (backup != null)
+                {
+                    backup.FilePath = verifiedPath; // Use the verified path
+                    backup.FileName = Path.GetFileName(verifiedPath);
+                    backup.FileSizeBytes = fileSizeBytes;
+                    backup.CompletedAt = DateTime.UtcNow;
+                    backup.Duration = backup.CompletedAt.Value - backup.CreatedAt;
+                    await _backupRepository.SaveAsync(backup);
+                }
+                
+                await _backupRepository.UpdateBackupStatusAsync(int.Parse(backupId), BackupStatus.Completed);
+
+                // Persist metadata alongside the .bak file so the backup list can be rebuilt
+                // even after a restore reverts the Backups table to an older state.
+                if (backup != null)
+                {
+                    backup.Status = BackupStatus.Completed;
+                    await WriteBackupSidecarAsync(backup);
+                }
+
+                progress.Status = "Completed";
+                progress.ProgressPercentage = 100;
+                progress.CurrentOperation = $"Backup completed successfully. File: {verifiedPath} ({FormatFileSize(fileSizeBytes)})";
+            }
+            catch (Exception ex)
+            {
+                progress.Status = "Failed";
+                progress.ErrorMessage = ex.Message;
+                await _backupRepository.UpdateBackupStatusAsync(int.Parse(backupId), BackupStatus.Failed, ex.Message);
+            }
+            finally
+            {
+                _activeBackups.Remove(backupId);
+            }
+        }
+
+        private async Task PerformRestoreAsync(string restoreId, RestoreRequest request, string backupPath)
+        {
+            var progress = _activeRestores[restoreId];
+
+            try
+            {
+                progress.CurrentOperation = "Preparing restore";
+                progress.ProgressPercentage = 10;
+
+                // Try to find the backup file - it might be in a different location
+                var actualBackupPath = await FindBackupFileAsync(backupPath);
+                if (string.IsNullOrEmpty(actualBackupPath))
+                {
+                    throw new FileNotFoundException($"Backup file not found: {backupPath}. Please ensure the backup file exists and is accessible.");
+                }
+
+                if (request.CreateBackupBeforeRestore)
+                {
+                    progress.CurrentOperation = "Creating backup before restore";
+                    progress.ProgressPercentage = 20;
+                    await CreateEmergencyBackupAsync();
+                }
+
+                progress.CurrentOperation = "Restoring database";
+                progress.ProgressPercentage = 50;
+
+                // Perform SQL Server restore
+                await RestoreDatabaseFromFileAsync(actualBackupPath, request);
+
+                progress.CurrentOperation = "Finalizing restore";
+                progress.ProgressPercentage = 90;
+
+                progress.Status = "Completed";
+                progress.ProgressPercentage = 100;
+                progress.CurrentOperation = "Restore completed successfully";
+            }
+            catch (Exception ex)
+            {
+                progress.Status = "Failed";
+                progress.ErrorMessage = ex.Message;
+                throw; // Re-throw to propagate the error
+            }
+            finally
+            {
+                _activeRestores.Remove(restoreId);
+            }
+        }
+
+        /// <summary>
+        /// Gets a valid backup path that SQL Server can write to
+        /// </summary>
+        private async Task<string> GetValidBackupPathAsync(string requestedPath)
+        {
+            var fileName = Path.GetFileName(requestedPath);
+            
+            // Try to get SQL Server's default backup directory first
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync();
+                }
+                
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
+                var result = await command.ExecuteScalarAsync();
+                
+                if (result != null && result != DBNull.Value)
+                {
+                    var sqlBackupDir = result.ToString();
+                    if (!string.IsNullOrEmpty(sqlBackupDir) && Directory.Exists(sqlBackupDir))
+                    {
+                        // Create ERP subfolder
+                        var erpBackupDir = Path.Combine(sqlBackupDir, "ERP");
+                        try
+                        {
+                            if (!Directory.Exists(erpBackupDir))
+                            {
+                                Directory.CreateDirectory(erpBackupDir);
+                            }
+                            return Path.Combine(erpBackupDir, fileName);
+                        }
+                        catch
+                        {
+                            // Can't create subfolder, use the main backup directory
+                            return Path.Combine(sqlBackupDir, fileName);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors getting SQL Server backup path
+            }
+            
+            // Try common backup locations
+            var commonPaths = new[]
+            {
+                @"C:\SQLBackups\ERP",
+                @"C:\Backups\ERP",
+                @"C:\Temp\Backups",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "ERP", "Backups")
+            };
+            
+            foreach (var basePath in commonPaths)
+            {
+                try
+                {
+                    if (!Directory.Exists(basePath))
+                    {
+                        Directory.CreateDirectory(basePath);
+                    }
+                    
+                    // Test if we can write to this directory
+                    var testFile = Path.Combine(basePath, ".write_test");
+                    File.WriteAllText(testFile, "test");
+                    File.Delete(testFile);
+                    
+                    return Path.Combine(basePath, fileName);
+                }
+                catch
+                {
+                    // Can't write to this directory, try next
+                }
+            }
+            
+            // Last resort: use the original requested path
+            var requestedDir = Path.GetDirectoryName(requestedPath);
+            if (!string.IsNullOrEmpty(requestedDir) && !Directory.Exists(requestedDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(requestedDir);
+                }
+                catch
+                {
+                    // Ignore directory creation errors
+                }
+            }
+            
+            return requestedPath;
+        }
+
+        /// <summary>
+        /// Tries to find the backup file in various locations
+        /// </summary>
+        private async Task<string?> FindBackupFileAsync(string originalPath)
+        {
+            // 1. Check the original path first
+            if (File.Exists(originalPath))
+            {
+                return originalPath;
+            }
+
+            var fileName = Path.GetFileName(originalPath);
+
+            // 2. Check in SQL Server's default backup directory
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync();
+                }
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
+                var result = await command.ExecuteScalarAsync();
+                
+                if (result != null && result != DBNull.Value)
+                {
+                    var sqlBackupDir = result.ToString();
+                    if (!string.IsNullOrEmpty(sqlBackupDir))
+                    {
+                        // Check in SQL Server's backup directory
+                        var sqlPath = Path.Combine(sqlBackupDir, fileName);
+                        if (File.Exists(sqlPath))
+                        {
+                            return sqlPath;
+                        }
+                        
+                        // Check in ERP subfolder
+                        var erpPath = Path.Combine(sqlBackupDir, "ERP", fileName);
+                        if (File.Exists(erpPath))
+                        {
+                            return erpPath;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors when trying to get SQL Server backup path
+            }
+
+            // 3. Check in application's backup directory
+            var appBackupDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
+            var appPath = Path.Combine(appBackupDir, fileName);
+            if (File.Exists(appPath))
+            {
+                return appPath;
+            }
+
+            // 4. Check common backup locations
+            var commonPaths = new[]
+            {
+                @"C:\Backups",
+                @"C:\SQLBackups",
+                @"D:\Backups",
+                @"D:\SQLBackups"
+            };
+
+            foreach (var basePath in commonPaths)
+            {
+                var checkPath = Path.Combine(basePath, fileName);
+                if (File.Exists(checkPath))
+                {
+                    return checkPath;
+                }
+                
+                var erpCheckPath = Path.Combine(basePath, "ERP", fileName);
+                if (File.Exists(erpCheckPath))
+                {
+                    return erpCheckPath;
+                }
+            }
+
+            // File not found anywhere
+            return null;
+        }
+
+        #region Backup Catalog Reconciliation
+
+        // The Backups table lives inside the ERP database itself, so a database restore
+        // rolls it back to an older state and "loses" newer backups. These helpers keep a
+        // JSON sidecar next to every .bak file and rebuild missing table rows from disk.
+
+        private sealed class BackupSidecar
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public string BackupType { get; set; } = "Full";
+            public string CreatedBy { get; set; } = string.Empty;
+            public DateTime CreatedAt { get; set; }
+            public DateTime? CompletedAt { get; set; }
+            public long FileSizeBytes { get; set; }
+            public bool IsEncrypted { get; set; }
+            public string CompressionType { get; set; } = "None";
+            public string TablesIncluded { get; set; } = "[]";
+            public string TablesExcluded { get; set; } = "[]";
+        }
+
+        private static string GetSidecarPath(string backupFilePath) => backupFilePath + ".meta.json";
+
+        // Description prefix stamped on rows that were rebuilt from a file on disk rather than
+        // created through CreateBackupAsync. Such rows are re-validated on every reconcile and
+        // dropped (row only, never the file) if they turn out not to belong to this database.
+        private const string AutoRecoveredMarker = "[auto-recovered]";
+
+        private static bool IsAutoRecovered(BackupEntity b) =>
+            !string.IsNullOrEmpty(b.Description) &&
+            (b.Description.StartsWith(AutoRecoveredMarker, StringComparison.Ordinal) ||
+             // legacy marker from the first version of the reconciler
+             b.Description.StartsWith("Recovered from backup file on disk", StringComparison.Ordinal));
+
+        /// <summary>
+        /// True only if the .bak file is a backup of the database this app is connected to.
+        /// A sidecar next to the file proves this ERP instance wrote it; otherwise the file
+        /// header is inspected. If the header can't be read the file is treated as foreign,
+        /// so backups belonging to other databases/projects are never imported.
+        /// </summary>
+        private async Task<bool> BelongsToThisDatabaseAsync(string filePath)
+        {
+            if (File.Exists(GetSidecarPath(filePath)))
+                return true;
+
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                var databaseName = connection.Database;
+
+                using var conn = new SqlConnection(connection.ConnectionString);
+                await conn.OpenAsync();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "RESTORE HEADERONLY FROM DISK = @path";
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@path";
+                p.Value = filePath;
+                cmd.Parameters.Add(p);
+                cmd.CommandTimeout = 120;
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var i = reader.GetOrdinal("DatabaseName");
+                    if (!reader.IsDBNull(i) &&
+                        string.Equals(reader.GetString(i), databaseName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                // Unreadable header (permissions, corrupt, not a SQL backup) -> treat as foreign.
+            }
+
+            return false;
+        }
+
+        private async Task WriteBackupSidecarAsync(BackupEntity backup)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(backup.FilePath))
+                    return;
+
+                var sidecar = new BackupSidecar
+                {
+                    Name = backup.Name,
+                    Description = backup.Description,
+                    BackupType = backup.BackupType.ToString(),
+                    CreatedBy = backup.CreatedBy,
+                    CreatedAt = backup.CreatedAt,
+                    CompletedAt = backup.CompletedAt,
+                    FileSizeBytes = backup.FileSizeBytes,
+                    IsEncrypted = backup.IsEncrypted,
+                    CompressionType = string.IsNullOrEmpty(backup.CompressionType) ? "None" : backup.CompressionType,
+                    TablesIncluded = string.IsNullOrEmpty(backup.TablesIncluded) ? "[]" : backup.TablesIncluded,
+                    TablesExcluded = string.IsNullOrEmpty(backup.TablesExcluded) ? "[]" : backup.TablesExcluded
+                };
+
+                var json = JsonSerializer.Serialize(sidecar, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(GetSidecarPath(backup.FilePath), json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"WriteBackupSidecarAsync failed: {ex.Message}");
+            }
+        }
+
+        private async Task<BackupSidecar?> ReadBackupSidecarAsync(string backupFilePath)
+        {
+            try
+            {
+                var path = GetSidecarPath(backupFilePath);
+                if (!File.Exists(path))
+                    return null;
+
+                var json = await File.ReadAllTextAsync(path);
+                return JsonSerializer.Deserialize<BackupSidecar>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void DeleteBackupSidecar(string backupFilePath)
+        {
+            try
+            {
+                var path = GetSidecarPath(backupFilePath);
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DeleteBackupSidecar failed: {ex.Message}");
+            }
+        }
+
+        private async Task<List<string>> GetBackupSearchDirectoriesAsync()
+        {
+            var dirs = new List<string>();
+
+            try { dirs.Add(await GetBackupDirectoryAsync()); } catch { /* ignore */ }
+
+            // Directories of backups already known to the table
+            try
+            {
+                var existing = await _backupRepository.GetAllAsync();
+                if (existing != null)
+                {
+                    foreach (var b in existing)
+                    {
+                        if (string.IsNullOrEmpty(b.FilePath)) continue;
+                        var d = Path.GetDirectoryName(b.FilePath);
+                        if (!string.IsNullOrEmpty(d)) dirs.Add(d);
+                    }
+                }
+            }
+            catch { /* ignore */ }
+
+            // SQL Server's default backup path and its ERP subfolder
+            try
+            {
+                var connection = _context.Database.GetDbConnection();
+                if (connection.State != System.Data.ConnectionState.Open)
+                {
+                    await connection.OpenAsync();
+                }
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
+                var result = await command.ExecuteScalarAsync();
+                if (result != null && result != DBNull.Value)
+                {
+                    var sqlBackupDir = result.ToString();
+                    if (!string.IsNullOrEmpty(sqlBackupDir))
+                    {
+                        // Only the ERP subfolder - the shared root holds other databases' backups.
+                        dirs.Add(Path.Combine(sqlBackupDir, "ERP"));
+                    }
+                }
+            }
+            catch { /* ignore */ }
+
+            dirs.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups"));
+
+            return dirs
+                .Where(d => !string.IsNullOrEmpty(d) && Directory.Exists(d))
+                .Select(d => Path.GetFullPath(d))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private async Task<BackupEntity?> BuildBackupFromDiskAsync(string filePath)
+        {
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists || fileInfo.Length == 0)
+                    return null;
+
+                var sidecar = await ReadBackupSidecarAsync(filePath);
+
+                var createdAt = sidecar?.CreatedAt ?? fileInfo.CreationTimeUtc;
+                var completedAt = sidecar?.CompletedAt ?? fileInfo.LastWriteTimeUtc;
+
+                return new BackupEntity
+                {
+                    Name = sidecar?.Name ?? Path.GetFileNameWithoutExtension(filePath),
+                    Description = !string.IsNullOrEmpty(sidecar?.Description)
+                        ? sidecar!.Description
+                        : $"{AutoRecoveredMarker} rebuilt from backup file on disk",
+                    FilePath = filePath,
+                    FileName = Path.GetFileName(filePath),
+                    FileSizeBytes = fileInfo.Length,
+                    BackupType = ParseBackupType(sidecar?.BackupType ?? "Full"),
+                    Status = BackupStatus.Completed,
+                    CreatedAt = createdAt,
+                    CompletedAt = completedAt,
+                    Duration = completedAt > createdAt ? completedAt - createdAt : TimeSpan.Zero,
+                    CreatedBy = string.IsNullOrEmpty(sidecar?.CreatedBy) ? "System" : sidecar!.CreatedBy,
+                    IsEncrypted = sidecar?.IsEncrypted ?? false,
+                    CompressionType = sidecar?.CompressionType ?? "None",
+                    TablesIncluded = sidecar?.TablesIncluded ?? "[]",
+                    TablesExcluded = sidecar?.TablesExcluded ?? "[]",
+                    Metadata = string.Empty,
+                    ErrorMessage = string.Empty,
+                    Checksum = string.Empty,
+                    DeletedBy = string.Empty,
+                    IsDeleted = false
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Keeps the Backups table in sync with the .bak files on disk. Inserts rows for this
+        /// database's backup files that have no record, and removes previously auto-recovered
+        /// rows that turn out to belong to another database. Safe to call often; never throws.
+        /// Only table rows are added or removed here - backup files are never touched.
+        /// </summary>
+        private async Task ReconcileBackupCatalogAsync()
+        {
+            try
+            {
+                var existing = (await _backupRepository.GetAllAsync()) ?? new List<BackupEntity>();
+
+                // 1. Drop auto-recovered rows that no longer point to a backup of THIS database
+                //    (e.g. another project's .bak imported by an earlier, over-broad scan).
+                foreach (var b in existing.Where(IsAutoRecovered).ToList())
+                {
+                    var valid = !string.IsNullOrEmpty(b.FilePath)
+                                && File.Exists(b.FilePath)
+                                && await BelongsToThisDatabaseAsync(b.FilePath);
+
+                    if (!valid)
+                    {
+                        try { await _backupRepository.DeleteAsync(b.Id); } catch { /* ignore */ }
+                    }
+                    else if (!File.Exists(GetSidecarPath(b.FilePath)))
+                    {
+                        // Confirmed ours - drop a sidecar so future reconciles skip the header read.
+                        await WriteBackupSidecarAsync(b);
+                    }
+                }
+
+                var refreshed = (await _backupRepository.GetAllAsync()) ?? new List<BackupEntity>();
+                var knownFileNames = new HashSet<string>(
+                    refreshed.Select(b => b.FileName).Where(n => !string.IsNullOrEmpty(n)),
+                    StringComparer.OrdinalIgnoreCase);
+
+                // 2. Add rows for this database's backup files that have no record.
+                foreach (var dir in await GetBackupSearchDirectoriesAsync())
+                {
+                    string[] files;
+                    try { files = Directory.GetFiles(dir, "*.bak"); }
+                    catch { continue; }
+
+                    foreach (var file in files)
+                    {
+                        var fileName = Path.GetFileName(file);
+                        if (knownFileNames.Contains(fileName))
+                            continue;
+
+                        if (!await BelongsToThisDatabaseAsync(file))
+                            continue;
+
+                        var recovered = await BuildBackupFromDiskAsync(file);
+                        if (recovered == null)
+                            continue;
+
+                        await _backupRepository.SaveAsync(recovered);
+                        knownFileNames.Add(fileName);
+                    }
+                }
+
+                await ResolveStuckBackupsAsync(refreshed);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ReconcileBackupCatalogAsync failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Backups left "InProgress" by an interrupted operation or an app restart never
+        /// recover on their own (the progress tracker is in-memory only). Resolve them:
+        /// mark Completed if a valid .bak exists, otherwise Failed.
+        /// </summary>
+        private async Task ResolveStuckBackupsAsync(IEnumerable<BackupEntity> existing)
+        {
+            var cutoff = DateTime.UtcNow.AddMinutes(-30);
+            var stuck = existing
+                .Where(b => b.Status == BackupStatus.InProgress
+                            && b.CreatedAt < cutoff
+                            && !_activeBackups.ContainsKey(b.Id.ToString()))
+                .ToList();
+
+            foreach (var b in stuck)
+            {
+                try
+                {
+                    string? verified = string.IsNullOrEmpty(b.FilePath)
+                        ? null
+                        : await FindBackupFileAsync(b.FilePath);
+
+                    if (!string.IsNullOrEmpty(verified))
+                    {
+                        var fi = new FileInfo(verified);
+                        if (fi.Exists && fi.Length > 0)
+                        {
+                            b.FilePath = verified;
+                            b.FileName = Path.GetFileName(verified);
+                            b.FileSizeBytes = fi.Length;
+                            b.Status = BackupStatus.Completed;
+                            b.CompletedAt = DateTime.UtcNow;
+                            b.Duration = b.CompletedAt.Value - b.CreatedAt;
+                            await _backupRepository.SaveAsync(b);
+                            await WriteBackupSidecarAsync(b);
+                            continue;
+                        }
+                    }
+
+                    b.Status = BackupStatus.Failed;
+                    if (string.IsNullOrEmpty(b.ErrorMessage))
+                    {
+                        b.ErrorMessage = "Backup did not finish (operation interrupted or application restarted).";
+                    }
+                    await _backupRepository.SaveAsync(b);
+                }
+                catch
+                {
+                    // Ignore individual failures; other rows still get processed.
+                }
+            }
+        }
+
+        #endregion
+
+        private async Task<byte[]> GenerateBackupDataAsync(BackupRequest request)
+        {
+            // This method is not used when using SQL Server native backup
+            // Kept for compatibility with non-SQL Server scenarios
+            var data = $"Backup: {request.Name}\nCreated: {DateTime.UtcNow}\nType: {request.BackupType}";
+            return Encoding.UTF8.GetBytes(data);
+        }
+
+        private async Task RestoreDatabaseFromFileAsync(string backupPath, RestoreRequest request)
+        {
+            // Get database name from connection string
+            var connection = _context.Database.GetDbConnection();
+            var databaseName = connection.Database;
+            var originalConnectionString = connection.ConnectionString;
+            
+            // Close all existing connections to the database
+            await _context.Database.CloseConnectionAsync();
+            
+            // Build master connection string using SqlConnectionStringBuilder for reliability
+            var builder = new SqlConnectionStringBuilder(originalConnectionString)
+            {
+                InitialCatalog = "master"
+            };
+            
+            // Build RESTORE command with proper error handling
+            var restoreSql = $@"
+                USE master;
+                
+                -- Kill all connections to the target database
+                DECLARE @kill varchar(8000) = '';
+                SELECT @kill = @kill + 'KILL ' + CONVERT(varchar(5), session_id) + ';'
+                FROM sys.dm_exec_sessions
+                WHERE database_id = DB_ID('{databaseName}');
+                EXEC(@kill);
+                
+                -- Set database to single user mode
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{databaseName}')
+                BEGIN
+                    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                END
+                
+                -- Restore the database
+                RESTORE DATABASE [{databaseName}] 
+                FROM DISK = N'{backupPath}'
+                WITH REPLACE, STATS = 10;
+                
+                -- Set database back to multi-user mode
+                ALTER DATABASE [{databaseName}] SET MULTI_USER;
+            ";
+            
+            // Execute restore using a separate connection to master database
+            using var masterConnection = new SqlConnection(builder.ConnectionString);
+            await masterConnection.OpenAsync();
+            
+            using var command = masterConnection.CreateCommand();
+            command.CommandText = restoreSql;
+            command.CommandTimeout = 600; // 10 minutes timeout for large databases
+            
+            await command.ExecuteNonQueryAsync();
+        }
+
+        /// <summary>
+        /// Calculates the next run time using LOCAL time since users set schedules in local time
+        /// </summary>
+        private DateTime? CalculateNextRunTime(BackupSchedule schedule)
+        {
+            var now = DateTime.Now; // Use LOCAL time
+            var nextRun = now.Date.Add(schedule.ScheduleTime);
+
+            return schedule.ScheduleFrequency.ToLower() switch
+            {
+                "daily" => nextRun > now ? nextRun : nextRun.AddDays(1),
+                "weekly" => CalculateWeeklyNextRun(schedule, now),
+                "monthly" => CalculateMonthlyNextRun(schedule, now),
+                _ => null
+            };
+        }
+
+        private DateTime CalculateWeeklyNextRun(BackupSchedule schedule, DateTime now)
+        {
+            var nextRun = now.Date.Add(schedule.ScheduleTime);
+            var daysUntilNext = ((int)schedule.ScheduleDayOfWeek - (int)now.DayOfWeek + 7) % 7;
+            
+            // If target is today but time has passed, go to next week
+            if (daysUntilNext == 0 && nextRun <= now)
+            {
+                daysUntilNext = 7;
+            }
+            
+            return nextRun.AddDays(daysUntilNext);
+        }
+
+        private DateTime CalculateMonthlyNextRun(BackupSchedule schedule, DateTime now)
+        {
+            var dayOfMonth = schedule.ScheduleDayOfMonth ?? 1;
+            
+            // Try this month first
+            var daysInCurrentMonth = DateTime.DaysInMonth(now.Year, now.Month);
+            var actualDay = Math.Min(dayOfMonth, daysInCurrentMonth);
+            var nextRun = new DateTime(now.Year, now.Month, actualDay).Add(schedule.ScheduleTime);
+            
+            // If the date has already passed this month, go to next month
+            if (nextRun <= now)
+            {
+                var nextMonth = now.AddMonths(1);
+                var daysInNextMonth = DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month);
+                actualDay = Math.Min(dayOfMonth, daysInNextMonth);
+                nextRun = new DateTime(nextMonth.Year, nextMonth.Month, actualDay).Add(schedule.ScheduleTime);
+            }
+            
+            return nextRun;
+        }
+
+        private BackupType ParseBackupType(string type)
+        {
+            return type.ToLower() switch
+            {
+                "full" => BackupType.Full,
+                "incremental" => BackupType.Incremental,
+                "differential" => BackupType.Differential,
+                _ => BackupType.Full
+            };
+        }
+
+        private BackupStatus ParseBackupStatus(string status)
+        {
+            return status.ToLower() switch
+            {
+                "inprogress" => BackupStatus.InProgress,
+                "completed" => BackupStatus.Completed,
+                "failed" => BackupStatus.Failed,
+                "cancelled" => BackupStatus.Cancelled,
+                _ => BackupStatus.InProgress
+            };
+        }
+
+        private string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = bytes;
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number /= 1024;
+                counter++;
+            }
+            return $"{number:n1} {suffixes[counter]}";
+        }
+
+        private BackupDTO MapToDTO(BackupEntity backup)
+        {
+            return new BackupDTO
+            {
+                Id = backup.Id,
+                Name = backup.Name,
+                Description = backup.Description,
+                FilePath = backup.FilePath,
+                FileName = backup.FileName,
+                FileSizeBytes = backup.FileSizeBytes,
+                FileSizeFormatted = FormatFileSize(backup.FileSizeBytes),
+                BackupType = backup.BackupType.ToString(),
+                Status = backup.Status.ToString(),
+                CreatedAt = backup.CreatedAt,
+                CompletedAt = backup.CompletedAt,
+                Duration = backup.Duration,
+                CreatedBy = backup.CreatedBy,
+                IsEncrypted = backup.IsEncrypted,
+                CompressionType = backup.CompressionType,
+                TablesIncluded = DeserializeJsonList(backup.TablesIncluded),
+                TablesExcluded = DeserializeJsonList(backup.TablesExcluded),
+                ErrorMessage = backup.ErrorMessage
+            };
+        }
+
+        private List<string> DeserializeJsonList(string jsonString)
+        {
+            if (string.IsNullOrEmpty(jsonString))
+                return new List<string>();
+            
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(jsonString) ?? new List<string>();
+            }
+            catch (JsonException)
+            {
+                return new List<string>();
+            }
+        }
+
+        private BackupScheduleDTO MapScheduleToDTO(BackupSchedule schedule)
+        {
+            return new BackupScheduleDTO
+            {
+                Id = schedule.Id,
+                Name = schedule.Name,
+                Description = schedule.Description,
+                BackupType = schedule.BackupType.ToString(),
+                ScheduleFrequency = schedule.ScheduleFrequency,
+                ScheduleTime = schedule.ScheduleTime,
+                ScheduleDayOfWeek = schedule.ScheduleDayOfWeek,
+                ScheduleDayOfMonth = schedule.ScheduleDayOfMonth,
+                IsActive = schedule.IsActive,
+                LastRun = schedule.LastRun,
+                NextRun = schedule.NextRun,
+                RetentionDays = schedule.RetentionDays,
+                CreatedAt = schedule.CreatedAt,
+                CreatedBy = schedule.CreatedBy,
+                Settings = JsonSerializer.Deserialize<Dictionary<string, object>>(schedule.Settings) ?? new()
+            };
+        }
+
+        #endregion
+    }
+}

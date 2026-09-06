@@ -1,0 +1,85 @@
+@model Web.Models.Shared.Select2Model
+
+@{
+    var multiple = Model.Multiple ? "multiple" : "";
+    var required = Model.Required ? "required" : "";
+    var disabled = Model.Disabled ? "disabled" : "";
+    var additionalAttrs = "";
+    if (Model.AdditionalAttributes != null)
+    {
+        foreach (var attr in Model.AdditionalAttributes)
+        {
+            additionalAttrs += $"{attr.Key}=\"{attr.Value}\" ";
+        }
+    }
+}
+
+<select id="@Model.Id" name="@Model.Name" class="@Model.Class"
+        @multiple @required @disabled @Html.Raw(additionalAttrs)>
+    @if (!string.IsNullOrEmpty(Model.Placeholder) && Model.AllowClear)
+    {
+        <option value="">@Model.Placeholder</option>
+    }
+    @foreach (var item in Model.Items)
+    {
+        var isSelected = item.Selected || (Model.Value != null && item.Id == Model.Value.ToString());
+        var selected = isSelected ? " selected" : "";
+        var itemDisabled = item.Disabled ? " disabled" : "";
+        @Html.Raw($"<option value=\"{item.Id}\"{selected}{itemDisabled}>{item.Text}</option>")
+    }
+</select>
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+            var select2Element = $('#@Model.Id');
+            
+            select2Element.select2({
+                placeholder: '@Model.Placeholder',
+                allowClear: @Model.AllowClear.ToString().ToLower(),
+                multiple: @Model.Multiple.ToString().ToLower(),
+                @(!string.IsNullOrEmpty(Model.DataSource)
+                    ? $@"
+                ajax: {{
+                    url: '{Model.DataSource}',
+                    dataType: 'json',
+                    delay: {Model.Delay},
+                    data: function (params) {{
+                        return {{
+                            search: params.term,
+                            page: params.page || 1
+                        }};
+                    }},
+                    processResults: function (data, params) {{
+                        params.page = params.page || 1;
+                        return {{
+                            results: data.results || data,
+                            pagination: {{
+                                more: data.pagination?.more || false
+                            }}
+                        }};
+                    }},
+                    cache: true
+                }},
+                "
+                    : "")
+                minimumInputLength: @Model.MinimumInputLength,
+                language: {
+                    inputTooShort: function () {
+                        return 'Please enter at least ' + @Model.MinimumInputLength + ' character(s)';
+                    },
+                    noResults: function () {
+                        return 'No results found';
+                    }
+                }
+            });
+
+            @if (Model.Value != null)
+            {
+                @:// Set the initial value
+                @:select2Element.val('@Model.Value').trigger('change.select2');
+            }
+        });
+    </script>
+}

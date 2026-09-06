@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+  <data name="AdjustStock" xml:space="preserve">
+    <value>تعديل المخزون</value>
+  </data>
+  <data name="ProductName" xml:space="preserve">
+    <value>اسم المنتج</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>المخزون الحالي</value>
+  </data>
+  <data name="AdjustmentType" xml:space="preserve">
+    <value>نوع التعديل</value>
+  </data>
+  <data name="SelectAdjustmentType" xml:space="preserve">
+    <value>اختر نوع التعديل</value>
+  </data>
+  <data name="AddStock" xml:space="preserve">
+    <value>إضافة مخزون</value>
+  </data>
+  <data name="RemoveStock" xml:space="preserve">
+    <value>إزالة مخزون</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>الكمية</value>
+  </data>
+  <data name="ReasonForAdjustment" xml:space="preserve">
+    <value>سبب التعديل</value>
+  </data>
+  <data name="EnterReasonForStockAdjustment" xml:space="preserve">
+    <value>أدخل سبب تعديل المخزون (اختياري)</value>
+  </data>
+  <data name="AdjustmentPreview" xml:space="preserve">
+    <value>معاينة التعديل</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>إضافة</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>إزالة</value>
+  </data>
+  <data name="Units" xml:space="preserve">
+    <value>وحدات</value>
+  </data>
+  <data name="NewStock" xml:space="preserve">
+    <value>المخزون الجديد</value>
+  </data>
+  <data name="BackToInventory" xml:space="preserve">
+    <value>العودة إلى المخزون</value>
+  </data>
+  <data name="InsufficientStock" xml:space="preserve">
+    <value>مخزون غير كافٍ</value>
+  </data>
+  <data name="CurrentStockLabel" xml:space="preserve">
+    <value>المخزون الحالي</value>
+  </data>
+  <data name="ActionLabel" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="NewStockLabel" xml:space="preserve">
+    <value>المخزون الجديد</value>
+  </data>
+  <data name="EnterReasonPlaceholder" xml:space="preserve">
+    <value>أدخل سبب تعديل المخزون (اختياري)</value>
+  </data>
+</root>

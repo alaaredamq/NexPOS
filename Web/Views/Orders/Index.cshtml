@@ -1,0 +1,264 @@
+@{
+    ViewData["Title"] = Localizer["OrdersManagement"].Value;
+    ViewData["Subtitle"] = Localizer["ManageCustomerOrders"].Value;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receipts.css" />
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="page-title">
+                <h3><i class="fas fa-shopping-cart me-2"></i>@Localizer["OrdersManagement"]</h3>
+                <p class="text-muted">@Localizer["ManageCustomerOrders"]</p>
+            </div>
+            <div class="page-actions">
+                <button type="button" class="btn btn-primary" onclick="refreshOrdersTable()">
+                    <i class="fas fa-sync-alt me-1"></i>@Localizer["Refresh"]
+                </button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-1"></i>@Localizer["Filter"]
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Pending')">@Localizer["PendingOrders"]</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Processing')">@Localizer["Processing"]</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Shipped')">@Localizer["Shipped"]</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Delivered')">@Localizer["Delivered"]</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Cancelled')">@Localizer["Cancelled"]</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="clearFilters()">@Localizer["ClearFilters"]</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon orders-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalOrders">0</div>
+                <div class="stats-label">@Localizer["TotalOrders"]</div>
+                <div class="stats-change">@Localizer["Total"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon active-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="deliveredOrders">0</div>
+                <div class="stats-label">@Localizer["Delivered"]</div>
+                <div class="stats-change">@Localizer["Completed"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon stock-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>0</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="pendingOrders">0</div>
+                <div class="stats-label">@Localizer["Pending"]</div>
+                <div class="stats-change">@Localizer["InProgress"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon revenue-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stats-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+0%</span>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number" id="totalRevenue">$0</div>
+                <div class="stats-label">@Localizer["TotalRevenue"]</div>
+                <div class="stats-change">@Localizer["TotalSales"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card modern-card">
+            <div class="card-header modern-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>@Localizer["Orders"]</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-light" id="refreshOrdersBtn">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" onclick="exportOrders()">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" onclick="printOrders()">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+            @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
+            {
+                Id = "ordersTable",
+                Class = "table table-hover modern-table",
+                DataSource = Url.Action("GetOrders", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" }),
+                ServerSide = true,
+                Processing = true,
+                Ordering = true,
+                Searching = true,
+                Paging = true,
+                PageLength = 25,
+                PageLengthMenu = new List<int> { 10, 25, 50, 100 },
+                Language = ViewBag.CurrentLanguage?.ToString() ?? "en",
+                Responsive = true,
+                Columns = new List<Web.Models.Shared.DataTableColumn>
+                {
+                    new() { Data = "orderNumber", Title = Localizer["Order"].Value + " #", ClassName = "fw-bold text-primary" },
+                    new() { Data = "customerName", Title = Localizer["Customer"].Value },
+                    new() { Data = "orderDate", Title = Localizer["Date"].Value },
+                    new() { Data = "totalAmount", Title = Localizer["Total"].Value, ClassName = "text-end" },
+                    new() { 
+                        Data = "statusBadge", 
+                        Title = Localizer["Status"].Value, 
+                        Orderable = false,
+                        ClassName = "text-center"
+                    },
+                    new() { Data = "itemCount", Title = Localizer["Items"].Value, ClassName = "text-center" },
+                    new() { 
+                        Data = "actions", 
+                        Title = Localizer["Actions"].Value, 
+                        Orderable = false, 
+                        Searchable = false,
+                        ClassName = "text-center",
+                        Width = 120
+                    }
+                },
+                AdditionalOptions = new Dictionary<string, object>
+                {
+                    ["order"] = "[[2, 'desc']]"
+                }
+            })
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1" aria-labelledby="updateStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateStatusModalLabel">@Localizer["UpdateOrderStatus"]</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateStatusForm">
+                    <input type="hidden" id="orderId" name="OrderId">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">@Localizer["Status"]</label>
+                        @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
+                        {
+                            Id = "status",
+                            Name = "Status",
+                            Placeholder = Localizer["SelectStatus"].Value,
+                            Required = true,
+                            Items = new List<Web.Models.Shared.Select2Item>
+                            {
+                                new() { Id = "0", Text = Localizer["Pending"].Value },
+                                new() { Id = "1", Text = Localizer["Processing"].Value },
+                                new() { Id = "2", Text = Localizer["Shipped"].Value },
+                                new() { Id = "3", Text = Localizer["Delivered"].Value },
+                                new() { Id = "4", Text = Localizer["Cancelled"].Value },
+                                new() { Id = "5", Text = Localizer["Returned"].Value }
+                            }
+                        })
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
+                <button type="button" class="btn btn-teal" onclick="saveStatusUpdate()">@Localizer["UpdateStatus"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap5.min.js"></script>
+    <link href="~/lib/datatables/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
+    <script>
+        // Pass localized strings and URLs to the external JS file
+        window.ordersLocalizedStrings = {
+            orderStatusUpdatedSuccessfully: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["OrderStatusUpdatedSuccessfully"].Value)),
+            errorUpdatingOrderStatus: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["ErrorUpdatingOrderStatus"].Value)),
+            exporting: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Exporting"].Value))
+        };
+        
+        window.ordersUrls = {
+            getStatsUrl: '@Url.Action("GetOrderStats", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            detailsUrl: '@Url.Action("Details", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            editStatusUrl: '@Url.Action("EditStatus", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            receiptUrl: '@Url.Action("Receipt", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            exportUrl: '@Url.Action("ExportOrders", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+        };
+    </script>
+    <script src="~/js/Pages/Orders/Index.js"></script>
+}
