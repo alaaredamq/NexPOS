@@ -2367,43 +2367,47 @@ class POS {
             this.elements.cartCount.text(itemQty);
         }
         
-        // Update totals - show in default currency
-        const defaultNotation = this.defaultCurrency?.notation || 'LBP';
-        
+        // Update totals - the cart always shows LBP and USD side by side
+        // (those are the labels baked into the markup), regardless of which
+        // currency happens to be flagged as "default" for pricing.
+        const lbpCurrency = this.currencies.find(c => c.code === 'LBP');
+        const usdCurrency = this.currencies.find(c => c.code === 'USD');
+        const totalInUSD = this.defaultCurrency ? this.total / this.defaultCurrency.rateToUSD : this.total;
+        const subtotalInUSD = this.defaultCurrency ? subtotal / this.defaultCurrency.rateToUSD : subtotal;
+        const discountInUSD = this.defaultCurrency ? discountAmount / this.defaultCurrency.rateToUSD : discountAmount;
+
+        const lbpNotation = lbpCurrency?.notation || 'LBP';
+        const totalInLBP = lbpCurrency ? totalInUSD * lbpCurrency.rateToUSD : this.total;
+        const subtotalInLBP = lbpCurrency ? subtotalInUSD * lbpCurrency.rateToUSD : subtotal;
+        const discountInLBP = lbpCurrency ? discountInUSD * lbpCurrency.rateToUSD : discountAmount;
+
         // Build total display with discount info
-        let totalText = `${defaultNotation} ${this.total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
+        let totalText = `${lbpNotation} ${totalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
         if (this.currentDiscount && discountAmount > 0) {
             totalText = `
                 <div>
                     <small class="text-muted" style="text-decoration: line-through;">
-                        ${defaultNotation} ${subtotal.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
+                        ${lbpNotation} ${subtotalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
                     </small>
                 </div>
                 <div>
-                    ${defaultNotation} ${this.total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
+                    ${lbpNotation} ${totalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
                 </div>
                 <div>
                     <small class="badge bg-success">
-                        -${defaultNotation} ${discountAmount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
+                        -${lbpNotation} ${discountInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
                     </small>
                 </div>
             `;
         }
         this.elements.totalDisplay.html(totalText);
-        
-        // Find the alternative currency (the one that's NOT default)
-        const alternativeCurrency = this.currencies.find(c => !c.isDefault);
-        
-        if (alternativeCurrency && this.defaultCurrency) {
-            // Convert total from default currency to alternative currency
-            // Convert to USD first, then to alternative currency
-            const totalInUSD = this.total / this.defaultCurrency.rateToUSD;
-            const totalInAlternative = totalInUSD * alternativeCurrency.rateToUSD;
-            
-            this.elements.totalUsdDisplay.text(`${alternativeCurrency.notation} ${totalInAlternative.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`);
+
+        if (usdCurrency) {
+            const totalInUsdAmount = totalInUSD * usdCurrency.rateToUSD;
+            this.elements.totalUsdDisplay.text(`${usdCurrency.notation} ${totalInUsdAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
         } else {
-            // Fallback if no alternative currency found
-            this.elements.totalUsdDisplay.text(`USD ${(this.total / (this.defaultCurrency?.rateToUSD || 1)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+            // Fallback if USD isn't configured
+            this.elements.totalUsdDisplay.text(`USD ${totalInUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
         }
         
         // Enable/disable checkout button

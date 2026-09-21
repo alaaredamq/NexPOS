@@ -700,6 +700,18 @@
   <data name="CashDrawer" xml:space="preserve">
     <value>Cash Drawer</value>
   </data>
+  <data name="NavSectionSales" xml:space="preserve">
+    <value>Sales</value>
+  </data>
+  <data name="NavSectionCatalog" xml:space="preserve">
+    <value>Catalog &amp; People</value>
+  </data>
+  <data name="NavSectionInsights" xml:space="preserve">
+    <value>Insights</value>
+  </data>
+  <data name="NavSectionAdmin" xml:space="preserve">
+    <value>Administration</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
   </data>

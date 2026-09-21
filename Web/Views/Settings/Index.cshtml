@@ -170,13 +170,14 @@
 
         function renderSettingInput(setting) {
             const inputId = 'setting_' + setting.settingKey.replace(/[^a-zA-Z0-9]/g, '_');
-            
+            const disabled = setting.isEditable === false;
+
             switch (setting.settingType.toLowerCase()) {
                 case 'bool':
                     return `
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="${inputId}" 
-                                   ${setting.settingValue === 'true' ? 'checked' : ''} 
+                            <input class="form-check-input" type="checkbox" id="${inputId}"
+                                   ${setting.settingValue === 'true' ? 'checked' : ''} ${disabled ? 'disabled' : ''}
                                    onchange="updatePendingChange('${setting.settingKey}', this.checked ? 'true' : 'false')">
                             <label class="form-check-label" for="${inputId}">
                                 ${setting.settingValue === 'true' ? 'Enabled' : 'Disabled'}
@@ -185,20 +186,20 @@
                     `;
                 case 'int':
                     return `
-                        <input type="number" class="form-control" id="${inputId}" 
-                               value="${setting.settingValue}" 
+                        <input type="number" class="form-control" id="${inputId}"
+                               value="${setting.settingValue}" ${disabled ? 'disabled' : ''}
                                onchange="updatePendingChange('${setting.settingKey}', this.value)">
                     `;
                 case 'decimal':
                     return `
-                        <input type="number" class="form-control" id="${inputId}" 
-                               value="${setting.settingValue}" step="0.01" 
+                        <input type="number" class="form-control" id="${inputId}"
+                               value="${setting.settingValue}" step="0.01" ${disabled ? 'disabled' : ''}
                                onchange="updatePendingChange('${setting.settingKey}', this.value)">
                     `;
                 default:
                     return `
-                        <input type="text" class="form-control" id="${inputId}" 
-                               value="${setting.settingValue}" 
+                        <input type="text" class="form-control" id="${inputId}"
+                               value="${setting.settingValue}" ${disabled ? 'disabled' : ''}
                                onchange="updatePendingChange('${setting.settingKey}', this.value)">
                     `;
             }

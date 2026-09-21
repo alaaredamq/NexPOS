@@ -10,25 +10,14 @@
 }
 
 <!-- Create Product Header -->
-<div class="products-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h2 class="products-title">
-                <i class="fas fa-plus-circle me-3"></i>
-                Create New Product
-            </h2>
-            <p class="products-subtitle">Add a new product to your inventory</p>
-        </div>
-        @if (!noSidebar)
-        {
-            <div class="products-actions">
-                <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Products
-                </a>
-            </div>
-        }
+@if (!noSidebar)
+{
+    <div class="d-flex justify-content-end mb-4">
+        <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Products
+        </a>
     </div>
-</div>
+}
 
 <!-- Create Product Form -->
 <div class="row products-page">

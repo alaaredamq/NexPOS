@@ -117,11 +117,14 @@ public class CurrencyController : BaseController
         try
         {
             var defaultCurrency = await _service.GetDefaultAsync();
+            var allCurrencies = await _service.GetAllAsync();
+            var lbpCurrency = allCurrencies.FirstOrDefault(c => c.Code == "LBP");
+
             var settings = new
             {
                 defaultCurrency = defaultCurrency?.Code ?? "LBP",
-                currentRate = 1500.00m, // Mock data
-                totalCurrencies = 2,
+                currentRate = lbpCurrency?.RateToUSD ?? 0,
+                totalCurrencies = allCurrencies.Count(c => c.IsActive),
                 lastUpdate = DateTime.Now.ToString("MMM dd, yyyy"),
                 autoUpdate = false,
                 updateFrequency = "manual"

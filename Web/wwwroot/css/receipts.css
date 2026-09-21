@@ -1,174 +1,12 @@
 /* Receipt Management Styles */
 
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--neutral-200);
-}
-
-.page-title h3 {
-    color: var(--neutral-800);
-    margin-bottom: 0.5rem;
-    font-weight: 700;
-}
-
-.page-title p {
-    margin-bottom: 0;
-    font-size: 0.95rem;
-}
-
-.page-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-
-/* Stats Cards */
-.stats-card {
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.stats-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-.stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
-.stats-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
+/* Card headers that wrap a tab strip (Currency, Users) keep a colored band
+   so the white tab labels stay legible; plain list-page headers fall back
+   to site.css's white .modern-header - both now read as one brand instead
+   of the coral/orange this file used to force everywhere. */
+.modern-header:has(.nav-tabs) {
+    background: var(--gradient-primary);
     color: white;
-}
-
-.stats-icon.sales-icon {
-    background: var(--gradient-secondary);
-}
-
-.stats-icon.receipts-icon {
-    background: var(--gradient-pink);
-}
-
-.stats-icon.void-icon {
-    background: var(--gradient-rose);
-}
-
-.stats-icon.average-icon {
-    background: var(--gradient-cyan-violet);
-}
-
-.stats-icon.products-icon {
-    background: var(--gradient-green);
-}
-
-.stats-icon.categories-icon {
-    background: var(--gradient-secondary);
-}
-
-.stats-icon.customers-icon {
-    background: var(--gradient-info);
-}
-
-.stats-icon.suppliers-icon {
-    background: var(--gradient-cyan-violet);
-}
-
-.stats-icon.orders-icon {
-    background: var(--gradient-pink);
-}
-
-.stats-icon.stock-icon {
-    background: var(--gradient-rose);
-}
-
-.stats-icon.active-icon {
-    background: var(--gradient-green);
-}
-
-.stats-icon.inactive-icon {
-    background: linear-gradient(135deg, var(--neutral-425) 0%, var(--neutral-550) 100%);
-}
-
-.stats-icon.revenue-icon {
-    background: var(--gradient-secondary);
-}
-
-.stats-trend {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
-}
-
-.stats-trend.positive {
-    color: var(--success-strong);
-    background-color: var(--overlay-success-10);
-}
-
-.stats-trend.negative {
-    color: var(--danger-color);
-    background-color: var(--overlay-danger-10);
-}
-
-.stats-trend.neutral {
-    color: var(--neutral-500);
-    background-color: var(--overlay-white-10);
-}
-
-.stats-content {
-    padding: 0.5rem 1rem 1rem;
-}
-
-.stats-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--neutral-800);
-    margin-bottom: 0.5rem;
-}
-
-.stats-label {
-    color: var(--neutral-500);
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-}
-
-.stats-change {
-    color: var(--neutral-425);
-    font-size: 0.8rem;
-}
-
-/* Modern Card */
-.modern-card {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-}
-
-.modern-header {
-    background: var(--gradient-secondary);
-    color: white;
-    padding: 1.25rem 1.5rem;
-    border: none;
 }
 
 .modern-header h5 {
@@ -289,7 +127,7 @@
 }
 
 .modal-header {
-    background: var(--gradient-secondary);
+    background: var(--gradient-primary);
     color: white;
     border: none;
     border-radius: 12px 12px 0 0;
@@ -322,8 +160,8 @@
 }
 
 .form-control:focus {
-    border-color: var(--coral-medium);
-    box-shadow: 0 0 0 0.2rem var(--overlay-coral-25);
+    border-color: var(--primary-color);
+    box-shadow: var(--focus-ring);
 }
 
 .form-label {
@@ -341,14 +179,14 @@
 }
 
 .btn-primary {
-    background: var(--gradient-secondary);
+    background: var(--gradient-primary);
     border: none;
 }
 
 .btn-primary:hover {
-    background: var(--gradient-secondary-reverse);
+    background: var(--gradient-primary-strong);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--overlay-coral-40);
+    box-shadow: 0 4px 12px var(--overlay-teal-30);
 }
 
 .btn-success {
@@ -386,7 +224,7 @@
 
 /* Receipt Details Specific Styles */
 .receipt-detail-card {
-    border-left: 4px solid var(--coral-medium);
+    border-left: 4px solid var(--primary-color);
 }
 
 .receipt-info-table {
@@ -467,21 +305,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .page-actions {
-        width: 100%;
-        margin-top: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .page-actions .btn {
-        flex: 1 1 auto;
-    }
-
     .stats-number {
         font-size: 1.5rem;
     }
@@ -504,8 +327,6 @@
 
 /* Print Styles */
 @media print {
-    .page-header,
-    .page-actions,
     .btn,
     .nav-tabs,
     .modal {

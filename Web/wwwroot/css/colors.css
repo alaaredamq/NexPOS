@@ -1,15 +1,17 @@
 :root {
-    /* Primary Teal Palette */
-    --primary-color: #008080;
-    --primary-dark: #006666;
-    --primary-darker: #004d4d;
-    --primary-light: #00a3a3;
-    --primary-bright: #00a896;
-    --primary-lighter: #e6f7f7;
+    /* Primary Teal Palette — matches the shipped NexPOS mark (wwwroot/images/logo.svg) */
+    --primary-color: #0aa2a2;
+    --primary-dark: #00706f;
+    --primary-darker: #005453;
+    --primary-light: #3dbdbd;
+    --primary-bright: #2fc2c2;
+    --primary-lighter: #e3f4f3;
     --primary-contrast: #ffffff;
+    --primary-glow: #8ce8e4;
+    --ink: #0f172a;
 
     /* Semantic Aliases */
-    --primary: #008080;
+    --primary: var(--primary-color);
     --primary-dark-alt: var(--primary-dark);
     --success: #20c997;
     --danger: #dc3545;
@@ -33,8 +35,8 @@
     --danger-muted-strong: #f5c6cb;
     --danger-text: #721c24;
 
-    --warning-color: #ffc107;
-    --warning-dark: #e0a800;
+    --warning-color: #b9791a;
+    --warning-dark: #8f5f14;
     --warning-muted: #fff3cd;
     --warning-text: #856404;
 
@@ -122,9 +124,9 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
     --shadow: var(--shadow-md);
-    --shadow-teal-sm: 0 4px 12px rgba(0, 128, 128, 0.25);
-    --shadow-teal-md: 0 4px 16px rgba(0, 128, 128, 0.25);
-    --shadow-teal-lg: 0 4px 20px rgba(0, 128, 128, 0.3);
+    --shadow-teal-sm: 0 4px 12px rgba(10, 162, 162, 0.25);
+    --shadow-teal-md: 0 4px 16px rgba(10, 162, 162, 0.25);
+    --shadow-teal-lg: 0 4px 20px rgba(10, 162, 162, 0.3);
     --shadow-danger: 0 4px 12px rgba(220, 53, 69, 0.3);
     --shadow-success: 0 4px 16px rgba(40, 167, 69, 0.3);
 
@@ -136,11 +138,11 @@
     --overlay-white-25: rgba(255, 255, 255, 0.25);
     --overlay-white-30: rgba(255, 255, 255, 0.3);
     --overlay-white-50: rgba(255, 255, 255, 0.5);
-    --overlay-teal-05: rgba(0, 128, 128, 0.05);
-    --overlay-teal-10: rgba(0, 128, 128, 0.1);
-    --overlay-teal-15: rgba(0, 128, 128, 0.15);
-    --overlay-teal-25: rgba(0, 128, 128, 0.25);
-    --overlay-teal-30: rgba(0, 128, 128, 0.3);
+    --overlay-teal-05: rgba(10, 162, 162, 0.05);
+    --overlay-teal-10: rgba(10, 162, 162, 0.1);
+    --overlay-teal-15: rgba(10, 162, 162, 0.15);
+    --overlay-teal-25: rgba(10, 162, 162, 0.25);
+    --overlay-teal-30: rgba(10, 162, 162, 0.3);
     --overlay-danger-20: rgba(220, 53, 69, 0.2);
     --overlay-success-10: rgba(40, 167, 69, 0.1);
     --overlay-danger-10: rgba(220, 53, 69, 0.1);
@@ -199,15 +201,15 @@
     --primary-gradient: var(--gradient-primary);
 
     /* Additional Theme Tokens */
-    --focus-ring: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    --focus-ring: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
     --focus-ring-success: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
     --focus-ring-info: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
 
-    /* Auth Background */
-    --auth-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--success-color) 50%, var(--info-color) 100%);
-    --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(32, 201, 151, 0.1) 0%, transparent 50%);
-    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(23, 162, 184, 0.1) 0%, transparent 50%);
-    --auth-highlight-3: radial-gradient(circle at 40% 40%, rgba(0, 128, 128, 0.05) 0%, transparent 50%);
+    /* Auth Background — brand teal into ink, matching the mark instead of a teal/green/blue mix */
+    --auth-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 55%, var(--ink) 100%);
+    --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(140, 232, 228, 0.15) 0%, transparent 50%);
+    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(10, 162, 162, 0.12) 0%, transparent 50%);
+    --auth-highlight-3: radial-gradient(circle at 40% 40%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
 
     /* POS Legacy Aliases */
     --teal-primary: var(--primary-color);

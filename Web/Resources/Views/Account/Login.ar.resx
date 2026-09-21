@@ -109,11 +109,14 @@
   <data name="AdminUsername" xml:space="preserve">
     <value>اسم المستخدم: admin</value>
   </data>
+  <data name="AdminPin" xml:space="preserve">
+    <value>الرمز السري: 0000 (يجب تغييره عند أول تسجيل دخول)</value>
+  </data>
   <data name="AdminPassword" xml:space="preserve">
     <value>كلمة المرور: admin123</value>
   </data>
   <data name="Copyright" xml:space="preserve">
-    <value>© 2025 نظام نقطة البيع. جميع الحقوق محفوظة.</value>
+    <value>NexPos. جميع الحقوق محفوظة.</value>
   </data>
 </root>
 

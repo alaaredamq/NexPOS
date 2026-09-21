@@ -15,9 +15,6 @@
                     <button id="addTax" class="btn btn-sm btn-primary me-2">
                         <i class="fas fa-plus me-1"></i> Add Tax
                     </button>
-                    <button id="exportTaxes" class="btn btn-sm btn-outline-success me-2">
-                        <i class="fas fa-download me-1"></i> Export
-                    </button>
                     <button id="refreshTaxes" class="btn btn-sm btn-outline-info">
                         <i class="fas fa-sync-alt me-1"></i> Refresh
                     </button>
@@ -25,32 +22,38 @@
             </div>
             <div class="card-body">
                 <div id="taxesTableContainer">
-                    @await Component.InvokeAsync("DataTable", new
+                    @await Component.InvokeAsync("DataTable", new Web.Models.Shared.DataTableModel
                     {
-                        id = "taxesTable",
-                        ajaxUrl = Url.Action("GetAllTaxes", "Tax", new { area = "" }),
-                        columns = new List<object>
+                        Id = "taxesTable",
+                        Class = "table table-hover modern-table",
+                        DataSource = Url.Action("GetAllTaxes", "Tax", new { area = "" }),
+                        ServerSide = true,
+                        Processing = true,
+                        Ordering = true,
+                        Searching = true,
+                        Paging = true,
+                        PageLength = 10,
+                        PageLengthMenu = new List<int> { 10, 25, 50 },
+                        Responsive = true,
+                        Columns = new List<Web.Models.Shared.DataTableColumn>
                         {
-                            new { data = "name", title = "Name" },
-                            new { data = "rate", title = "Rate (%)", render = "formatTaxRate" },
-                            new { data = "type", title = "Type", render = "formatTaxType" },
-                            new { data = "isDefault", title = "Default", render = "formatBoolean" },
-                            new { data = "isActive", title = "Active", render = "formatBoolean" },
-                            new { data = "effectiveFrom", title = "Effective From", render = "formatDate" },
-                            new { data = "effectiveTo", title = "Effective To", render = "formatDate" },
-                            new { data = "category", title = "Category" },
-                            new
+                            new() { Data = "name", Title = "Name", ClassName = "text-center" },
+                            new() { Data = "rate", Title = "Rate (%)", Render = "formatTaxRate", ClassName = "text-center" },
+                            new() { Data = "type", Title = "Type", Render = "formatTaxType", ClassName = "text-center" },
+                            new() { Data = "isDefault", Title = "Default", Render = "formatBoolean", ClassName = "text-center" },
+                            new() { Data = "isActive", Title = "Active", Render = "formatBoolean", ClassName = "text-center" },
+                            new() { Data = "effectiveFrom", Title = "Effective From", Render = "formatDate", ClassName = "text-center" },
+                            new() { Data = "effectiveTo", Title = "Effective To", Render = "formatDate", ClassName = "text-center" },
+                            new() { Data = "category", Title = "Category", ClassName = "text-center" },
+                            new()
                             {
-                                data = "id",
-                                title = "Actions",
-                                orderable = false,
-                                searchable = false,
-                                render = "renderTaxActions"
+                                Data = "id",
+                                Title = "Actions",
+                                Orderable = false,
+                                Searchable = false,
+                                Render = "renderTaxActions",
+                                ClassName = "text-center"
                             }
-                        },
-                        columnDefs = new List<object>
-                        {
-                            new { targets = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, className = "text-center" }
                         }
                     })
                 </div>
@@ -127,15 +130,15 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="categoryId" class="form-label">Apply to Category</label>
-                                @await Component.InvokeAsync("Select2", new
+                                @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
                                 {
-                                    id = "categoryId",
-                                    name = "CategoryId",
-                                    placeholder = "Select category (optional)",
-                                    allowClear = true,
-                                    ajaxUrl = Url.Action("GetCategories", "Categories", new { area = "" }),
-                                    valueField = "id",
-                                    textField = "name"
+                                    Id = "categoryId",
+                                    Name = "CategoryId",
+                                    Placeholder = "Select category (optional)",
+                                    AllowClear = true,
+                                    DataSource = Url.Action("GetCategories", "Categories", new { area = "" }),
+                                    ValueField = "id",
+                                    TextField = "name"
                                 })
                             </div>
                         </div>
@@ -289,7 +292,7 @@
                 var taxId = $(this).data('id');
                 // Load tax data and populate form
                 $.ajax({
-                    url: `@Url.Action("GetTaxById", "Tax", new { area = "" })}/${taxId}`,
+                    url: `/api/taxes/${taxId}`,
                     type: 'GET',
                     success: function (tax) {
                         $('#taxModalLabel').text('Edit Tax');
@@ -317,7 +320,7 @@
             // Save Tax
         $('#saveTax').on('click', function () {
             var taxId = $('#taxId').val();
-            var url = taxId ? `@Url.Action("UpdateTax", "Tax", new { area = "" })}/${taxId}` : '@Url.Action("CreateTax", "Tax", new { area = "" })';
+            var url = taxId ? `/api/taxes/${taxId}` : '@Url.Action("CreateTax", "Tax", new { area = "" })';
             var method = taxId ? 'PUT' : 'POST';
 
             var formData = {
@@ -371,7 +374,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: `@Url.Action("SetDefaultTax", "Tax", new { area = "" })}/${taxId}`,
+                                url: `/api/taxes/${taxId}/set-default`,
                                 type: 'POST',
                                 success: function (response) {
                                     if (response.success) {
@@ -403,7 +406,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: `@Url.Action("DeactivateTax", "Tax", new { area = "" })}/${taxId}`,
+                                url: `/api/taxes/${taxId}/deactivate`,
                                 type: 'POST',
                                 success: function (response) {
                                     if (response.success) {
@@ -435,7 +438,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: `@Url.Action("DeleteTax", "Tax", new { area = "" })}/${taxId}`,
+                                url: `/api/taxes/${taxId}`,
                                 type: 'DELETE',
                                 success: function (response) {
                                     if (response.success) {
@@ -492,19 +495,12 @@
                     });
                 });
 
-                // Export Taxes
-                $('#exportTaxes').on('click', function () {
-                    toastr.info('Exporting taxes...');
-                    // Implement export logic here
-                });
-
                 // Refresh Taxes
                 $('#refreshTaxes').on('click', function () {
                     $('#taxesTable').DataTable().ajax.reload();
                     toastr.success('Taxes table refreshed!');
                 });
-            });
-        });
+    });
 </script>
 }
 

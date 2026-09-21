@@ -275,7 +275,7 @@
         .input-group-text {
             background: white;
             border: none;
-            color: #008080;
+            color: #0aa2a2;
             font-size: 1rem;
             padding: 0.5rem 0.75rem;
         }
@@ -296,7 +296,7 @@
         }
         
         .input-group .btn {
-            background: #008080;
+            background: #0aa2a2;
             border: none;
             color: white;
             font-weight: 600;
@@ -306,7 +306,7 @@
         }
         
         .input-group .btn:hover {
-            background: #006666;
+            background: #00706f;
             transform: scale(1.05);
         }
         
@@ -361,7 +361,7 @@
         }
         
         .table thead th {
-            background: linear-gradient(135deg, #008080 0%, #006666 100%);
+            background: linear-gradient(135deg, #0aa2a2 0%, #00706f 100%);
             color: white;
             border: none;
             font-weight: 600;
@@ -515,12 +515,12 @@
         
         /* Totals Section */
         .totals-section {
-            background: linear-gradient(135deg, #008080 0%, #00a896 100%);
+            background: linear-gradient(135deg, #0aa2a2 0%, #2fc2c2 100%);
             color: white;
             border-radius: 10px;
             padding: 0.75rem 1rem;
             margin-bottom: 0.75rem;
-            box-shadow: 0 4px 12px rgba(0, 128, 128, 0.25);
+            box-shadow: 0 4px 12px rgba(10, 162, 162, 0.25);
         }
         
         .totals-section * {
@@ -633,13 +633,13 @@
         
         /* Badge Enhancement */
         #cart-count {
-            background: linear-gradient(135deg, #008080, #00a896);
+            background: linear-gradient(135deg, #0aa2a2, #2fc2c2);
             color: white;
             font-weight: 800;
             font-size: 0.85rem;
             padding: 0.35em 0.65em;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 128, 128, 0.3);
+            box-shadow: 0 2px 8px rgba(10, 162, 162, 0.3);
             min-width: 24px;
             text-align: center;
             animation: badgePulse 2s ease-in-out infinite;
@@ -661,12 +661,12 @@
         }
         
         .pos-card-body::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #008080, #006666);
+            background: linear-gradient(135deg, #0aa2a2, #00706f);
             border-radius: 10px;
         }
         
         .pos-card-body::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #006666, #004d4d);
+            background: linear-gradient(135deg, #00706f, #005453);
         }
         
         /* Enhanced Product Grid Styling */
@@ -814,7 +814,7 @@
         
         .select2-container--default .select2-results__option[aria-selected=true] {
             background-color: #e8f9f4;
-            color: #008080;
+            color: #0aa2a2;
         }
         
         .select2-container--default .select2-search--dropdown .select2-search__field {
@@ -971,7 +971,7 @@
             justify-content: center;
         }
         
-        .product-name {
+        .product-info .product-name {
             font-weight: 700;
             color: #2d3748;
             margin-bottom: 0.35rem;
@@ -981,7 +981,12 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            white-space: normal;
             min-height: 2.2rem;
+        }
+
+        .product-card:hover .product-info .product-name {
+            color: #20c997;
         }
         
         .product-price {
@@ -1277,7 +1282,7 @@
                 height: 40px;
             }
             
-            .product-name {
+            .product-info .product-name {
                 font-size: 0.75rem;
             }
             

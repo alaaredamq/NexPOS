@@ -7,16 +7,10 @@
         var urls = window.currencyUrls || {};
         var localizedStrings = window.currencyLocalizedStrings || {};
 
-        // Initialize DataTables
+        // Load the real currencies into the table (it ships with an empty
+        // <tbody> - rows are populated here instead of being hardcoded in the view)
         if ($('#currenciesTable').length) {
-            $('#currenciesTable').DataTable({
-                responsive: true,
-                pageLength: 10,
-                order: [[0, 'asc']],
-                columnDefs: [
-                    { orderable: false, targets: -1 }
-                ]
-            });
+            loadCurrenciesTable(urls);
         }
 
         if ($('#ratesTable').length) {
@@ -166,6 +160,54 @@
     }
 
     window.loadCurrencySettings = loadCurrencySettings;
+
+    function escapeHtml(value) {
+        return $('<div>').text(value === null || value === undefined ? '' : value).html();
+    }
+
+    function loadCurrenciesTable(urls) {
+        $.ajax({
+            url: urls.getAllUrl || '',
+            type: 'GET',
+            success: function(currencies) {
+                var rows = (currencies || []).map(function(c) {
+                    var created = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '';
+                    var defaultBadge = c.isDefault
+                        ? '<span class="badge bg-success">Yes</span>'
+                        : '<span class="badge bg-secondary">No</span>';
+                    var activeBadge = c.isActive
+                        ? '<span class="badge bg-success">Active</span>'
+                        : '<span class="badge bg-secondary">Inactive</span>';
+
+                    return [
+                        '<span class="currency-code">' + escapeHtml(c.code) + '</span>',
+                        escapeHtml(c.name),
+                        escapeHtml(c.notation),
+                        defaultBadge,
+                        activeBadge,
+                        created,
+                        '<div class="action-buttons">' +
+                            '<button class="btn btn-sm btn-outline-primary" title="Edit"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>' +
+                        '</div>'
+                    ];
+                });
+
+                $('#currenciesTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    order: [[0, 'asc']],
+                    data: rows,
+                    columnDefs: [
+                        { orderable: false, targets: -1 }
+                    ]
+                });
+            },
+            error: function() {
+                console.error('Failed to load currencies');
+            }
+        });
+    }
 
     // Initialize when document is ready
     $(document).ready(function() {

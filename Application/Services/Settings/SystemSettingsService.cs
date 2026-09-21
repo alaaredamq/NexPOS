@@ -62,6 +62,12 @@ namespace Application.Services.Settings
         {
             foreach (var settingUpdate in request.Settings)
             {
+                var existing = await _repository.GetByKeyAsync(settingUpdate.SettingKey);
+                if (existing.SettingKey == settingUpdate.SettingKey && !existing.IsEditable)
+                {
+                    continue;
+                }
+
                 await SetSettingValueAsync(settingUpdate.SettingKey, settingUpdate.SettingValue);
             }
             return request;
@@ -69,6 +75,7 @@ namespace Application.Services.Settings
 
         public async Task<IEnumerable<SettingCategoryDTO>> GetSettingsByCategoryAsync()
         {
+            await InitializeDefaultSettingsAsync();
             var allSettings = await _repository.GetAllAsync();
             var categories = allSettings
                 .GroupBy(s => s.Category)
@@ -104,6 +111,7 @@ namespace Application.Services.Settings
 
         public async Task<AppSettingsDTO> GetAppSettingsAsync()
         {
+            await InitializeDefaultSettingsAsync();
             var settings = await _repository.GetAllAsync();
             var appSettings = new AppSettingsDTO();
 
@@ -123,9 +131,10 @@ namespace Application.Services.Settings
             foreach (var property in properties)
             {
                 var value = property.GetValue(appSettings);
-                var stringValue = value?.ToString() ?? "";
-                var settingType = GetPropertyType(property.PropertyType);
-                
+                var stringValue = value is bool boolValue
+                    ? boolValue.ToString().ToLowerInvariant()
+                    : value?.ToString() ?? "";
+
                 await SetSettingValueAsync(property.Name, stringValue);
             }
 
@@ -214,11 +223,13 @@ namespace Application.Services.Settings
         public async Task InitializeDefaultSettingsAsync()
         {
             var defaultSettings = GetDefaultSettings();
-            
+            var existingKeys = (await _repository.GetAllAsync())
+                .Select(s => s.SettingKey)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             foreach (var setting in defaultSettings)
             {
-                var exists = await _repository.KeyExistsAsync(setting.SettingKey);
-                if (!exists)
+                if (!existingKeys.Contains(setting.SettingKey))
                 {
                     await _repository.SaveAsync(setting);
                 }
@@ -338,17 +349,23 @@ namespace Application.Services.Settings
                 new() { SettingKey = "ProductsPerPage", SettingValue = "30", SettingType = "int", Category = "POS", Description = "Products Per Page", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "EnableDiscounts", SettingValue = "true", SettingType = "bool", Category = "POS", Description = "Enable Discounts", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "MaxDiscountPercentage", SettingValue = "50", SettingType = "decimal", Category = "POS", Description = "Max Discount Percentage", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "ReceiptPrinterName", SettingValue = "", SettingType = "string", Category = "POS", Description = "Receipt Printer", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "RequireCustomerForSale", SettingValue = "false", SettingType = "bool", Category = "POS", Description = "Require Customer for Sale", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
 
                 // Inventory Settings
                 new() { SettingKey = "EnableLowStockAlerts", SettingValue = "true", SettingType = "bool", Category = "Inventory", Description = "Enable Low Stock Alerts", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "LowStockThreshold", SettingValue = "10", SettingType = "int", Category = "Inventory", Description = "Low Stock Threshold", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "EnableNegativeStock", SettingValue = "false", SettingType = "bool", Category = "Inventory", Description = "Enable Negative Stock", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "AutoReorderEnabled", SettingValue = "false", SettingType = "bool", Category = "Inventory", Description = "Enable Auto Reorder", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "ReorderPoint", SettingValue = "5", SettingType = "int", Category = "Inventory", Description = "Reorder Point", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "ReorderQuantity", SettingValue = "50", SettingType = "int", Category = "Inventory", Description = "Reorder Quantity", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
 
                 // Security Settings
                 new() { SettingKey = "SessionTimeout", SettingValue = "30", SettingType = "int", Category = "Security", Description = "Session Timeout (minutes)", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "MaxLoginAttempts", SettingValue = "5", SettingType = "int", Category = "Security", Description = "Max Login Attempts", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "PasswordMinLength", SettingValue = "8", SettingType = "int", Category = "Security", Description = "Password Minimum Length", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "RequireStrongPassword", SettingValue = "true", SettingType = "bool", Category = "Security", Description = "Require Strong Password", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "EnableTwoFactorAuth", SettingValue = "false", SettingType = "bool", Category = "Security", Description = "Enable Two-Factor Auth", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "EnableAuditLogging", SettingValue = "true", SettingType = "bool", Category = "Security", Description = "Enable Audit Logging", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
 
                 // Theme Settings

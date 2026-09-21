@@ -13,6 +13,12 @@ namespace Application.DTOs.Settings
         public DateTime UpdatedAt { get; set; }
     }
 
+    /// <summary>
+    /// Every property here must be bound by an input on Settings/AppSettings.cshtml.
+    /// UpdateAppSettingsAsync saves the *whole* DTO on every submit, so an unbound property
+    /// would get silently reset to its C# default on the next save instead of preserving
+    /// whatever was stored for it.
+    /// </summary>
     public class AppSettingsDTO
     {
         // General Settings
@@ -20,12 +26,9 @@ namespace Application.DTOs.Settings
         public string CompanyAddress { get; set; } = string.Empty;
         public string CompanyPhone { get; set; } = string.Empty;
         public string CompanyEmail { get; set; } = string.Empty;
-        public string CompanyLogo { get; set; } = string.Empty;
         public string DefaultLanguage { get; set; } = "en";
         public string DefaultCurrency { get; set; } = "USD";
         public string TimeZone { get; set; } = "UTC";
-        public string DateFormat { get; set; } = "MM/dd/yyyy";
-        public string TimeFormat { get; set; } = "12h";
 
         // POS Settings
         public bool EnableBarcodeScanner { get; set; } = true;
@@ -54,33 +57,11 @@ namespace Application.DTOs.Settings
         public bool EnableTwoFactorAuth { get; set; } = false;
         public bool EnableAuditLogging { get; set; } = true;
 
-        // Backup Settings
-        public bool EnableAutoBackup { get; set; } = false;
-        public string BackupFrequency { get; set; } = "daily"; // daily, weekly, monthly
-        public int BackupRetentionDays { get; set; } = 30;
-        public string BackupLocation { get; set; } = string.Empty;
-
-        // Notification Settings
-        public bool EnableEmailNotifications { get; set; } = false;
-        public string SmtpServer { get; set; } = string.Empty;
-        public int SmtpPort { get; set; } = 587;
-        public string SmtpUsername { get; set; } = string.Empty;
-        public string SmtpPassword { get; set; } = string.Empty;
-        public bool SmtpUseSsl { get; set; } = true;
-        public string NotificationEmail { get; set; } = string.Empty;
-
-        // Tax Settings
-        public bool EnableTaxCalculation { get; set; } = true;
-        public decimal DefaultTaxRate { get; set; } = 0;
-        public bool TaxInclusive { get; set; } = false;
-        public string TaxLabel { get; set; } = "Tax";
-
         // Theme Settings
         public string PrimaryColor { get; set; } = "#008080";
         public string SecondaryColor { get; set; } = "#006666";
         public string Theme { get; set; } = "light"; // light, dark
         public bool EnableAnimations { get; set; } = true;
-        public string SidebarStyle { get; set; } = "default"; // default, compact, icon-only
     }
 
     public class SettingUpdateRequest

@@ -6,21 +6,10 @@
 }
 
 <!-- Edit Category Header -->
-<div class="products-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h2 class="products-title">
-                <i class="fas fa-edit me-3"></i>
-                Edit Category
-            </h2>
-            <p class="products-subtitle">Update category information</p>
-        </div>
-        <div class="products-actions">
-            <a href="@Url.Action("Index", "Categories", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
-                <i class="fas fa-arrow-left me-2"></i>Back to Categories
-            </a>
-        </div>
-    </div>
+<div class="d-flex justify-content-end mb-4">
+    <a href="@Url.Action("Index", "Categories", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Categories
+    </a>
 </div>
 
 <!-- Edit Category Form -->
@@ -129,7 +118,7 @@
                 <div class="category-preview">
                     <h6 class="text-muted mb-3">Category Preview</h6>
                     <div class="preview-category" id="categoryPreview">
-                        <div class="preview-color" style="background-color: @(Model.Color ?? "#008080");"></div>
+                        <div class="preview-color" style="background-color: @(Model.Color ?? "#0aa2a2");"></div>
                         <div class="preview-content">
                             <div class="preview-name" id="previewName">@Model.Name</div>
                             <div class="preview-description" id="previewDescription">@(Model.Description ?? "Category description will appear here")</div>
@@ -148,7 +137,7 @@
             function updateCategoryPreview() {
                 const name = $('#Name').val() || 'Category Name';
                 const description = $('#Description').val() || 'Category description will appear here';
-                const color = $('#Color').val() || '#008080';
+                const color = $('#Color').val() || '#0aa2a2';
 
                 $('#previewName').text(name);
                 $('#previewDescription').text(description);
@@ -224,7 +213,7 @@
         .form-control:focus,
         .form-select:focus {
             border-color: var(--teal-primary);
-            box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
         }
 
         .form-label {

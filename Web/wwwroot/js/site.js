@@ -150,12 +150,12 @@ function initializeCharts() {
         Chart.defaults.plugins.legend.labels.padding = 20;
         
         // Default colors for charts
-        Chart.defaults.elements.bar.backgroundColor = 'rgba(0, 128, 128, 0.8)';
-        Chart.defaults.elements.bar.borderColor = '#008080';
+        Chart.defaults.elements.bar.backgroundColor = 'rgba(10, 162, 162, 0.8)';
+        Chart.defaults.elements.bar.borderColor = '#0aa2a2';
         Chart.defaults.elements.bar.borderWidth = 1;
         
-        Chart.defaults.elements.line.borderColor = '#008080';
-        Chart.defaults.elements.line.backgroundColor = 'rgba(0, 128, 128, 0.1)';
+        Chart.defaults.elements.line.borderColor = '#0aa2a2';
+        Chart.defaults.elements.line.backgroundColor = 'rgba(10, 162, 162, 0.1)';
         Chart.defaults.elements.line.borderWidth = 3;
         Chart.defaults.elements.line.tension = 0.4;
     }

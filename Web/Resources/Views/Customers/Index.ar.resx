@@ -85,6 +85,9 @@
   <data name="TotalRevenue" xml:space="preserve">
     <value>إجمالي الإيرادات</value>
   </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>إجمالي المبيعات</value>
+  </data>
   <data name="CustomersList" xml:space="preserve">
     <value>قائمة العملاء</value>
   </data>

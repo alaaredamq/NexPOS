@@ -102,7 +102,7 @@ body.no-sidebar main {
 .sidebar .nav-link.active {
     background-color: var(--primary-color);
     color: var(--white);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 .sidebar .nav-link i {
@@ -113,6 +113,20 @@ body.no-sidebar main {
 
 .sidebar .nav-text {
     flex: 1;
+}
+
+.sidebar .nav-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--neutral-425);
+    padding: 16px 20px 6px;
+    margin: 0;
+}
+
+.sidebar .nav-section-label:first-child {
+    padding-top: 4px;
 }
 
 /* Sidebar Logo */
@@ -194,7 +208,7 @@ main {
     background-color: var(--primary-dark);
     border-color: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 .btn-outline-primary {
@@ -242,7 +256,7 @@ main {
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
 }
 
 .form-label {
@@ -385,7 +399,7 @@ main {
     padding: 32px;
     color: white;
     margin-bottom: 24px;
-    box-shadow: 0 8px 32px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 8px 32px rgba(10, 162, 162, 0.3);
 }
 
 .welcome-content {
@@ -469,49 +483,45 @@ main {
     color: var(--white);
 }
 
-.stats-icon.revenue-icon {
-    background: var(--gradient-secondary);
-}
-
-.stats-icon.orders-icon {
-    background: var(--gradient-pink);
-}
-
-.stats-icon.customers-icon {
-    background: var(--gradient-info);
-}
-
-.stats-icon.products-icon {
-    background: var(--gradient-green);
-}
-
-/* Additional stats icon colors for various pages */
+/* Stat-tile icons: one teal-and-ink family, varied by tone so cards stay
+   distinguishable at a glance without borrowing unrelated hues. Color is
+   reserved for real status (void/active/inactive below), not decoration. */
+.stats-icon.revenue-icon,
 .stats-icon.sales-icon {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    background: var(--gradient-primary);
 }
 
+.stats-icon.orders-icon,
 .stats-icon.receipts-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--ink) 100%);
 }
 
+.stats-icon.customers-icon,
+.stats-icon.average-icon {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+}
+
+.stats-icon.products-icon,
+.stats-icon.suppliers-icon,
+.stats-icon.categories-icon {
+    background: linear-gradient(135deg, var(--neutral-500) 0%, var(--neutral-700) 100%);
+}
+
+/* Status icons keep dedicated semantic color — this is meaning, not decoration */
 .stats-icon.void-icon {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    background: var(--gradient-danger-alt);
+}
+
+.stats-icon.stock-icon {
+    background: var(--gradient-warning);
 }
 
 .stats-icon.active-icon {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: var(--gradient-success);
 }
 
 .stats-icon.inactive-icon {
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-}
-
-.stats-icon.average-icon {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-}
-
-.stats-icon.suppliers-icon {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, var(--neutral-500) 0%, var(--neutral-600) 100%);
 }
 
 .stats-trend {
@@ -531,6 +541,11 @@ main {
 .stats-trend.neutral {
     background: rgba(108, 117, 125, 0.1);
     color: var(--gray-600);
+}
+
+.stats-trend.negative {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
 }
 
 .stats-trend i {
@@ -577,6 +592,35 @@ main {
     border-bottom: 1px solid var(--gray-200);
     border-radius: 16px 16px 0 0;
     padding: 20px 24px;
+}
+
+/* Nav Tabs (Currency, Users and other management pages using
+   `nav nav-tabs card-header-tabs`) - on-brand replacement for the
+   unstyled Bootstrap default look */
+.nav-tabs {
+    border-bottom: 1px solid var(--border-muted);
+    gap: 0.25rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 8px 8px 0 0;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary-color);
+    background: var(--primary-lighter);
+    isolation: isolate;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    background: var(--primary-lighter);
+    box-shadow: inset 0 -3px 0 var(--primary-color);
 }
 
 /* Chart Controls */
@@ -661,6 +705,24 @@ main {
     font-size: 20px;
     color: white;
     margin-right: 16px;
+}
+
+/* Quick actions are navigation shortcuts, not status indicators - use teal
+   tones (not bg-success/info/warning) so they read as brand, not as status. */
+.quick-action-icon.action-teal {
+    background: var(--gradient-primary);
+}
+
+.quick-action-icon.action-teal-deep {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--ink) 100%);
+}
+
+.quick-action-icon.action-teal-light {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+}
+
+.quick-action-icon.action-neutral {
+    background: linear-gradient(135deg, var(--neutral-500) 0%, var(--neutral-700) 100%);
 }
 
 .quick-action-text h6 {
@@ -785,7 +847,7 @@ main {
     background: var(--gradient-primary-strong);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 .btn-outline-teal {
@@ -807,7 +869,7 @@ main {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
 }
 
 /* POS Header */
@@ -817,7 +879,7 @@ main {
     padding: 24px;
     border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 8px 32px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 8px 32px rgba(10, 162, 162, 0.3);
 }
 
 .pos-title {
@@ -919,7 +981,7 @@ main {
 
 .pos-card-header {
     background: var(--teal-lighter);
-    border-bottom: 1px solid rgba(0, 128, 128, 0.2);
+    border-bottom: 1px solid rgba(10, 162, 162, 0.2);
     border-radius: 16px 16px 0 0;
     padding: 20px 24px;
 }
@@ -951,7 +1013,7 @@ main {
 
 .barcode-section .form-control:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
 }
 
 /* Product Search */
@@ -969,7 +1031,7 @@ main {
 
 .product-search .form-control:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
 }
 
 /* Quick Products */
@@ -991,7 +1053,7 @@ main {
 
 .product-quick-item:hover {
     border-color: var(--teal-primary);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.15);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.15);
     transform: translateY(-2px);
 }
 
@@ -1064,13 +1126,13 @@ main {
     color: inherit;
     text-decoration: none;
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.15);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.15);
 }
 
 .management-action-btn.hovered {
     border-color: var(--teal-primary);
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.15);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.15);
 }
 
 .management-action-btn .action-icon {
@@ -1177,7 +1239,7 @@ main {
     padding: 24px;
     border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 8px 32px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 8px 32px rgba(10, 162, 162, 0.3);
 }
 
 .products-title {
@@ -1262,7 +1324,7 @@ main {
 
 .products-card-header {
     background: var(--teal-lighter);
-    border-bottom: 1px solid rgba(0, 128, 128, 0.2);
+    border-bottom: 1px solid rgba(10, 162, 162, 0.2);
     border-radius: 16px 16px 0 0;
     padding: 20px 24px;
 }
@@ -1334,7 +1396,7 @@ main {
 .dataTables_wrapper .dataTables_length select:focus {
     border-color: var(--teal-primary);
     outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.15);
 }
 
 .dataTables_wrapper .dataTables_filter input {
@@ -1350,7 +1412,7 @@ main {
 
 .dataTables_wrapper .dataTables_filter input:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
     outline: none;
 }
 
@@ -1577,7 +1639,7 @@ table.dataTable .btn-outline-danger:hover {
     background-color: var(--teal-primary);
     border-color: var(--teal-primary);
     color: white;
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
 }
 
 .btn-outline-danger {
@@ -1665,21 +1727,21 @@ table.dataTable .btn-outline-danger:hover {
     transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 128, 128, 0.2);
+    box-shadow: 0 2px 8px rgba(10, 162, 162, 0.2);
 }
 
 .btn-pos-action:hover {
     background: var(--gradient-primary-strong);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 .btn-pos-action:active,
 .btn-pos-action:focus {
     background: var(--gradient-primary-strong);
     color: white;
-    box-shadow: 0 2px 8px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 2px 8px rgba(10, 162, 162, 0.3);
     transform: translateY(0);
 }
 
@@ -1710,7 +1772,7 @@ table.dataTable .btn-outline-danger:hover {
     background: var(--primary-lighter);
     border-color: var(--primary-color);
     color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.15);
 }
 
 .btn-header-action i {
@@ -1980,7 +2042,7 @@ table.dataTable .btn-outline-danger:hover {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid rgba(0, 128, 128, 0.3);
+    border: 3px solid rgba(10, 162, 162, 0.3);
     border-radius: 50%;
     border-top-color: var(--primary-color);
     animation: spin 1s ease-in-out infinite;
@@ -2018,8 +2080,8 @@ table.dataTable .btn-outline-danger:hover {
 
 .select2-container--default .select2-selection--single:focus,
 .select2-container--default.select2-container--open .select2-selection--single {
-    border-color: var(--teal-primary, #008080);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    border-color: var(--teal-primary, #0aa2a2);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
     outline: 0;
 }
 
@@ -2082,8 +2144,8 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 .select2-container--default .select2-search--dropdown .select2-search__field:focus {
-    border-color: var(--teal-primary, #008080);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    border-color: var(--teal-primary, #0aa2a2);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
     outline: 0;
 }
 
@@ -2094,17 +2156,17 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: var(--teal-primary, #008080);
+    background-color: var(--teal-primary, #0aa2a2);
     color: #fff;
 }
 
 .select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: rgba(0, 128, 128, 0.1);
-    color: var(--teal-primary, #008080);
+    background-color: rgba(10, 162, 162, 0.1);
+    color: var(--teal-primary, #0aa2a2);
 }
 
 .select2-container--default .select2-results__option[aria-selected=true]:hover {
-    background-color: var(--teal-primary, #008080);
+    background-color: var(--teal-primary, #0aa2a2);
     color: #fff;
 }
 

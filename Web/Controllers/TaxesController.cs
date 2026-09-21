@@ -7,7 +7,7 @@ using Web.Helpers;
 namespace Web.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/sales-taxes")]
 [RequirePermission(PermissionHelper.Permissions.Tax_View)]
 public class TaxesController : ControllerBase
 {

@@ -109,11 +109,14 @@
   <data name="AdminUsername" xml:space="preserve">
     <value>Username: admin</value>
   </data>
+  <data name="AdminPin" xml:space="preserve">
+    <value>PIN: 0000 (must be changed on first login)</value>
+  </data>
   <data name="AdminPassword" xml:space="preserve">
     <value>Password: admin123</value>
   </data>
   <data name="Copyright" xml:space="preserve">
-    <value>© 2025 POS System. All rights reserved.</value>
+    <value>NexPos. All rights reserved.</value>
   </data>
 </root>
 

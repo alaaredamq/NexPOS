@@ -85,6 +85,9 @@
   <data name="TotalProducts" xml:space="preserve">
     <value>Total Products</value>
   </data>
+  <data name="InAllCategories" xml:space="preserve">
+    <value>In all categories</value>
+  </data>
   <data name="CategoriesList" xml:space="preserve">
     <value>Categories List</value>
   </data>

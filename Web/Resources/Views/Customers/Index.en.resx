@@ -85,6 +85,9 @@
   <data name="TotalRevenue" xml:space="preserve">
     <value>Total Revenue</value>
   </data>
+  <data name="TotalSales" xml:space="preserve">
+    <value>Total sales</value>
+  </data>
   <data name="CustomersList" xml:space="preserve">
     <value>Customers List</value>
   </data>

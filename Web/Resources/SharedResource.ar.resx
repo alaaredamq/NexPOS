@@ -700,6 +700,18 @@
   <data name="CashDrawer" xml:space="preserve">
     <value>درج النقد</value>
   </data>
+  <data name="NavSectionSales" xml:space="preserve">
+    <value>المبيعات</value>
+  </data>
+  <data name="NavSectionCatalog" xml:space="preserve">
+    <value>الكتالوج والعملاء</value>
+  </data>
+  <data name="NavSectionInsights" xml:space="preserve">
+    <value>التحليلات</value>
+  </data>
+  <data name="NavSectionAdmin" xml:space="preserve">
+    <value>الإدارة</value>
+  </data>
   <data name="Open" xml:space="preserve">
     <value>فتح</value>
   </data>

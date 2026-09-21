@@ -1,6 +1,9 @@
 @{
     ViewData["Title"] = Localizer["Dashboard"].Value;
     ViewData["Subtitle"] = Localizer["Overview"].Value;
+
+    string TrendClass(decimal change) => change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
+    string TrendIcon(decimal change) => change > 0 ? "fa-arrow-up" : change < 0 ? "fa-arrow-down" : "fa-minus";
 }
 
 <!-- Welcome Header -->
@@ -31,9 +34,9 @@
                 <div class="stats-icon revenue-icon">
                     <i class="fas fa-dollar-sign"></i>
                 </div>
-                <div class="stats-trend positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+12.5%</span>
+                <div class="stats-trend @TrendClass((decimal)ViewBag.Stats.TotalSalesChange)">
+                    <i class="fas @TrendIcon((decimal)ViewBag.Stats.TotalSalesChange)"></i>
+                    <span>@ViewBag.Stats.TotalSalesChange.ToString("+0.0;-0.0;0")%</span>
                 </div>
             </div>
             <div class="stats-content">
@@ -49,9 +52,9 @@
                 <div class="stats-icon orders-icon">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
-                <div class="stats-trend positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+8.2%</span>
+                <div class="stats-trend @TrendClass((decimal)ViewBag.Stats.TotalOrdersChange)">
+                    <i class="fas @TrendIcon((decimal)ViewBag.Stats.TotalOrdersChange)"></i>
+                    <span>@ViewBag.Stats.TotalOrdersChange.ToString("+0.0;-0.0;0")%</span>
                 </div>
             </div>
             <div class="stats-content">
@@ -67,9 +70,9 @@
                 <div class="stats-icon customers-icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <div class="stats-trend positive">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>+5.7%</span>
+                <div class="stats-trend @TrendClass((decimal)ViewBag.Stats.TotalCustomersChange)">
+                    <i class="fas @TrendIcon((decimal)ViewBag.Stats.TotalCustomersChange)"></i>
+                    <span>@ViewBag.Stats.TotalCustomersChange.ToString("+0.0;-0.0;0")%</span>
                 </div>
             </div>
             <div class="stats-content">
@@ -85,9 +88,9 @@
                 <div class="stats-icon products-icon">
                     <i class="fas fa-box"></i>
                 </div>
-                <div class="stats-trend neutral">
-                    <i class="fas fa-minus"></i>
-                    <span>0%</span>
+                <div class="stats-trend @TrendClass((decimal)ViewBag.Stats.TotalProductsChange)">
+                    <i class="fas @TrendIcon((decimal)ViewBag.Stats.TotalProductsChange)"></i>
+                    <span>@ViewBag.Stats.TotalProductsChange.ToString("+0.0;-0.0;0")%</span>
                 </div>
             </div>
             <div class="stats-content">
@@ -129,11 +132,13 @@
                     @Localizer["TopCategories"]
                 </h5>
             </div>
-            <div class="card-body" style="position: relative; height: 300px;">
-                <canvas id="productsChart"></canvas>
-                <div class="chart-legend mt-3">
+            <div class="card-body">
+                <div style="position: relative; height: 200px;">
+                    <canvas id="productsChart"></canvas>
+                </div>
+                <div class="chart-legend mt-3" style="max-height: 140px; overflow-y: auto;">
                     <div class="legend-item">
-                        <span class="legend-color" style="background-color: #008080;"></span>
+                        <span class="legend-color" style="background-color: #0aa2a2;"></span>
                         <span class="legend-label">@Localizer["Electronics"]</span>
                         <span class="legend-value">30%</span>
                     </div>
@@ -188,7 +193,7 @@
                         </div>
                     <div class="col-md-3 col-sm-6">
                         <a href="@Url.ActionWithCurrentLanguage("Index", "Products")" class="quick-action-btn">
-                            <div class="quick-action-icon bg-success">
+                            <div class="quick-action-icon action-teal-deep">
                                 <i class="fas fa-plus-circle"></i>
                             </div>
                             <div class="quick-action-text">
@@ -199,7 +204,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <a href="@Url.ActionWithCurrentLanguage("Index", "Customers")" class="quick-action-btn">
-                            <div class="quick-action-icon bg-info">
+                            <div class="quick-action-icon action-teal-light">
                                 <i class="fas fa-user-plus"></i>
                             </div>
                             <div class="quick-action-text">
@@ -210,7 +215,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6">
                         <a href="@Url.ActionWithCurrentLanguage("Index", "Reports")" class="quick-action-btn">
-                            <div class="quick-action-icon bg-warning">
+                            <div class="quick-action-icon action-neutral">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
                             <div class="quick-action-text">

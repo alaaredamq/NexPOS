@@ -7,23 +7,13 @@
     var stats = ViewBag.Stats as Web.Controllers.UserStatsDto;
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header">
-            <div class="page-title">
-                <h3><i class="fas fa-users-cog me-2"></i>@Localizer["UserManagement"]</h3>
-                <p class="text-muted">@Localizer["ManageSystemUsersRolesAndPermissions"]</p>
-            </div>
-            <div class="page-actions">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                    <i class="fas fa-user-plus me-1"></i>@Localizer["AddUser"]
-                </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">
-                    <i class="fas fa-plus-circle me-1"></i>@Localizer["AddRole"]
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="fas fa-user-plus me-1"></i>@Localizer["AddUser"]
+    </button>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+        <i class="fas fa-plus-circle me-1"></i>@Localizer["AddRole"]
+    </button>
 </div>
 
 <!-- User Stats Cards -->
@@ -555,6 +545,10 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link href="~/css/pages/users.css" rel="stylesheet" asp-append-version="true" />
+}
 
 @section Scripts {
     <script>

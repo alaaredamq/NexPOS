@@ -4,36 +4,26 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/receipts.css" />
+    <link rel="stylesheet" href="~/css/receipts.css" asp-append-version="true" />
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header">
-            <div class="page-title">
-                <h3><i class="fas fa-shopping-cart me-2"></i>@Localizer["OrdersManagement"]</h3>
-                <p class="text-muted">@Localizer["ManageCustomerOrders"]</p>
-            </div>
-            <div class="page-actions">
-                <button type="button" class="btn btn-primary" onclick="refreshOrdersTable()">
-                    <i class="fas fa-sync-alt me-1"></i>@Localizer["Refresh"]
-                </button>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-filter me-1"></i>@Localizer["Filter"]
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Pending')">@Localizer["PendingOrders"]</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Processing')">@Localizer["Processing"]</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Shipped')">@Localizer["Shipped"]</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Delivered')">@Localizer["Delivered"]</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="filterByStatus('Cancelled')">@Localizer["Cancelled"]</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="clearFilters()">@Localizer["ClearFilters"]</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+<div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+    <button type="button" class="btn btn-primary" onclick="refreshOrdersTable()">
+        <i class="fas fa-sync-alt me-1"></i>@Localizer["Refresh"]
+    </button>
+    <div class="btn-group">
+        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-filter me-1"></i>@Localizer["Filter"]
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="filterByStatus('Pending')">@Localizer["PendingOrders"]</a></li>
+            <li><a class="dropdown-item" href="#" onclick="filterByStatus('Processing')">@Localizer["Processing"]</a></li>
+            <li><a class="dropdown-item" href="#" onclick="filterByStatus('Shipped')">@Localizer["Shipped"]</a></li>
+            <li><a class="dropdown-item" href="#" onclick="filterByStatus('Delivered')">@Localizer["Delivered"]</a></li>
+            <li><a class="dropdown-item" href="#" onclick="filterByStatus('Cancelled')">@Localizer["Cancelled"]</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" onclick="clearFilters()">@Localizer["ClearFilters"]</a></li>
+        </ul>
     </div>
 </div>
 
@@ -240,9 +230,6 @@
 }
 
 @section Scripts {
-    <script src="~/lib/datatables/js/jquery.dataTables.min.js"></script>
-    <script src="~/lib/datatables/js/dataTables.bootstrap5.min.js"></script>
-    <link href="~/lib/datatables/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
     
     <script>
         // Pass localized strings and URLs to the external JS file

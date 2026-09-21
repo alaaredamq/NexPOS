@@ -27,12 +27,51 @@ public class TaxController : BaseController
     }
 
     [HttpGet("api/taxes")]
-    public async Task<IActionResult> GetAllTaxes()
+    public async Task<IActionResult> GetAllTaxes(int start = 0, int length = 10, string searchValue = "", string sortColumn = "name", string sortDirection = "asc")
     {
         try
         {
             var taxes = await _taxService.GetAllTaxesAsync();
-            return Json(taxes);
+
+            if (!string.IsNullOrEmpty(searchValue))
+            {
+                taxes = taxes.Where(t =>
+                    t.Name.Contains(searchValue, StringComparison.OrdinalIgnoreCase) ||
+                    (t.Category?.Name?.Contains(searchValue, StringComparison.OrdinalIgnoreCase) ?? false)
+                ).ToList();
+            }
+
+            var recordsTotal = taxes.Count;
+
+            IEnumerable<TaxRate> ordered = sortColumn?.ToLowerInvariant() switch
+            {
+                "rate" => sortDirection == "desc" ? taxes.OrderByDescending(t => t.Rate) : taxes.OrderBy(t => t.Rate),
+                "type" => sortDirection == "desc" ? taxes.OrderByDescending(t => t.Type) : taxes.OrderBy(t => t.Type),
+                "isdefault" => sortDirection == "desc" ? taxes.OrderByDescending(t => t.IsDefault) : taxes.OrderBy(t => t.IsDefault),
+                "isactive" => sortDirection == "desc" ? taxes.OrderByDescending(t => t.IsActive) : taxes.OrderBy(t => t.IsActive),
+                _ => sortDirection == "desc" ? taxes.OrderByDescending(t => t.Name) : taxes.OrderBy(t => t.Name)
+            };
+
+            var paged = ordered.Skip(start).Take(length);
+
+            return Json(new
+            {
+                draw = Request.Query["draw"].FirstOrDefault(),
+                recordsTotal,
+                recordsFiltered = recordsTotal,
+                data = paged.Select(t => new
+                {
+                    id = t.Id,
+                    name = t.Name,
+                    rate = t.Rate,
+                    type = (int)t.Type,
+                    isDefault = t.IsDefault,
+                    isActive = t.IsActive,
+                    effectiveFrom = t.EffectiveFrom,
+                    effectiveTo = t.EffectiveTo,
+                    category = t.Category?.Name ?? "-"
+                })
+            });
         }
         catch (Exception ex)
         {

@@ -47,6 +47,7 @@ public class MainProductsItemComponent : ViewComponent
                         Currency = pdo.Product.Currency,
                         IsActive = pdo.Product.IsActive,
                         Unit = pdo.Product.Unit, // Include unit property
+                        Image = pdo.Product.Image,
                         CreatedAt = pdo.Product.CreatedAt,
                         UpdatedAt = pdo.Product.UpdatedAt,
                         // Apply supplier discount rate
@@ -80,6 +81,7 @@ public class MainProductsItemComponent : ViewComponent
                         Currency = p.Currency,
                         IsActive = p.IsActive,
                         Unit = p.Unit, // Include unit property
+                        Image = p.Image,
                         CreatedAt = p.CreatedAt,
                         UpdatedAt = p.UpdatedAt,
                         // Apply supplier discount rate
@@ -114,6 +116,7 @@ public class MainProductsItemComponent : ViewComponent
                         Currency = p.Currency,
                         IsActive = p.IsActive,
                         Unit = p.Unit, // Include unit property
+                        Image = p.Image,
                         CreatedAt = p.CreatedAt,
                         UpdatedAt = p.UpdatedAt,
                         // Apply supplier discount rate

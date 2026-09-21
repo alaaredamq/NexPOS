@@ -36,6 +36,7 @@ public class ErpDbContext : DbContext
         public DbSet<UrlRoute> UrlRoutes { get; set; }
         public DbSet<ExchangeRate> ExchangeRates { get; set; }
         public DbSet<Tax> Taxes { get; set; }
+        public DbSet<TaxRate> TaxRates { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -68,6 +69,12 @@ public class ErpDbContext : DbContext
             .HasOne(t => t.Supplier)
             .WithMany()
             .HasForeignKey(t => t.SupplierId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TaxRate>()
+            .HasOne(t => t.Category)
+            .WithMany()
+            .HasForeignKey(t => t.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Discount>()

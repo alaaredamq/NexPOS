@@ -21,6 +21,12 @@
          data-single-product-id="@(product.SingleProductId ?? 0)"
          data-product-unit="@(product.Unit ?? "piece")">
         
+        @if (!string.IsNullOrEmpty(product.Image))
+        {
+            <div class="product-image">
+                <img src="@product.Image" alt="@product.Name" loading="lazy" />
+            </div>
+        }
         <div class="product-info">
             <div class="product-name">
                 @product.Name

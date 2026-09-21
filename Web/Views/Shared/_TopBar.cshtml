@@ -74,7 +74,7 @@
                     <li><h6 class="dropdown-header">@SharedLocalizer["Account"]</h6></li>
                     <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Profile", "Account")"><i class="fas fa-user me-2"></i>@SharedLocalizer["Profile"]</a></li>
                     <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("ChangePassword", "Account")"><i class="fas fa-key me-2"></i>@SharedLocalizer["ChangePassword"]</a></li>
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>@SharedLocalizer["Settings"]</a></li>
+                    <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Index", "Settings")"><i class="fas fa-cog me-2"></i>@SharedLocalizer["Settings"]</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">

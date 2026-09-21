@@ -55,6 +55,7 @@ public class AccountController : BaseController
     {
         if (!ModelState.IsValid)
         {
+            model.Pin = string.Empty;
             return View(model);
         }
 
@@ -132,12 +133,14 @@ public class AccountController : BaseController
             }
 
             ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Invalid username or PIN");
+            model.Pin = string.Empty;
             return View(model);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Login error for user: {Username}", model.Username);
             ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
+            model.Pin = string.Empty;
             return View(model);
         }
     }
@@ -193,6 +196,7 @@ public class AccountController : BaseController
 
         if (!ModelState.IsValid)
         {
+            ClearPins(model);
             return View(model);
         }
 
@@ -208,12 +212,14 @@ public class AccountController : BaseController
             if (user == null || !await _userService.ValidatePinAsync(user, model.CurrentPin))
             {
                 ModelState.AddModelError(nameof(model.CurrentPin), "Current PIN is incorrect");
+                ClearPins(model);
                 return View(model);
             }
 
             if (model.NewPin == model.CurrentPin)
             {
                 ModelState.AddModelError(nameof(model.NewPin), "New PIN must be different from your current PIN");
+                ClearPins(model);
                 return View(model);
             }
 
@@ -228,7 +234,15 @@ public class AccountController : BaseController
             ModelState.AddModelError(string.Empty, "An error occurred while updating your PIN. Please try again.");
         }
 
+        ClearPins(model);
         return View(model);
+    }
+
+    private static void ClearPins(ChangePasswordViewModel model)
+    {
+        model.CurrentPin = string.Empty;
+        model.NewPin = string.Empty;
+        model.ConfirmPin = string.Empty;
     }
 
     [HttpGet]
@@ -255,6 +269,8 @@ public class AccountController : BaseController
 
         if (!ModelState.IsValid)
         {
+            model.NewPin = string.Empty;
+            model.ConfirmPin = string.Empty;
             return View(model);
         }
 
@@ -268,6 +284,8 @@ public class AccountController : BaseController
         if (user != null && await _userService.ValidatePinAsync(user, model.NewPin))
         {
             ModelState.AddModelError(nameof(model.NewPin), "Please choose a PIN different from your current one");
+            model.NewPin = string.Empty;
+            model.ConfirmPin = string.Empty;
             return View(model);
         }
 

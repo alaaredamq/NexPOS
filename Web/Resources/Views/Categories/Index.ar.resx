@@ -85,6 +85,9 @@
   <data name="TotalProducts" xml:space="preserve">
     <value>إجمالي المنتجات</value>
   </data>
+  <data name="InAllCategories" xml:space="preserve">
+    <value>في جميع الفئات</value>
+  </data>
   <data name="CategoriesList" xml:space="preserve">
     <value>قائمة الفئات</value>
   </data>

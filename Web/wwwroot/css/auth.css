@@ -14,7 +14,7 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--success-color) 50%, var(--info-color) 100%);
+    background: var(--auth-gradient);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
@@ -27,10 +27,10 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(32, 201, 151, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(23, 162, 184, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(0, 128, 128, 0.05) 0%, transparent 50%);
+    background:
+        var(--auth-highlight-1),
+        var(--auth-highlight-2),
+        var(--auth-highlight-3);
     z-index: -1;
 }
 
@@ -58,7 +58,7 @@ body::before {
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(0, 128, 128, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
     outline: none;
     transform: translateY(-1px);
 }
@@ -80,18 +80,18 @@ body::before {
     font-size: 16px;
     font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 128, 128, 0.4);
+    box-shadow: 0 6px 20px rgba(10, 162, 162, 0.4);
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
 }
 
 .btn-primary:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 2px 8px rgba(10, 162, 162, 0.3);
 }
 
 /* =====================================================
@@ -203,7 +203,7 @@ body::before {
     background: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 128, 128, 0.3);
+    box-shadow: 0 4px 12px rgba(10, 162, 162, 0.3);
 }
 
 /* =====================================================
@@ -475,7 +475,7 @@ body::before {
 }
 
 .bg-primary.bg-opacity-10 {
-    background-color: rgba(0, 128, 128, 0.1) !important;
+    background: rgba(10, 162, 162, 0.1) !important;
 }
 
 .bg-white.bg-opacity-20 {

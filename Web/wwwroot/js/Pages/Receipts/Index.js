@@ -69,7 +69,7 @@
                             labels: Object.keys(stats.paymentMethodBreakdown || {}),
                             datasets: [{
                                 data: Object.values(stats.paymentMethodBreakdown || {}),
-                                backgroundColor: ['#008080', '#20c997', '#17a2b8', '#ffc107', '#dc3545']
+                                backgroundColor: ['#0aa2a2', '#20c997', '#17a2b8', '#ffc107', '#dc3545']
                             }]
                         },
                         options: {
@@ -89,8 +89,8 @@
                             datasets: [{
                                 label: 'Daily Sales',
                                 data: Object.values(stats.dailySales || {}),
-                                borderColor: '#008080',
-                                backgroundColor: 'rgba(0, 128, 128, 0.1)',
+                                borderColor: '#0aa2a2',
+                                backgroundColor: 'rgba(10, 162, 162, 0.1)',
                                 tension: 0.4,
                                 fill: true
                             }]

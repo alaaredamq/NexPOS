@@ -300,7 +300,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppSettings", (string)null);
+                    b.ToTable("AppSettings");
 
                     b.HasData(
                         new
@@ -360,7 +360,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("CodeLists", (string)null);
+                    b.ToTable("CodeLists");
                 });
 
             modelBuilder.Entity("Core.Entities.Configuration.CodeListValue", b =>
@@ -403,7 +403,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CodeListId");
 
-                    b.ToTable("CodeListValues", (string)null);
+                    b.ToTable("CodeListValues");
                 });
 
             modelBuilder.Entity("Core.Entities.Configuration.StoreSettings", b =>
@@ -520,7 +520,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StoreSettings", (string)null);
+                    b.ToTable("StoreSettings");
                 });
 
             modelBuilder.Entity("Core.Entities.Configuration.SystemSettings", b =>
@@ -642,7 +642,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("Pattern", "IsActive");
 
-                    b.ToTable("UrlRoutes", (string)null);
+                    b.ToTable("UrlRoutes");
 
                     b.HasData(
                         new
@@ -853,7 +853,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("Core.Entities.Inventory.CartItem", b =>
@@ -898,7 +898,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("Core.Entities.Inventory.CartSession", b =>
@@ -944,7 +944,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("SessionId")
                         .IsUnique();
 
-                    b.ToTable("CartSessions", (string)null);
+                    b.ToTable("CartSessions");
                 });
 
             modelBuilder.Entity("Core.Entities.Inventory.CartSessionItem", b =>
@@ -983,7 +983,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartSessionItems", (string)null);
+                    b.ToTable("CartSessionItems");
                 });
 
             modelBuilder.Entity("Core.Entities.Inventory.CustomerCart", b =>
@@ -1021,7 +1021,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("CustomerCarts", (string)null);
+                    b.ToTable("CustomerCarts");
                 });
 
             modelBuilder.Entity("Core.Entities.Logging.AuditLog", b =>
@@ -1319,7 +1319,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Core.Entities.Products.ProductCategory", b =>
@@ -1348,7 +1348,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductCategories", (string)null);
+                    b.ToTable("ProductCategories");
 
                     b.HasData(
                         new
@@ -1468,7 +1468,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CurrencyId");
 
-                    b.ToTable("Suppliers", (string)null);
+                    b.ToTable("Suppliers");
 
                     b.HasData(
                         new
@@ -1489,6 +1489,70 @@ namespace Infrastructure.Migrations
                             Phone = "12345678",
                             PostalCode = "1100"
                         });
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.TaxRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("ApplyToAllProducts")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInclusive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TaxCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("TaxRates");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.CashDrawerSession", b =>
@@ -1566,7 +1630,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CashDrawerSession", (string)null);
+                    b.ToTable("CashDrawerSession");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.CashDrop", b =>
@@ -1610,7 +1674,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CashDrop", (string)null);
+                    b.ToTable("CashDrop");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.Currency", b =>
@@ -1650,7 +1714,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Currencies", (string)null);
+                    b.ToTable("Currencies");
 
                     b.HasData(
                         new
@@ -1725,7 +1789,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Discounts", (string)null);
+                    b.ToTable("Discounts");
 
                     b.HasData(
                         new
@@ -1781,7 +1845,7 @@ namespace Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[SupplierId] IS NOT NULL");
 
-                    b.ToTable("ExchangeRates", (string)null);
+                    b.ToTable("ExchangeRates");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.Order", b =>
@@ -1835,7 +1899,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.PaymentMethod", b =>
@@ -1872,7 +1936,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("PaymentMethods", (string)null);
+                    b.ToTable("PaymentMethods");
 
                     b.HasData(
                         new
@@ -2177,7 +2241,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Taxes", (string)null);
+                    b.ToTable("Taxes");
 
                     b.HasData(
                         new
@@ -2246,7 +2310,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
 
                     b.HasData(
                         new
@@ -2311,7 +2375,7 @@ namespace Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Resource] IS NOT NULL");
 
-                    b.ToTable("Permissions", (string)null);
+                    b.ToTable("Permissions");
 
                     b.HasData(
                         new
@@ -2494,7 +2558,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -2569,7 +2633,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("RoleId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("RolePermissions", (string)null);
+                    b.ToTable("RolePermissions");
 
                     b.HasData(
                         new
@@ -2755,7 +2819,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
 
                     b.HasData(
                         new
@@ -2809,7 +2873,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("UserPermissions", (string)null);
+                    b.ToTable("UserPermissions");
                 });
 
             modelBuilder.Entity("Core.Entities.Users.UserSession", b =>
@@ -2864,7 +2928,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserSessions", (string)null);
+                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("Core.Entities.Configuration.CodeListValue", b =>
@@ -3054,6 +3118,16 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.TaxRate", b =>
+                {
+                    b.HasOne("Core.Entities.Products.ProductCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("Core.Entities.Sales.CashDrawerSession", b =>

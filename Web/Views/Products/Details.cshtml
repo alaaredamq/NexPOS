@@ -6,24 +6,13 @@
 }
 
 <!-- Product Details Header -->
-<div class="products-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h2 class="products-title">
-                <i class="fas fa-box me-3"></i>
-                Product Details
-            </h2>
-            <p class="products-subtitle">View product information</p>
-        </div>
-        <div class="products-actions">
-            <a href="@Url.Action("Edit", "Products", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal me-2">
-                <i class="fas fa-edit me-2"></i>Edit Product
-            </a>
-            <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-light">
-                <i class="fas fa-arrow-left me-2"></i>Back to Products
-            </a>
-        </div>
-    </div>
+<div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="@Url.Action("Edit", "Products", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
+        <i class="fas fa-edit me-2"></i>Edit Product
+    </a>
+    <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Products
+    </a>
 </div>
 
 <!-- Product Details Content -->

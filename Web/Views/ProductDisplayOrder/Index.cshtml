@@ -6,26 +6,16 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/receipts.css" />
+    <link rel="stylesheet" href="~/css/receipts.css" asp-append-version="true" />
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header">
-            <div class="page-title">
-                <h3><i class="fas fa-sort-amount-down me-2"></i>@Localizer["ProductDisplayOrderManagement"]</h3>
-                <p class="text-muted">@Localizer["ManageWhichProductsAppearOnThePOSMainScreenAndTheirOrder"]</p>
-            </div>
-            <div class="page-actions">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="fas fa-plus me-1"></i>@Localizer["AddProduct"]
-                </button>
-                <button type="button" class="btn btn-success" id="saveOrderBtn">
-                    <i class="fas fa-save me-1"></i>@Localizer["SaveOrder"]
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="fas fa-plus me-1"></i>@Localizer["AddProduct"]
+    </button>
+    <button type="button" class="btn btn-success" id="saveOrderBtn">
+        <i class="fas fa-save me-1"></i>@Localizer["SaveOrder"]
+    </button>
 </div>
 
 <!-- Stats Cards -->
@@ -522,6 +512,6 @@
     }
     
     .sortable-chosen {
-        background-color: rgba(0, 128, 128, 0.1);
+        background-color: rgba(10, 162, 162, 0.1);
     }
 </style>

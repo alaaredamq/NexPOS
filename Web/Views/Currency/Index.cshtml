@@ -3,23 +3,13 @@
     ViewData["Subtitle"] = "Manage currencies and exchange rates";
 }
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header">
-            <div class="page-title">
-                <h3><i class="fas fa-coins me-2"></i>Currency Management</h3>
-                <p class="text-muted">Manage system currencies and exchange rates for Lebanese market</p>
-            </div>
-            <div class="page-actions">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCurrencyModal">
-                    <i class="fas fa-plus me-1"></i>Add Currency
-                </button>
-                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addExchangeRateModal">
-                    <i class="fas fa-exchange-alt me-1"></i>Add Exchange Rate
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCurrencyModal">
+        <i class="fas fa-plus me-1"></i>Add Currency
+    </button>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addExchangeRateModal">
+        <i class="fas fa-exchange-alt me-1"></i>Add Exchange Rate
+    </button>
 </div>
 
 <!-- Currency Stats Cards -->
@@ -134,44 +124,7 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="currency-code">LBP</span></td>
-                                        <td>Lebanese Pound</td>
-                                        <td>ل.ل</td>
-                                        <td><span class="badge bg-success">Yes</span></td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>2024-01-01</td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="currency-code">USD</span></td>
-                                        <td>US Dollar</td>
-                                        <td>$</td>
-                                        <td><span class="badge bg-secondary">No</span></td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>2024-01-01</td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -400,7 +353,8 @@
         window.currencyUrls = {
             createUrl: '@Url.Action("Create", "Currency")',
             createRateUrl: '@Url.Action("CreateRate", "Currency")',
-            getSettingsUrl: '@Url.Action("GetSettings", "Currency")'
+            getSettingsUrl: '@Url.Action("GetSettings", "Currency")',
+            getAllUrl: '@Url.Action("GetAll", "Currency")'
         };
     </script>
     <script src="~/js/pages/Currency/Index.js"></script>
