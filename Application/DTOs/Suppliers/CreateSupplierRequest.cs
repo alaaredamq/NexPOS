@@ -34,12 +34,6 @@ public class CreateSupplierRequest
     [Required]
     public int CurrencyId { get; set; }
 
-    [Range(0, double.MaxValue, ErrorMessage = "Debt amount must be positive")]
-    public decimal DebtToSupplier { get; set; } = 0; // Money I owe the supplier
-
-    [Range(0, double.MaxValue, ErrorMessage = "Debt amount must be positive")]
-    public decimal DebtFromSupplier { get; set; } = 0; // Money the supplier owes me
-
     public bool IsActive { get; set; } = true;
 }
 

@@ -247,7 +247,9 @@ public class CashDrawerService : ICashDrawerService
         var report = new ZReport
         {
             SessionId = session.Id,
-            CashierName = $"{session.User.FirstName} {session.User.LastName}",
+            CashierName = session.User != null
+                ? $"{session.User.FirstName} {session.User.LastName}".Trim()
+                : string.Empty,
             OpenedAt = session.OpenedAt,
             ClosedAt = session.ClosedAt!.Value,
             OpeningCash = session.OpeningCash,
@@ -270,7 +272,9 @@ public class CashDrawerService : ICashDrawerService
                 OrderId = o.Id,
                 OrderNumber = $"ORD-{o.Id:D6}",
                 OrderDate = o.OrderDate,
-                CustomerName = $"{o.Customer.FirstName} {o.Customer.LastName}".Trim(),
+                CustomerName = o.Customer != null
+                    ? $"{o.Customer.FirstName} {o.Customer.LastName}".Trim()
+                    : "Walk-in",
                 TotalAmount = o.TotalAmount,
                 PaymentMethod = "Cash" // TODO: Get actual payment method
             }).ToList(),

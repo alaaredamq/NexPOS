@@ -13,6 +13,12 @@ public interface IProductRepository : IRepository<Product>
     Task<List<Product>> GetActiveProductsAsync();
 
     /// <summary>
+    /// Active products that are not yet on the POS display order, filtered by name/barcode and paged,
+    /// so the "add product" picker never has to load the whole catalog.
+    /// </summary>
+    Task<List<Product>> SearchAvailableForDisplayOrderAsync(string? term, int skip, int take);
+
+    /// <summary>
     /// Atomically checks and decrements stock in a single database UPDATE (WHERE StockQuantity >= quantity),
     /// so two concurrent sales of the same product can't both pass a stale in-memory stock check.
     /// Returns false if the product doesn't exist or has insufficient stock.

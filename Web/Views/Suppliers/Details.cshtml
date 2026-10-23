@@ -1,9 +1,18 @@
 @model Core.Entities.Products.Supplier
+@using Core.Enum
+@using Core.Entities.Products
 
 @{
     ViewData["Title"] = Localizer["SupplierDetails"];
     ViewData["Subtitle"] = Model.Name;
+    var netDebt = Model.Balance;
+    var debtToSupplier = netDebt > 0 ? netDebt : 0m;
+    var debtFromSupplier = netDebt < 0 ? -netDebt : 0m;
+    var currencyNotation = Model.Currency?.Notation;
+    var debtTransactions = ViewBag.DebtTransactions as List<SupplierDebtTransaction> ?? new List<SupplierDebtTransaction>();
 }
+
+@Html.AntiForgeryToken()
 
 <!-- Supplier Details Header -->
 <div class="d-flex justify-content-end gap-2 mb-4">
@@ -118,22 +127,22 @@
 
         <!-- Debt Information Card -->
         <div class="products-table-card mt-4">
-            <div class="products-card-header">
+            <div class="products-card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-money-bill-wave me-2"></i>
                     @Localizer["DebtInformation"]
                 </h5>
+                <button type="button" class="btn btn-sm btn-teal" onclick="openAddDebtTransaction(@Model.Id)">
+                    <i class="fas fa-plus me-1"></i>@Localizer["AddTransaction"]
+                </button>
             </div>
             <div class="products-card-body">
-                @{
-                    var netDebt = Model.DebtToSupplier - Model.DebtFromSupplier;
-                }
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="detail-label">@Localizer["DebtToSupplier"]</label>
                         <p class="detail-value">
                             <span class="text-danger fw-bold">
-                                <i class="fas fa-arrow-up me-2"></i>@FormatCurrency(Model.DebtToSupplier, Model.Currency?.Notation)
+                                <i class="fas fa-arrow-up me-2"></i>@FormatCurrency(debtToSupplier, currencyNotation)
                             </span>
                         </p>
                     </div>
@@ -141,7 +150,7 @@
                         <label class="detail-label">@Localizer["DebtFromSupplier"]</label>
                         <p class="detail-value">
                             <span class="text-success fw-bold">
-                                <i class="fas fa-arrow-down me-2"></i>@FormatCurrency(Model.DebtFromSupplier, Model.Currency?.Notation)
+                                <i class="fas fa-arrow-down me-2"></i>@FormatCurrency(debtFromSupplier, currencyNotation)
                             </span>
                         </p>
                     </div>
@@ -190,6 +199,54 @@
                         </div>
                     </div>
                 </div>
+
+                @if (debtTransactions.Any())
+                {
+                    <hr>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@Localizer["Date"]</th>
+                                    <th>@Localizer["Type"]</th>
+                                    <th>@Localizer["Note"]</th>
+                                    <th class="text-end">@Localizer["Amount"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in debtTransactions.Take(20))
+                                {
+                                    <tr>
+                                        <td>@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>
+                                            @if (tx.Type == SupplierDebtTransactionType.Purchase)
+                                            {
+                                                <span class="badge bg-info">@Localizer["TypePurchase"]</span>
+                                            }
+                                            else if (tx.Type == SupplierDebtTransactionType.Payment)
+                                            {
+                                                <span class="badge bg-success">@Localizer["TypePayment"]</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@Localizer["TypeAdjustment"]</span>
+                                            }
+                                        </td>
+                                        <td>@(tx.Note ?? "-")</td>
+                                        @* A positive amount raises what I owe, so it is the "bad" direction (red). *@
+                                        <td class="text-end fw-bold @(tx.Amount > 0 ? "text-danger" : "text-success")">
+                                            @(tx.Amount > 0 ? "+" : "")@FormatCurrency(tx.Amount, currencyNotation)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (debtTransactions.Count > 20)
+                    {
+                        <p class="text-muted text-center mt-2 mb-0"><small>@Localizer["ShowingRecent", debtTransactions.Count]</small></p>
+                    }
+                }
             </div>
         </div>
     </div>
@@ -317,7 +374,22 @@
 }
 
 @section Scripts {
+    <script src="~/js/Pages/Customers/DebtDialog.js" asp-append-version="true"></script>
     <script>
+        function openAddDebtTransaction(supplierId) {
+            window.openDebtTransactionDialog(supplierId, '@Url.Action("AddDebtTransaction", "Suppliers")',
+                () => window.location.reload(), {
+                    idField: 'SupplierId',
+                    directionField: 'IOweMore',
+                    plusTitle: @Json.Serialize(Localizer["DebtDialogPlusTitle"].Value),
+                    plusSub: @Json.Serialize(Localizer["DebtDialogPlusSub"].Value),
+                    minusTitle: @Json.Serialize(Localizer["DebtDialogMinusTitle"].Value),
+                    minusSub: @Json.Serialize(Localizer["DebtDialogMinusSub"].Value),
+                    increaseText: @Json.Serialize(Localizer["DebtDialogIncrease"].Value),
+                    decreaseText: @Json.Serialize(Localizer["DebtDialogDecrease"].Value)
+                });
+        }
+
         function deleteSupplier(id) {
             var confirmMsg = @Json.Serialize(Localizer["DeleteConfirmText"].Value);
 

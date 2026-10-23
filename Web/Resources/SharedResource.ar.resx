@@ -2364,6 +2364,7 @@ Pin_SetNew</value>
   </data>
   <!-- Licensing -->
   <data name="License_Title" xml:space="preserve"><value>الترخيص</value></data>
+  <data name="AuditLog" xml:space="preserve"><value>سجل التدقيق</value></data>
   <data name="License_Manage" xml:space="preserve"><value>إدارة الترخيص</value></data>
   <data name="License_BackToApp" xml:space="preserve"><value>العودة إلى NexPOS</value></data>
   <data name="License_StatusActive" xml:space="preserve"><value>مرخّص</value></data>
@@ -2409,4 +2410,7 @@ Pin_SetNew</value>
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. افتح صفحة الترخيص للتجديد أو التفعيل.</value></data>
+  <data name="Print_Menu" xml:space="preserve"><value>طباعة</value></data>
+  <data name="Print_ReceiptPaper" xml:space="preserve"><value>طباعة على ورق الإيصال</value></data>
+  <data name="Print_DownloadPdf" xml:space="preserve"><value>تنزيل PDF</value></data>
 </root>

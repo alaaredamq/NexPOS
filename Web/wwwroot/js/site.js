@@ -3,6 +3,39 @@
  * Handles common functionality across all pages
  */
 
+/**
+ * In-page replacements for the native confirm()/alert() dialogs. The native ones
+ * are synchronous modal OS dialogs, which freeze focus/input in the Electron shell.
+ *   appConfirm(message, { title, confirmText, danger }) -> Promise<boolean>
+ *   appAlert(message, icon)                             -> Promise
+ */
+window.appConfirm = function(message, opts) {
+    opts = opts || {};
+    var danger = opts.danger !== false;
+    return Swal.fire({
+        title: opts.title || window.i18n.t('alerts.confirmDelete', 'Confirm Delete'),
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: danger ? '#d33' : '#3085d6',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: opts.confirmText || window.i18n.t('alerts.yesDeleteIt', 'Yes, delete it!'),
+        cancelButtonText: window.i18n.t('common.cancel', 'Cancel'),
+        reverseButtons: true
+    }).then(function(result) { return !!result.isConfirmed; });
+};
+
+window.appAlert = function(message, icon) {
+    return Swal.fire({
+        text: String(message == null ? '' : message),
+        icon: icon || 'info',
+        confirmButtonText: window.i18n.t('common.ok', 'OK')
+    });
+};
+
+// Safety net: any stray alert() becomes a non-blocking dialog instead of a native one.
+window.alert = function(message) { window.appAlert(message); };
+
 // One-time wiring (document-level delegated handlers, global config).
 $(document).ready(function() {
     initializeEventHandlers();

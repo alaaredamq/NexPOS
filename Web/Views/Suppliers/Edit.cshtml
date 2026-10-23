@@ -89,29 +89,6 @@
                         </div>
                     </div>
 
-                    <hr class="my-4">
-                    <h6 class="mb-3"><i class="fas fa-money-bill-wave me-2"></i>@Localizer["DebtInformation"]</h6>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="DebtToSupplier" class="form-label">@Localizer["DebtToSupplier"]</label>
-                            <input asp-for="DebtToSupplier" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
-                            <small class="form-text text-muted">@Localizer["AmountOfMoneyYouOweThisSupplier"]</small>
-                            <span asp-validation-for="DebtToSupplier" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label asp-for="DebtFromSupplier" class="form-label">@Localizer["DebtFromSupplier"]</label>
-                            <input asp-for="DebtFromSupplier" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" />
-                            <small class="form-text text-muted">@Localizer["AmountOfMoneySupplierOwesYou"]</small>
-                            <span asp-validation-for="DebtFromSupplier" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    <div class="erp-alert erp-alert-info" id="netDebtDisplay">
-                        <strong>@Localizer["NetDebt"]:</strong> <span id="netDebtAmount">0.00</span>
-                        <span id="netDebtDirection" class="ms-2"></span>
-                    </div>
-
                     <div class="mb-3">
                         <div class="form-check">
                             <input asp-for="IsActive" class="form-check-input" />
@@ -190,36 +167,6 @@
 }
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            function updateNetDebt() {
-                var debtToSupplier = parseFloat($('#DebtToSupplier').val()) || 0;
-                var debtFromSupplier = parseFloat($('#DebtFromSupplier').val()) || 0;
-                var netDebt = debtToSupplier - debtFromSupplier;
-                
-                $('#netDebtAmount').text(Math.abs(netDebt).toFixed(2));
-                
-                var $direction = $('#netDebtDirection');
-                var youOweThem = '@Html.Raw(Localizer["YouOweThem"].Value)';
-                var theyOweYou = '@Html.Raw(Localizer["TheyOweYou"].Value)';
-                var balanced = '@Html.Raw(Localizer["Balanced"].Value)';
-                if (netDebt > 0) {
-                    $direction.html('<span class="badge bg-danger">' + youOweThem + '</span>');
-                    $('#netDebtDisplay').removeClass('alert-info alert-success').addClass('alert-danger');
-                } else if (netDebt < 0) {
-                    $direction.html('<span class="badge bg-success">' + theyOweYou + '</span>');
-                    $('#netDebtDisplay').removeClass('alert-info alert-danger').addClass('alert-success');
-                } else {
-                    $direction.html('<span class="badge bg-secondary">' + balanced + '</span>');
-                    $('#netDebtDisplay').removeClass('alert-danger alert-success').addClass('alert-info');
-                }
-            }
-
-            $('#DebtToSupplier, #DebtFromSupplier').on('input', updateNetDebt);
-            updateNetDebt();
-        });
-    </script>
-
     <style>
         .guidelines {
             margin-bottom: 20px;

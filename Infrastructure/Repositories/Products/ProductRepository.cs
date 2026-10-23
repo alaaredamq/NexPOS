@@ -97,6 +97,28 @@ public class ProductRepository : Repository<Product>, IProductRepository {
         return await query.ToListAsync();
     }
 
+    public async Task<List<Product>> SearchAvailableForDisplayOrderAsync(string? term, int skip, int take)
+    {
+        var query = GetAllQueryable()
+            .Where(p => !p.IsDeleted && p.IsActive)
+            .Where(p => !_Context.ProductDisplayOrders.Any(d => d.ProductId == p.Id));
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            term = term.Trim();
+            query = query.Where(p => p.Name.Contains(term) || p.Barcode.Contains(term));
+        }
+
+        return await query
+            .Include(p => p.Category)
+            .Include(p => p.Currency)
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Id)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
+
     public async Task<List<Product>> GetActiveProductsAsync()
     {
         return await GetAllQueryable()

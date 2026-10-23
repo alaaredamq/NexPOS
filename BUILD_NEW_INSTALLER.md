@@ -13,10 +13,15 @@ Run the app normally (Visual Studio / `dotnet run --project Web`) and check that
 If you added or changed an **entity**, a **property**, or anything in `ErpDbContext`, create a migration:
 
 ```powershell
-dotnet ef migrations add <ShortDescriptiveName> --project Infrastructure --startup-project Web
+dotnet ef migrations add <ShortDescriptiveName> --context ErpDbContext --project Infrastructure --startup-project Web
 ```
 
-Example: `dotnet ef migrations add AddSupplierPhone --project Infrastructure --startup-project Web`
+Example: `dotnet ef migrations add AddSupplierPhone --context ErpDbContext --project Infrastructure --startup-project Web`
+
+> **`--context ErpDbContext` is required.** The project has two DbContexts: `ErpDbContext` (the business data, which
+> uses these migrations) and `AuditDbContext` (the audit trail, which lives in its own `nexpos-audit.db` file and
+> manages its own tiny schema - it never needs a migration). Without the flag `dotnet ef` stops with
+> "More than one DbContext was found". The same flag is needed for `database update`, `migrations remove`, etc.
 
 - Commit the new files in `Infrastructure/Migrations/`.
 - You **don't** have to do anything on the customer's PC. The app runs `Database.Migrate()` on startup, so an existing database is upgraded automatically the first time the new version opens.

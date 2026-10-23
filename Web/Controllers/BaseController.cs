@@ -1,3 +1,4 @@
+using Core.Auditing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
@@ -30,6 +31,52 @@ public abstract class BaseController : Controller
         
         base.OnActionExecuting(context);
     }
+
+    /// <summary>
+    /// Standard answer of every "print on receipt paper" endpoint. Never throws on a printer
+    /// problem - the page shows the message and offers the PDF instead.
+    /// </summary>
+    protected async Task<IActionResult> PrintToReceiptPrinterAsync(
+        Application.IServices.Sales.IThermalPrinterService printer,
+        Core.Printing.PrintDocument document,
+        string? pdfUrl = null)
+    {
+        var printed = await printer.PrintDocumentAsync(document, jobName: document.Title);
+
+        // The endpoint answers HTTP 200 either way (the page shows the message), so the request log alone can't tell
+        // "printed" from "printer unavailable".
+        Audit?.LogBusiness(
+            printed ? Core.Auditing.AuditActions.Print : Core.Auditing.AuditActions.PrintFailed,
+            printed ? $"Sent '{document.Title}' to the receipt printer" : $"Could not print '{document.Title}' - receipt printer unavailable",
+            "PrintJob",
+            printed ? Core.Entities.Logging.AuditOutcome.Success : Core.Entities.Logging.AuditOutcome.Failure,
+            printed ? Core.Entities.Logging.AuditLogSeverity.Info : Core.Entities.Logging.AuditLogSeverity.Warning,
+            entityLabel: document.Title,
+            details: new { document.Title, document.FileName, pdfUrl });
+
+        return Json(new
+        {
+            success = printed,
+            message = printed
+                ? "Sent to the receipt printer"
+                : "Could not print. Check that the receipt printer is connected and selected in Settings > Printers.",
+            pdfUrl
+        });
+    }
+
+    /// <summary>Standard answer of every "download PDF" endpoint.</summary>
+    protected FileContentResult PdfFile(
+        Application.IServices.Sales.IThermalPrinterService printer,
+        Core.Printing.PrintDocument document,
+        Core.Printing.PdfPaper paper = Core.Printing.PdfPaper.Receipt)
+    {
+        var pdf = printer.GeneratePdf(document, paper);
+        Audit?.LogBusiness(Core.Auditing.AuditActions.PdfGenerated, $"PDF generated: '{document.Title}'", "PrintJob",
+            entityLabel: document.Title, details: new { document.Title, document.FileName, paper = paper.ToString(), bytes = pdf.Length });
+        return File(pdf, "application/pdf", $"{document.FileName}.pdf");
+    }
+
+    private Core.Auditing.IAuditTrail? Audit => HttpContext.RequestServices.GetService<Core.Auditing.IAuditTrail>();
 
     protected IActionResult RedirectToLocal(string? returnUrl)
     {

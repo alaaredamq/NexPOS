@@ -83,7 +83,8 @@
         var localizedStrings = window.categoriesLocalizedStrings || {};
         var urls = window.categoriesUrls || {};
         
-        if (confirm(localizedStrings.deleteConfirm || 'Are you sure?')) {
+        appConfirm(localizedStrings.deleteConfirm || 'Are you sure?').then(function(ok) {
+            if (!ok) return;
             $.ajax({
                 url: urls.deleteUrl || '',
                 type: 'POST',
@@ -102,7 +103,7 @@
                     showAlert('danger', localizedStrings.deleteError || 'An error occurred');
                 }
             });
-        }
+        });
     };
 
     window.updateCategoryStats = function() {

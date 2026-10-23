@@ -983,74 +983,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("CustomerCarts");
                 });
 
-            modelBuilder.Entity("Core.Entities.Logging.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
-
-                    b.Property<string>("AdditionalInfoJson")
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("EntityId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
-
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("NewValuesJson")
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("OldValuesJson")
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Severity")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserAgent")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AuditLogs", (string)null);
-                });
-
             modelBuilder.Entity("Core.Entities.Notifications.Alert", b =>
                 {
                     b.Property<int>("Id")
@@ -1352,6 +1284,9 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("City")
                         .HasColumnType("TEXT");
 
@@ -1363,12 +1298,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<int>("CurrencyId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("DebtFromSupplier")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("DebtToSupplier")
-                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("TEXT");
@@ -1412,12 +1341,11 @@ namespace Infrastructure.Migrations
                         {
                             Id = 1,
                             Address = "Some Address",
+                            Balance = 0m,
                             City = "Beirut",
                             Country = "Lebanon",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CurrencyId = 1,
-                            DebtFromSupplier = 0m,
-                            DebtToSupplier = 0m,
                             DiscountRate = 0.0,
                             Email = "supplier@example.com",
                             IsActive = true,
@@ -1426,6 +1354,42 @@ namespace Infrastructure.Migrations
                             Phone = "12345678",
                             PostalCode = "1100"
                         });
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.SupplierDebtTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SupplierId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SupplierDebtTransactions");
                 });
 
             modelBuilder.Entity("Core.Entities.Products.TaxRate", b =>
@@ -2968,16 +2932,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("Core.Entities.Logging.AuditLog", b =>
-                {
-                    b.HasOne("Core.Entities.Users.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Core.Entities.Notifications.Alert", b =>
                 {
                     b.HasOne("Core.Entities.Users.User", "AcknowledgedByUser")
@@ -3067,6 +3021,25 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Currency");
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.SupplierDebtTransaction", b =>
+                {
+                    b.HasOne("Core.Entities.Products.Supplier", "Supplier")
+                        .WithMany("DebtTransactions")
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entities.Users.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Supplier");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Core.Entities.Products.TaxRate", b =>
@@ -3391,6 +3364,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Core.Entities.Products.Supplier", b =>
                 {
+                    b.Navigation("DebtTransactions");
+
                     b.Navigation("Products");
                 });
 

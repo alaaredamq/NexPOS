@@ -18,9 +18,12 @@
             <button type="button" class="btn btn-outline-teal" onclick="updateOrderStatus(@Model.Id)">
                 <i class="fas fa-edit me-1"></i>@Localizer["UpdateStatus"]
             </button>
-            <button type="button" class="btn btn-success" onclick="printReceipt(@Model.Id)">
+            <button type="button" class="btn btn-success" data-nexprint-url="@Url.Action("PrintReceipt", "Orders", new { id = Model.Id })">
                 <i class="fas fa-receipt me-1"></i>@Localizer["PrintReceipt"]
             </button>
+            <a class="btn btn-outline-success" href="@Url.Action("ReceiptPdf", "Orders", new { id = Model.Id })" download title="@SharedLocalizer["Print_DownloadPdf"]">
+                <i class="fas fa-file-pdf"></i>
+            </a>
         </div>
     </div>
 
@@ -260,27 +263,23 @@
             window.location.href = '@Url.Action("EditStatus", "Orders")' + '/' + orderId;
         }
 
-        function printReceipt(orderId) {
-            // Open receipt in new window for preview before printing
-            window.open('@Url.Action("Receipt", "Orders")' + '/' + orderId, '_blank', 'width=400,height=800');
-        }
-
         function viewCustomer(customerId) {
             window.location.href = '@Url.Action("Details", "Customers")' + '/' + customerId;
         }
 
         function duplicateOrder(orderId) {
-            if (confirm(window.orderDetailsLocalizedStrings.areYouSureYouWantToDuplicateThisOrder)) {
+            appConfirm(window.orderDetailsLocalizedStrings.areYouSureYouWantToDuplicateThisOrder, { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes'), danger: false }).then(function(ok) {
+                if (!ok) return;
                 // This would create a duplicate order
-                alert(window.orderDetailsLocalizedStrings.orderDuplicationFeatureWillBeImplementedSoon);
-            }
+                appAlert(window.orderDetailsLocalizedStrings.orderDuplicationFeatureWillBeImplementedSoon);
+            });
         }
 
         function saveOrderNote(orderId) {
             var note = $('#orderNotes').val();
             if (note.trim()) {
                 // This would save the note via AJAX
-                alert(window.orderDetailsLocalizedStrings.noteSaved + ': ' + note);
+                appAlert(window.orderDetailsLocalizedStrings.noteSaved + ': ' + note, 'success');
                 $('#orderNotes').val('');
             }
         }

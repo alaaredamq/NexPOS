@@ -2363,6 +2363,7 @@
   </data>
   <!-- Licensing -->
   <data name="License_Title" xml:space="preserve"><value>License</value></data>
+  <data name="AuditLog" xml:space="preserve"><value>Audit Log</value></data>
   <data name="License_Manage" xml:space="preserve"><value>Manage license</value></data>
   <data name="License_BackToApp" xml:space="preserve"><value>Back to NexPOS</value></data>
   <data name="License_StatusActive" xml:space="preserve"><value>Licensed</value></data>
@@ -2408,4 +2409,7 @@
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>A newer license is already active on this computer.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>The license could not be saved on this computer.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>Sales are stopped because the license is not active. Open the License page to renew or activate.</value></data>
+  <data name="Print_Menu" xml:space="preserve"><value>Print</value></data>
+  <data name="Print_ReceiptPaper" xml:space="preserve"><value>Print on receipt paper</value></data>
+  <data name="Print_DownloadPdf" xml:space="preserve"><value>Download PDF</value></data>
 </root>

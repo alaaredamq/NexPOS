@@ -112,5 +112,26 @@
   <data name="Actions" xml:space="preserve">
     <value>الإجراءات</value>
   </data>
+  <data name="Balance" xml:space="preserve">
+    <value>الرصيد</value>
+  </data>
+  <data name="DebtDialogPlusTitle" xml:space="preserve">
+    <value>أنا مدين له أكثر</value>
+  </data>
+  <data name="DebtDialogPlusSub" xml:space="preserve">
+    <value>بضاعة بالآجل، أو أقرضني مبلغاً</value>
+  </data>
+  <data name="DebtDialogMinusTitle" xml:space="preserve">
+    <value>دفعت له</value>
+  </data>
+  <data name="DebtDialogMinusSub" xml:space="preserve">
+    <value>دفعت للمورد، أو هو مدين لي</value>
+  </data>
+  <data name="DebtDialogIncrease" xml:space="preserve">
+    <value>يزداد ما أدين به للمورد بمقدار</value>
+  </data>
+  <data name="DebtDialogDecrease" xml:space="preserve">
+    <value>ينقص ما أدين به للمورد بمقدار</value>
+  </data>
 </root>
 

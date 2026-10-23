@@ -120,7 +120,7 @@
                         <div class="mb-3">
                             <label asp-for="Pin" class="form-label">@Localizer["PIN"]</label>
                             <input asp-for="Pin" type="hidden" id="pinInput" />
-                            <div class="pin-dots" id="pinDots">
+                            <div class="pin-dots" id="pinDots" tabindex="0" aria-label="@Localizer["PIN"]">
                                 <span class="pin-dot"></span>
                                 <span class="pin-dot"></span>
                                 <span class="pin-dot"></span>
@@ -227,6 +227,7 @@
                     $('#pinInput').val($('#pinInput').val().slice(0, -1));
                     renderPin();
                 } else if (e.key === 'Enter') {
+                    e.preventDefault(); // don't also "click" a focused keypad button
                     $('form').submit();
                 }
             });
@@ -238,7 +239,7 @@
             // Remembered username: skip straight to the PIN; "Not you?" clears it.
             var $username = $('#Username');
             if ($username.val() && $username.val().trim() !== '') {
-                $('.pin-key[data-digit="1"]').trigger('focus');
+                $('#pinDots').trigger('focus');
             } else {
                 $username.trigger('focus');
             }
@@ -282,6 +283,14 @@
             border: 2px solid var(--teal-primary, #0aa2a2);
             background: transparent;
             transition: background-color 0.15s ease;
+        }
+
+        .pin-dots {
+            outline: none;
+        }
+
+        .pin-dots:focus .pin-dot {
+            box-shadow: 0 0 0 3px rgba(10, 162, 162, 0.2);
         }
 
         .pin-dot-filled {

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="~/css/receipts.css" asp-append-version="true" />
 }
 
+@Html.AntiForgeryToken()
+
 <div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
     <a href="@Url.Action("Create", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-primary">
         <i class="fas fa-plus me-1"></i>@Localizer["AddSupplier"]
@@ -129,8 +131,14 @@
                         new() { Data = "email", Title = Localizer["Email"].Value, Render = "function(data, type, row) { return data ? '<a href=\"mailto:' + data + '\" class=\"text-decoration-none\">' + data + '</a>' : (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
                         new() { Data = "phoneNumber", Title = Localizer["Phone"].Value, Render = "function(data, type, row) { return data ? '<a href=\"tel:' + data + '\" class=\"text-decoration-none\">' + data + '</a>' : (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
                         new() { Data = "address", Title = Localizer["Address"].Value, Render = "function(data, type, row) { return data || (window.i18n && window.i18n.t ? window.i18n.t('common.notProvided', 'Not provided') : 'N/A'); }" },
-                        new() { 
-                            Data = "isActive", 
+                        new() {
+                            Data = "balance",
+                            Title = Localizer["Balance"].Value,
+                            ClassName = "text-end",
+                            Render = "function(data, type, row) { var b = parseFloat(data) || 0; if (type !== 'display') return b; var amt = (row.currency || '') + Math.abs(b).toFixed(2); if (b > 0) return '<span class=\"text-danger fw-bold\">' + amt + '</span>'; if (b < 0) return '<span class=\"text-success fw-bold\">-' + amt + '</span>'; return '<span class=\"text-muted\">' + amt + '</span>'; }"
+                        },
+                        new() {
+                            Data = "isActive",
                             Title = Localizer["Status"].Value, 
                             ClassName = "text-center",
                             Render = "function(data, type, row) { var badgeClass = data ? 'bg-success' : 'bg-secondary'; var activeText = window.i18n && window.i18n.t ? window.i18n.t('common.active', 'Active') : 'Active'; var inactiveText = window.i18n && window.i18n.t ? window.i18n.t('common.inactive', 'Inactive') : 'Inactive'; var statusText = data ? activeText : inactiveText; return '<span class=\"badge ' + badgeClass + '\">' + statusText + '</span>'; }"
@@ -188,8 +196,21 @@
             exportUrl: '@Url.Action("ExportSuppliers", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             detailsUrl: '@Url.Action("Details", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             editUrl: '@Url.Action("Edit", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
-            deleteUrl: '@Url.Action("Delete", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+            deleteUrl: '@Url.Action("Delete", "Suppliers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            addDebtTransactionUrl: '@Url.Action("AddDebtTransaction", "Suppliers")'
+        };
+
+        window.supplierDebtDialogOptions = {
+            idField: 'SupplierId',
+            directionField: 'IOweMore',
+            plusTitle: @Json.Serialize(Localizer["DebtDialogPlusTitle"].Value),
+            plusSub: @Json.Serialize(Localizer["DebtDialogPlusSub"].Value),
+            minusTitle: @Json.Serialize(Localizer["DebtDialogMinusTitle"].Value),
+            minusSub: @Json.Serialize(Localizer["DebtDialogMinusSub"].Value),
+            increaseText: @Json.Serialize(Localizer["DebtDialogIncrease"].Value),
+            decreaseText: @Json.Serialize(Localizer["DebtDialogDecrease"].Value)
         };
     </script>
-    <script src="~/js/Pages/Suppliers/Index.js"></script>
+    <script src="~/js/Pages/Customers/DebtDialog.js" asp-append-version="true"></script>
+    <script src="~/js/Pages/Suppliers/Index.js" asp-append-version="true"></script>
 }

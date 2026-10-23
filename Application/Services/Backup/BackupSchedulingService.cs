@@ -77,6 +77,12 @@ public class BackupSchedulingService : BackgroundService
             _isExecuting = true;
 
             using var scope = _serviceProvider.CreateScope();
+
+            // No user is behind this work: the audit trail files everything below (backups, schedule updates, any
+            // error it logs) under the "BackupScheduler" system actor instead of "nobody".
+            using var systemActor = scope.ServiceProvider.GetRequiredService<Core.Auditing.IAuditContext>()
+                .BeginSystemScope("BackupScheduler");
+
             var backupScheduleRepo = scope.ServiceProvider.GetRequiredService<IBackupScheduleRepository>();
             var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
 

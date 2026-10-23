@@ -12,12 +12,11 @@
                     <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-outline-primary" onclick="printReport()">
-                        <i class="fas fa-print me-1"></i>@Localizer["PrintReport"]
-                    </button>
-                    <button type="button" class="btn btn-outline-success" onclick="exportReport()">
-                        <i class="fas fa-download me-1"></i>@Localizer["ExportExcel"]
-                    </button>
+                    @await Html.PartialAsync("_PrintMenu", new PrintMenuModel(
+                        Url.Action("PrintStockValueReport", "Inventory")!,
+                        Url.Action("StockValueReportPdf", "Inventory")!,
+                        "btn btn-outline-primary",
+                        Localizer["PrintReport"].Value))
                     <a href="@Url.Action("Index", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
                     </a>
@@ -82,7 +81,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">@Localizer["TotalUnits"]</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@(((List<dynamic>)ViewBag.StockValueData)?.Sum(p => p.StockQuantity) ?? 0)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@(((IEnumerable<dynamic>)ViewBag.StockValueData)?.Sum(p => (decimal)p.StockQuantity) ?? 0)</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-cubes fa-2x text-gray-300"></i>
@@ -311,14 +310,6 @@
                     zeroRecords: window.stockValueLocalizedStrings.noMatchingRecordsFound
                 }
             });
-        }
-
-        function printReport() {
-            window.print();
-        }
-
-        function exportReport() {
-            toastr.info(window.stockValueLocalizedStrings.excelExportComingSoon);
         }
 
         function refreshData() {

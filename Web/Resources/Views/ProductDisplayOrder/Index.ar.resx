@@ -89,6 +89,15 @@
   <data name="TypeToSearchProducts" xml:space="preserve">
     <value>اكتب للبحث عن المنتجات...</value>
   </data>
+  <data name="NoProductsFound" xml:space="preserve">
+    <value>لم يتم العثور على منتجات</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>جارٍ التحميل...</value>
+  </data>
+  <data name="SearchToFindMoreProducts" xml:space="preserve">
+    <value>يتم عرض أول المنتجات فقط. ابحث للعثور على المزيد.</value>
+  </data>
   <data name="Action" xml:space="preserve">
     <value>الإجراء</value>
   </data>

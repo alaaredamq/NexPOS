@@ -90,7 +90,7 @@
                 }
             });
         } else {
-            alert('SweetAlert2 is required for this feature');
+            console.error('SweetAlert2 is required for this feature');
         }
     };
 

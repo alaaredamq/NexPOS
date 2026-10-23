@@ -41,8 +41,6 @@ public class SupplierService : ISupplierService
         existing.IsActive = supplier.IsActive;
         existing.CurrencyId = supplier.CurrencyId;
         existing.DiscountRate = supplier.DiscountRate;
-        existing.DebtToSupplier = supplier.DebtToSupplier;
-        existing.DebtFromSupplier = supplier.DebtFromSupplier;
         await _repo.SaveAsync(existing);
     }
 

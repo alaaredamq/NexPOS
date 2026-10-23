@@ -286,7 +286,7 @@
                                             <button class="btn btn-sm btn-outline-primary" title="@Localizer["ViewDetails"]">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-secondary" title="@Localizer["PrintReceipt"]">
+                                            <button class="btn btn-sm btn-outline-secondary" title="@Localizer["PrintReceipt"]" data-nexprint-url="@Url.Action("PrintReceipt", "Orders", new { id = order.Id })">
                                                 <i class="fas fa-print"></i>
                                             </button>
                                         </div>
@@ -316,5 +316,5 @@
             getCategoryAnalyticsUrl: '@Url.Action("GetCategoryAnalytics", "Dashboard")'
         };
     </script>
-    <script src="~/js/pages/Dashboard/Index.js"></script>
+    <script src="~/js/pages/Dashboard/Index.js" asp-append-version="true"></script>
 }

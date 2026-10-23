@@ -152,8 +152,7 @@
                 
                 if (!name) {
                     e.preventDefault();
-                    alert('Category name is required!');
-                    $('#Name').focus();
+                    appAlert('Category name is required!', 'warning').then(function() { $('#Name').focus(); });
                 }
             });
         });

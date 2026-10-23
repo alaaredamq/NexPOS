@@ -384,8 +384,9 @@
             getReceiptsUrl: '@Url.Action("GetReceipts", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             detailsUrl: '@Url.Action("Details", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             downloadPdfUrl: '@Url.Action("DownloadPdf", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            printReceiptUrl: '@Url.Action("PrintReceipt", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             voidReceiptUrl: '@Url.Action("VoidReceipt", "Receipts", new { lang = ViewBag.CurrentLanguage ?? "en" })'
         };
     </script>
-    <script src="~/js/Pages/Receipts/Index.js"></script>
+    <script src="~/js/Pages/Receipts/Index.js" asp-append-version="true"></script>
 }

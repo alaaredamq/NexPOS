@@ -1,4 +1,5 @@
 using Application.IServices.Users;
+using Core.Auditing;
 using Core.Entities.Users;
 using Core.IRepositories.Users;
 
@@ -9,12 +10,14 @@ public class UserService : IUserService
     private readonly IUserRepository _repo;
     private readonly IRoleRepository _roleRepo;
     private readonly IUserSessionRepository _sessionRepo;
+    private readonly IAuditTrail _auditTrail;
 
-    public UserService(IUserRepository repo, IRoleRepository roleRepo, IUserSessionRepository sessionRepo)
+    public UserService(IUserRepository repo, IRoleRepository roleRepo, IUserSessionRepository sessionRepo, IAuditTrail auditTrail)
     {
         _repo = repo;
         _roleRepo = roleRepo;
         _sessionRepo = sessionRepo;
+        _auditTrail = auditTrail;
     }
 
     public async Task<User?> GetByUsernameAsync(string username)
@@ -69,6 +72,10 @@ public class UserService : IUserService
 
         user.ChangePassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
         await _repo.SaveAsync(user);
+
+        // Who did it is the row's user; this says whose password. (The value itself is never recorded.)
+        _auditTrail.LogSecurity(AuditActions.PasswordChanged, $"Password changed for '{user.Username}'",
+            entityId: user.Id, entityLabel: user.Username);
     }
 
     public async Task<bool> ValidatePasswordAsync(User user, string password)
@@ -82,6 +89,15 @@ public class UserService : IUserService
         user.PinHash = BCrypt.Net.BCrypt.HashPassword(pin);
         user.MustChangePin = requireChangeOnNextLogin;
         await _repo.SaveAsync(user);
+
+        // The row's user is who made the change; this names whose PIN it is - so "admin reset cashier1's PIN"
+        // and "cashier1 changed their own PIN" are told apart. (The PIN and its hash are never recorded.)
+        _auditTrail.LogSecurity(AuditActions.PinChanged,
+            requireChangeOnNextLogin
+                ? $"PIN reset for '{user.Username}' (must be changed at next sign-in)"
+                : $"PIN changed for '{user.Username}'",
+            entityId: user.Id, entityLabel: user.Username,
+            details: new { mustChangeAtNextSignIn = requireChangeOnNextLogin });
     }
 
     public async Task<bool> ValidatePinAsync(User user, string pin)

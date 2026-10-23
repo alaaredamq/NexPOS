@@ -29,6 +29,17 @@ public class ProductCategoryService : IProductCategoryService
         return await _repo.GetByIdAsync(id);
     }
 
+    public async Task<ProductCategory?> GetByIdWithProductsAsync(int id)
+    {
+        return await _repo.GetByIdWithProductsAsync(id);
+    }
+
+    // Not cached: product counts change whenever a product is added/removed, and the category cache is only cleared on category edits.
+    public async Task<Dictionary<int, int>> GetProductCountsAsync()
+    {
+        return await _repo.GetProductCountsAsync();
+    }
+
     public async Task<ProductCategory> CreateAsync(ProductCategory category)
     {
         var created = await _repo.SaveAsync(category);

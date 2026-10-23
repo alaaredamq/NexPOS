@@ -1,6 +1,8 @@
 using Application.DTOs.Backup;
 using Application.IServices.Backup;
+using Core.Auditing;
 using Core.Entities.Backup;
+using Core.Entities.Logging;
 using Core.IRepositories.Backup;
 using Infrastructure.Data;
 using Microsoft.Data.Sqlite;
@@ -18,17 +20,23 @@ namespace Application.Services.Backup
         private readonly IBackupRepository _backupRepository;
         private readonly IBackupScheduleRepository _scheduleRepository;
         private readonly ErpDbContext _context;
+        private readonly IAuditTrail _auditTrail;
+        private readonly IAuditContext _auditContext;
         private static readonly Dictionary<string, BackupProgressDTO> _activeBackups = new();
         private static readonly Dictionary<string, BackupProgressDTO> _activeRestores = new();
 
         public BackupService(
             IBackupRepository backupRepository,
             IBackupScheduleRepository scheduleRepository,
-            ErpDbContext context)
+            ErpDbContext context,
+            IAuditTrail auditTrail,
+            IAuditContext auditContext)
         {
             _backupRepository = backupRepository;
             _scheduleRepository = scheduleRepository;
             _context = context;
+            _auditTrail = auditTrail;
+            _auditContext = auditContext;
         }
 
         #region Backup CRUD Operations
@@ -105,13 +113,39 @@ namespace Application.Services.Backup
 
                 // Return the final state (Completed/Failed + error) rather than the initial InProgress snapshot
                 var finalBackup = await _backupRepository.GetByIdAsync(savedBackup.Id) ?? savedBackup;
+
+                var succeeded = finalBackup.Status == BackupStatus.Completed;
+                _auditTrail.LogSystem(
+                    succeeded ? AuditActions.BackupCreated : AuditActions.BackupFailed,
+                    succeeded
+                        ? $"Backup '{finalBackup.Name}' created ({finalBackup.FileName}, {FormatSize(finalBackup.FileSizeBytes)})"
+                        : $"Backup '{finalBackup.Name}' did not complete: {finalBackup.ErrorMessage}",
+                    "Backup",
+                    succeeded ? AuditOutcome.Success : AuditOutcome.Failure,
+                    succeeded ? AuditLogSeverity.Info : AuditLogSeverity.Error,
+                    new
+                    {
+                        backupId = finalBackup.Id,
+                        name = finalBackup.Name,
+                        file = finalBackup.FileName,
+                        sizeBytes = finalBackup.FileSizeBytes,
+                        type = finalBackup.BackupType.ToString(),
+                        status = finalBackup.Status.ToString(),
+                        error = string.IsNullOrEmpty(finalBackup.ErrorMessage) ? null : finalBackup.ErrorMessage
+                    });
+
                 return MapToDTO(finalBackup);
             }
             catch (Exception ex)
             {
+                _auditTrail.LogSystem(AuditActions.BackupFailed, $"Backup could not be created: {ex.Message}", "Backup",
+                    AuditOutcome.Failure, AuditLogSeverity.Error, new { name = request.Name, type = request.BackupType, error = ex.GetType().Name });
                 throw new Exception($"Failed to create backup: {ex.Message}", ex);
             }
         }
+
+        private static string FormatSize(long bytes)
+            => bytes >= 1_048_576 ? $"{bytes / 1_048_576.0:F1} MB" : $"{bytes / 1024.0:F0} KB";
 
         public async Task<BackupProgressDTO> GetBackupProgressAsync(string backupId)
         {
@@ -233,10 +267,27 @@ namespace Application.Services.Backup
                 // catalog from the .bak files (and their sidecars) still present on disk.
                 await ReconcileBackupCatalogAsync();
 
+                // The audit trail lives in its own database file, so this restore did not touch it: the history up to
+                // this moment is intact, and this entry marks the point where the business data jumped back in time.
+                _auditTrail.LogSystem(AuditActions.BackupRestored,
+                    $"Database restored from backup '{backup.Name}' ({backup.FileName}, taken {backup.CreatedAt:yyyy-MM-dd HH:mm} UTC). " +
+                    "Business data changed after that moment was replaced.",
+                    "Backup", AuditOutcome.Success, AuditLogSeverity.Warning,
+                    new
+                    {
+                        backupId = backup.Id,
+                        name = backup.Name,
+                        file = backup.FileName,
+                        backupTakenAtUtc = backup.CreatedAt,
+                        createdBackupBeforeRestore = request.CreateBackupBeforeRestore
+                    });
+
                 return true;
             }
             catch (Exception ex)
             {
+                _auditTrail.LogSystem(AuditActions.BackupRestoreFailed, $"Restore from backup #{request.BackupId} failed: {ex.Message}", "Backup",
+                    AuditOutcome.Failure, AuditLogSeverity.Critical, new { backupId = request.BackupId, error = ex.GetType().Name });
                 throw new Exception($"Failed to start restore: {ex.Message}", ex);
             }
         }
@@ -411,10 +462,17 @@ namespace Application.Services.Backup
                     DeleteBackupSidecar(filePath);
                 }
 
+                // Removing the .bak file from disk is not a database change, so it needs its own entry.
+                _auditTrail.LogSystem(AuditActions.BackupDeleted,
+                    $"Backup #{backupId} deleted ({(string.IsNullOrEmpty(filePath) ? "file unknown" : Path.GetFileName(filePath))})",
+                    "Backup", details: new { backupId, file = filePath is null ? null : Path.GetFileName(filePath) });
+
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _auditTrail.LogSystem(AuditActions.BackupDeleted, $"Backup #{backupId} could not be deleted: {ex.Message}", "Backup",
+                    AuditOutcome.Failure, AuditLogSeverity.Warning, new { backupId, error = ex.GetType().Name });
                 return false;
             }
         }
@@ -584,14 +642,21 @@ namespace Application.Services.Backup
             try
             {
                 var oldBackups = await _backupRepository.GetOldBackupsAsync(daysToKeep);
+                var removed = 0;
                 foreach (var backup in oldBackups)
                 {
-                    await DeleteBackupAsync(backup.Id);
+                    if (await DeleteBackupAsync(backup.Id)) removed++;
                 }
+
+                _auditTrail.LogSystem(AuditActions.BackupCleanup,
+                    $"Backup cleanup: {removed} backup(s) older than {daysToKeep} days removed", "Backup",
+                    details: new { daysToKeep, removed });
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _auditTrail.LogSystem(AuditActions.BackupCleanup, $"Backup cleanup failed: {ex.Message}", "Backup",
+                    AuditOutcome.Failure, AuditLogSeverity.Warning, new { daysToKeep, error = ex.GetType().Name });
                 return false;
             }
         }
@@ -1693,7 +1758,11 @@ namespace Application.Services.Backup
             SqliteConnection.ClearAllPools();
 
             // A backup taken before a schema change is restored with the old schema; bring it up to date.
-            await _context.Database.MigrateAsync();
+            // The migration's own statements are not events anyone investigates.
+            using (_auditContext.SuppressDataChanges("restore schema upgrade"))
+            {
+                await _context.Database.MigrateAsync();
+            }
         }
 
         private string GetDatabaseFilePath()

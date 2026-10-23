@@ -112,5 +112,26 @@
   <data name="Actions" xml:space="preserve">
     <value>Actions</value>
   </data>
+  <data name="Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="DebtDialogPlusTitle" xml:space="preserve">
+    <value>I owe them more</value>
+  </data>
+  <data name="DebtDialogPlusSub" xml:space="preserve">
+    <value>Goods taken on credit, or they lent me money</value>
+  </data>
+  <data name="DebtDialogMinusTitle" xml:space="preserve">
+    <value>I paid them</value>
+  </data>
+  <data name="DebtDialogMinusSub" xml:space="preserve">
+    <value>I paid the supplier, or they owe me</value>
+  </data>
+  <data name="DebtDialogIncrease" xml:space="preserve">
+    <value>What I owe the supplier increases by</value>
+  </data>
+  <data name="DebtDialogDecrease" xml:space="preserve">
+    <value>What I owe the supplier decreases by</value>
+  </data>
 </root>
 

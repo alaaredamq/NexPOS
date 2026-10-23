@@ -162,8 +162,11 @@
                 <button class="btn btn-sm btn-outline-primary" onclick="viewReceipt(${receiptId})" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="printReceiptOnPaper(${receiptId})" title="Print on receipt paper">
+                    <i class="fas fa-print"></i>
+                </button>
                 <button class="btn btn-sm btn-outline-success" onclick="downloadPdf(${receiptId})" title="Download PDF">
-                    <i class="fas fa-download"></i>
+                    <i class="fas fa-file-pdf"></i>
                 </button>
         `;
         
@@ -186,7 +189,12 @@
 
     window.downloadPdf = function(receiptId) {
         var urls = window.receiptsUrls || {};
-        window.open((urls.downloadPdfUrl || '') + '/' + receiptId, '_blank');
+        NexPrint.download((urls.downloadPdfUrl || '') + '/' + receiptId);
+    };
+
+    window.printReceiptOnPaper = function(receiptId) {
+        var urls = window.receiptsUrls || {};
+        NexPrint.print((urls.printReceiptUrl || '') + '/' + receiptId);
     };
 
     window.voidReceipt = function(receiptId) {

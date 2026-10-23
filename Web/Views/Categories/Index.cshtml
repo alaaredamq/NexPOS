@@ -180,7 +180,7 @@
             noDescription: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["NoDescription"].Value)),
             active: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Active"].Value)),
             inactive: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Inactive"].Value)),
-            deleteConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["AreYouSureYouWantToDeleteThisCategoryProductsInThisCategoryWillBeMovedToUncategorized"].Value)),
+            deleteConfirm: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["AreYouSureYouWantToDeleteThisCategory"].Value)),
             deleteError: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["AnErrorOccurredWhileDeletingTheCategory"].Value))
         };
         
@@ -192,5 +192,5 @@
             deleteUrl: '@Url.Action("Delete", "Categories", new { lang = ViewBag.CurrentLanguage ?? "en" })'
         };
     </script>
-    <script src="~/js/Pages/Categories/Index.js"></script>
+    <script src="~/js/Pages/Categories/Index.js" asp-append-version="true"></script>
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Core.Entities.Sales;
 using Core.IRepositories.Sales;
 using Infrastructure.Data;
@@ -113,6 +114,7 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
             .Include(r => r.Customer)
             .Include(r => r.Cashier)
             .Include(r => r.VoidedByUser)
+            .Include(r => r.Currency)
             .Where(r => r.IsVoid && !r.IsDeleted);
 
         if (startDate.HasValue)
@@ -185,32 +187,37 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
             .ToListAsync();
     }
 
-    public async Task<string> GenerateNextReceiptNumberAsync()
+    public Task<string> GenerateNextReceiptNumberAsync() => GenerateNextReceiptNumberAsync(DateTime.Today);
+
+    /// <summary>
+    /// The next free "RCP-yyyyMMdd-NNN" for the given local date: one more than the highest sequence already issued
+    /// with that prefix.
+    /// <para>
+    /// It goes by the numbers themselves, never by <c>ReceiptDate</c>. The number carries the LOCAL date but
+    /// <c>ReceiptDate</c> is stored in UTC, so a "today's receipts" date window misses the receipts issued in the hours
+    /// around local midnight (00:00-03:00 in UTC+3), hands out the same number twice, and the insert dies on the unique
+    /// index on <c>ReceiptNumber</c> - which left the sale with no receipt. Deleted and void receipts keep their numbers
+    /// (the index covers every row), so they count too.
+    /// </para>
+    /// </summary>
+    public async Task<string> GenerateNextReceiptNumberAsync(DateTime today)
     {
-        var today = DateTime.Today;
-        var startOfDay = today.Date;
-        var endOfDay = today.Date.AddDays(1).AddTicks(-1);
+        var prefix = $"RCP-{today.ToString("yyyyMMdd", CultureInfo.InvariantCulture)}-";
 
-        var lastReceiptNumber = await _Context.Set<Receipt>()
-            .Where(r => r.ReceiptDate >= startOfDay && r.ReceiptDate <= endOfDay && !r.IsDeleted)
-            .OrderByDescending(r => r.ReceiptNumber)
+        var issued = await _Context.Set<Receipt>()
+            .Where(r => r.ReceiptNumber.StartsWith(prefix))
             .Select(r => r.ReceiptNumber)
-            .FirstOrDefaultAsync();
+            .ToListAsync();
 
-        if (string.IsNullOrEmpty(lastReceiptNumber))
-        {
-            return $"RCP-{today:yyyyMMdd}-001";
-        }
+        // Numeric, so "...-1000" follows "...-999"; anything not ending in a plain number is ignored.
+        var highest = issued
+            .Select(number => int.TryParse(number.AsSpan(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var sequence)
+                ? sequence
+                : 0)
+            .DefaultIfEmpty(0)
+            .Max();
 
-        // Extract the sequence number and increment it
-        var parts = lastReceiptNumber.Split('-');
-        if (parts.Length >= 3 && int.TryParse(parts[2], out int sequenceNumber))
-        {
-            sequenceNumber++;
-            return $"RCP-{today:yyyyMMdd}-{sequenceNumber:D3}";
-        }
-
-        return $"RCP-{today:yyyyMMdd}-001";
+        return $"{prefix}{highest + 1:D3}";
     }
 
     public async Task<List<Receipt>> SearchReceiptsAsync(string searchTerm)

@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AuditLog_Title" xml:space="preserve">
+    <value>سجل التدقيق</value>
+  </data>
+  <data name="AuditLog_Subtitle" xml:space="preserve">
+    <value>كل إجراء في النظام: من فعل ماذا، ومتى، ومن أين</value>
+  </data>
+  <data name="Btn_Refresh" xml:space="preserve">
+    <value>تحديث</value>
+  </data>
+  <data name="Btn_Export" xml:space="preserve">
+    <value>تصدير CSV</value>
+  </data>
+  <data name="Btn_Apply" xml:space="preserve">
+    <value>تطبيق</value>
+  </data>
+  <data name="Btn_Reset" xml:space="preserve">
+    <value>إعادة تعيين</value>
+  </data>
+  <data name="Stat_Total" xml:space="preserve">
+    <value>إجمالي السجلات</value>
+  </data>
+  <data name="Stat_Since" xml:space="preserve">
+    <value>منذ</value>
+  </data>
+  <data name="Stat_AllTime" xml:space="preserve">
+    <value>كل الفترات</value>
+  </data>
+  <data name="Stat_Last24h" xml:space="preserve">
+    <value>آخر 24 ساعة</value>
+  </data>
+  <data name="Stat_Events" xml:space="preserve">
+    <value>حدث مسجَّل</value>
+  </data>
+  <data name="Stat_Failures24h" xml:space="preserve">
+    <value>إخفاقات ورفض (24 ساعة)</value>
+  </data>
+  <data name="Stat_NeedsAttention" xml:space="preserve">
+    <value>تستحق المراجعة</value>
+  </data>
+  <data name="Stat_Security24h" xml:space="preserve">
+    <value>أحداث الأمان (24 ساعة)</value>
+  </data>
+  <data name="Stat_Logins" xml:space="preserve">
+    <value>تسجيل الدخول، تغيير الرمز، الرفض</value>
+  </data>
+  <data name="Filter_Search" xml:space="preserve">
+    <value>بحث</value>
+  </data>
+  <data name="Filter_SearchPlaceholder" xml:space="preserve">
+    <value>المستخدم، الإجراء، السجل، الوصف، رقم الطلب…</value>
+  </data>
+  <data name="Filter_From" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Filter_To" xml:space="preserve">
+    <value>إلى</value>
+  </data>
+  <data name="Filter_User" xml:space="preserve">
+    <value>المستخدم</value>
+  </data>
+  <data name="Filter_AllUsers" xml:space="preserve">
+    <value>كل المستخدمين</value>
+  </data>
+  <data name="Filter_Category" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Filter_AllCategories" xml:space="preserve">
+    <value>كل الأنواع</value>
+  </data>
+  <data name="Filter_Outcome" xml:space="preserve">
+    <value>النتيجة</value>
+  </data>
+  <data name="Filter_AllOutcomes" xml:space="preserve">
+    <value>أي نتيجة</value>
+  </data>
+  <data name="Filter_Severity" xml:space="preserve">
+    <value>الأهمية</value>
+  </data>
+  <data name="Filter_AnySeverity" xml:space="preserve">
+    <value>أي أهمية</value>
+  </data>
+  <data name="Filter_EntityType" xml:space="preserve">
+    <value>نوع السجل</value>
+  </data>
+  <data name="Filter_AllEntities" xml:space="preserve">
+    <value>كل السجلات</value>
+  </data>
+  <data name="Filter_RecordId" xml:space="preserve">
+    <value>رقم السجل</value>
+  </data>
+  <data name="Filter_Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Filter_AllActions" xml:space="preserve">
+    <value>كل الإجراءات</value>
+  </data>
+  <data name="Range_Hour" xml:space="preserve">
+    <value>آخر ساعة</value>
+  </data>
+  <data name="Range_Today" xml:space="preserve">
+    <value>اليوم</value>
+  </data>
+  <data name="Range_7d" xml:space="preserve">
+    <value>7 أيام</value>
+  </data>
+  <data name="Range_30d" xml:space="preserve">
+    <value>30 يومًا</value>
+  </data>
+  <data name="Range_All" xml:space="preserve">
+    <value>كل الفترات</value>
+  </data>
+  <data name="Chip_Request" xml:space="preserve">
+    <value>الطلب</value>
+  </data>
+  <data name="Chip_Remove" xml:space="preserve">
+    <value>إزالة هذه التصفية</value>
+  </data>
+  <data name="Cat_Data" xml:space="preserve">
+    <value>تغيير بيانات</value>
+  </data>
+  <data name="Cat_Request" xml:space="preserve">
+    <value>طلب</value>
+  </data>
+  <data name="Cat_Security" xml:space="preserve">
+    <value>أمان</value>
+  </data>
+  <data name="Cat_Business" xml:space="preserve">
+    <value>عملية</value>
+  </data>
+  <data name="Cat_System" xml:space="preserve">
+    <value>نظام</value>
+  </data>
+  <data name="Cat_Diagnostic" xml:space="preserve">
+    <value>تحذير / خطأ</value>
+  </data>
+  <data name="Out_Success" xml:space="preserve">
+    <value>نجاح</value>
+  </data>
+  <data name="Out_Failure" xml:space="preserve">
+    <value>فشل</value>
+  </data>
+  <data name="Out_Denied" xml:space="preserve">
+    <value>مرفوض</value>
+  </data>
+  <data name="Sev_Info" xml:space="preserve">
+    <value>معلومة</value>
+  </data>
+  <data name="Sev_Warning" xml:space="preserve">
+    <value>تحذير</value>
+  </data>
+  <data name="Sev_Error" xml:space="preserve">
+    <value>خطأ</value>
+  </data>
+  <data name="Sev_Critical" xml:space="preserve">
+    <value>حرج</value>
+  </data>
+  <data name="Col_Time" xml:space="preserve">
+    <value>الوقت</value>
+  </data>
+  <data name="Col_User" xml:space="preserve">
+    <value>المستخدم</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Col_Action" xml:space="preserve">
+    <value>الإجراء</value>
+  </data>
+  <data name="Col_Record" xml:space="preserve">
+    <value>السجل</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>ماذا حدث</value>
+  </data>
+  <data name="Col_Result" xml:space="preserve">
+    <value>النتيجة</value>
+  </data>
+  <data name="Tbl_Processing" xml:space="preserve">
+    <value>جارٍ التحميل…</value>
+  </data>
+  <data name="Tbl_Empty" xml:space="preserve">
+    <value>لا توجد سجلات تدقيق مطابقة لهذه التصفية</value>
+  </data>
+  <data name="Tbl_Info" xml:space="preserve">
+    <value>عرض _START_ إلى _END_ من _TOTAL_ سجل</value>
+  </data>
+  <data name="Tbl_InfoEmpty" xml:space="preserve">
+    <value>لا توجد سجلات</value>
+  </data>
+  <data name="Tbl_InfoFiltered" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Tbl_LengthMenu" xml:space="preserve">
+    <value>عرض _MENU_</value>
+  </data>
+  <data name="Tbl_First" xml:space="preserve">
+    <value>الأول</value>
+  </data>
+  <data name="Tbl_Last" xml:space="preserve">
+    <value>الأخير</value>
+  </data>
+  <data name="Tbl_Next" xml:space="preserve">
+    <value>التالي</value>
+  </data>
+  <data name="Tbl_Previous" xml:space="preserve">
+    <value>السابق</value>
+  </data>
+  <data name="Detail_Title" xml:space="preserve">
+    <value>سجل تدقيق</value>
+  </data>
+  <data name="Detail_When" xml:space="preserve">
+    <value>متى</value>
+  </data>
+  <data name="Detail_Who" xml:space="preserve">
+    <value>من</value>
+  </data>
+  <data name="Detail_Record" xml:space="preserve">
+    <value>السجل</value>
+  </data>
+  <data name="Detail_Changes" xml:space="preserve">
+    <value>ما الذي تغيّر</value>
+  </data>
+  <data name="Detail_Field" xml:space="preserve">
+    <value>الحقل</value>
+  </data>
+  <data name="Detail_Before" xml:space="preserve">
+    <value>قبل</value>
+  </data>
+  <data name="Detail_After" xml:space="preserve">
+    <value>بعد</value>
+  </data>
+  <data name="Detail_Value" xml:space="preserve">
+    <value>القيمة</value>
+  </data>
+  <data name="Detail_NoChanges" xml:space="preserve">
+    <value>لم تُسجَّل تغييرات على مستوى الحقول لهذا السجل.</value>
+  </data>
+  <data name="Detail_Extra" xml:space="preserve">
+    <value>تفاصيل إضافية</value>
+  </data>
+  <data name="Detail_Where" xml:space="preserve">
+    <value>من أين، وكيف</value>
+  </data>
+  <data name="Detail_Ip" xml:space="preserve">
+    <value>عنوان IP</value>
+  </data>
+  <data name="Detail_Machine" xml:space="preserve">
+    <value>الجهاز</value>
+  </data>
+  <data name="Detail_Version" xml:space="preserve">
+    <value>إصدار التطبيق</value>
+  </data>
+  <data name="Detail_Agent" xml:space="preserve">
+    <value>المتصفح / العميل</value>
+  </data>
+  <data name="Detail_Source" xml:space="preserve">
+    <value>المصدر</value>
+  </data>
+  <data name="Detail_Method" xml:space="preserve">
+    <value>الطريقة</value>
+  </data>
+  <data name="Detail_Path" xml:space="preserve">
+    <value>المسار</value>
+  </data>
+  <data name="Detail_Status" xml:space="preserve">
+    <value>حالة HTTP</value>
+  </data>
+  <data name="Detail_Duration" xml:space="preserve">
+    <value>المدة</value>
+  </data>
+  <data name="Detail_RequestId" xml:space="preserve">
+    <value>رقم الطلب</value>
+  </data>
+  <data name="Detail_Role" xml:space="preserve">
+    <value>الدور</value>
+  </data>
+  <data name="Detail_ThisRequest" xml:space="preserve">
+    <value>كل ما في هذا الطلب ({0})</value>
+  </data>
+  <data name="Detail_RecordHistory" xml:space="preserve">
+    <value>سجل هذا العنصر</value>
+  </data>
+  <data name="Detail_ByUser" xml:space="preserve">
+    <value>كل ما فعله هذا المستخدم</value>
+  </data>
+  <data name="Detail_Close" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Detail_Copy" xml:space="preserve">
+    <value>نسخ رقم الطلب</value>
+  </data>
+  <data name="Detail_Copied" xml:space="preserve">
+    <value>تم النسخ</value>
+  </data>
+  <data name="Msg_LoadFailed" xml:space="preserve">
+    <value>تعذّر تحميل سجل التدقيق.</value>
+  </data>
+  <data name="Msg_DetailFailed" xml:space="preserve">
+    <value>تعذّر تحميل السجل.</value>
+  </data>
+  <data name="Msg_System" xml:space="preserve">
+    <value>النظام</value>
+  </data>
+</root>

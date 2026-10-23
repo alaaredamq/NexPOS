@@ -6,10 +6,10 @@
     function strings() { return window.usersLocalizedStrings || {}; }
 
     function notifySuccess(msg) {
-        if (typeof toastr !== 'undefined') { toastr.success(msg); } else { alert(msg); }
+        if (typeof toastr !== 'undefined') { toastr.success(msg); } else { appAlert(msg, 'success'); }
     }
     function notifyError(msg) {
-        if (typeof toastr !== 'undefined') { toastr.error(msg); } else { alert(msg); }
+        if (typeof toastr !== 'undefined') { toastr.error(msg); } else { appAlert(msg, 'error'); }
     }
     function reloadUsers() {
         if (window.dataTable_usersTable) { window.dataTable_usersTable.ajax.reload(null, false); }
@@ -224,40 +224,40 @@
     };
 
     window.deleteUser = function(id) {
-        if (!confirm(strings().deleteUserConfirm || 'Delete this user? This cannot be undone.')) {
-            return;
-        }
-        $.ajax({
-            url: (urls().deleteUserUrl || '') + '/' + id,
-            type: 'DELETE',
-            success: function(response) {
-                if (response.success) {
-                    notifySuccess(response.message || 'User deleted');
-                    reloadUsers();
-                } else {
-                    notifyError(response.message || 'Failed to delete user');
-                }
-            },
-            error: function() { notifyError('Failed to delete user'); }
+        appConfirm(strings().deleteUserConfirm || 'Delete this user? This cannot be undone.').then(function(ok) {
+            if (!ok) return;
+            $.ajax({
+                url: (urls().deleteUserUrl || '') + '/' + id,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        notifySuccess(response.message || 'User deleted');
+                        reloadUsers();
+                    } else {
+                        notifyError(response.message || 'Failed to delete user');
+                    }
+                },
+                error: function() { notifyError('Failed to delete user'); }
+            });
         });
     };
 
     window.terminateSession = function(id) {
-        if (!confirm(strings().terminateSessionConfirm || 'Terminate this session?')) {
-            return;
-        }
-        $.ajax({
-            url: (urls().terminateSessionUrl || '') + '/' + id,
-            type: 'POST',
-            success: function(response) {
-                if (response.success) {
-                    notifySuccess(response.message || 'Session terminated');
-                    reloadSessions();
-                } else {
-                    notifyError(response.message || 'Failed to terminate session');
-                }
-            },
-            error: function() { notifyError('Failed to terminate session'); }
+        appConfirm(strings().terminateSessionConfirm || 'Terminate this session?', { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes') }).then(function(ok) {
+            if (!ok) return;
+            $.ajax({
+                url: (urls().terminateSessionUrl || '') + '/' + id,
+                type: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        notifySuccess(response.message || 'Session terminated');
+                        reloadSessions();
+                    } else {
+                        notifyError(response.message || 'Failed to terminate session');
+                    }
+                },
+                error: function() { notifyError('Failed to terminate session'); }
+            });
         });
     };
 

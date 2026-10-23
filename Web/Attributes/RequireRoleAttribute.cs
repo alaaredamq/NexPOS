@@ -33,6 +33,7 @@ public class RequireRoleAttribute : Attribute, IAuthorizationFilter
         
         if (!roles.Contains(_role))
         {
+            AccessDeniedAudit.Record(context, $"role {_role}");
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }
@@ -68,6 +69,7 @@ public class RequireAnyRoleAttribute : Attribute, IAuthorizationFilter
         
         if (!_roles.Any(role => userRoles.Contains(role)))
         {
+            AccessDeniedAudit.Record(context, $"any role of [{string.Join(", ", _roles)}]");
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }
@@ -103,6 +105,7 @@ public class RequireAllRolesAttribute : Attribute, IAuthorizationFilter
         
         if (!_roles.All(role => userRoles.Contains(role)))
         {
+            AccessDeniedAudit.Record(context, $"all roles of [{string.Join(", ", _roles)}]");
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }

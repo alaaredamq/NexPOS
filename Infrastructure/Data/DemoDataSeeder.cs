@@ -34,7 +34,7 @@ public static class DemoDataSeeder
         await SeedStoreSettingsAsync(db);
         var users = await SeedUsersAsync(db);
         var categories = await SeedCategoriesAsync(db);
-        var suppliers = await SeedSuppliersAsync(db);
+        var suppliers = await SeedSuppliersAsync(db, users);
         var products = await SeedProductsAsync(db, categories, suppliers);
         var customers = await SeedCustomersAsync(db);
         await SeedMainScreenProductsAsync(db, products);
@@ -143,7 +143,7 @@ public static class DemoDataSeeder
         return result;
     }
 
-    private static async Task<Dictionary<string, Supplier>> SeedSuppliersAsync(ErpDbContext db)
+    private static async Task<Dictionary<string, Supplier>> SeedSuppliersAsync(ErpDbContext db, DemoUsers users)
     {
         var wanted = new (string Name, string Email, string Phone, string Address, string City)[]
         {
@@ -166,9 +166,22 @@ public static class DemoDataSeeder
             result[w.Name] = supplier;
         }
 
-        // Two suppliers we're partway through paying, so the supplier screen shows balances.
-        result["Cedar Beverages Co."].DebtToSupplier = 1240.50m;
-        result["Al Amal Wholesale"].DebtToSupplier = 685m;
+        await db.SaveChangesAsync();
+
+        // Two suppliers we're partway through paying, so the supplier screen shows balances
+        // and a ledger. Balance must equal the sum of each supplier's transactions.
+        var now = DateTime.UtcNow;
+        var cedar = result["Cedar Beverages Co."];
+        db.SupplierDebtTransactions.Add(new SupplierDebtTransaction(cedar.Id, users.Manager.Id, 1800m,
+            SupplierDebtTransactionType.Purchase, "Beverage restock on credit") { CreatedAt = now.AddDays(-21) });
+        db.SupplierDebtTransactions.Add(new SupplierDebtTransaction(cedar.Id, users.Manager.Id, -559.50m,
+            SupplierDebtTransactionType.Payment, "Partial payment") { CreatedAt = now.AddDays(-9) });
+        cedar.Balance = 1240.50m;
+
+        var amal = result["Al Amal Wholesale"];
+        db.SupplierDebtTransactions.Add(new SupplierDebtTransaction(amal.Id, users.Manager.Id, 685m,
+            SupplierDebtTransactionType.ManualAdjustment, "Opening balance from paper ledger") { CreatedAt = now.AddDays(-30) });
+        amal.Balance = 685m;
 
         await db.SaveChangesAsync();
         return result;

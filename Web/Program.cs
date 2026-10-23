@@ -1,4 +1,5 @@
 using Application.IServices.Base;
+using Core.Auditing;
 using Application.IServices.Products;
 using Application.Services.Base;
 using Application.Services.Products;
@@ -44,7 +45,9 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
                 : Path.Combine(context.HostingEnvironment.ContentRootPath, "logs"),
             "log-.txt"),
         rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 14));
+        retainedFileCountLimit: 14)
+    // Every warning/error also goes into the audit trail, tied to the user and request that caused it.
+    .WriteTo.Sink(new Web.Services.AuditSerilogSink(services)));
 
 // ✅ Add Localization *before* AddControllersWithViews
 builder.Services.AddLocalization(options => 
@@ -219,6 +222,8 @@ builder.Services.AddScoped<Core.IRepositories.Sales.IExchangeRateRepository, Inf
 builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 builder.Services.AddScoped<Core.IRepositories.Products.ISupplierRepository, Infrastructure.Repositories.Products.SupplierRepository>();
 builder.Services.AddScoped<Application.IServices.Products.ISupplierService, Application.Services.Products.SupplierService>();
+builder.Services.AddScoped<Core.IRepositories.Products.ISupplierDebtTransactionRepository, Infrastructure.Repositories.Products.SupplierDebtTransactionRepository>();
+builder.Services.AddScoped<Application.IServices.Products.ISupplierDebtService, Application.Services.Products.SupplierDebtService>();
 builder.Services.AddScoped<Application.IServices.Products.IProductService, Application.Services.Products.ProductService>();
 builder.Services.AddScoped<Application.IServices.Products.IMainScreenProductService, Application.Services.Products.MainScreenProductService>();
 builder.Services.AddScoped<Application.IServices.Products.IFastProductSearchService, Application.Services.Products.FastProductSearchService>();
@@ -289,6 +294,7 @@ if (Environment.GetEnvironmentVariable("NEXPOS_DEMO") == "1")
 else
     builder.Services.AddScoped<IPrinterTransport, Win32PrinterTransport>();
 builder.Services.AddScoped<IEscPosBuilder, EscPosBuilder>();
+builder.Services.AddSingleton<ILabelPdfBuilder, LabelPdfBuilder>();
 builder.Services.AddScoped<Application.IServices.Sales.IThermalPrinterService, Application.Services.Sales.ThermalPrinterService>();
 
 // Tax Management
@@ -315,6 +321,14 @@ builder.Services.AddScoped<Application.IServices.Backup.IBackupService, Applicat
 builder.Services.AddScoped<Application.IServices.Notifications.IAlertService, Application.Services.Notifications.AlertService>();
 
 // Audit Logging
+// The trail lives in its own SQLite file (nexpos-audit.db): audit writes must never contend with point-of-sale
+// transactions for SQLite's single write lock, and restoring a business backup must not be able to erase the history.
+var auditConnectionString = AppDataPathProvider.GetAuditConnectionString();
+builder.Services.Configure<Core.Auditing.AuditOptions>(builder.Configuration.GetSection(Core.Auditing.AuditOptions.SectionName));
+builder.Services.AddSingleton<Core.Auditing.IAuditContext, Web.Services.HttpAuditContext>();
+// The writer, the EF interceptors that capture every data change, and the viewer's read-side context.
+builder.Services.AddAuditTrail(auditConnectionString, AppDataPathProvider.GetAuditFallbackDirectory());
+builder.Services.AddHostedService<Application.Services.Logging.AuditWriterHostedService>();
 builder.Services.AddScoped<Core.IRepositories.Logging.IAuditLogRepository, Infrastructure.Repositories.Logging.AuditLogRepository>();
 builder.Services.AddScoped<Application.IServices.Logging.IAuditLogService, Application.Services.Logging.AuditLogService>();
 
@@ -346,15 +360,41 @@ builder.Services.AddSingleton<Application.IServices.Licensing.ILicenseService, A
 // Build the app
 var app = builder.Build();
 
+var auditContext = app.Services.GetRequiredService<Core.Auditing.IAuditContext>();
+var auditTrail = app.Services.GetRequiredService<Core.Auditing.IAuditTrail>();
+
+// ✅ Create the audit database before anything can query it (the hosted writer repeats this idempotently).
+// A problem here must not stop the shop from opening: entries queue and spill to the fallback folder.
+try
+{
+    Infrastructure.Auditing.AuditDatabase.EnsureCreated(auditConnectionString);
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "The audit database could not be prepared; audit entries will be parked in the fallback folder");
+}
+
 // ✅ Apply pending EF migrations on startup — packaged (Electron) client installs have
 // no way to run `dotnet ef database update` themselves, so the SQLite schema must be
 // brought up to date automatically the moment the app starts.
+// The migration's own statements (schema changes, seed rows) are not events anyone investigates, so per-row
+// auditing is off inside the scope; one summary entry says which migrations ran.
 using (var migrationScope = app.Services.CreateScope())
+using (auditContext.BeginSystemScope("Startup"))
+using (auditContext.SuppressDataChanges("schema migration"))
 {
     var dbContext = migrationScope.ServiceProvider.GetRequiredService<ErpDbContext>();
     try
     {
+        var pendingMigrations = dbContext.Database.GetPendingMigrations().ToList();
         dbContext.Database.Migrate();
+
+        if (pendingMigrations.Count > 0)
+        {
+            auditTrail.LogSystem(AuditActions.MigrationsApplied,
+                $"Applied {pendingMigrations.Count} database migration(s): {string.Join(", ", pendingMigrations)}",
+                "Database", details: new { migrations = pendingMigrations });
+        }
     }
     catch (Exception ex)
     {
@@ -381,9 +421,38 @@ catch (Exception ex)
 // Idempotent - only fills a database that doesn't already contain the demo catalogue.
 if (args.Contains("--seed-demo") || Environment.GetEnvironmentVariable("NEXPOS_SEED_DEMO") == "1")
 {
+    // Hundreds of generated rows are not events anyone investigates: one summary entry instead of a row each.
     using var seedScope = app.Services.CreateScope();
-    var seeded = await DemoDataSeeder.SeedAsync(seedScope.ServiceProvider.GetRequiredService<ErpDbContext>());
+    using var seedActor = auditContext.BeginSystemScope("DemoSeed");
+    bool seeded;
+    using (auditContext.SuppressDataChanges("demo data seeding"))
+    {
+        seeded = await DemoDataSeeder.SeedAsync(seedScope.ServiceProvider.GetRequiredService<ErpDbContext>());
+    }
     Log.Information(seeded ? "Demo data seeded." : "Demo data already present - nothing to do.");
+    if (seeded)
+    {
+        auditTrail.LogSystem(AuditActions.SeedData, "Demo catalogue seeded", "Database");
+    }
+}
+
+// Optional bilingual (English + Arabic) test catalogue: `Web.exe --seed-test` (or NEXPOS_SEED_TEST=1).
+// Products by piece, volume and mass; idempotent per product.
+if (args.Contains("--seed-test") || Environment.GetEnvironmentVariable("NEXPOS_SEED_TEST") == "1")
+{
+    using var testSeedScope = app.Services.CreateScope();
+    using var testSeedActor = auditContext.BeginSystemScope("TestSeed");
+    int testAdded;
+    using (auditContext.SuppressDataChanges("test content seeding"))
+    {
+        testAdded = await TestContentSeeder.SeedAsync(testSeedScope.ServiceProvider.GetRequiredService<ErpDbContext>());
+    }
+    Log.Information("Test content seeded: {Count} product(s) added.", testAdded);
+    if (testAdded > 0)
+    {
+        auditTrail.LogSystem(AuditActions.SeedData,
+            $"Test catalogue seeded: {testAdded} product(s) added", "Database");
+    }
 }
 
 // ✅ Global exception handler — must be the very first middleware so it wraps everything
@@ -438,6 +507,11 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
+// ✅ Audit trail: one row per request (who, when, where from, endpoint, status, duration). After the static files
+// (assets are not events) and deliberately before the license / auth / error handling below, so refused, redirected
+// and crashed requests are recorded as faithfully as successful ones.
+app.UseMiddleware<Web.Middlewares.AuditRequestMiddleware>();
+
 // ✅ License: close the POS screen and refuse new sales when the license does not allow selling.
 // After static files (assets are never blocked) and before routing/auth; reads and everything else pass.
 app.UseMiddleware<Web.Middlewares.LicenseEnforcementMiddleware>();
@@ -478,6 +552,42 @@ if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("ELECT
 {
     app.Lifetime.ApplicationStarted.Register(() => LaunchElectron(app));
 }
+
+// ✅ Application lifecycle in the trail. "Started" with no matching "Stopping" before it means the previous run ended
+// abruptly (crash, power cut, or the desktop shell killing the process) - useful to know when chasing odd data.
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    try
+    {
+        var license = app.Services.GetRequiredService<Application.IServices.Licensing.ILicenseService>().GetState();
+        using var _ = auditContext.BeginSystemScope("Startup");
+        auditTrail.LogSystem(AuditActions.AppStarted,
+            $"Application started (build {Web.BuildInfo.BuildDate}, {app.Environment.EnvironmentName})",
+            "Application",
+            details: new
+            {
+                build = Web.BuildInfo.BuildDate,
+                environment = app.Environment.EnvironmentName,
+                machine = Environment.MachineName,
+                os = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+                runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+                processId = Environment.ProcessId,
+                databaseFile = Path.GetFileName(AppDataPathProvider.GetDatabaseFilePath()),
+                auditDatabaseFile = Path.GetFileName(AppDataPathProvider.GetAuditDatabaseFilePath()),
+                license = new { status = license.Status.ToString(), customer = license.Customer, validUntil = license.ValidUntil?.ToString("yyyy-MM-dd") }
+            });
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Could not record the application start in the audit trail");
+    }
+});
+
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    using var _ = auditContext.BeginSystemScope("Shutdown");
+    auditTrail.LogSystem(AuditActions.AppStopping, "Application stopping (clean shutdown)", "Application");
+});
 
 app.Run();
 

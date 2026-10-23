@@ -254,7 +254,8 @@
         });
 
         function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+            appConfirm('Are you sure you want to delete this product? This action cannot be undone.').then(function(ok) {
+                if (!ok) return;
                 $.ajax({
                     url: '@Url.Action("Delete", "Products")',
                     type: 'POST',
@@ -266,14 +267,14 @@
                         if (response.success) {
                             window.location.href = '@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })';
                         } else {
-                            alert('Error: ' + response.message);
+                            appAlert('Error: ' + response.message, 'error');
                         }
                     },
                     error: function() {
-                        alert('An error occurred while deleting the product.');
+                        appAlert('An error occurred while deleting the product.', 'error');
                     }
                 });
-            }
+            });
         }
     </script>
 

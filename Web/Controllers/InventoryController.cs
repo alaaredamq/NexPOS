@@ -6,6 +6,8 @@ using Application.DTOs.Products;
 using Web.Attributes;
 using Web.Helpers;
 using Core.Entities.Products;
+using Application.Services.Printing;
+using Core.Printing;
 using static Web.Helpers.CurrencyHelper;
 
 namespace Web.Controllers;
@@ -17,15 +19,18 @@ public class InventoryController : BaseController
     private readonly IProductService _productService;
     private readonly IProductCategoryService _categoryService;
     private readonly Application.IServices.Base.ICurrencyService _currencyService;
+    private readonly IThermalPrinterService _thermalPrinterService;
 
     public InventoryController(
         IProductService productService, 
         IProductCategoryService categoryService,
-        Application.IServices.Base.ICurrencyService currencyService)
+        Application.IServices.Base.ICurrencyService currencyService,
+        IThermalPrinterService thermalPrinterService)
     {
         _productService = productService;
         _categoryService = categoryService;
         _currencyService = currencyService;
+        _thermalPrinterService = thermalPrinterService;
     }
 
     public async Task<IActionResult> Index()
@@ -237,6 +242,61 @@ public class InventoryController : BaseController
         ViewBag.AvgStockValueFormatted = FormatCurrency(avgStockValue, currencyNotation);
 
         return View();
+    }
+
+    // ----- Report printing: receipt paper or PDF, same content either way -----
+
+    [HttpPost]
+    public async Task<IActionResult> PrintLowStockReport()
+        => await PrintToReceiptPrinterAsync(_thermalPrinterService, await BuildLowStockDocumentAsync(),
+            Url.Action(nameof(LowStockReportPdf), "Inventory"));
+
+    [HttpGet]
+    public async Task<IActionResult> LowStockReportPdf()
+        => PdfFile(_thermalPrinterService, await BuildLowStockDocumentAsync(), PdfPaper.A4);
+
+    [HttpPost]
+    public async Task<IActionResult> PrintStockValueReport()
+        => await PrintToReceiptPrinterAsync(_thermalPrinterService, await BuildStockValueDocumentAsync(),
+            Url.Action(nameof(StockValueReportPdf), "Inventory"));
+
+    [HttpGet]
+    public async Task<IActionResult> StockValueReportPdf()
+        => PdfFile(_thermalPrinterService, await BuildStockValueDocumentAsync(), PdfPaper.A4);
+
+    private async Task<PrintDocument> BuildLowStockDocumentAsync()
+    {
+        var products = await _productService.GetAllAsync();
+        var items = products
+            .Where(p => p.MinimumStock.HasValue && p.StockQuantity <= p.MinimumStock.Value)
+            .OrderBy(p => p.StockQuantity)
+            .Select(p => new LowStockItem(p.Name, p.Category?.Name ?? "No Category", p.StockQuantity, p.MinimumStock!.Value))
+            .ToList();
+        return ReportDocuments.LowStock(items);
+    }
+
+    private async Task<PrintDocument> BuildStockValueDocumentAsync()
+    {
+        var products = await _productService.GetAllAsync();
+        var defaultCurrency = await _currencyService.GetDefaultAsync();
+        var currencyNotation = defaultCurrency?.Notation ?? "$";
+
+        var rows = products
+            .Where(p => p.IsActive)
+            .Select(p =>
+            {
+                var notation = p.Currency?.Notation ?? currencyNotation;
+                var unitCost = p.CostPrice ?? p.SellingPrice;
+                return (Value: p.StockQuantity * unitCost, Item: new StockValueItem(
+                    p.Name, p.Category?.Name ?? "No Category", p.StockQuantity,
+                    FormatCurrency(unitCost, notation), FormatCurrency(p.StockQuantity * unitCost, notation)));
+            })
+            .OrderByDescending(r => r.Value)
+            .ToList();
+
+        return ReportDocuments.StockValue(
+            rows.Select(r => r.Item).ToList(),
+            FormatCurrency(rows.Sum(r => r.Value), currencyNotation));
     }
 
     #region Helper Methods

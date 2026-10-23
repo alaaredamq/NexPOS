@@ -12,6 +12,7 @@
     <title>Z-Report - Session @Model.SessionId</title>
     <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="/lib/toastr/toastr.min.css">
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
@@ -159,9 +160,11 @@
 <body>
     <!-- Print Actions -->
     <div class="print-actions">
-        <button class="btn btn-success btn-lg me-2" onclick="window.print()">
-            <i class="fas fa-print me-2"></i>Print Report
-        </button>
+        @await Html.PartialAsync("_PrintMenu", new PrintMenuModel(
+            Url.Action("PrintZReport", "CashDrawer", new { id = Model.SessionId })!,
+            Url.Action("ZReportPdf", "CashDrawer", new { id = Model.SessionId })!,
+            "btn btn-success btn-lg me-2",
+            "Print Report"))
         <a href="@Url.Action("Index", "CashDrawer")" class="btn btn-secondary btn-lg">
             <i class="fas fa-times me-2"></i>Close
         </a>
@@ -350,6 +353,9 @@
     </div>
 
     <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/toastr/toastr.min.js"></script>
+    <script src="/js/nexprint.js"></script>
 </body>
 </html>
 

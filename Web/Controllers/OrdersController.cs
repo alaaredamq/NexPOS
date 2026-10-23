@@ -774,15 +774,28 @@ namespace Web.Controllers
                     return Json(new { success = false, message = "Order not found" });
                 }
 
-                // F4: used to optionally render Orders/Receipt.cshtml to HTML and screenshot it
-                // via a headless browser; that path is gone (see WORKLOG.md F4), so this always
-                // goes through the direct ESC/POS builder now.
-                return await PrintReceiptFallback(id, order);
+                // Reprint of an existing order: straight to the receipt printer, no dialog. Uses the
+                // order's stored receipt (or one built from the order) - never creates a new row.
+                var document = await _thermalPrinterService.GetOrderReceiptDocumentAsync(order);
+                return await PrintToReceiptPrinterAsync(_thermalPrinterService, document,
+                    Url.Action(nameof(ReceiptPdf), "Orders", new { id }));
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
+        }
+
+        [HttpGet]
+        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        public async Task<IActionResult> ReceiptPdf(int id)
+        {
+            var order = await _orderService.GetByIdAsync(id);
+            if (order == null)
+                return NotFound();
+
+            var document = await _thermalPrinterService.GetOrderReceiptDocumentAsync(order);
+            return PdfFile(_thermalPrinterService, document);
         }
 
         [HttpPost]
@@ -941,61 +954,6 @@ namespace Web.Controllers
             receipt.AppendLine($"  {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC");
             
             return receipt.ToString();
-        }
-
-        private async Task<IActionResult> PrintReceiptFallback(int id, Order order, string? fallbackReason = null)
-        {
-            var receipts = await _receiptService.GetAllAsync();
-            var receipt = receipts.FirstOrDefault(r => r.OrderId == id);
-
-            bool printed;
-            string message;
-
-            if (receipt != null)
-            {
-                printed = await _thermalPrinterService.PrintReceiptAsync(receipt);
-                message = printed ? "Receipt printed successfully" : "Failed to print. Check if printer is connected.";
-            }
-            else
-            {
-                var receiptRequest = new CreateReceiptRequest
-                {
-                    OrderId = order.Id,
-                    CustomerId = order.CustomerId,
-                    CashierId = 1,
-                    SubTotal = order.TotalAmount,
-                    TaxAmount = 0,
-                    DiscountAmount = 0,
-                    TotalAmount = order.TotalAmount,
-                    AmountPaid = order.TotalAmount,
-                    PaymentMethodId = 1,
-                    CurrencyId = order.CurrencyId,
-                    ExchangeRate = 1.0m,
-                    CustomerName = order.Customer != null ? $"{order.Customer.FirstName} {order.Customer.LastName}".Trim() : "",
-                    CustomerPhone = order.Customer?.PhoneNumber,
-                    Items = order.Cart?.CartItems?.Select(ci => new ReceiptItemRequest
-                    {
-                        ProductId = ci.ProductId,
-                        ProductName = ci.Product?.Name ?? "Unknown Product",
-                        ProductBarcode = ci.Product?.Barcode,
-                        Quantity = ci.Quantity,
-                        UnitPrice = ci.UnitPrice,
-                        DiscountAmount = 0,
-                        TaxRate = 0
-                    }).ToList() ?? new List<ReceiptItemRequest>()
-                };
-
-                receipt = await _receiptService.CreateReceiptAsync(receiptRequest);
-                printed = await _thermalPrinterService.PrintReceiptAsync(receipt);
-                message = printed ? "Receipt created and printed" : "Receipt created but print failed";
-            }
-
-            if (fallbackReason != null)
-            {
-                message = $"{fallbackReason}. Fallback: {message}";
-            }
-
-            return Json(new { success = printed, message });
         }
 
         // [HttpGet]

@@ -154,4 +154,49 @@
   <data name="DeleteError" xml:space="preserve">
     <value>An error occurred while deleting the supplier.</value>
   </data>
+  <data name="AddTransaction" xml:space="preserve">
+    <value>Add Transaction</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="TypePurchase" xml:space="preserve">
+    <value>Purchase</value>
+  </data>
+  <data name="TypePayment" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="TypeAdjustment" xml:space="preserve">
+    <value>Adjustment</value>
+  </data>
+  <data name="ShowingRecent" xml:space="preserve">
+    <value>Showing the 20 most recent of {0} transactions</value>
+  </data>
+  <data name="DebtDialogPlusTitle" xml:space="preserve">
+    <value>I owe them more</value>
+  </data>
+  <data name="DebtDialogPlusSub" xml:space="preserve">
+    <value>Goods taken on credit, or they lent me money</value>
+  </data>
+  <data name="DebtDialogMinusTitle" xml:space="preserve">
+    <value>I paid them</value>
+  </data>
+  <data name="DebtDialogMinusSub" xml:space="preserve">
+    <value>I paid the supplier, or they owe me</value>
+  </data>
+  <data name="DebtDialogIncrease" xml:space="preserve">
+    <value>What I owe the supplier increases by</value>
+  </data>
+  <data name="DebtDialogDecrease" xml:space="preserve">
+    <value>What I owe the supplier decreases by</value>
+  </data>
 </root>

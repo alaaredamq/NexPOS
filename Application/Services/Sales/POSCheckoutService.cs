@@ -4,6 +4,8 @@ using Application.IServices.Sales;
 using Application.IServices.Inventory;
 using Application.IServices.Licensing;
 using Application.IServices.Users;
+using Core.Auditing;
+using Core.Entities.Logging;
 using Core.Entities.Sales;
 using Core.Entities.Inventory;
 using Core.ICache;
@@ -32,6 +34,7 @@ namespace Application.Services.Sales
         private readonly ErpDbContext _dbContext;
         private readonly ILicenseService _licenseService;
         private readonly ILogger<POSCheckoutService> _logger;
+        private readonly IAuditTrail _auditTrail;
 
         private static readonly TimeSpan IdempotencyWindow = TimeSpan.FromSeconds(30);
 
@@ -57,7 +60,8 @@ namespace Application.Services.Sales
             ICacheService cache,
             ErpDbContext dbContext,
             ILicenseService licenseService,
-            ILogger<POSCheckoutService> logger)
+            ILogger<POSCheckoutService> logger,
+            IAuditTrail auditTrail)
         {
             _orderService = orderService;
             _cartService = cartService;
@@ -74,6 +78,7 @@ namespace Application.Services.Sales
             _dbContext = dbContext;
             _licenseService = licenseService;
             _logger = logger;
+            _auditTrail = auditTrail;
         }
 
         /// <summary>
@@ -388,7 +393,11 @@ namespace Application.Services.Sales
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error creating receipt for order {OrderId}. Checkout will continue.", order.Id);
-                        // Don't fail checkout if receipt creation fails
+                        // Don't fail checkout if receipt creation fails - but the sale now has no receipt, which support must be able to see.
+                        _auditTrail.LogBusiness(AuditActions.ReceiptFailed,
+                            $"Order {orderNumber} was saved but its receipt could not be created: {ex.Message}",
+                            "Order", AuditOutcome.Failure, AuditLogSeverity.Error, order.Id, orderNumber,
+                            new { orderId = order.Id, error = ex.GetType().Name });
                     }
 
                     // Build response
@@ -447,8 +456,51 @@ namespace Application.Services.Sales
                         }
                     }
 
-                    _logger.LogInformation("Checkout completed successfully. Order ID: {OrderId}, Receipt: {ReceiptNumber}", 
+                    _logger.LogInformation("Checkout completed successfully. Order ID: {OrderId}, Receipt: {ReceiptNumber}",
                         order.Id, receipt?.ReceiptNumber ?? "N/A");
+
+                    // The sale in one line, with everything needed to reconstruct it later (the row-level changes -
+                    // order, receipt, stock, drawer - are recorded separately and share this request id).
+                    _auditTrail.LogBusiness(AuditActions.SaleCompleted,
+                        $"Sale completed: {orderNumber}, receipt {receipt?.ReceiptNumber ?? "none"}, total {finalTotal:F2}, " +
+                        $"{cartItems.Count} line(s), paid by {response.PaymentMethod}{(request.AddToDebt ? " (added to customer debt)" : "")}",
+                        "Order", entityId: order.Id, entityLabel: orderNumber,
+                        details: new
+                        {
+                            orderId = order.Id,
+                            orderNumber,
+                            receiptId = receipt?.Id,
+                            receiptNumber = receipt?.ReceiptNumber,
+                            total = finalTotal,
+                            paid = paymentResult.PaidAmount,
+                            change = paymentResult.ChangeAmount,
+                            paymentMethod = response.PaymentMethod,
+                            currencyId = request.CurrencyId,
+                            customerId = effectiveCustomerId,
+                            addToDebt = request.AddToDebt,
+                            cashDrawerSessionId,
+                            discountAmount = cart.DiscountAmount,
+                            discountPercentage = cart.DiscountPercentage,
+                            receiptPrinted = response.ReceiptPrinted,
+                            items = cartItems.Select(i => new
+                            {
+                                i.ProductId,
+                                name = i.Product?.Name,
+                                i.Quantity,
+                                i.WeightOrVolume,
+                                i.UnitPrice,
+                                lineTotal = i.TotalPrice
+                            })
+                        });
+
+                    if (request.PrintReceipt && response.ReceiptPrinted != true)
+                    {
+                        _auditTrail.LogBusiness(AuditActions.PrintFailed,
+                            $"The receipt for {orderNumber} was not printed (receipt printer did not accept it)",
+                            "Receipt", AuditOutcome.Failure, AuditLogSeverity.Warning, receipt?.Id, receipt?.ReceiptNumber,
+                            new { orderId = order.Id, hadReceipt = receipt != null });
+                    }
+
                     return response;
                 });
             }
@@ -459,6 +511,19 @@ namespace Application.Services.Sales
                 // successful checkout should make this key stay claimed.
                 _idempotencyGuard.ReleaseCheckout(idempotencyKey);
                 _logger.LogError(ex, "Error processing checkout for cart {CartId}", request.CartId);
+                _auditTrail.LogBusiness(AuditActions.SaleFailed,
+                    $"Sale failed and was rolled back: {ex.Message}",
+                    "Order", AuditOutcome.Failure, AuditLogSeverity.Error,
+                    details: new
+                    {
+                        cartId = request.CartId,
+                        customerId = request.CustomerId,
+                        paymentMethodId = request.PaymentMethodId,
+                        requestedTotal = request.TotalAmount,
+                        addToDebt = request.AddToDebt,
+                        itemCount = request.Items?.Count,
+                        error = ex.GetType().Name
+                    });
                 throw;
             }
         }

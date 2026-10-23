@@ -1,16 +1,28 @@
-using Core.Entities.Base;
+using Core.Auditing;
 using Core.Entities.Logging;
-using Core.IRepositories.Base;
 
 namespace Core.IRepositories.Logging;
 
-public interface IAuditLogRepository : IBaseRepository<AuditLog, int>
+/// <summary>
+/// Read side of the audit trail. Deliberately not an <c>IBaseRepository</c>: audit rows are
+/// append-only, so there is no save/update/delete here - rows are written by <see cref="IAuditTrail"/>,
+/// and the only removal is the opt-in retention purge.
+/// </summary>
+public interface IAuditLogRepository
 {
-    Task<IEnumerable<AuditLog>> GetByUserAsync(int userId, int page = 1, int pageSize = 50);
-    Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityType, int entityId, int page = 1, int pageSize = 50);
-    Task<IEnumerable<AuditLog>> GetByActionAsync(string action, int page = 1, int pageSize = 50);
-    Task<IEnumerable<AuditLog>> GetBySeverityAsync(AuditLogSeverity severity, int page = 1, int pageSize = 50);
-    Task<IEnumerable<AuditLog>> SearchAsync(string? searchTerm = null, string? entityType = null, 
-        string? action = null, AuditLogSeverity? severity = null, DateTime? fromDate = null, 
-        DateTime? toDate = null, int page = 1, int pageSize = 50);
+    Task<AuditLog?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+
+    Task<(List<AuditLog> Items, int Total)> SearchAsync(
+        AuditLogFilter filter, int skip, int take, CancellationToken cancellationToken = default);
+
+    /// <summary>Streams matching rows (for export) without loading them all into memory.</summary>
+    IAsyncEnumerable<AuditLog> StreamAsync(
+        AuditLogFilter filter, int maxRows, CancellationToken cancellationToken = default);
+
+    Task<AuditLogStats> GetStatsAsync(DateTime nowUtc, CancellationToken cancellationToken = default);
+
+    Task<AuditLogFilterOptions> GetFilterOptionsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes rows created before <paramref name="cutoffUtc"/>; returns how many.</summary>
+    Task<int> PurgeOlderThanAsync(DateTime cutoffUtc, CancellationToken cancellationToken = default);
 }

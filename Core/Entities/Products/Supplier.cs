@@ -15,13 +15,18 @@ public class Supplier : ISSoftDeletable, IEntityBase<int>
     public string? PostalCode { get; set; }
     public bool IsActive { get; set; }
     public int CurrencyId { get; set; }
-    public decimal DebtToSupplier { get; set; } // Money I owe the supplier
-    public decimal DebtFromSupplier { get; set; } // Money the supplier owes me
+
+    /// <summary>
+    /// Running debt balance, kept in sync with <see cref="DebtTransactions"/>. Positive means
+    /// the business owes the supplier; negative means the supplier owes the business.
+    /// </summary>
+    public decimal Balance { get; set; }
     public int? OrderNumber { get; set; }
 
     #region Navigation Properties
 
     public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<SupplierDebtTransaction> DebtTransactions { get; set; } = new List<SupplierDebtTransaction>();
     public Currency Currency { get; set; } = null!;
 
     #endregion

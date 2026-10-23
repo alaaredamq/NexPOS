@@ -437,10 +437,10 @@
                             $('#Barcode').val(res.barcode).trigger('input').removeClass('input-validation-error');
                             $('span[data-valmsg-for="Barcode"]').text('');
                         } else {
-                            alert((res && res.message) || @Json.Serialize(SharedLocalizer["Prod_GenFail"].Value));
+                            appAlert((res && res.message) || @Json.Serialize(SharedLocalizer["Prod_GenFail"].Value), 'error');
                         }
                     })
-                    .fail(function() { alert(@Json.Serialize(SharedLocalizer["Prod_GenFail"].Value)); })
+                    .fail(function() { appAlert(@Json.Serialize(SharedLocalizer["Prod_GenFail"].Value), 'error'); })
                     .always(function() { $btn.prop('disabled', false).html(originalHtml); });
             });
 
@@ -461,8 +461,8 @@
 
                 if (sellingPrice <= purchasePrice) {
                     e.preventDefault();
-                    alert(@Json.Serialize(SharedLocalizer["Prod_PriceWarn"].Value));
-                    $('#SellingPrice').focus();
+                    appAlert(@Json.Serialize(SharedLocalizer["Prod_PriceWarn"].Value), 'warning')
+                        .then(function() { $('#SellingPrice').focus(); });
                 }
             });
         });

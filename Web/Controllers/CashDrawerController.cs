@@ -1,4 +1,6 @@
 using Application.IServices.Sales;
+using Application.Services.Printing;
+using Core.Printing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,13 +14,16 @@ namespace Web.Controllers;
 public class CashDrawerController : BaseController
 {
     private readonly ICashDrawerService _cashDrawerService;
+    private readonly IThermalPrinterService _thermalPrinterService;
     private readonly ILogger<CashDrawerController> _logger;
 
     public CashDrawerController(
         ICashDrawerService cashDrawerService,
+        IThermalPrinterService thermalPrinterService,
         ILogger<CashDrawerController> logger)
     {
         _cashDrawerService = cashDrawerService;
+        _thermalPrinterService = thermalPrinterService;
         _logger = logger;
     }
 
@@ -225,8 +230,15 @@ public class CashDrawerController : BaseController
         try
         {
             var userId = GetCurrentUserId();
+
+            // The date picker sends midnight; make the end date inclusive of the whole day
+            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
             var sessions = await _cashDrawerService.GetSessionHistoryAsync(userId, startDate, endDate);
-            
+
             var data = sessions.Select(s => new {
                 id = s.Id,
                 openedAt = s.OpenedAt,
@@ -278,6 +290,35 @@ public class CashDrawerController : BaseController
             TempData["ErrorMessage"] = $"Error generating Z-Report: {ex.Message}";
             return RedirectToAction("History");
         }
+    }
+
+    // Z-Report on the receipt printer
+    [HttpPost]
+    public async Task<IActionResult> PrintZReport(int id)
+    {
+        var report = await GetClosedSessionZReportAsync(id);
+        if (report == null)
+            return Json(new { success = false, message = "Z-Report is only available for a closed session" });
+
+        return await PrintToReceiptPrinterAsync(_thermalPrinterService, ReportDocuments.ZReport(report),
+            Url.Action(nameof(ZReportPdf), "CashDrawer", new { id }));
+    }
+
+    // Z-Report as a PDF file
+    [HttpGet]
+    public async Task<IActionResult> ZReportPdf(int id)
+    {
+        var report = await GetClosedSessionZReportAsync(id);
+        if (report == null)
+            return NotFound();
+
+        return PdfFile(_thermalPrinterService, ReportDocuments.ZReport(report), PdfPaper.A4);
+    }
+
+    private async Task<ZReport?> GetClosedSessionZReportAsync(int id)
+    {
+        var session = await _cashDrawerService.GetSessionWithDetailsAsync(id);
+        return session == null || session.IsOpen ? null : await _cashDrawerService.GenerateZReportAsync(id);
     }
 
     // Get all open sessions (for admins)

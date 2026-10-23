@@ -83,7 +83,7 @@
                 console.error('jQuery available:', typeof $ !== 'undefined');
                 console.error('$.fn available:', typeof $ !== 'undefined' && typeof $.fn !== 'undefined');
                 console.error('$.fn.DataTable available:', typeof $ !== 'undefined' && typeof $.fn !== 'undefined' && typeof $.fn.DataTable !== 'undefined');
-                alert('Error: DataTables library failed to load. Please refresh the page.');
+                appAlert('Error: DataTables library failed to load. Please refresh the page.', 'error');
             }
         }, 100);
     }
@@ -99,7 +99,7 @@
             if (typeof toastr !== 'undefined') {
                 toastr.error('Failed to initialize table: ' + error.message);
             } else {
-                alert('Failed to initialize table: ' + error.message);
+                appAlert('Failed to initialize table: ' + error.message, 'error');
             }
         }
     });
@@ -196,7 +196,7 @@ function initializeDataTable(config) {
                     if (typeof toastr !== 'undefined') {
                         toastr.error('Error: ' + json.error);
                     } else {
-                        alert('Error: ' + json.error);
+                        appAlert('Error: ' + json.error, 'error');
                     }
                     return [];
                 }
@@ -226,7 +226,7 @@ function initializeDataTable(config) {
                 if (typeof toastr !== 'undefined') {
                     toastr.error(message);
                 } else {
-                    alert(message);
+                    appAlert(message, 'error');
                 }
             }
         },

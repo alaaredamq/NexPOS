@@ -23,13 +23,13 @@
             <div class="products-card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["Username"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["Username"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Username
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["EmailAddress"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["EmailAddress"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Email
                         </div>
@@ -38,13 +38,13 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["Prof_FullName"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["Prof_FullName"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.FullName
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["Prof_Role"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["Prof_Role"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             <span class="badge bg-teal">@Model.Role</span>
                         </div>
@@ -53,13 +53,13 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["Prof_UserId"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["Prof_UserId"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Id
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        $1@SharedLocalizer["Prof_RoleId"]$2
+                        <label class="form-label fw-bold">@SharedLocalizer["Prof_RoleId"]</label>
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.RoleId
                         </div>
@@ -104,20 +104,20 @@
             <div class="products-card-body">
                 <div class="session-info">
                     <div class="session-item">
-                        $1@SharedLocalizer["Prof_LoginTime"]$2
-                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
+                        <span class="session-label">@SharedLocalizer["Prof_LoginTime"]</span>
+                        <span class="session-value" dir="ltr" id="loginTime">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        $1@SharedLocalizer["Prof_SessionDuration"]$2
-                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
+                        <span class="session-label">@SharedLocalizer["Prof_SessionDuration"]</span>
+                        <span class="session-value" dir="ltr" id="sessionDuration">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        $1@SharedLocalizer["Prof_IpAddress"]$2
-                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
+                        <span class="session-label">@SharedLocalizer["Prof_IpAddress"]</span>
+                        <span class="session-value" dir="ltr" id="ipAddress">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        $1@SharedLocalizer["Prof_Browser"]$2
-                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
+                        <span class="session-label">@SharedLocalizer["Prof_Browser"]</span>
+                        <span class="session-value" dir="ltr" id="browser">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                 </div>
             </div>

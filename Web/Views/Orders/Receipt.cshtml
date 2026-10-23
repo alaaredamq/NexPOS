@@ -181,6 +181,10 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
+        a.btn {
+            text-decoration: none;
+        }
+
         .btn-print {
             background: #28a745;
             color: white;
@@ -390,16 +394,21 @@
         }
     </style>
     <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+    <link rel="stylesheet" href="/lib/toastr/toastr.min.css">
 </head>
 <body class="@(isThermalMode ? "thermal-mode" : "")">
     <!-- Print Actions -->
     @if (!isThermalMode)
     {
         <div class="print-actions">
-            <button class="btn btn-print" onclick="window.print()">
+            <button class="btn btn-print" data-nexprint-url="@Url.Action("PrintReceipt", "Orders", new { id = Model.Id })">
                 <i class="fas fa-print"></i>
                 @Localizer["PrintReceipt"]
             </button>
+            <a class="btn btn-print" href="@Url.Action("ReceiptPdf", "Orders", new { id = Model.Id })" download>
+                <i class="fas fa-file-pdf"></i>
+                @SharedLocalizer["Print_DownloadPdf"]
+            </a>
             <button class="btn btn-close" onclick="window.close()">
                 <i class="fas fa-times"></i>
                 @Localizer["Close"]
@@ -581,12 +590,10 @@
         </div>
     </div>
 
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/toastr/toastr.min.js"></script>
+    <script src="/js/nexprint.js"></script>
     <script>
-        // Auto-print option (uncomment if needed)
-        // window.onload = function() {
-        //     setTimeout(function() { window.print(); }, 500);
-        // };
-
         // Detect if this is being rendered for thermal printing
         // This can be detected by checking if we're in a headless browser context
         // or by passing a query parameter
@@ -608,10 +615,10 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // Ctrl+P or Cmd+P for print
+            // Ctrl+P or Cmd+P prints on the receipt printer (there is no browser print dialog)
             if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
                 e.preventDefault();
-                window.print();
+                NexPrint.print('@Url.Action("PrintReceipt", "Orders", new { id = Model.Id })');
             }
             // Escape to close
             if (e.key === 'Escape') {

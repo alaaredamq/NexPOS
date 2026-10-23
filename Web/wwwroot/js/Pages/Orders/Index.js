@@ -108,10 +108,10 @@
         });
     };
 
+    // Reprint: straight to the receipt printer, no dialog or preview window.
     window.printReceipt = function(orderId) {
         var urls = window.ordersUrls || {};
-        // Open receipt in new window for preview before printing
-        window.open((urls.receiptUrl || '') + '/' + orderId, '_blank', 'width=400,height=800');
+        NexPrint.print((urls.printReceiptUrl || '') + '/' + orderId);
     };
 
     window.exportOrders = function() {
@@ -148,10 +148,6 @@
         setTimeout(function() {
             exportBtn.prop('disabled', false).html(originalHtml);
         }, 2000);
-    };
-
-    window.printOrders = function() {
-        window.print();
     };
 
     function showSuccessMessage(message) {

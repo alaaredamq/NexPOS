@@ -1,9 +1,45 @@
+using Core.Auditing;
+using Core.Entities.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
 
 namespace Web.Attributes;
+
+/// <summary>
+/// Records a refused request in the audit trail. These attributes are authorization filters that
+/// short-circuit before any action runs, so nothing downstream would ever see the refusal otherwise.
+/// </summary>
+internal static class AccessDeniedAudit
+{
+    public static void Record(AuthorizationFilterContext context, string requirement)
+    {
+        try
+        {
+            var trail = context.HttpContext.RequestServices.GetService<IAuditTrail>();
+            if (trail is null) return;
+
+            var route = context.RouteData.Values;
+            var target = $"{route["controller"]}/{route["action"]}";
+
+            trail.LogSecurity(AuditActions.AccessDenied,
+                $"Access denied to {target}: requires {requirement}",
+                AuditOutcome.Denied, AuditLogSeverity.Warning,
+                details: new
+                {
+                    target,
+                    requirement,
+                    path = context.HttpContext.Request.Path.Value,
+                    method = context.HttpContext.Request.Method
+                });
+        }
+        catch (Exception)
+        {
+            // Auditing the refusal must never change the refusal.
+        }
+    }
+}
 
 /// <summary>
 /// Authorization attribute that requires the user to have a specific permission
@@ -22,17 +58,18 @@ public class RequirePermissionAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
+            context.Result = new RedirectToActionResult("Login", "Account", new {
+                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
             });
             return;
         }
 
         // Check if user has the required permission
         var permissions = context.HttpContext.User.FindAll("Permission").Select(c => c.Value).ToList();
-        
+
         if (!permissions.Contains(_permission))
         {
+            AccessDeniedAudit.Record(context, _permission);
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }
@@ -57,17 +94,18 @@ public class RequireAnyPermissionAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
+            context.Result = new RedirectToActionResult("Login", "Account", new {
+                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
             });
             return;
         }
 
         // Check if user has any of the required permissions
         var userPermissions = context.HttpContext.User.FindAll("Permission").Select(c => c.Value).ToList();
-        
+
         if (!_permissions.Any(permission => userPermissions.Contains(permission)))
         {
+            AccessDeniedAudit.Record(context, $"any of [{string.Join(", ", _permissions)}]");
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }
@@ -92,17 +130,18 @@ public class RequireAllPermissionsAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
+            context.Result = new RedirectToActionResult("Login", "Account", new {
+                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
             });
             return;
         }
 
         // Check if user has all of the required permissions
         var userPermissions = context.HttpContext.User.FindAll("Permission").Select(c => c.Value).ToList();
-        
+
         if (!_permissions.All(permission => userPermissions.Contains(permission)))
         {
+            AccessDeniedAudit.Record(context, $"all of [{string.Join(", ", _permissions)}]");
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
         }
     }

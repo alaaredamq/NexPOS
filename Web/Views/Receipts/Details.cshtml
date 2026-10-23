@@ -4,7 +4,7 @@
 
 @{
     ViewData["Title"] = Localizer["ReceiptDetails"];
-    ViewData["Subtitle"] = Localizer["Receipt"] + " #" + Model.ReceiptNumber;
+    ViewData["Subtitle"] = Localizer["Receipt"].Value + " #" + Model.ReceiptNumber;
 }
 
 <div class="container-fluid">
@@ -17,10 +17,10 @@
                 </a>
                 <div class="d-flex gap-2 flex-wrap">
                     <button class="btn btn-primary" onclick="printReceipt()">
-                        <i class="fas fa-print me-2"></i>@Localizer["PrintReceipt"]
+                        <i class="fas fa-receipt me-2"></i>@Localizer["PrintReceipt"]
                     </button>
                     <button class="btn btn-success" onclick="downloadPdf()">
-                        <i class="fas fa-download me-2"></i>@Localizer["DownloadPDF"]
+                        <i class="fas fa-file-pdf me-2"></i>@Localizer["DownloadPDF"]
                     </button>
                     <button class="btn btn-info" onclick="emailReceipt()">
                         <i class="fas fa-envelope me-2"></i>@Localizer["Email"]
@@ -498,11 +498,11 @@
         };
 
         function printReceipt() {
-            window.print();
+            NexPrint.print('@Url.Action("PrintReceipt", "Receipts", new { id = Model.Id })');
         }
 
         function downloadPdf() {
-            window.location.href = '@Url.Action("DownloadPdf", "Receipts", new { id = Model.Id })';
+            NexPrint.download('@Url.Action("DownloadPdf", "Receipts", new { id = Model.Id })');
         }
 
         function emailReceipt() {

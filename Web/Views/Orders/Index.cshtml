@@ -117,9 +117,6 @@
                         <button type="button" class="btn btn-light" onclick="exportOrders()">
                             <i class="fas fa-download"></i>
                         </button>
-                        <button type="button" class="btn btn-light" onclick="printOrders()">
-                            <i class="fas fa-print"></i>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -244,8 +241,9 @@
             detailsUrl: '@Url.Action("Details", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             editStatusUrl: '@Url.Action("EditStatus", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             receiptUrl: '@Url.Action("Receipt", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            printReceiptUrl: '@Url.Action("PrintReceipt", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             exportUrl: '@Url.Action("ExportOrders", "Orders", new { lang = ViewBag.CurrentLanguage ?? "en" })'
         };
     </script>
-    <script src="~/js/Pages/Orders/Index.js"></script>
+    <script src="~/js/Pages/Orders/Index.js" asp-append-version="true"></script>
 }

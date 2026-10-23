@@ -74,7 +74,8 @@
             window.i18n.t('common.deleteConfirm', 'Are you sure you want to delete this supplier?') : 
             'Are you sure you want to delete this supplier?';
         
-        if (confirm(confirmMessage)) {
+        appConfirm(confirmMessage).then(function(ok) {
+            if (!ok) return;
             $.ajax({
                 url: urls.deleteUrl || '',
                 type: 'POST',
@@ -99,7 +100,16 @@
                     showAlert('danger', errorMsg);
                 }
             });
-        }
+        });
+    };
+
+    window.addSupplierDebt = function(id) {
+        var urls = window.suppliersUrls || {};
+        window.openDebtTransactionDialog(id, urls.addDebtTransactionUrl || '', function () {
+            if (window.dataTable_suppliersTable) {
+                window.dataTable_suppliersTable.ajax.reload(null, false);
+            }
+        }, window.supplierDebtDialogOptions);
     };
 
     function showAlert(type, message) {
@@ -119,15 +129,16 @@
         var urls = window.suppliersUrls || {};
         var getSuppliersUrl = urls.getSuppliersUrl || '/Suppliers/GetSuppliers';
         
-        // Fetch all suppliers to calculate stats
+        // Fetch all suppliers to calculate stats. GetSuppliers is [HttpGet], so the paging values go in the
+        // query string - this used to POST a JSON body, which the server refuses with 405 on every table draw
+        // (and left all four stat cards at 0).
         $.ajax({
             url: getSuppliersUrl,
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
+            type: 'GET',
+            data: {
                 start: 0,
                 length: 10000 // Get all suppliers
-            }),
+            },
             success: function(response) {
                 if (response && response.data) {
                     var suppliers = response.data;

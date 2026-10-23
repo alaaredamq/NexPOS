@@ -47,7 +47,8 @@ public class CategoriesController : BaseController
         try
         {
             var categories = await _categoryService.GetAllAsync();
-            
+            var productCounts = await _categoryService.GetProductCountsAsync();
+
             // Apply search filter
             if (!string.IsNullOrEmpty(searchValue))
             {
@@ -75,7 +76,7 @@ public class CategoriesController : BaseController
                     id = c.Id,
                     name = c.Name,
                     description = c.Description,
-                    productsCount = c.Products?.Count ?? 0,
+                    productsCount = productCounts.GetValueOrDefault(c.Id),
                     isActive = c.IsActive, // Return boolean instead of string
                     actions = GetActionButtons(c.Id)
                 })
@@ -227,7 +228,7 @@ public class CategoriesController : BaseController
     {
         try
         {
-            var category = await _categoryService.GetByIdAsync(id);
+            var category = await _categoryService.GetByIdWithProductsAsync(id);
             if (category == null)
             {
                 TempData["ErrorMessage"] = "Category not found.";

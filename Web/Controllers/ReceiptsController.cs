@@ -13,10 +13,12 @@ namespace Web.Controllers;
 public class ReceiptsController : BaseController
 {
     private readonly IReceiptService _receiptService;
+    private readonly IThermalPrinterService _thermalPrinterService;
 
-    public ReceiptsController(IReceiptService receiptService)
+    public ReceiptsController(IReceiptService receiptService, IThermalPrinterService thermalPrinterService)
     {
         _receiptService = receiptService;
+        _thermalPrinterService = thermalPrinterService;
     }
 
     public IActionResult Index()
@@ -275,8 +277,7 @@ public class ReceiptsController : BaseController
     {
         try
         {
-            var allReceipts = await _receiptService.GetRecentReceiptsAsync(1000);
-            var voidReceipts = allReceipts?.Where(r => r.IsVoid).ToList() ?? new List<Receipt>();
+            var voidReceipts = await _receiptService.GetVoidReceiptsAsync() ?? new List<Receipt>();
             
             // If no void receipts, return empty data
             if (!voidReceipts.Any())
@@ -354,8 +355,11 @@ public class ReceiptsController : BaseController
                 <button type='button' class='btn btn-sm btn-outline-primary' onclick='viewReceipt({receiptId})' title='View'>
                     <i class='fas fa-eye'></i>
                 </button>
+                <button type='button' class='btn btn-sm btn-outline-secondary' data-nexprint-url='{Url.Action(nameof(PrintReceipt), "Receipts", new { id = receiptId })}' title='Print on receipt paper'>
+                    <i class='fas fa-print'></i>
+                </button>
                 <button type='button' class='btn btn-sm btn-outline-success' onclick='downloadPdf({receiptId})' title='Download PDF'>
-                    <i class='fas fa-download'></i>
+                    <i class='fas fa-file-pdf'></i>
                 </button>";
         
         if (!isVoid)
@@ -417,40 +421,42 @@ public class ReceiptsController : BaseController
     [HttpGet]
     public async Task<IActionResult> DownloadPdf(int id)
     {
+        var receipt = await _receiptService.GetReceiptAsync(id);
+        if (receipt == null)
+        {
+            TempData["ErrorMessage"] = "Receipt not found.";
+            return RedirectToAction("Index");
+        }
+
         try
         {
-            var htmlBytes = await _receiptService.GenerateReceiptPdfAsync(id);
-            var receipt = await _receiptService.GetReceiptAsync(id);
-            
-            if (receipt == null)
-            {
-                TempData["ErrorMessage"] = "Receipt not found.";
-                return RedirectToAction("Index");
-            }
-            
-            // For now, returning HTML. In production, convert to PDF using a library
-            return File(htmlBytes, "text/html", $"Receipt-{receipt.ReceiptNumber}.html");
+            var document = await _thermalPrinterService.GetReceiptDocumentAsync(receipt);
+            return PdfFile(_thermalPrinterService, document);
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error generating receipt: {ex.Message}";
+            TempData["ErrorMessage"] = $"Error generating receipt PDF: {ex.Message}";
             return RedirectToAction("Details", new { id });
         }
     }
 
-    [HttpGet]
+    /// <summary>Reprints a receipt on the receipt printer.</summary>
+    [HttpPost]
     public async Task<IActionResult> PrintReceipt(int id)
     {
         try
         {
-            var htmlBytes = await _receiptService.GenerateReceiptPdfAsync(id);
-            var html = System.Text.Encoding.UTF8.GetString(htmlBytes);
-            return Content(html, "text/html");
+            var receipt = await _receiptService.GetReceiptAsync(id);
+            if (receipt == null)
+                return Json(new { success = false, message = "Receipt not found." });
+
+            var document = await _thermalPrinterService.GetReceiptDocumentAsync(receipt);
+            return await PrintToReceiptPrinterAsync(_thermalPrinterService, document,
+                Url.Action(nameof(DownloadPdf), "Receipts", new { id }));
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error generating receipt: {ex.Message}";
-            return RedirectToAction("Details", new { id });
+            return Json(new { success = false, message = $"Error: {ex.Message}" });
         }
     }
 

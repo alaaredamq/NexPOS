@@ -378,7 +378,8 @@
         }
 
         function deleteNotification(id) {
-            if (confirm(window.notificationsLocalizedStrings.confirmDeleteNotification)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmDeleteNotification).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("DeleteNotification", "Notifications")', { id: id }, function(response) {
                     if (response.success) {
                         toastr.success(window.notificationsLocalizedStrings.notificationDeleted);
@@ -388,11 +389,12 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function deleteAlert(id) {
-            if (confirm(window.notificationsLocalizedStrings.confirmDeleteAlert)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmDeleteAlert).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("DeleteAlert", "Notifications")', { id: id }, function(response) {
                     if (response.success) {
                         toastr.success(window.notificationsLocalizedStrings.alertDeleted);
@@ -402,11 +404,12 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function markAllRead() {
-            if (confirm(window.notificationsLocalizedStrings.confirmMarkAllRead)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmMarkAllRead, { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes'), danger: false }).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("MarkAllRead", "Notifications")', function(response) {
                     if (response.success) {
                         toastr.success(response.message);
@@ -416,11 +419,12 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function dismissAllAlerts() {
-            if (confirm(window.notificationsLocalizedStrings.confirmDismissAllAlerts)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmDismissAllAlerts, { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes') }).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("DismissAllAlerts", "Notifications")', function(response) {
                     if (response.success) {
                         toastr.success(response.message);
@@ -430,11 +434,12 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function clearAllNotifications() {
-            if (confirm(window.notificationsLocalizedStrings.confirmClearAll)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmClearAll).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("ClearAll", "Notifications")', function(response) {
                     if (response.success) {
                         toastr.success(response.message);
@@ -444,11 +449,12 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function cleanupNotifications() {
-            if (confirm(window.notificationsLocalizedStrings.confirmCleanup)) {
+            appConfirm(window.notificationsLocalizedStrings.confirmCleanup, { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes') }).then(function(ok) {
+                if (!ok) return;
                 $.post('@Url.Action("Cleanup", "Notifications")', function(response) {
                     if (response.success) {
                         toastr.success(window.notificationsLocalizedStrings.cleanupCompleted);
@@ -457,7 +463,7 @@
                         toastr.error(response.message);
                     }
                 });
-            }
+            });
         }
 
         function refreshAll() {

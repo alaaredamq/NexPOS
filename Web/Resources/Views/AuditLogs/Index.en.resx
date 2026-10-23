@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AuditLog_Title" xml:space="preserve">
+    <value>Audit Log</value>
+  </data>
+  <data name="AuditLog_Subtitle" xml:space="preserve">
+    <value>Every action in the system: who did what, when, and from where</value>
+  </data>
+  <data name="Btn_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Btn_Export" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="Btn_Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Btn_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Stat_Total" xml:space="preserve">
+    <value>Total entries</value>
+  </data>
+  <data name="Stat_Since" xml:space="preserve">
+    <value>Since</value>
+  </data>
+  <data name="Stat_AllTime" xml:space="preserve">
+    <value>All time</value>
+  </data>
+  <data name="Stat_Last24h" xml:space="preserve">
+    <value>Last 24 hours</value>
+  </data>
+  <data name="Stat_Events" xml:space="preserve">
+    <value>events recorded</value>
+  </data>
+  <data name="Stat_Failures24h" xml:space="preserve">
+    <value>Failures &amp; denials (24h)</value>
+  </data>
+  <data name="Stat_NeedsAttention" xml:space="preserve">
+    <value>Worth a look</value>
+  </data>
+  <data name="Stat_Security24h" xml:space="preserve">
+    <value>Security events (24h)</value>
+  </data>
+  <data name="Stat_Logins" xml:space="preserve">
+    <value>Sign-ins, PIN changes, denials</value>
+  </data>
+  <data name="Filter_Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Filter_SearchPlaceholder" xml:space="preserve">
+    <value>User, action, record, description, request ID…</value>
+  </data>
+  <data name="Filter_From" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="Filter_To" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="Filter_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Filter_AllUsers" xml:space="preserve">
+    <value>All users</value>
+  </data>
+  <data name="Filter_Category" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Filter_AllCategories" xml:space="preserve">
+    <value>All types</value>
+  </data>
+  <data name="Filter_Outcome" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Filter_AllOutcomes" xml:space="preserve">
+    <value>Any result</value>
+  </data>
+  <data name="Filter_Severity" xml:space="preserve">
+    <value>Severity</value>
+  </data>
+  <data name="Filter_AnySeverity" xml:space="preserve">
+    <value>Any severity</value>
+  </data>
+  <data name="Filter_EntityType" xml:space="preserve">
+    <value>Record type</value>
+  </data>
+  <data name="Filter_AllEntities" xml:space="preserve">
+    <value>All records</value>
+  </data>
+  <data name="Filter_RecordId" xml:space="preserve">
+    <value>Record #</value>
+  </data>
+  <data name="Filter_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Filter_AllActions" xml:space="preserve">
+    <value>All actions</value>
+  </data>
+  <data name="Range_Hour" xml:space="preserve">
+    <value>Last hour</value>
+  </data>
+  <data name="Range_Today" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="Range_7d" xml:space="preserve">
+    <value>7 days</value>
+  </data>
+  <data name="Range_30d" xml:space="preserve">
+    <value>30 days</value>
+  </data>
+  <data name="Range_All" xml:space="preserve">
+    <value>All time</value>
+  </data>
+  <data name="Chip_Request" xml:space="preserve">
+    <value>Request</value>
+  </data>
+  <data name="Chip_Remove" xml:space="preserve">
+    <value>Remove this filter</value>
+  </data>
+  <data name="Cat_Data" xml:space="preserve">
+    <value>Data change</value>
+  </data>
+  <data name="Cat_Request" xml:space="preserve">
+    <value>Request</value>
+  </data>
+  <data name="Cat_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Cat_Business" xml:space="preserve">
+    <value>Business</value>
+  </data>
+  <data name="Cat_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Cat_Diagnostic" xml:space="preserve">
+    <value>Warning / error</value>
+  </data>
+  <data name="Out_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Out_Failure" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="Out_Denied" xml:space="preserve">
+    <value>Denied</value>
+  </data>
+  <data name="Sev_Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="Sev_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Sev_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Sev_Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="Col_Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="Col_User" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Col_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Col_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Col_Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Col_Description" xml:space="preserve">
+    <value>What happened</value>
+  </data>
+  <data name="Col_Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="Tbl_Processing" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="Tbl_Empty" xml:space="preserve">
+    <value>No audit entries match these filters</value>
+  </data>
+  <data name="Tbl_Info" xml:space="preserve">
+    <value>Showing _START_ to _END_ of _TOTAL_ entries</value>
+  </data>
+  <data name="Tbl_InfoEmpty" xml:space="preserve">
+    <value>No entries</value>
+  </data>
+  <data name="Tbl_InfoFiltered" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Tbl_LengthMenu" xml:space="preserve">
+    <value>Show _MENU_</value>
+  </data>
+  <data name="Tbl_First" xml:space="preserve">
+    <value>First</value>
+  </data>
+  <data name="Tbl_Last" xml:space="preserve">
+    <value>Last</value>
+  </data>
+  <data name="Tbl_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Tbl_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Detail_Title" xml:space="preserve">
+    <value>Audit entry</value>
+  </data>
+  <data name="Detail_When" xml:space="preserve">
+    <value>When</value>
+  </data>
+  <data name="Detail_Who" xml:space="preserve">
+    <value>Who</value>
+  </data>
+  <data name="Detail_Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Detail_Changes" xml:space="preserve">
+    <value>What changed</value>
+  </data>
+  <data name="Detail_Field" xml:space="preserve">
+    <value>Field</value>
+  </data>
+  <data name="Detail_Before" xml:space="preserve">
+    <value>Before</value>
+  </data>
+  <data name="Detail_After" xml:space="preserve">
+    <value>After</value>
+  </data>
+  <data name="Detail_Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Detail_NoChanges" xml:space="preserve">
+    <value>No field-level changes were recorded for this entry.</value>
+  </data>
+  <data name="Detail_Extra" xml:space="preserve">
+    <value>Additional details</value>
+  </data>
+  <data name="Detail_Where" xml:space="preserve">
+    <value>Where from, and how</value>
+  </data>
+  <data name="Detail_Ip" xml:space="preserve">
+    <value>IP address</value>
+  </data>
+  <data name="Detail_Machine" xml:space="preserve">
+    <value>Computer</value>
+  </data>
+  <data name="Detail_Version" xml:space="preserve">
+    <value>App version</value>
+  </data>
+  <data name="Detail_Agent" xml:space="preserve">
+    <value>Browser / client</value>
+  </data>
+  <data name="Detail_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Detail_Method" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="Detail_Path" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="Detail_Status" xml:space="preserve">
+    <value>HTTP status</value>
+  </data>
+  <data name="Detail_Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Detail_RequestId" xml:space="preserve">
+    <value>Request ID</value>
+  </data>
+  <data name="Detail_Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Detail_ThisRequest" xml:space="preserve">
+    <value>Everything in this request ({0})</value>
+  </data>
+  <data name="Detail_RecordHistory" xml:space="preserve">
+    <value>History of this record</value>
+  </data>
+  <data name="Detail_ByUser" xml:space="preserve">
+    <value>Everything by this user</value>
+  </data>
+  <data name="Detail_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Detail_Copy" xml:space="preserve">
+    <value>Copy request ID</value>
+  </data>
+  <data name="Detail_Copied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="Msg_LoadFailed" xml:space="preserve">
+    <value>The audit log could not be loaded.</value>
+  </data>
+  <data name="Msg_DetailFailed" xml:space="preserve">
+    <value>The entry could not be loaded.</value>
+  </data>
+  <data name="Msg_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+</root>

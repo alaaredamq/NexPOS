@@ -44,8 +44,8 @@
 
                     <form id="storeSettingsForm">
                         <div class="row">
+                            <div class="col-lg-7">
                             <!-- Store Information -->
-                            <div class="col-lg-6">
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <h5 class="mb-0"><i class="fas fa-building me-2"></i>@Localizer["StoreInformation"]</h5>
@@ -81,10 +81,8 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
                             <!-- Receipt Settings -->
-                            <div class="col-lg-6">
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>@Localizer["ReceiptSettings"]</h5>
@@ -110,12 +108,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Receipt Preview -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card">
+                            <!-- Receipt Preview (sticky so it stays visible while editing) -->
+                            <div class="col-lg-5">
+                                <div class="card receipt-preview-sticky">
                                     <div class="card-header">
                                         <h5 class="mb-0"><i class="fas fa-eye me-2"></i>@Localizer["ReceiptPreview"]</h5>
                                     </div>
@@ -156,6 +152,24 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        /* .content-wrapper uses overflow-x:auto, which turns it into the scroll container and breaks sticky */
+        .content-wrapper { overflow: visible; }
+
+        @@media (min-width: 992px) {
+            .receipt-preview-sticky {
+                position: sticky;
+                top: 1rem;
+            }
+            .receipt-preview-sticky .card-body {
+                max-height: calc(100vh - 8rem);
+                overflow-y: auto;
+            }
+        }
+    </style>
+}
 
 @section Scripts {
     <script>
@@ -241,7 +255,8 @@
             
             // Reset to defaults
             $('#resetToDefaults').on('click', function() {
-                if (confirm('@Localizer["ConfirmResetToDefaults"]')) {
+                appConfirm('@Localizer["ConfirmResetToDefaults"]', { title: window.i18n.t('common.confirm', 'Confirm'), confirmText: window.i18n.t('common.yes', 'Yes') }).then(function(ok) {
+                    if (!ok) return;
                     $.ajax({
                         url: '@Url.Action("ResetStoreSettings", "Settings")',
                         type: 'POST',
@@ -260,7 +275,7 @@
                             toastr.error('@Localizer["ErrorResettingSettings"]');
                         }
                     });
-                }
+                });
             });
         });
     </script>

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Localization;
 using Application.IServices.Auth;
 using Application.IServices.Users;
+using Core.Auditing;
+using Core.Entities.Logging;
 using Web.Models.Auth;
 using Web.Helpers;
 using System.Security.Claims;
@@ -16,17 +18,19 @@ public class AccountController : BaseController
     private readonly IUserService _userService;
     private readonly ILogger<AccountController> _logger;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IAuditTrail _auditTrail;
 
-    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger, IStringLocalizer<SharedResource> localizer)
+    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail)
     {
         _localizer = localizer;
         _authService = authService;
         _userService = userService;
         _logger = logger;
+        _auditTrail = auditTrail;
     }
 
-    // Cookie that remembers the username of the last non-admin user to sign in on this
-    // machine, so daily cashier logins only need a PIN. Not HttpOnly so the "Not you?"
+    // Cookie that remembers the username of the last user to sign in on this
+    // machine, so daily logins only need a PIN. Not HttpOnly so the "Not you?"
     // link on the login page can clear it client-side.
     private const string LastUsernameCookie = "erp_last_username";
 
@@ -102,17 +106,14 @@ public class AccountController : BaseController
 
                 await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
 
-                // Remember the username for the next login on this machine (skip the admin account).
-                if (!string.Equals(model.Username, "admin", StringComparison.OrdinalIgnoreCase))
+                // Remember the username for the next login on this machine.
+                Response.Cookies.Append(LastUsernameCookie, result.User?.Username ?? model.Username, new CookieOptions
                 {
-                    Response.Cookies.Append(LastUsernameCookie, model.Username, new CookieOptions
-                    {
-                        Expires = DateTimeOffset.UtcNow.AddYears(1),
-                        HttpOnly = false,
-                        IsEssential = true,
-                        SameSite = SameSiteMode.Lax
-                    });
-                }
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    HttpOnly = false,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax
+                });
 
         var currentLang = CurrentLanguage;
 
@@ -155,6 +156,8 @@ public class AccountController : BaseController
     [Authorize]
     public async Task<IActionResult> Logout()
     {
+        // Who signed out is taken from the still-authenticated request.
+        _auditTrail.LogSecurity(AuditActions.Logout, $"'{User.Identity?.Name}' signed out", details: new { method = "web" });
         await HttpContext.SignOutAsync("Cookies");
         return RedirectToAction(nameof(Login));
     }
@@ -217,6 +220,9 @@ public class AccountController : BaseController
             var user = await _userService.GetByIdAsync(userId);
             if (user == null || !await _userService.ValidatePinAsync(user, model.CurrentPin))
             {
+                // Someone at a signed-in screen guessing the PIN is worth knowing about.
+                _auditTrail.LogSecurity(AuditActions.PinChangeFailed, "PIN change refused: the current PIN was incorrect",
+                    AuditOutcome.Failure, AuditLogSeverity.Warning, entityId: userId, entityLabel: User.Identity?.Name);
                 ModelState.AddModelError(nameof(model.CurrentPin), _localizer["Current PIN is incorrect"].Value);
                 ClearPins(model);
                 return View(model);

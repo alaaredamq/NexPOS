@@ -1,7 +1,6 @@
 using Core.Entities.Backup;
 using Core.Entities.Configuration;
 using Core.Entities.Inventory;
-using Core.Entities.Logging;
 using Core.Entities.Notifications;
 using Core.Entities.Products;
 using Core.Entities.Sales;
@@ -19,6 +18,7 @@ public class ErpDbContext : DbContext
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<Customer> Customers { get; set; }
     public DbSet<CustomerDebtTransaction> CustomerDebtTransactions { get; set; }
+    public DbSet<SupplierDebtTransaction> SupplierDebtTransactions { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
@@ -42,7 +42,7 @@ public class ErpDbContext : DbContext
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Alert> Alerts { get; set; }
-        public DbSet<AuditLog> AuditLogs { get; set; }
+        // The audit trail is NOT in this database: it has its own file (see Infrastructure.Auditing.AuditDbContext).
         public DbSet<BackupRecord> BackupRecords { get; set; }
         public DbSet<Backup> Backups { get; set; }
         public DbSet<BackupSchedule> BackupSchedules { get; set; }
@@ -195,6 +195,18 @@ public class ErpDbContext : DbContext
             .HasMany(s => s.Products)
             .WithOne(p => p.Supplier)
             .HasForeignKey(p => p.SupplierId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Supplier>()
+            .HasMany(s => s.DebtTransactions)
+            .WithOne(t => t.Supplier)
+            .HasForeignKey(t => t.SupplierId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SupplierDebtTransaction>()
+            .HasOne(t => t.User)
+            .WithMany()
+            .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<CustomerCart>()
@@ -519,25 +531,6 @@ public class ErpDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
-        modelBuilder.Entity<AuditLog>(entity =>
-        {
-            entity.ToTable("AuditLogs");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Action).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.EntityType).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.IpAddress).HasMaxLength(45).IsRequired();
-            entity.Property(e => e.UserAgent).HasMaxLength(500).IsRequired();
-            entity.Property(e => e.Severity).HasConversion<int>();
-            entity.Property(e => e.OldValuesJson).HasMaxLength(4000);
-            entity.Property(e => e.NewValuesJson).HasMaxLength(4000);
-            entity.Property(e => e.AdditionalInfoJson).HasMaxLength(2000);
-            
-            entity.HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
-
         // Restrict, not the convention default of Cascade: CashDrop already cascades from
         // CashDrawerSession (CashDrawerSessionId), which itself cascades from Users - a second
         // Cascade path straight from Users to CashDrop via UserId is the same multi-path
@@ -682,7 +675,6 @@ public class ErpDbContext : DbContext
         [typeof(SystemSettings)] = [nameof(Core.Entities.Configuration.SystemSettings.SettingKey)],
         [typeof(UrlRoute)] = [nameof(UrlRoute.Key), nameof(UrlRoute.Controller)],
         [typeof(AppSetting)] = [nameof(AppSetting.Name)],
-        [typeof(AuditLog)] = [nameof(AuditLog.EntityType), nameof(AuditLog.Action)],
         [typeof(CartSession)] = [nameof(CartSession.SessionId)],
         [typeof(Role)] = [nameof(Role.Name)],
         [typeof(Permission)] = [nameof(Permission.Category), nameof(Permission.Action), nameof(Permission.Resource)],

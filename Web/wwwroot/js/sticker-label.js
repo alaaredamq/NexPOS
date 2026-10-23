@@ -7,8 +7,8 @@
  * Inside the NexPos desktop app the sticker prints silently, straight to the sticker printer
  * chosen on this computer (in App Settings or the dialog itself; the OS default if none), and
  * the copy count is handed to the printer.
- * In a plain browser it falls back to the browser's print dialog with the label repeated once
- * per copy, since a web page can't talk to a specific printer.
+ * In a plain browser a web page can't talk to a specific printer, so the labels (one page per
+ * copy) are downloaded as a PDF instead - there is no browser print dialog.
  */
 (function () {
     'use strict';
@@ -20,6 +20,7 @@
     var MIN_HEIGHT_MM = 10, MAX_HEIGHT_MM = 150;
     var DEFAULT_SETTINGS = { widthMm: 40, heightMm: 25 };
     var PRINTER_STORAGE_KEY = 'nexpos-sticker-printer';
+    var SHOW_PRICE_STORAGE_KEY = 'nexpos-sticker-show-price';
 
     function isDesktop() {
         return !!(window.nexpos && window.nexpos.isElectron);
@@ -39,6 +40,15 @@
             if (name) localStorage.setItem(PRINTER_STORAGE_KEY, name);
             else localStorage.removeItem(PRINTER_STORAGE_KEY);
         } catch (e) { /* storage blocked - falls back to the default printer */ }
+    }
+
+    /** Whether the price is printed on the label - remembered per computer; on unless switched off. */
+    function getShowPrice() {
+        try { return localStorage.getItem(SHOW_PRICE_STORAGE_KEY) !== '0'; } catch (e) { return true; }
+    }
+
+    function setShowPrice(show) {
+        try { localStorage.setItem(SHOW_PRICE_STORAGE_KEY, show ? '1' : '0'); } catch (e) { /* storage blocked - not remembered */ }
     }
 
     /** Printers installed on this computer, as the desktop app sees them; [] in a plain browser. */
@@ -65,6 +75,7 @@
     }
 
     var settingsUrl = document.currentScript && document.currentScript.getAttribute('data-settings-url');
+    var pdfUrl = document.currentScript && document.currentScript.getAttribute('data-pdf-url');
     var settingsPromise = null;
 
     function loadSettings() {
@@ -120,6 +131,16 @@
             n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    /**
+     * The barcode as modules ('1' = bar, '0' = space) for the server to draw into a PDF.
+     * Throws if the code can't be encoded, like buildBarcodeSvg.
+     */
+    function buildBarcodeBars(code) {
+        var encoded = {};
+        JsBarcode(encoded, code, { format: 'CODE128', displayValue: false });
+        return encoded.encodings.map(function (e) { return e.data; }).join('');
+    }
+
     /** Throws if the code can't be encoded (e.g. non-ASCII characters). */
     function buildBarcodeSvg(code) {
         var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -139,7 +160,7 @@
      * One page per sticker (name / barcode / code / price). Sizes are the 40mm x 25mm layout
      * scaled to the chosen label, so small and large stock keep the same proportions.
      */
-    function buildStickerHtml(data, widthMm, heightMm, copies) {
+    function buildStickerHtml(data, widthMm, heightMm, copies, showPrice) {
         var s = Math.min(widthMm / 40, heightMm / 25);
         var mm = function (v) { return (v * s).toFixed(2) + 'mm'; };
 
@@ -148,7 +169,7 @@
             '    <div class="name">' + escapeHtml(data.name) + '</div>\n' +
             '    <div class="bc">' + buildBarcodeSvg(data.code) + '</div>\n' +
             '    <div class="sku">' + escapeHtml(data.code) + '</div>\n' +
-            (data.price ? '    <div class="price">' + escapeHtml(data.price) + '</div>\n' : '') +
+            (data.price && showPrice ? '    <div class="price">' + escapeHtml(data.price) + '</div>\n' : '') +
             '  </div>';
         var stickers = [];
         for (var i = 0; i < clampCopies(copies); i++) stickers.push(sticker);
@@ -180,11 +201,12 @@
         var copies = clampCopies(options.copies);
         var widthMm = clamp(options.widthMm, MIN_WIDTH_MM, MAX_WIDTH_MM, DEFAULT_SETTINGS.widthMm);
         var heightMm = clamp(options.heightMm, MIN_HEIGHT_MM, MAX_HEIGHT_MM, DEFAULT_SETTINGS.heightMm);
+        var showPrice = options.showPrice === undefined ? getShowPrice() : !!options.showPrice;
         var bridge = window.nexpos;
 
         if (bridge && bridge.isElectron && bridge.printSticker) {
             return bridge.printSticker({
-                html: buildStickerHtml(data, widthMm, heightMm, 1),
+                html: buildStickerHtml(data, widthMm, heightMm, 1, showPrice),
                 printerName: (options.printerName === undefined ? getPrinterName() : options.printerName) || undefined,
                 copies: copies,
                 widthMm: widthMm,
@@ -194,32 +216,41 @@
             });
         }
 
-        printViaBrowserDialog(buildStickerHtml(data, widthMm, heightMm, copies));
-        return Promise.resolve();
+        return downloadPdf(data, { copies: copies, widthMm: widthMm, heightMm: heightMm, showPrice: showPrice });
     }
 
-    function printViaBrowserDialog(html) {
-        var iframe = document.createElement('iframe');
-        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-        document.body.appendChild(iframe);
+    /** Plain browser: asks the server for the labels as a PDF and saves it. */
+    function downloadPdf(data, job) {
+        if (!pdfUrl) return Promise.reject(new Error('label PDF is not available'));
 
-        var cleanup = function () { window.setTimeout(function () { iframe.remove(); }, 500); };
-
-        iframe.onload = function () {
-            var win = iframe.contentWindow;
-            if (!win) { cleanup(); return; }
-            win.focus();
-            win.print();
-            win.addEventListener('afterprint', cleanup, { once: true });
-            // Fallback in case afterprint never fires (some browsers/print-to-PDF flows).
-            window.setTimeout(cleanup, 5000);
-        };
-
-        var doc = iframe.contentDocument;
-        if (!doc) { iframe.remove(); return; }
-        doc.open();
-        doc.write(html);
-        doc.close();
+        return fetch(pdfUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: data.name,
+                code: data.code,
+                price: data.price,
+                bars: buildBarcodeBars(data.code),
+                widthMm: job.widthMm,
+                heightMm: job.heightMm,
+                copies: job.copies,
+                showPrice: job.showPrice
+            })
+        }).then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.blob();
+        }).then(function (blob) {
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = 'labels-' + data.code + '.pdf';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+        });
     }
 
     // ---- Dialog ---------------------------------------------------------------------------
@@ -251,6 +282,10 @@
             '        <div class="mb-3 sl-printer-row">' +
             '          <label class="form-label fw-semibold sl-printer-label"></label>' +
             '          <select class="form-select form-select-sm sl-printer"></select>' +
+            '        </div>' +
+            '        <div class="form-check form-switch mb-3 sl-price-row">' +
+            '          <input type="checkbox" class="form-check-input sl-show-price" id="slShowPrice" />' +
+            '          <label class="form-check-label" for="slShowPrice"></label>' +
             '        </div>' +
             '        <label class="form-label fw-semibold sl-size-label"></label>' +
             '        <div class="d-flex align-items-center gap-2 mb-3">' +
@@ -295,6 +330,7 @@
         $modal.on('click', '.sl-preset', function () { setCopies($(this).data('copies')); });
         $modal.on('click', '.sl-print', submit);
         $modal.on('change', '.sl-printer', function () { setPrinterName($(this).val()); });
+        $modal.on('change', '.sl-show-price', function () { setShowPrice(this.checked); });
         $modal.on('shown.bs.modal', function () { $modal.find('.sl-copies').trigger('focus'); });
     }
 
@@ -313,7 +349,11 @@
             var active = Number($(this).data('copies')) === copies;
             $(this).toggleClass('btn-secondary', active).toggleClass('btn-outline-secondary', !active);
         });
-        $modal.find('.sl-print span').text(tr('print', 'Print {count} label(s)', { count: copies }));
+        // A plain browser can't reach a label printer, so there the button saves a PDF.
+        $modal.find('.sl-print span').text(isDesktop()
+            ? tr('print', 'Print {count} label(s)', { count: copies })
+            : tr('downloadPdf', 'Download {count} label(s) as PDF', { count: copies }));
+        $modal.find('.sl-print i').toggleClass('fa-print', isDesktop()).toggleClass('fa-file-pdf', !isDesktop());
     }
 
     function getSize() {
@@ -332,7 +372,8 @@
             copies: copies,
             widthMm: size.widthMm,
             heightMm: size.heightMm,
-            printerName: getPrinterName()
+            printerName: getPrinterName(),
+            showPrice: $modal.find('.sl-show-price').prop('checked')
         }).catch(function (err) {
             console.error('Sticker print failed:', err);
             if (window.toastr) toastr.error(tr('failed', 'Sticker print failed') + ': ' + err.message);
@@ -363,6 +404,10 @@
             // Only the desktop app can send to a chosen printer; a browser always shows its own dialog.
             $modal.find('.sl-printer-row').toggle(isDesktop());
             if (isDesktop()) fillPrinterSelect($modal.find('.sl-printer'), tr('systemDefault', 'System default'));
+            // Nothing to show or hide when the product has no price to print.
+            $modal.find('.sl-price-row').toggle(!!data.price);
+            $modal.find('.sl-price-row label').text(tr('showPrice', 'Show price on label'));
+            $modal.find('.sl-show-price').prop('checked', getShowPrice());
             $modal.find('.sl-size-label').text(tr('size', 'Sticker size (mm)'));
             $modal.find('.sl-width-label').text(tr('width', 'Width'));
             $modal.find('.sl-height-label').text(tr('height', 'Height'));

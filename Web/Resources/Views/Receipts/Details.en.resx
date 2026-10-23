@@ -229,4 +229,7 @@
   <data name="FailedToVoidReceipt" xml:space="preserve">
     <value>Failed to void receipt</value>
   </data>
+  <data name="Receipt" xml:space="preserve">
+    <value>Receipt</value>
+  </data>
 </root>

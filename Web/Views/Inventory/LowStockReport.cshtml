@@ -12,12 +12,11 @@
                     <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-outline-primary" onclick="printReport()">
-                        <i class="fas fa-print me-1"></i>@Localizer["PrintReport"]
-                    </button>
-                    <button type="button" class="btn btn-outline-success" onclick="exportReport()">
-                        <i class="fas fa-download me-1"></i>@Localizer["ExportPDF"]
-                    </button>
+                    @await Html.PartialAsync("_PrintMenu", new PrintMenuModel(
+                        Url.Action("PrintLowStockReport", "Inventory")!,
+                        Url.Action("LowStockReportPdf", "Inventory")!,
+                        "btn btn-outline-primary",
+                        Localizer["PrintReport"].Value))
                     <a href="@Url.Action("Index", "Inventory", new { lang = ViewBag.CurrentLanguage })" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToInventory"]
                     </a>
@@ -99,9 +98,9 @@
                                     {
                                         var stockDeficit = Math.Max(0, (product.MinimumStock ?? 0) - product.StockQuantity);
                                         var priority = product.StockQuantity <= 0 ? Localizer["Critical"].Value : 
-                                                     product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5 ? Localizer["High"].Value : Localizer["Medium"].Value;
+                                                     product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5m ? Localizer["High"].Value : Localizer["Medium"].Value;
                                         var statusClass = product.StockQuantity <= 0 ? "badge-danger" : 
-                                                        product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5 ? "badge-warning" : "badge-info";
+                                                        product.StockQuantity <= (product.MinimumStock ?? 0) * 0.5m ? "badge-warning" : "badge-info";
                                         var priorityClass = priority == Localizer["Critical"].Value ? "badge-danger" : 
                                                            priority == Localizer["High"].Value ? "badge-warning" : "badge-info";
                                         
@@ -158,10 +157,12 @@
                                                        class="btn btn-sm btn-outline-primary" title="@Localizer["AdjustStock"]">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    @* Hidden until reorder/purchase-order creation is implemented
+                                                    <button type="button" class="btn btn-sm btn-outline-success"
                                                             onclick="reorderProduct(@product.Id)" title="@Localizer["CreateReorder"]">
                                                         <i class="fas fa-shopping-cart"></i>
                                                     </button>
+                                                    *@
                                                     <button type="button" class="btn btn-sm btn-outline-info" 
                                                             onclick="setMinimumStock(@product.Id)" title="@Localizer["SetMinimumStock"]">
                                                         <i class="fas fa-cog"></i>
@@ -179,12 +180,14 @@
                             <button type="button" class="btn btn-primary me-2" onclick="adjustAllCritical()">
                                 <i class="fas fa-exclamation-triangle me-1"></i>@Localizer["AdjustCriticalStock"]
                             </button>
+                            @* Hidden until reorder/purchase-order creation is implemented
                             <button type="button" class="btn btn-success me-2" onclick="createBulkReorder()">
                                 <i class="fas fa-shopping-cart me-1"></i>@Localizer["CreateBulkReorder"]
                             </button>
                             <button type="button" class="btn btn-info" onclick="generateReorderReport()">
                                 <i class="fas fa-file-alt me-1"></i>@Localizer["GenerateReorderReport"]
                             </button>
+                            *@
                         </div>
                     }
                     else
@@ -232,14 +235,6 @@
             reorderReportComingSoon: '@Html.Raw(Localizer["ReorderReportComingSoon"].Value)',
             pdfExportComingSoon: '@Html.Raw(Localizer["PDFExportComingSoon"].Value)'
         };
-
-        function printReport() {
-            window.print();
-        }
-
-        function exportReport() {
-            toastr.info(window.lowStockLocalizedStrings.pdfExportComingSoon);
-        }
 
         function reorderProduct(productId) {
             Swal.fire({

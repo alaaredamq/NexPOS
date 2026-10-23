@@ -1,5 +1,6 @@
 using Core.Entities.Configuration;
 using Core.Entities.Sales;
+using Core.Printing;
 
 namespace Core.IRepositories.PrinterTransport;
 
@@ -13,6 +14,18 @@ public interface IEscPosBuilder
     /// would print as "?".
     /// </summary>
     byte[] BuildReceipt(Receipt receipt, StoreSettings? storeSettings = null);
+
+    /// <summary>The receipt's lines, ready to be printed (<see cref="BuildPrintJob"/>) or saved as a PDF (<see cref="BuildPdf"/>).</summary>
+    PrintDocument BuildReceiptDocument(Receipt receipt, StoreSettings? storeSettings = null);
+
+    /// <summary>ESC/POS job for any document - same text-vs-image choice as <see cref="BuildReceipt"/>.</summary>
+    byte[] BuildPrintJob(PrintDocument document);
+
+    /// <summary>
+    /// The document as a PDF with the same layout (and Arabic shaping) as the printed slip.
+    /// Receipt paper gives one receipt-width page; A4 paginates long reports.
+    /// </summary>
+    byte[] BuildPdf(PrintDocument document, PdfPaper paper = PdfPaper.Receipt);
 
     /// <summary>
     /// The same receipt layout as <see cref="BuildReceipt"/>, as plain Unicode text for

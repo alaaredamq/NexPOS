@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Localization;
 using Web.Attributes;
 using Web.Helpers;
 using Core.Entities.Products;
+using Core.IRepositories.PrinterTransport;
+using Core.Printing;
 using static Web.Helpers.CurrencyHelper;
 
 namespace Web.Controllers;
@@ -25,8 +27,9 @@ public class ProductsController : BaseController
     private readonly IExportService _exportService;
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<ProductsController> _logger;
+    private readonly ILabelPdfBuilder _labelPdfBuilder;
 
-    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IExportService exportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger)
+    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IExportService exportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger, ILabelPdfBuilder labelPdfBuilder)
     {
         _productService = productService;
         _categoryService = categoryService;
@@ -36,6 +39,7 @@ public class ProductsController : BaseController
         _exportService = exportService;
         _settingsService = settingsService;
         _logger = logger;
+        _labelPdfBuilder = labelPdfBuilder;
     }
 
     public async Task<IActionResult> Index()
@@ -196,6 +200,23 @@ public class ProductsController : BaseController
             heightMm = settings.StickerHeightMm
         });
     }
+
+    /// <summary>
+    /// Barcode labels as a PDF, for a plain browser (the desktop app prints them to the label
+    /// printer itself). The browser sends the barcode already encoded as bars.
+    /// </summary>
+    [HttpPost]
+    public IActionResult StickerPdf([FromBody] StickerPdfRequest request)
+    {
+        var label = StickerLabel.TryCreate(request.Name, request.Code, request.Price, request.Bars,
+            request.WidthMm, request.HeightMm, request.Copies, request.ShowPrice);
+        if (label == null)
+            return BadRequest(new { success = false, message = "Invalid label" });
+
+        return File(_labelPdfBuilder.Build(label), "application/pdf", $"Labels-{label.Code}.pdf");
+    }
+
+    public record StickerPdfRequest(string? Name, string? Code, string? Price, string? Bars, int WidthMm, int HeightMm, int Copies, bool ShowPrice);
 
     private static string GenerateEan13Barcode()
     {

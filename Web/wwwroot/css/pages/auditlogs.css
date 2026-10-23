@@ -1,0 +1,246 @@
+/* =====================================================
+   Audit Log viewer
+   Brand teal for neutral kinds of event; green / amber / red are reserved for real outcomes.
+   ===================================================== */
+
+.audit-filters .form-label {
+    margin-bottom: 2px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--neutral-550);
+}
+
+.audit-ranges .btn {
+    white-space: nowrap;
+}
+
+/* ---- active drill-down chip ---- */
+.audit-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: var(--primary-lighter);
+    color: var(--primary-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.audit-chip .btn-close {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0.2rem;
+}
+
+/* ---- table ---- */
+#auditTable tbody tr.audit-row {
+    cursor: pointer;
+}
+
+#auditTable tbody tr.audit-row:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+#auditTable td.audit-time {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* A thin bar at the row's leading edge makes problems stand out while scrolling (RTL-safe: logical property). */
+#auditTable tbody tr.audit-sev-warning > td:first-child {
+    box-shadow: inset 3px 0 0 var(--warning-color);
+}
+
+#auditTable tbody tr.audit-sev-error > td:first-child,
+#auditTable tbody tr.audit-sev-critical > td:first-child {
+    box-shadow: inset 3px 0 0 var(--danger-color);
+}
+
+[dir="rtl"] #auditTable tbody tr.audit-sev-warning > td:first-child {
+    box-shadow: inset -3px 0 0 var(--warning-color);
+}
+
+[dir="rtl"] #auditTable tbody tr.audit-sev-error > td:first-child,
+[dir="rtl"] #auditTable tbody tr.audit-sev-critical > td:first-child {
+    box-shadow: inset -3px 0 0 var(--danger-color);
+}
+
+.audit-user {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.audit-role,
+.audit-label {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+}
+
+.audit-label {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audit-entity {
+    font-weight: 600;
+}
+
+.audit-action {
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--neutral-150);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.audit-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 220px;
+    max-width: 520px;
+    word-break: break-word;
+}
+
+/* ---- badges ---- */
+.audit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--neutral-200);
+    color: var(--neutral-600);
+}
+
+.audit-badge.cat-data       { background: var(--primary-lighter); color: var(--primary-dark); }
+.audit-badge.cat-business   { background: var(--primary-color);   color: var(--primary-contrast); }
+.audit-badge.cat-security   { background: var(--ink);             color: var(--primary-contrast); }
+.audit-badge.cat-system     { background: var(--neutral-300);     color: var(--neutral-700); }
+.audit-badge.cat-request    { background: var(--neutral-150);     color: var(--neutral-550); }
+.audit-badge.cat-diagnostic { background: var(--warning-muted);   color: var(--warning-text); }
+
+.audit-outcome {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.audit-outcome.out-success { color: var(--success-dark); }
+.audit-outcome.out-failure { color: var(--danger-strong); }
+.audit-outcome.out-denied  { color: var(--warning-dark); }
+
+.audit-sev {
+    padding: 0.05rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.audit-sev.sev-warning  { background: var(--warning-muted); color: var(--warning-text); }
+.audit-sev.sev-error,
+.audit-sev.sev-critical { background: var(--danger-muted);  color: var(--danger-text); }
+
+/* ---- details dialog ---- */
+.audit-summary-text {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ink);
+    word-break: break-word;
+}
+
+.audit-fact {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    background: var(--neutral-50);
+    height: 100%;
+}
+
+.audit-fact > span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--neutral-500);
+}
+
+.audit-fact strong {
+    display: block;
+    word-break: break-word;
+}
+
+.audit-section {
+    margin: 1.4rem 0 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--neutral-200);
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.audit-diff th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--neutral-500);
+}
+
+.audit-diff td {
+    vertical-align: top;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    /* field names and values are technical text: always left-to-right, even on the Arabic page */
+    direction: ltr;
+    text-align: left;
+}
+
+.audit-diff td.audit-field {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.audit-diff td.audit-old { background: var(--danger-muted);  color: var(--danger-text); }
+.audit-diff td.audit-new { background: var(--success-muted); color: var(--success-text); }
+
+.audit-json {
+    max-height: 280px;
+    overflow: auto;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: var(--ink);
+    color: #d6e4e3;
+    font-size: 0.8rem;
+    direction: ltr;
+    text-align: left;
+}
+
+.audit-meta dt {
+    font-weight: 600;
+    color: var(--neutral-550);
+}
+
+.audit-meta dd {
+    margin-bottom: 0.35rem;
+    word-break: break-word;
+}
+
+@media (max-width: 767.98px) {
+    .audit-desc { min-width: 160px; }
+}

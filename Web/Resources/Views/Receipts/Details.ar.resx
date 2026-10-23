@@ -229,4 +229,7 @@
   <data name="FailedToVoidReceipt" xml:space="preserve">
     <value>فشل إلغاء الإيصال</value>
   </data>
+  <data name="Receipt" xml:space="preserve">
+    <value>إيصال</value>
+  </data>
 </root>

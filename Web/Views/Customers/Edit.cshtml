@@ -212,7 +212,7 @@
                 
                 if (!firstName || !lastName || !email) {
                     e.preventDefault();
-                    alert(@Json.Serialize(SharedLocalizer["Cust_FillRequired"].Value));
+                    appAlert(@Json.Serialize(SharedLocalizer["Cust_FillRequired"].Value), 'warning');
                     if (!firstName) $('#FirstName').focus();
                     else if (!lastName) $('#LastName').focus();
                     else if (!email) $('#Email').focus();

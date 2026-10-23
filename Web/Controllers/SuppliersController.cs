@@ -17,13 +17,15 @@ namespace Web.Controllers;
 public class SuppliersController : BaseController
 {
     private readonly ISupplierService _supplierService;
+    private readonly ISupplierDebtService _supplierDebtService;
     private readonly IViewLocalizer _localizer;
     private readonly IExportService _exportService;
     private readonly ICurrencyService _currencyService;
 
-    public SuppliersController(ISupplierService supplierService, IViewLocalizer localizer, IExportService exportService, ICurrencyService currencyService)
+    public SuppliersController(ISupplierService supplierService, ISupplierDebtService supplierDebtService, IViewLocalizer localizer, IExportService exportService, ICurrencyService currencyService)
     {
         _supplierService = supplierService;
+        _supplierDebtService = supplierDebtService;
         _localizer = localizer;
         _exportService = exportService;
         _currencyService = currencyService;
@@ -47,7 +49,10 @@ public class SuppliersController : BaseController
         try
         {
             var suppliers = await _supplierService.GetAllAsync();
-            
+
+            // The list query doesn't load Supplier.Currency, so resolve notations by id for the balance column.
+            var currencyNotations = (await _currencyService.GetAllAsync()).ToDictionary(c => c.Id, c => c.Notation);
+
             // Apply search filter
             if (!string.IsNullOrEmpty(searchValue))
             {
@@ -80,9 +85,8 @@ public class SuppliersController : BaseController
                     phoneNumber = s.Phone,
                     address = s.Address,
                     isActive = s.IsActive, // Return boolean instead of string
-                    debtToSupplier = s.DebtToSupplier,
-                    debtFromSupplier = s.DebtFromSupplier,
-                    netDebt = s.DebtToSupplier - s.DebtFromSupplier,
+                    balance = s.Balance,
+                    currency = currencyNotations.GetValueOrDefault(s.CurrencyId),
                     actions = GetActionButtons(s.Id)
                 })
             });
@@ -105,6 +109,43 @@ public class SuppliersController : BaseController
         };
     }
 
+    /// <summary>
+    /// Records a manual debt adjustment (editing what the business owes the supplier, or what
+    /// the supplier owes the business) from the supplier's list or Details page.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequirePermission(PermissionHelper.Permissions.Suppliers_Edit)]
+    public async Task<IActionResult> AddDebtTransaction(AddSupplierDebtTransactionRequest model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+            return Json(new { success = false, message = firstError ?? "Invalid request." });
+        }
+
+        try
+        {
+            var signedAmount = model.IOweMore ? model.Amount : -model.Amount;
+            await _supplierDebtService.AddManualTransactionAsync(model.SupplierId, GetCurrentUserId(), signedAmount, model.Note);
+            return Json(new { success = true, message = "Debt updated successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
+        }
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            throw new UnauthorizedAccessException("Unable to determine the current user from the authentication claims.");
+        }
+        return userId;
+    }
+
     private string GetActionButtons(int supplierId)
     {
         return $@"
@@ -114,6 +155,9 @@ public class SuppliersController : BaseController
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-teal' onclick='editSupplier({supplierId})' title='Edit'>
                     <i class='fas fa-edit'></i>
+                </button>
+                <button type='button' class='btn btn-sm btn-outline-warning' onclick='addSupplierDebt({supplierId})' title='Add Debt Transaction'>
+                    <i class='fas fa-hand-holding-usd'></i>
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-danger' onclick='deleteSupplier({supplierId})' title='Delete'>
                     <i class='fas fa-trash'></i>
@@ -159,9 +203,7 @@ public class SuppliersController : BaseController
             {
                 IsActive = model.IsActive,
                 CurrencyId = model.CurrencyId,
-                DiscountRate = model.DiscountRate,
-                DebtToSupplier = model.DebtToSupplier,
-                DebtFromSupplier = model.DebtFromSupplier
+                DiscountRate = model.DiscountRate
             };
 
             await _supplierService.CreateAsync(supplier);
@@ -192,7 +234,9 @@ public class SuppliersController : BaseController
 
             ViewData["Title"] = "Supplier Details";
             ViewData["Subtitle"] = supplier.Name;
-            
+
+            ViewBag.DebtTransactions = await _supplierDebtService.GetTransactionsAsync(id);
+
             return View(supplier);
         }
         catch (Exception ex)
@@ -233,9 +277,7 @@ public class SuppliersController : BaseController
                 PostalCode = supplier.PostalCode,
                 IsActive = supplier.IsActive,
                 CurrencyId = supplier.CurrencyId,
-                DiscountRate = supplier.DiscountRate,
-                DebtToSupplier = supplier.DebtToSupplier,
-                DebtFromSupplier = supplier.DebtFromSupplier
+                DiscountRate = supplier.DiscountRate
             };
 
             return View(model);
@@ -281,8 +323,6 @@ public class SuppliersController : BaseController
             supplier.IsActive = model.IsActive;
             supplier.CurrencyId = model.CurrencyId;
             supplier.DiscountRate = model.DiscountRate;
-            supplier.DebtToSupplier = model.DebtToSupplier;
-            supplier.DebtFromSupplier = model.DebtFromSupplier;
 
             await _supplierService.UpdateAsync(model.Id, supplier);
             TempData["SuccessMessage"] = "Supplier updated successfully!";

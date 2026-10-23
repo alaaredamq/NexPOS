@@ -154,4 +154,49 @@
   <data name="DeleteError" xml:space="preserve">
     <value>حدث خطأ أثناء حذف المورد.</value>
   </data>
+  <data name="AddTransaction" xml:space="preserve">
+    <value>إضافة حركة</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>التاريخ</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>ملاحظة</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>المبلغ</value>
+  </data>
+  <data name="TypePurchase" xml:space="preserve">
+    <value>شراء</value>
+  </data>
+  <data name="TypePayment" xml:space="preserve">
+    <value>دفعة</value>
+  </data>
+  <data name="TypeAdjustment" xml:space="preserve">
+    <value>تسوية</value>
+  </data>
+  <data name="ShowingRecent" xml:space="preserve">
+    <value>عرض أحدث 20 من أصل {0} حركة</value>
+  </data>
+  <data name="DebtDialogPlusTitle" xml:space="preserve">
+    <value>أنا مدين له أكثر</value>
+  </data>
+  <data name="DebtDialogPlusSub" xml:space="preserve">
+    <value>بضاعة بالآجل، أو أقرضني مبلغاً</value>
+  </data>
+  <data name="DebtDialogMinusTitle" xml:space="preserve">
+    <value>دفعت له</value>
+  </data>
+  <data name="DebtDialogMinusSub" xml:space="preserve">
+    <value>دفعت للمورد، أو هو مدين لي</value>
+  </data>
+  <data name="DebtDialogIncrease" xml:space="preserve">
+    <value>يزداد ما أدين به للمورد بمقدار</value>
+  </data>
+  <data name="DebtDialogDecrease" xml:space="preserve">
+    <value>ينقص ما أدين به للمورد بمقدار</value>
+  </data>
 </root>

@@ -1,4 +1,6 @@
 using Application.IServices.Licensing;
+using Core.Auditing;
+using Core.Entities.Logging;
 using Microsoft.Extensions.Localization;
 
 namespace Web.Middlewares;
@@ -21,13 +23,24 @@ public class LicenseEnforcementMiddleware
 
     public LicenseEnforcementMiddleware(RequestDelegate next) => _next = next;
 
-    public async Task InvokeAsync(HttpContext context, ILicenseService license, IStringLocalizer<SharedResource> localizer)
+    public async Task InvokeAsync(
+        HttpContext context, ILicenseService license, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail)
     {
         var blocked = Classify(context.Request);
         if (blocked == Blocked.None || license.GetState().AllowsSales)
         {
             await _next(context);
             return;
+        }
+
+        // A refused sale answers HTTP 200 {success:false}, which the request log reads as a success - so say so explicitly.
+        // (Only for actual sale calls; being bounced away from the POS *page* is just a redirect.)
+        if (blocked != Blocked.Page)
+        {
+            auditTrail.LogBusiness(AuditActions.SaleFailed,
+                $"Sale blocked by the license ({license.GetState().Status}): {context.Request.Method} {context.Request.Path}",
+                "License", AuditOutcome.Denied, AuditLogSeverity.Warning,
+                details: new { license = license.GetState().Status.ToString(), area = blocked.ToString() });
         }
 
         if (blocked == Blocked.Page)

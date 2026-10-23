@@ -1,8 +1,25 @@
-// Shared "Add Debt Transaction" dialog used by the Customers list and Details pages.
+// Shared "Add Debt Transaction" dialog used by the Customers and Suppliers list/Details pages.
 // Direction is chosen with two sign-marked cards instead of a dropdown so it is obvious
-// whether the customer's balance goes up (+, customer owes me) or down (−, I got paid).
+// whether the balance goes up (+) or down (−).
+//
+// Defaults describe the customer flow (balance up = customer owes me). Pass `options` to
+// reuse the dialog for another party, e.g. suppliers:
+//   idField / directionField - request field names the endpoint binds to
+//   plusTitle/plusSub, minusTitle/minusSub - the two direction cards
+//   increaseText / decreaseText - the "effect" line under the amount
 (function () {
     'use strict';
+
+    var DEFAULTS = {
+        idField: 'CustomerId',
+        directionField: 'CustomerOwesMore',
+        plusTitle: 'Customer owes me',
+        plusSub: 'Credit sale, or I gave them money',
+        minusTitle: 'I got paid',
+        minusSub: 'Customer paid me, or I owe them',
+        increaseText: "Customer's debt increases by",
+        decreaseText: "Customer's debt decreases by"
+    };
 
     function directionCard(value, sign, title, subtitle, checked) {
         return `
@@ -14,7 +31,9 @@
             </label>`;
     }
 
-    window.openDebtTransactionDialog = function (customerId, url, onSaved) {
+    window.openDebtTransactionDialog = function (partyId, url, onSaved, options) {
+        const opts = Object.assign({}, DEFAULTS, options || {});
+
         Swal.fire({
             title: 'Add Debt Transaction',
             width: '420px',
@@ -23,10 +42,8 @@
             html: `
                 <div class="debt-dialog">
                     <div class="debt-dir-group mb-3">
-                        ${directionCard('true', '+', 'Customer owes me',
-                            'Credit sale, or I gave them money', true)}
-                        ${directionCard('false', '−', 'I got paid',
-                            'Customer paid me, or I owe them', false)}
+                        ${directionCard('true', '+', opts.plusTitle, opts.plusSub, true)}
+                        ${directionCard('false', '−', opts.minusTitle, opts.minusSub, false)}
                     </div>
                     <div class="mb-2">
                         <label class="form-label fw-bold mb-1" for="debt-amount">Amount *</label>
@@ -49,20 +66,20 @@
             didOpen: (popup) => {
                 const $popup = $(popup);
                 const refresh = () => {
-                    const owesMore = $popup.find('input[name="debt-direction"]:checked').val() === 'true';
+                    const increases = $popup.find('input[name="debt-direction"]:checked').val() === 'true';
                     const amount = parseFloat($popup.find('#debt-amount').val());
                     const amountText = !isNaN(amount) && amount > 0 ? '$' + amount.toFixed(2) : 'the amount';
 
                     $popup.find('.debt-amount-sign')
-                        .text(owesMore ? '+' : '−')
-                        .toggleClass('is-plus', owesMore)
-                        .toggleClass('is-minus', !owesMore);
+                        .text(increases ? '+' : '−')
+                        .toggleClass('is-plus', increases)
+                        .toggleClass('is-minus', !increases);
                     $popup.find('.debt-effect')
-                        .toggleClass('is-plus', owesMore)
-                        .toggleClass('is-minus', !owesMore)
-                        .html(owesMore
-                            ? `<i class="fas fa-arrow-up me-1"></i>Customer's debt increases by ${amountText}`
-                            : `<i class="fas fa-arrow-down me-1"></i>Customer's debt decreases by ${amountText}`);
+                        .toggleClass('is-plus', increases)
+                        .toggleClass('is-minus', !increases)
+                        .html(increases
+                            ? `<i class="fas fa-arrow-up me-1"></i>${opts.increaseText} ${amountText}`
+                            : `<i class="fas fa-arrow-down me-1"></i>${opts.decreaseText} ${amountText}`);
                 };
                 $popup.on('change input', 'input[name="debt-direction"], #debt-amount', refresh);
                 refresh();
@@ -75,7 +92,7 @@
                     return false;
                 }
                 return {
-                    customerOwesMore: $('input[name="debt-direction"]:checked').val() === 'true',
+                    increases: $('input[name="debt-direction"]:checked').val() === 'true',
                     amount: amount,
                     note: $('#debt-note').val()
                 };
@@ -83,16 +100,18 @@
         }).then((result) => {
             if (!result.isConfirmed) return;
 
+            const data = {
+                Amount: result.value.amount,
+                Note: result.value.note,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+            data[opts.idField] = partyId;
+            data[opts.directionField] = result.value.increases;
+
             $.ajax({
                 url: url,
                 type: 'POST',
-                data: {
-                    CustomerId: customerId,
-                    Amount: result.value.amount,
-                    CustomerOwesMore: result.value.customerOwesMore,
-                    Note: result.value.note,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
+                data: data,
                 success: function (response) {
                     if (response.success) {
                         Swal.fire({

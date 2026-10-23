@@ -40,3 +40,17 @@ public enum CustomerDebtTransactionType
     /// <summary>A manual correction entered by staff (either sign).</summary>
     ManualAdjustment = 2
 }
+
+/// <summary>
+/// Labels a <c>SupplierDebtTransaction</c> entry for display/reporting. The transaction's
+/// signed Amount (not this Type) is what actually drives the supplier's balance.
+/// </summary>
+public enum SupplierDebtTransactionType
+{
+    /// <summary>Goods or services taken from the supplier on credit (positive amount).</summary>
+    Purchase = 0,
+    /// <summary>A payment made to the supplier settling part of the balance (negative amount).</summary>
+    Payment = 1,
+    /// <summary>A manual correction entered by staff (either sign).</summary>
+    ManualAdjustment = 2
+}

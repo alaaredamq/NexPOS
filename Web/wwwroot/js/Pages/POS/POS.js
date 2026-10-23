@@ -1117,16 +1117,19 @@ class POS {
                         });
                     } else {
                         console.warn('⚠️ Thermal printing failed for order:', orderId);
-                        toastr.warning(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${orderNumber} - ${window.i18n.t('pos.printError', 'Print Error')}`, window.i18n.t('common.warning', 'Warning'), {
-                            timeOut: 5000,
+                        // The sale is done; only the slip is missing. Offer to retry the printer or
+                        // save the receipt as a PDF - no browser window or print dialog.
+                        let message = `${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${orderNumber} - ${window.i18n.t('pos.printError', 'Print Error')}`;
+                        if (orderId) {
+                            message += `<br><a href="#" data-nexprint-url="/Orders/PrintReceipt/${orderId}" class="fw-bold text-white text-decoration-underline">${window.i18n.t('print.retry', 'Try again')}</a>` +
+                                ` &middot; <a href="/Orders/ReceiptPdf/${orderId}" download class="fw-bold text-white text-decoration-underline">${window.i18n.t('print.downloadInstead', 'Download PDF instead')}</a>`;
+                        }
+                        toastr.warning(message, window.i18n.t('common.warning', 'Warning'), {
+                            timeOut: 15000,
+                            extendedTimeOut: 8000,
                             closeButton: true,
                             progressBar: true
                         });
-
-                        // Fallback: open the receipt in the browser for manual printing
-                        if (orderId) {
-                            window.open(`/Orders/Receipt/${orderId}`, '_blank');
-                        }
                     }
                     
                     // Refocus barcode input after successful checkout

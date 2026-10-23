@@ -40,6 +40,11 @@ public class ProductService : IProductService
         return await _repo.SearchAsync(term, categoryId, supplierId, onlyActive);
     }
 
+    public async Task<List<Product>> SearchAvailableForDisplayOrderAsync(string? term, int skip, int take)
+    {
+        return await _repo.SearchAvailableForDisplayOrderAsync(term, skip, take);
+    }
+
     public async Task<Product> CreateAsync(Product product)
     {
         var created = await _repo.SaveAsync(product);

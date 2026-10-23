@@ -161,6 +161,16 @@
                             <span class="nav-text">@SharedLocalizer["License_Title"]</span>
                         </a>
                     </li>
+                    @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.AuditLogs_View))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "AuditLogs" ? "active" : "")"
+                               href="@Url.ActionWithCurrentLanguage("Index", "AuditLogs")">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                <span class="nav-text">@SharedLocalizer["AuditLog"]</span>
+                            </a>
+                        </li>
+                    }
                 }
             </ul>
         </div>

@@ -1,0 +1,298 @@
+@using Core.Auditing
+@{
+    ViewData["Title"] = Localizer["AuditLog_Title"].Value;
+    ViewData["Subtitle"] = Localizer["AuditLog_Subtitle"].Value;
+
+    var options = ViewBag.Options as AuditLogFilterOptions ?? new AuditLogFilterOptions();
+    var stats = ViewBag.Stats as AuditLogStats ?? new AuditLogStats();
+    var lang = ViewBag.CurrentLanguage?.ToString() ?? "en";
+
+    // Every string the script needs, in the current language (one lookup per key, serialised once below).
+    var stringKeys = new[]
+    {
+        "Cat_Data", "Cat_Request", "Cat_Security", "Cat_Business", "Cat_System", "Cat_Diagnostic",
+        "Out_Success", "Out_Failure", "Out_Denied", "Sev_Info", "Sev_Warning", "Sev_Error", "Sev_Critical",
+        "Tbl_Processing", "Tbl_Empty", "Tbl_Info", "Tbl_InfoEmpty", "Tbl_InfoFiltered", "Tbl_LengthMenu",
+        "Tbl_First", "Tbl_Last", "Tbl_Next", "Tbl_Previous",
+        "Detail_Field", "Detail_Before", "Detail_After", "Detail_Value", "Detail_ThisRequest", "Detail_Copied",
+        "Msg_LoadFailed", "Msg_DetailFailed", "Msg_System", "Chip_Request", "Chip_Remove"
+    };
+    var strings = stringKeys.ToDictionary(key => key, key => Localizer[key].Value);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/auditlogs.css" asp-append-version="true" />
+}
+
+<div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
+    <button type="button" class="btn btn-primary" id="auditRefreshBtn">
+        <i class="fas fa-sync-alt me-1"></i>@Localizer["Btn_Refresh"]
+    </button>
+    <button type="button" class="btn btn-success" id="auditExportBtn">
+        <i class="fas fa-file-csv me-1"></i>@Localizer["Btn_Export"]
+    </button>
+</div>
+
+<!-- Headline numbers -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3 mb-md-0">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon orders-icon"><i class="fas fa-clipboard-list"></i></div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@stats.Total.ToString("N0")</div>
+                <div class="stats-label">@Localizer["Stat_Total"]</div>
+                <div class="stats-change">@(stats.OldestUtc.HasValue ? Localizer["Stat_Since"].Value + " " + DateTime.SpecifyKind(stats.OldestUtc.Value, DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd") : Localizer["Stat_AllTime"].Value)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3 mb-md-0">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon customers-icon"><i class="fas fa-bolt"></i></div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@stats.Last24Hours.ToString("N0")</div>
+                <div class="stats-label">@Localizer["Stat_Last24h"]</div>
+                <div class="stats-change">@Localizer["Stat_Events"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon @(stats.Failures24Hours > 0 ? "void-icon" : "active-icon")">
+                    <i class="fas @(stats.Failures24Hours > 0 ? "fa-exclamation-triangle" : "fa-check-circle")"></i>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@stats.Failures24Hours.ToString("N0")</div>
+                <div class="stats-label">@Localizer["Stat_Failures24h"]</div>
+                <div class="stats-change">@Localizer["Stat_NeedsAttention"]</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stats-card modern-card">
+            <div class="stats-header">
+                <div class="stats-icon products-icon"><i class="fas fa-user-shield"></i></div>
+            </div>
+            <div class="stats-content">
+                <div class="stats-number">@stats.Security24Hours.ToString("N0")</div>
+                <div class="stats-label">@Localizer["Stat_Security24h"]</div>
+                <div class="stats-change">@Localizer["Stat_Logins"]</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card modern-card mb-4 audit-filters">
+    <div class="card-body">
+        <form id="auditFilterForm" class="row g-2 align-items-end" autocomplete="off">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label" for="fSearch">@Localizer["Filter_Search"]</label>
+                <input id="fSearch" type="search" class="form-control" placeholder="@Localizer["Filter_SearchPlaceholder"]" />
+            </div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <label class="form-label" for="fFrom">@Localizer["Filter_From"]</label>
+                <input id="fFrom" type="datetime-local" class="form-control" />
+            </div>
+            <div class="col-lg-2 col-md-3 col-6">
+                <label class="form-label" for="fTo">@Localizer["Filter_To"]</label>
+                <input id="fTo" type="datetime-local" class="form-control" />
+            </div>
+            <div class="col-lg-4 col-md-12">
+                <div class="btn-group btn-group-sm audit-ranges w-100" role="group">
+                    <button type="button" class="btn btn-outline-secondary" data-range="hour">@Localizer["Range_Hour"]</button>
+                    <button type="button" class="btn btn-outline-secondary" data-range="today">@Localizer["Range_Today"]</button>
+                    <button type="button" class="btn btn-outline-secondary" data-range="7d">@Localizer["Range_7d"]</button>
+                    <button type="button" class="btn btn-outline-secondary" data-range="30d">@Localizer["Range_30d"]</button>
+                    <button type="button" class="btn btn-outline-secondary" data-range="all">@Localizer["Range_All"]</button>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fUser">@Localizer["Filter_User"]</label>
+                <select id="fUser" class="form-select">
+                    <option value="">@Localizer["Filter_AllUsers"]</option>
+                    @foreach (var user in options.Users)
+                    {
+                        <option value="@(user.UserId?.ToString() ?? "")" data-username="@user.Username">@user.Username</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fCategory">@Localizer["Filter_Category"]</label>
+                <select id="fCategory" class="form-select">
+                    <option value="">@Localizer["Filter_AllCategories"]</option>
+                    <option value="Data">@Localizer["Cat_Data"]</option>
+                    <option value="Request">@Localizer["Cat_Request"]</option>
+                    <option value="Security">@Localizer["Cat_Security"]</option>
+                    <option value="Business">@Localizer["Cat_Business"]</option>
+                    <option value="System">@Localizer["Cat_System"]</option>
+                    <option value="Diagnostic">@Localizer["Cat_Diagnostic"]</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fOutcome">@Localizer["Filter_Outcome"]</label>
+                <select id="fOutcome" class="form-select">
+                    <option value="">@Localizer["Filter_AllOutcomes"]</option>
+                    <option value="Success">@Localizer["Out_Success"]</option>
+                    <option value="Failure">@Localizer["Out_Failure"]</option>
+                    <option value="Denied">@Localizer["Out_Denied"]</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fSeverity">@Localizer["Filter_Severity"]</label>
+                <select id="fSeverity" class="form-select">
+                    <option value="">@Localizer["Filter_AnySeverity"]</option>
+                    <option value="Warning">@Localizer["Sev_Warning"] +</option>
+                    <option value="Error">@Localizer["Sev_Error"] +</option>
+                    <option value="Critical">@Localizer["Sev_Critical"]</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fEntityType">@Localizer["Filter_EntityType"]</label>
+                <select id="fEntityType" class="form-select">
+                    <option value="">@Localizer["Filter_AllEntities"]</option>
+                    @foreach (var type in options.EntityTypes)
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <label class="form-label" for="fEntityId">@Localizer["Filter_RecordId"]</label>
+                <input id="fEntityId" type="number" min="1" class="form-control" />
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-6">
+                <label class="form-label" for="fAction">@Localizer["Filter_Action"]</label>
+                <select id="fAction" class="form-select">
+                    <option value="">@Localizer["Filter_AllActions"]</option>
+                    @foreach (var action in options.Actions)
+                    {
+                        <option value="@action">@action</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-9 col-md-8 col-6 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" id="auditResetBtn">
+                    <i class="fas fa-undo me-1"></i>@Localizer["Btn_Reset"]
+                </button>
+                @* type="button", not "submit": site.js disables a form's submit button for good once it is submitted,
+                   which is right for forms that navigate away but wrong for this one, which only reloads the table. *@
+                <button type="button" class="btn btn-primary" id="auditApplyBtn">
+                    <i class="fas fa-filter me-1"></i>@Localizer["Btn_Apply"]
+                </button>
+            </div>
+        </form>
+
+        <div id="auditChips" class="d-flex flex-wrap gap-2 mt-3"></div>
+    </div>
+</div>
+
+<!-- Entries -->
+<div class="card modern-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="auditTable" class="table table-hover modern-table w-100">
+                <thead>
+                    <tr>
+                        <th>@Localizer["Col_Time"]</th>
+                        <th>@Localizer["Col_User"]</th>
+                        <th>@Localizer["Col_Type"]</th>
+                        <th>@Localizer["Col_Action"]</th>
+                        <th>@Localizer["Col_Record"]</th>
+                        <th>@Localizer["Col_Description"]</th>
+                        <th>@Localizer["Col_Result"]</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Entry details -->
+<div class="modal fade" id="auditDetailModal" tabindex="-1" aria-labelledby="auditDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="auditDetailTitle">
+                    <i class="fas fa-clipboard-list me-2"></i>@Localizer["Detail_Title"]
+                    <small class="text-muted ms-2" id="dId"></small>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Localizer["Detail_Close"]"></button>
+            </div>
+            <div class="modal-body">
+                <div class="audit-summary mb-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2" id="dBadges"></div>
+                    <p class="audit-summary-text mb-0" id="dDescription"></p>
+                </div>
+
+                <div class="row g-3 audit-facts">
+                    <div class="col-md-4"><div class="audit-fact"><span>@Localizer["Detail_When"]</span><strong id="dWhen"></strong></div></div>
+                    <div class="col-md-4"><div class="audit-fact"><span>@Localizer["Detail_Who"]</span><strong id="dWho"></strong></div></div>
+                    <div class="col-md-4"><div class="audit-fact"><span>@Localizer["Detail_Record"]</span><strong id="dRecord"></strong></div></div>
+                </div>
+
+                <h6 class="audit-section"><i class="fas fa-exchange-alt me-2"></i>@Localizer["Detail_Changes"]</h6>
+                <div id="dChanges"></div>
+
+                <div id="dExtraWrap" class="d-none">
+                    <h6 class="audit-section"><i class="fas fa-info-circle me-2"></i>@Localizer["Detail_Extra"]</h6>
+                    <pre class="audit-json" id="dExtra"></pre>
+                </div>
+
+                <h6 class="audit-section"><i class="fas fa-network-wired me-2"></i>@Localizer["Detail_Where"]</h6>
+                <dl class="row audit-meta mb-0" id="dMeta"></dl>
+            </div>
+            <div class="modal-footer justify-content-between flex-wrap gap-2">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="dShowRequest"></button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="dShowRecord">
+                        <i class="fas fa-history me-1"></i>@Localizer["Detail_RecordHistory"]
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="dShowUser">
+                        <i class="fas fa-user me-1"></i>@Localizer["Detail_ByUser"]
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="dCopyRequest">
+                        <i class="fas fa-copy me-1"></i>@Localizer["Detail_Copy"]
+                    </button>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Detail_Close"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.auditStrings = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(strings));
+        window.auditLabels = {
+            when: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_When"].Value)),
+            ip: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Ip"].Value)),
+            machine: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Machine"].Value)),
+            version: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Version"].Value)),
+            agent: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Agent"].Value)),
+            source: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Source"].Value)),
+            method: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Method"].Value)),
+            path: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Path"].Value)),
+            status: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Status"].Value)),
+            duration: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Duration"].Value)),
+            requestId: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_RequestId"].Value)),
+            role: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_Role"].Value)),
+            noChanges: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Localizer["Detail_NoChanges"].Value))
+        };
+        window.auditUrls = {
+            data: '@Url.Action("GetData", "AuditLogs", new { lang })',
+            details: '@Url.Action("Details", "AuditLogs", new { lang })',
+            exportCsv: '@Url.Action("Export", "AuditLogs", new { lang })'
+        };
+        window.auditLang = '@lang';
+    </script>
+    <script src="~/js/Pages/AuditLogs/Index.js" asp-append-version="true"></script>
+}

@@ -1,101 +1,112 @@
-using Application.IServices.Base;
+using System.Text.Json;
+using Application.DTOs.Logging;
 using Application.IServices.Logging;
+using Core.Auditing;
 using Core.Entities.Logging;
 using Core.IRepositories.Logging;
-using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Services.Logging;
 
 public class AuditLogService : IAuditLogService
 {
-    private readonly IAuditLogRepository _repository;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private static readonly TimeSpan FilterOptionsTtl = TimeSpan.FromSeconds(60);
+    private const string FilterOptionsCacheKey = "audit:filter-options";
 
-    public AuditLogService(IAuditLogRepository repository, IHttpContextAccessor httpContextAccessor)
+    private readonly IAuditLogRepository _repository;
+    private readonly IMemoryCache _cache;
+
+    public AuditLogService(IAuditLogRepository repository, IMemoryCache cache)
     {
         _repository = repository;
-        _httpContextAccessor = httpContextAccessor;
+        _cache = cache;
     }
 
-    public async Task<IEnumerable<AuditLog>> GetAllAsync()
-    {
-        return await _repository.GetAllAsync();
-    }
+    public Task<(List<AuditLog> Items, int Total)> SearchAsync(
+        AuditLogFilter filter, int skip, int take, CancellationToken cancellationToken = default)
+        => _repository.SearchAsync(filter, Math.Max(0, skip), Math.Clamp(take, 1, 500), cancellationToken);
 
-    public async Task<AuditLog?> GetByIdAsync(int id)
+    public async Task<AuditLogDetails?> GetDetailsAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdAsync(id);
-    }
+        var entry = await _repository.GetByIdAsync(id, cancellationToken);
+        if (entry is null) return null;
 
-    public async Task<AuditLog> CreateAsync(AuditLog auditLog)
-    {
-        return await _repository.SaveAsync(auditLog);
-    }
-
-    public async Task<AuditLog> UpdateAsync(AuditLog auditLog)
-    {
-        return await _repository.SaveAsync(auditLog);
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var auditLog = await _repository.GetByIdAsync(id);
-        if (auditLog != null)
+        var related = 1;
+        if (!string.IsNullOrEmpty(entry.CorrelationId))
         {
-            await _repository.DeleteAsync(auditLog);
+            var (_, total) = await _repository.SearchAsync(
+                new AuditLogFilter { CorrelationId = entry.CorrelationId }, 0, 1, cancellationToken);
+            related = total;
         }
+
+        return new AuditLogDetails
+        {
+            Entry = entry,
+            Changes = BuildChanges(entry),
+            RowsInSameRequest = related
+        };
     }
 
-    public async Task LogActionAsync(string action, string entityType, int? entityId = null, int? userId = null, 
-        string? oldValuesJson = null, string? newValuesJson = null, string? additionalInfoJson = null,
-        AuditLogSeverity severity = AuditLogSeverity.Info)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-        var userAgent = httpContext?.Request.Headers["User-Agent"].ToString() ?? "Unknown";
+    public Task<AuditLogStats> GetStatsAsync(CancellationToken cancellationToken = default)
+        => _repository.GetStatsAsync(DateTime.UtcNow, cancellationToken);
 
-        // Try to get user ID from context if not provided
-        if (userId == null && httpContext?.Items.ContainsKey("CurrentUser") == true)
+    public async Task<AuditLogFilterOptions> GetFilterOptionsAsync(CancellationToken cancellationToken = default)
+    {
+        if (_cache.TryGetValue(FilterOptionsCacheKey, out AuditLogFilterOptions? cached) && cached is not null)
+            return cached;
+
+        var options = await _repository.GetFilterOptionsAsync(cancellationToken);
+        _cache.Set(FilterOptionsCacheKey, options, FilterOptionsTtl);
+        return options;
+    }
+
+    public Task<int> ExportCsvAsync(AuditLogFilter filter, Stream output, CancellationToken cancellationToken = default)
+        => AuditLogCsv.WriteAsync(
+            _repository.StreamAsync(filter, IAuditLogService.ExportMaxRows, cancellationToken), output, cancellationToken);
+
+    // ---- old -> new ---------------------------------------------------------------------------------------------
+
+    internal static List<AuditFieldChange> BuildChanges(AuditLog entry)
+    {
+        var before = Flatten(entry.OldValuesJson);
+        var after = Flatten(entry.NewValuesJson);
+        if (before.Count == 0 && after.Count == 0) return [];
+
+        // Keep the order the fields were recorded in (the changed fields first, as they were detected).
+        var fields = before.Keys.Concat(after.Keys).Distinct().ToList();
+        return fields
+            .Select(field => new AuditFieldChange(
+                field,
+                before.GetValueOrDefault(field),
+                after.GetValueOrDefault(field)))
+            .ToList();
+    }
+
+    private static Dictionary<string, string?> Flatten(string? json)
+    {
+        var result = new Dictionary<string, string?>();
+        if (string.IsNullOrWhiteSpace(json)) return result;
+
+        try
         {
-            var user = httpContext.Items["CurrentUser"];
-            if (user != null)
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Object) return result;
+
+            foreach (var property in document.RootElement.EnumerateObject())
             {
-                // Assuming user has an Id property - adjust based on your User entity
-                userId = (int)user.GetType().GetProperty("Id")?.GetValue(user);
+                result[property.Name] = property.Value.ValueKind switch
+                {
+                    JsonValueKind.String => property.Value.GetString(),
+                    JsonValueKind.Null => null,
+                    _ => property.Value.GetRawText()
+                };
             }
         }
+        catch (JsonException)
+        {
+            // A damaged JSON column must not break the detail view; the raw text is still on the entry.
+        }
 
-        var auditLog = new AuditLog(userId, action, entityType, entityId, ipAddress, userAgent, 
-            oldValuesJson, newValuesJson, additionalInfoJson, severity);
-
-        await _repository.SaveAsync(auditLog);
-    }
-
-    public async Task<IEnumerable<AuditLog>> GetByUserAsync(int userId, int page = 1, int pageSize = 50)
-    {
-        return await _repository.GetByUserAsync(userId, page, pageSize);
-    }
-
-    public async Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityType, int entityId, int page = 1, int pageSize = 50)
-    {
-        return await _repository.GetByEntityAsync(entityType, entityId, page, pageSize);
-    }
-
-    public async Task<IEnumerable<AuditLog>> GetByActionAsync(string action, int page = 1, int pageSize = 50)
-    {
-        return await _repository.GetByActionAsync(action, page, pageSize);
-    }
-
-    public async Task<IEnumerable<AuditLog>> GetBySeverityAsync(AuditLogSeverity severity, int page = 1, int pageSize = 50)
-    {
-        return await _repository.GetBySeverityAsync(severity, page, pageSize);
-    }
-
-    public async Task<IEnumerable<AuditLog>> SearchAsync(string? searchTerm = null, string? entityType = null, 
-        string? action = null, AuditLogSeverity? severity = null, DateTime? fromDate = null, 
-        DateTime? toDate = null, int page = 1, int pageSize = 50)
-    {
-        return await _repository.SearchAsync(searchTerm, entityType, action, severity, fromDate, toDate, page, pageSize);
+        return result;
     }
 }

@@ -99,22 +99,31 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAvailableProducts()
+        public async Task<IActionResult> GetAvailableProducts(string? term = null, int skip = 0, int take = 20)
         {
             try
             {
-                var allProducts = await _productService.GetAllAsync();
-                var displayOrderProducts = await _productDisplayOrderService.GetAllAsync();
-                var displayOrderProductIds = displayOrderProducts.Select(x => x.ProductId).ToList();
-                
-                var availableProducts = allProducts.Where(p => !displayOrderProductIds.Contains(p.Id) && p.IsActive).ToList();
-                
-                return Json(availableProducts.Select(p => new { 
-                    id = p.Id, 
-                    name = p.Name, 
-                    price = p.SellingPrice,
-                    category = p.Category?.Name ?? "No Category"
-                }));
+                skip = Math.Max(skip, 0);
+                take = Math.Clamp(take, 1, 50);
+
+                // Fetch one extra row so the client knows whether another page exists
+                var page = await _productService.SearchAvailableForDisplayOrderAsync(term, skip, take + 1);
+                var hasMore = page.Count > take;
+
+                return Json(new
+                {
+                    success = true,
+                    hasMore,
+                    items = page.Take(take).Select(p => new
+                    {
+                        id = p.Id,
+                        name = p.Name,
+                        price = p.SellingPrice,
+                        currency = p.Currency?.Notation ?? "$",
+                        category = p.Category?.Name ?? "No Category",
+                        image = p.Image
+                    })
+                });
             }
             catch (Exception ex)
             {
