@@ -235,14 +235,14 @@
             $.get('@Url.Action("GetDashboardStats", "Reports")', function(response) {
                 if (response.success) {
                     const data = response.data;
-                    $('#todaySales').text('$' + data.Today.Sales.toFixed(2));
-                    $('#todayOrders').text(data.Today.Orders + ' ' + window.reportsLocalizedStrings.orders);
-                    $('#monthSales').text('$' + data.ThisMonth.Sales.toFixed(2));
-                    $('#monthOrders').text(data.ThisMonth.Orders + ' ' + window.reportsLocalizedStrings.orders);
-                    $('#yearSales').text('$' + data.ThisYear.Sales.toFixed(2));
-                    $('#yearOrders').text(data.ThisYear.Orders + ' ' + window.reportsLocalizedStrings.orders);
+                    $('#todaySales').text('$' + data.today.sales.toFixed(2));
+                    $('#todayOrders').text(data.today.orders + ' ' + window.reportsLocalizedStrings.orders);
+                    $('#monthSales').text('$' + data.thisMonth.sales.toFixed(2));
+                    $('#monthOrders').text(data.thisMonth.orders + ' ' + window.reportsLocalizedStrings.orders);
+                    $('#yearSales').text('$' + data.thisYear.sales.toFixed(2));
+                    $('#yearOrders').text(data.thisYear.orders + ' ' + window.reportsLocalizedStrings.orders);
                     
-                    const avgOrder = data.ThisMonth.Orders > 0 ? data.ThisMonth.Sales / data.ThisMonth.Orders : 0;
+                    const avgOrder = data.thisMonth.orders > 0 ? data.thisMonth.sales / data.thisMonth.orders : 0;
                     $('#avgOrder').text('$' + avgOrder.toFixed(2));
                 }
             });

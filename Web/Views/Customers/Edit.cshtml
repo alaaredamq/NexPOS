@@ -1,14 +1,14 @@
 @model Application.DTOs.Customers.UpdateCustomerRequest
 
 @{
-    ViewData["Title"] = "Edit Customer";
-    ViewData["Subtitle"] = $"Edit customer information";
+    ViewData["Title"] = SharedLocalizer["Cust_EditTitle"].Value;
+    ViewData["Subtitle"] = SharedLocalizer["Cust_EditSubtitle"].Value;
 }
 
 <!-- Edit Customer Header -->
 <div class="d-flex justify-content-end mb-4">
     <a href="@Url.Action("Index", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Back to Customers
+        <i class="fas fa-arrow-left me-2"></i>@SharedLocalizer["Cust_BackToCustomers"]
     </a>
 </div>
 
@@ -19,7 +19,7 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-edit me-2"></i>
-                    Customer Information
+                    @SharedLocalizer["Cust_Information"]
                 </h5>
             </div>
             <div class="products-card-body">
@@ -28,69 +28,69 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="FirstName" class="form-label">First Name *</label>
-                            <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                            <label asp-for="FirstName" class="form-label">@SharedLocalizer["First Name"] *</label>
+                            <input asp-for="FirstName" class="form-control" placeholder="@SharedLocalizer["Cust_PhFirstName"]" />
                             <span asp-validation-for="FirstName" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="LastName" class="form-label">Last Name *</label>
-                            <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                            <label asp-for="LastName" class="form-label">@SharedLocalizer["Last Name"] *</label>
+                            <input asp-for="LastName" class="form-control" placeholder="@SharedLocalizer["Cust_PhLastName"]" />
                             <span asp-validation-for="LastName" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Email" class="form-label">Email Address *</label>
-                            <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                            <label asp-for="Email" class="form-label">@SharedLocalizer["Email Address"] *</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="@SharedLocalizer["Cust_PhEmail"]" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
-                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Enter phone number" />
+                            <label asp-for="PhoneNumber" class="form-label">@SharedLocalizer["Phone Number"]</label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="@SharedLocalizer["Cust_PhPhone"]" />
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Address" class="form-label">Address</label>
-                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Enter full address"></textarea>
+                        <label asp-for="Address" class="form-label">@SharedLocalizer["Address"]</label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="@SharedLocalizer["Cust_PhAddress"]"></textarea>
                         <span asp-validation-for="Address" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                            <label asp-for="DateOfBirth" class="form-label">@SharedLocalizer["Date of Birth"]</label>
                             <input asp-for="DateOfBirth" type="date" class="form-control" />
                             <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="CompanyName" class="form-label">Company Name</label>
-                            <input asp-for="CompanyName" class="form-control" placeholder="Enter company name (optional)" />
+                            <label asp-for="CompanyName" class="form-label">@SharedLocalizer["Company Name"]</label>
+                            <input asp-for="CompanyName" class="form-control" placeholder="@SharedLocalizer["Cust_PhCompanyOptional"]" />
                             <span asp-validation-for="CompanyName" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="TaxNumber" class="form-label">Tax Number</label>
-                            <input asp-for="TaxNumber" class="form-control" placeholder="Enter tax number (optional)" />
+                            <label asp-for="TaxNumber" class="form-label">@SharedLocalizer["Tax Number"]</label>
+                            <input asp-for="TaxNumber" class="form-control" placeholder="@SharedLocalizer["Cust_PhTaxOptional"]" />
                             <span asp-validation-for="TaxNumber" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Customer Type</label>
+                            <label class="form-label">@SharedLocalizer["Customer Type"]</label>
                             <div class="form-check mt-2">
                                 <input class="form-check-input" type="checkbox" id="isCompany" @(string.IsNullOrEmpty(Model.CompanyName) ? "" : "checked") />
                                 <label class="form-check-label" for="isCompany">
-                                    This is a company customer
+                                    @SharedLocalizer["Cust_IsCompany"]
                                 </label>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Notes" class="form-label">Notes</label>
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Enter any additional notes about the customer"></textarea>
+                        <label asp-for="Notes" class="form-label">@SharedLocalizer["Notes"]</label>
+                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="@SharedLocalizer["Cust_PhNotes"]"></textarea>
                         <span asp-validation-for="Notes" class="text-danger"></span>
                     </div>
 
@@ -98,17 +98,17 @@
                         <div class="form-check">
                             <input asp-for="IsActive" class="form-check-input" />
                             <label asp-for="IsActive" class="form-check-label">
-                                Customer is active
+                                @SharedLocalizer["Cust_IsActive"]
                             </label>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-3">
                         <a href="@Url.Action("Index", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-                            <i class="fas fa-times me-2"></i>Cancel
+                            <i class="fas fa-times me-2"></i>@SharedLocalizer["Cancel"]
                         </a>
                         <button type="submit" class="btn btn-teal">
-                            <i class="fas fa-save me-2"></i>Update Customer
+                            <i class="fas fa-save me-2"></i>@SharedLocalizer["Cust_UpdateCustomer"]
                         </button>
                     </div>
                 </form>
@@ -121,41 +121,41 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-info-circle me-2"></i>
-                    Customer Guidelines
+                    @SharedLocalizer["Cust_Guidelines"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="guidelines">
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Use full legal names for better record keeping</span>
+                        <span>@SharedLocalizer["Cust_G1"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Email addresses must be valid and unique</span>
+                        <span>@SharedLocalizer["Cust_G2"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Phone numbers help with communication</span>
+                        <span>@SharedLocalizer["Cust_G3"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Complete addresses enable delivery services</span>
+                        <span>@SharedLocalizer["Cust_G4"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Company customers can have tax numbers</span>
+                        <span>@SharedLocalizer["Cust_G5"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Notes help track customer preferences</span>
+                        <span>@SharedLocalizer["Cust_G6"]</span>
                     </div>
                 </div>
 
                 <hr>
 
                 <div class="customer-preview">
-                    <h6 class="text-muted mb-3">Customer Preview</h6>
+                    <h6 class="text-muted mb-3">@SharedLocalizer["Cust_Preview"]</h6>
                     <div class="preview-customer" id="customerPreview">
                         <div class="preview-avatar">
                             <i class="fas fa-user"></i>
@@ -163,8 +163,8 @@
                         <div class="preview-content">
                             <div class="preview-name" id="previewName">@Model.FirstName @Model.LastName</div>
                             <div class="preview-email" id="previewEmail">@Model.Email</div>
-                            <div class="preview-phone" id="previewPhone">@(Model.PhoneNumber ?? "No phone")</div>
-                            <div class="preview-type" id="previewType">@(string.IsNullOrEmpty(Model.CompanyName) ? "Individual" : "Company")</div>
+                            <div class="preview-phone" id="previewPhone">@(Model.PhoneNumber ?? SharedLocalizer["Cust_NoPhone"].Value)</div>
+                            <div class="preview-type" id="previewType">@(string.IsNullOrEmpty(Model.CompanyName) ? SharedLocalizer["Cust_Individual"].Value : SharedLocalizer["Cust_Company"].Value)</div>
                         </div>
                     </div>
                 </div>
@@ -178,16 +178,16 @@
         $(document).ready(function() {
             // Update customer preview in real-time
             function updateCustomerPreview() {
-                const firstName = $('#FirstName').val() || 'First';
-                const lastName = $('#LastName').val() || 'Last';
+                const firstName = $('#FirstName').val() || @Json.Serialize(SharedLocalizer["Cust_PvFirst"].Value);
+                const lastName = $('#LastName').val() || @Json.Serialize(SharedLocalizer["Cust_PvLast"].Value);
                 const email = $('#Email').val() || 'email@example.com';
-                const phone = $('#PhoneNumber').val() || 'Phone number';
+                const phone = $('#PhoneNumber').val() || @Json.Serialize(SharedLocalizer["Cust_PvPhone"].Value);
                 const isCompany = $('#isCompany').is(':checked');
 
                 $('#previewName').text(`${firstName} ${lastName}`);
                 $('#previewEmail').text(email);
-                $('#previewPhone').text(phone || 'No phone');
-                $('#previewType').text(isCompany ? 'Company' : 'Individual');
+                $('#previewPhone').text(phone || @Json.Serialize(SharedLocalizer["Cust_NoPhone"].Value));
+                $('#previewType').text(isCompany ? @Json.Serialize(SharedLocalizer["Cust_Company"].Value) : @Json.Serialize(SharedLocalizer["Cust_Individual"].Value));
             }
 
             $('#FirstName, #LastName, #Email, #PhoneNumber, #isCompany').on('input change', updateCustomerPreview);
@@ -195,11 +195,11 @@
             // Company checkbox functionality
             $('#isCompany').on('change', function() {
                 if ($(this).is(':checked')) {
-                    $('#CompanyName').attr('placeholder', 'Enter company name (required)');
-                    $('#TaxNumber').attr('placeholder', 'Enter tax number');
+                    $('#CompanyName').attr('placeholder', @Json.Serialize(SharedLocalizer["Cust_PhCompanyRequired"].Value));
+                    $('#TaxNumber').attr('placeholder', @Json.Serialize(SharedLocalizer["Cust_PhTax"].Value));
                 } else {
-                    $('#CompanyName').attr('placeholder', 'Enter company name (optional)');
-                    $('#TaxNumber').attr('placeholder', 'Enter tax number (optional)');
+                    $('#CompanyName').attr('placeholder', @Json.Serialize(SharedLocalizer["Cust_PhCompanyOptional"].Value));
+                    $('#TaxNumber').attr('placeholder', @Json.Serialize(SharedLocalizer["Cust_PhTaxOptional"].Value));
                 }
                 updateCustomerPreview();
             });
@@ -212,7 +212,7 @@
                 
                 if (!firstName || !lastName || !email) {
                     e.preventDefault();
-                    alert('Please fill in all required fields (First Name, Last Name, Email)!');
+                    alert(@Json.Serialize(SharedLocalizer["Cust_FillRequired"].Value));
                     if (!firstName) $('#FirstName').focus();
                     else if (!lastName) $('#LastName').focus();
                     else if (!email) $('#Email').focus();

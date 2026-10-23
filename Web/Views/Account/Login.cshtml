@@ -1,6 +1,6 @@
 @model Web.Models.Auth.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = Localizer["Login"].Value;
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
     var currentCulture = ViewBag.CurrentCulture ?? System.Globalization.CultureInfo.CurrentUICulture.Name;
 }
@@ -12,13 +12,23 @@
             <div class="text-center text-white slide-in-left">
                 <!-- Main Logo/Icon -->
                 <div class="mb-5">
-                    <div class="d-inline-flex align-items-center justify-content-center rounded-4 bg-white bg-opacity-20 p-4 mb-4" style="width: 120px; height: 120px; backdrop-filter: blur(10px);">
-                        <img src="~/images/logo-mark.svg" alt="NexPos" width="84" height="84" />
-                    </div>
+                    @if (Brand.HasCustomLogo)
+                    {
+                        @* An uploaded logo can be any shape (often a wide wordmark), so show it as-is with no tile behind it. *@
+                        <div class="mb-4">
+                            <img src="~/branding/logo?v=@Brand.Version" alt="@Brand.AppName" style="height: 96px; width: auto; max-width: 320px; object-fit: contain;" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-4 bg-white bg-opacity-20 p-4 mb-4" style="width: 120px; height: 120px; backdrop-filter: blur(10px);">
+                            <img src="~/branding/logo?variant=mark&v=@Brand.Version" alt="@Brand.AppName" width="84" height="84" style="object-fit:contain;" />
+                        </div>
+                    }
                 </div>
 
                 <!-- Main Heading -->
-                <h1 class="display-5 fw-bold mb-3 text-white">NexPos</h1>
+                <h1 class="display-5 fw-bold mb-3 text-white">@Brand.AppName</h1>
                 <p class="fs-5 mb-3 opacity-90">@Localizer["PointOfSaleSystem"]</p>
                 <p class="lead mb-5 opacity-90">@Localizer["SystemDescription"]</p>
                 
@@ -130,13 +140,6 @@
                             <span asp-validation-for="Pin" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-3 d-flex justify-content-end align-items-center">
-                            <div class="form-check">
-                                <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
-                                <label asp-for="RememberMe" class="form-check-label text-muted">@Localizer["RememberMe"]</label>
-                            </div>
-                        </div>
-
                         <div class="d-grid mb-3">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="fas fa-sign-in-alt me-2"></i>@Localizer["SignIn"]
@@ -154,33 +157,11 @@
                             </div>
                         }
                     </form>
-
-                    <!-- Demo Credentials -->
-                    <div class="demo-credentials">
-                        <div class="d-flex align-items-center mb-2">
-                            <i class="fas fa-info-circle text-info me-2"></i>
-                            <h6 class="mb-0 text-dark">@Localizer["DemoCredentials"]</h6>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-12">
-                                <div class="demo-item">
-                                    <i class="fas fa-user text-muted me-2"></i>
-                                    <span class="text-muted">@Localizer["AdminUsername"]</span>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="demo-item">
-                                    <i class="fas fa-key text-muted me-2"></i>
-                                    <span class="text-muted">@Localizer["AdminPin"]</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Footer -->
                 <div class="text-center mt-4">
-                    <small class="text-muted opacity-75">&copy; @DateTime.Now.Year @Localizer["Copyright"]</small>
+                    <small class="text-muted opacity-75">&copy; @DateTime.Now.Year @Brand.AppName. @Localizer["Copyright"]</small>
                 </div>
 
                 <!-- Mobile Language Switcher -->
@@ -203,23 +184,6 @@
     <script>
         // Optimized JavaScript for faster loading
         $(document).ready(function() {
-            // Language toggle - using new URL routing system
-            $('.language-btn').on('click', function(e) {
-                e.preventDefault();
-                var lang = $(this).data('lang');
-                var currentUrl = window.location.pathname;
-                
-                // Replace language in URL path
-                var newUrl = currentUrl.replace(/^\/[a-z]{2}\//, '/' + lang + '/');
-                
-                // If no language in URL, add it
-                if (!/^\/[a-z]{2}\//.test(newUrl)) {
-                    newUrl = '/' + lang + newUrl;
-                }
-                
-                window.location.href = newUrl;
-            });
-
             // Numeric PIN keypad
             var maxPinLength = 4;
             var pinDots = $('#pinDots .pin-dot');
@@ -267,6 +231,8 @@
                 }
             });
 
+            // Never keep a PIN across a page reload/reset (e.g. after a failed attempt or back navigation)
+            $('#pinInput').val('');
             renderPin();
 
             // Remembered username: skip straight to the PIN; "Not you?" clears it.
@@ -324,6 +290,7 @@
 
         .pin-keypad {
             display: grid;
+            direction: ltr; /* keep 1-2-3 order in RTL */ 
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
         }

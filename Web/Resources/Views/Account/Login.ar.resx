@@ -116,7 +116,12 @@
     <value>كلمة المرور: admin123</value>
   </data>
   <data name="Copyright" xml:space="preserve">
-    <value>NexPos. جميع الحقوق محفوظة.</value>
+    <value>جميع الحقوق محفوظة.</value>
+  </data>
+  <data name="PIN" xml:space="preserve">
+    <value>الرقم السري</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>مسح</value>
   </data>
 </root>
-

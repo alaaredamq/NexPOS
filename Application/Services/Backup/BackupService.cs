@@ -3,7 +3,7 @@ using Application.IServices.Backup;
 using Core.Entities.Backup;
 using Core.IRepositories.Backup;
 using Infrastructure.Data;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -103,7 +103,9 @@ namespace Application.Services.Backup
                 // For a production system, use a proper background job queue (Hangfire, etc.)
                 await PerformBackupAsync(backupId, request, backupPath);
 
-                return MapToDTO(savedBackup);
+                // Return the final state (Completed/Failed + error) rather than the initial InProgress snapshot
+                var finalBackup = await _backupRepository.GetByIdAsync(savedBackup.Id) ?? savedBackup;
+                return MapToDTO(finalBackup);
             }
             catch (Exception ex)
             {
@@ -652,11 +654,11 @@ namespace Application.Services.Backup
         {
             var tables = new List<string>();
             using var command = _context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
-            
+            command.CommandText = "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+
             await _context.Database.OpenConnectionAsync();
             using var reader = await command.ExecuteReaderAsync();
-            
+
             while (await reader.ReadAsync())
             {
                 tables.Add(reader.GetString(0));
@@ -668,7 +670,7 @@ namespace Application.Services.Backup
         public async Task<long> GetTableSizeAsync(string tableName)
         {
             using var command = _context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = $"SELECT COUNT(*) FROM [{tableName}]";
+            command.CommandText = $"SELECT COUNT(*) FROM \"{tableName.Replace("\"", "\"\"")}\"";
             
             await _context.Database.OpenConnectionAsync();
             var result = await command.ExecuteScalarAsync();
@@ -678,32 +680,14 @@ namespace Application.Services.Backup
 
         public async Task<long> GetTotalDatabaseSizeAsync()
         {
-            using var command = _context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = @"
-                SELECT SUM(size * 8.0 * 1024) as SizeInBytes
-                FROM sys.database_files";
-            
-            await _context.Database.OpenConnectionAsync();
-            var result = await command.ExecuteScalarAsync();
-            
-            return Convert.ToInt64(result ?? 0);
+            var dbFile = GetDatabaseFilePath();
+            return await Task.FromResult(File.Exists(dbFile) ? new FileInfo(dbFile).Length : 0L);
         }
 
         public async Task<List<string>> GetDatabaseUsersAsync()
         {
-            var users = new List<string>();
-            using var command = _context.Database.GetDbConnection().CreateCommand();
-            command.CommandText = "SELECT name FROM sys.database_principals WHERE type = 'S'";
-            
-            await _context.Database.OpenConnectionAsync();
-            using var reader = await command.ExecuteReaderAsync();
-            
-            while (await reader.ReadAsync())
-            {
-                users.Add(reader.GetString(0));
-            }
-
-            return users;
+            // SQLite has no database-level principals; application users live in the Users table.
+            return await Task.FromResult(new List<string>());
         }
 
         #endregion
@@ -721,40 +705,10 @@ namespace Application.Services.Backup
 
         public async Task<string> GetBackupDirectoryAsync()
         {
-            // Use a path that SQL Server can access
-            // Option 1: Use SQL Server's default backup directory
-            // Option 2: Use a shared folder that both app and SQL Server can access
-            // Option 3: Use a common location like C:\Backups (needs to be created with proper permissions)
-            
-            // First, try to get SQL Server's default backup directory
-            try
-            {
-                var connection = _context.Database.GetDbConnection();
-                await connection.OpenAsync();
-                using var command = connection.CreateCommand();
-                command.CommandText = @"
-                    SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
-                var result = await command.ExecuteScalarAsync();
-                
-                if (result != null && result != DBNull.Value)
-                {
-                    var sqlBackupPath = result.ToString();
-                    if (!string.IsNullOrEmpty(sqlBackupPath))
-                    {
-                        // Create a subfolder for ERP backups
-                        var erpBackupPath = Path.Combine(sqlBackupPath, "ERP");
-                        return erpBackupPath;
-                    }
-                }
-            }
-            catch
-            {
-                // Fall back to application directory if we can't get SQL Server's backup path
-            }
-            
-            // Fallback: Use application's Backups folder
-            var baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Backups");
-            return baseDir;
+            // Backups live in a "Backups" folder next to the SQLite database file, i.e. in the
+            // per-user app-data folder, which is always writable (the install dir may not be).
+            var dbDir = Path.GetDirectoryName(Path.GetFullPath(GetDatabaseFilePath()));
+            return await Task.FromResult(Path.Combine(dbDir ?? AppDomain.CurrentDomain.BaseDirectory, "Backups"));
         }
 
         public async Task<bool> EnsureBackupDirectoryExistsAsync()
@@ -1085,59 +1039,35 @@ namespace Application.Services.Backup
                 progress.CurrentOperation = "Preparing backup";
                 progress.ProgressPercentage = 10;
 
-                // Get database name from connection
-                var connection = _context.Database.GetDbConnection();
-                var databaseName = connection.Database;
-                
-                // Ensure we have a valid backup path that SQL Server can write to
                 var actualBackupPath = await GetValidBackupPathAsync(backupPath);
-                
+
                 progress.CurrentOperation = "Backing up database";
                 progress.ProgressPercentage = 30;
 
-                // Build SQL Server BACKUP command (without COMPRESSION for compatibility with SQL Express)
-                var backupType = request.BackupType?.ToLower() ?? "full";
-                string backupSql;
-                
-                if (backupType == "differential")
+                // SQLite has no differential/incremental backups: every backup is a full,
+                // consistent snapshot taken with VACUUM INTO (safe while the app is running).
+                // VACUUM INTO refuses to overwrite an existing file.
+                if (File.Exists(actualBackupPath))
                 {
-                    backupSql = $@"
-                        BACKUP DATABASE [{databaseName}] 
-                        TO DISK = N'{actualBackupPath}'
-                        WITH DIFFERENTIAL,
-                             FORMAT,
-                             INIT,
-                             NAME = N'{request.Name}',
-                             STATS = 10;
-                    ";
-                }
-                else
-                {
-                    // Full backup (default)
-                    backupSql = $@"
-                        BACKUP DATABASE [{databaseName}] 
-                        TO DISK = N'{actualBackupPath}'
-                        WITH FORMAT,
-                             INIT,
-                             NAME = N'{request.Name}',
-                             STATS = 10;
-                    ";
+                    File.Delete(actualBackupPath);
                 }
 
-                progress.CurrentOperation = "Executing SQL Server backup";
+                progress.CurrentOperation = "Writing database snapshot";
                 progress.ProgressPercentage = 50;
 
-                // Execute backup command using a separate connection to avoid EF conflicts
-                var connectionString = connection.ConnectionString;
-                using var backupConnection = new SqlConnection(connectionString);
-                await backupConnection.OpenAsync();
-                
-                using var command = backupConnection.CreateCommand();
-                command.CommandText = backupSql;
-                command.CommandTimeout = 600; // 10 minutes timeout for large databases
-                
-                await command.ExecuteNonQueryAsync();
-                
+                // Separate connection so the snapshot doesn't interfere with EF's connection.
+                using (var backupConnection = new SqliteConnection(_context.Database.GetDbConnection().ConnectionString))
+                {
+                    await backupConnection.OpenAsync();
+
+                    using var command = backupConnection.CreateCommand();
+                    command.CommandText = "VACUUM INTO $path";
+                    command.Parameters.AddWithValue("$path", actualBackupPath);
+                    command.CommandTimeout = 600;
+
+                    await command.ExecuteNonQueryAsync();
+                }
+
                 // Update the backup record with the actual path used
                 var backup = await _backupRepository.GetByIdAsync(int.Parse(backupId));
                 if (backup != null && actualBackupPath != backupPath)
@@ -1156,7 +1086,7 @@ namespace Application.Services.Backup
                 
                 if (string.IsNullOrEmpty(verifiedPath))
                 {
-                    throw new Exception($"Backup command completed but file was not created at: {actualBackupPath}. Check SQL Server permissions.");
+                    throw new Exception($"Backup command completed but file was not created at: {actualBackupPath}. Check folder permissions.");
                 }
                 
                 try
@@ -1166,7 +1096,7 @@ namespace Application.Services.Backup
                     
                     if (fileSizeBytes == 0)
                     {
-                        throw new Exception("Backup file was created but is empty (0 bytes). Check SQL Server permissions.");
+                        throw new Exception("Backup file was created but is empty (0 bytes). Check folder permissions and free disk space.");
                     }
                 }
                 catch (Exception ex) when (!(ex.Message.Contains("Backup")))
@@ -1239,7 +1169,7 @@ namespace Application.Services.Backup
                 progress.CurrentOperation = "Restoring database";
                 progress.ProgressPercentage = 50;
 
-                // Perform SQL Server restore
+                // Overwrite the live SQLite database with the backup
                 await RestoreDatabaseFromFileAsync(actualBackupPath, request);
 
                 progress.CurrentOperation = "Finalizing restore";
@@ -1262,53 +1192,24 @@ namespace Application.Services.Backup
         }
 
         /// <summary>
-        /// Gets a valid backup path that SQL Server can write to
+        /// Gets a valid, writable backup path
         /// </summary>
         private async Task<string> GetValidBackupPathAsync(string requestedPath)
         {
             var fileName = Path.GetFileName(requestedPath);
             
-            // Try to get SQL Server's default backup directory first
+            // Preferred: the Backups folder next to the database file
             try
             {
-                var connection = _context.Database.GetDbConnection();
-                if (connection.State != System.Data.ConnectionState.Open)
-                {
-                    await connection.OpenAsync();
-                }
-                
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
-                var result = await command.ExecuteScalarAsync();
-                
-                if (result != null && result != DBNull.Value)
-                {
-                    var sqlBackupDir = result.ToString();
-                    if (!string.IsNullOrEmpty(sqlBackupDir) && Directory.Exists(sqlBackupDir))
-                    {
-                        // Create ERP subfolder
-                        var erpBackupDir = Path.Combine(sqlBackupDir, "ERP");
-                        try
-                        {
-                            if (!Directory.Exists(erpBackupDir))
-                            {
-                                Directory.CreateDirectory(erpBackupDir);
-                            }
-                            return Path.Combine(erpBackupDir, fileName);
-                        }
-                        catch
-                        {
-                            // Can't create subfolder, use the main backup directory
-                            return Path.Combine(sqlBackupDir, fileName);
-                        }
-                    }
-                }
+                var backupDir = await GetBackupDirectoryAsync();
+                Directory.CreateDirectory(backupDir);
+                return Path.Combine(backupDir, fileName);
             }
             catch
             {
-                // Ignore errors getting SQL Server backup path
+                // Can't use the default folder, fall through to the alternatives below
             }
-            
+
             // Try common backup locations
             var commonPaths = new[]
             {
@@ -1370,42 +1271,18 @@ namespace Application.Services.Backup
 
             var fileName = Path.GetFileName(originalPath);
 
-            // 2. Check in SQL Server's default backup directory
+            // 2. Check in the default backup directory (next to the database file)
             try
             {
-                var connection = _context.Database.GetDbConnection();
-                if (connection.State != System.Data.ConnectionState.Open)
+                var defaultPath = Path.Combine(await GetBackupDirectoryAsync(), fileName);
+                if (File.Exists(defaultPath))
                 {
-                    await connection.OpenAsync();
-                }
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
-                var result = await command.ExecuteScalarAsync();
-                
-                if (result != null && result != DBNull.Value)
-                {
-                    var sqlBackupDir = result.ToString();
-                    if (!string.IsNullOrEmpty(sqlBackupDir))
-                    {
-                        // Check in SQL Server's backup directory
-                        var sqlPath = Path.Combine(sqlBackupDir, fileName);
-                        if (File.Exists(sqlPath))
-                        {
-                            return sqlPath;
-                        }
-                        
-                        // Check in ERP subfolder
-                        var erpPath = Path.Combine(sqlBackupDir, "ERP", fileName);
-                        if (File.Exists(erpPath))
-                        {
-                            return erpPath;
-                        }
-                    }
+                    return defaultPath;
                 }
             }
             catch
             {
-                // Ignore errors when trying to get SQL Server backup path
+                // Ignore errors when resolving the default backup directory
             }
 
             // 3. Check in application's backup directory
@@ -1491,34 +1368,24 @@ namespace Application.Services.Backup
 
             try
             {
-                var connection = _context.Database.GetDbConnection();
-                var databaseName = connection.Database;
+                // Must be a SQLite file that carries this app's EF migrations history table.
+                var builder = new SqliteConnectionStringBuilder
+                {
+                    DataSource = filePath,
+                    Mode = SqliteOpenMode.ReadOnly,
+                    Pooling = false
+                };
 
-                using var conn = new SqlConnection(connection.ConnectionString);
+                using var conn = new SqliteConnection(builder.ConnectionString);
                 await conn.OpenAsync();
 
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "RESTORE HEADERONLY FROM DISK = @path";
-                var p = cmd.CreateParameter();
-                p.ParameterName = "@path";
-                p.Value = filePath;
-                cmd.Parameters.Add(p);
-                cmd.CommandTimeout = 120;
-
-                using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var i = reader.GetOrdinal("DatabaseName");
-                    if (!reader.IsDBNull(i) &&
-                        string.Equals(reader.GetString(i), databaseName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
+                cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '__EFMigrationsHistory'";
+                return Convert.ToInt64(await cmd.ExecuteScalarAsync()) > 0;
             }
             catch
             {
-                // Unreadable header (permissions, corrupt, not a SQL backup) -> treat as foreign.
+                // Unreadable file (permissions, corrupt, not a SQLite database) -> treat as foreign.
             }
 
             return false;
@@ -1603,29 +1470,6 @@ namespace Application.Services.Backup
                         if (string.IsNullOrEmpty(b.FilePath)) continue;
                         var d = Path.GetDirectoryName(b.FilePath);
                         if (!string.IsNullOrEmpty(d)) dirs.Add(d);
-                    }
-                }
-            }
-            catch { /* ignore */ }
-
-            // SQL Server's default backup path and its ERP subfolder
-            try
-            {
-                var connection = _context.Database.GetDbConnection();
-                if (connection.State != System.Data.ConnectionState.Open)
-                {
-                    await connection.OpenAsync();
-                }
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT SERVERPROPERTY('InstanceDefaultBackupPath') as BackupPath";
-                var result = await command.ExecuteScalarAsync();
-                if (result != null && result != DBNull.Value)
-                {
-                    var sqlBackupDir = result.ToString();
-                    if (!string.IsNullOrEmpty(sqlBackupDir))
-                    {
-                        // Only the ERP subfolder - the shared root holds other databases' backups.
-                        dirs.Add(Path.Combine(sqlBackupDir, "ERP"));
                     }
                 }
             }
@@ -1811,63 +1655,51 @@ namespace Application.Services.Backup
 
         private async Task<byte[]> GenerateBackupDataAsync(BackupRequest request)
         {
-            // This method is not used when using SQL Server native backup
-            // Kept for compatibility with non-SQL Server scenarios
+            // Not used: backups are SQLite VACUUM INTO snapshots. Kept for compatibility.
             var data = $"Backup: {request.Name}\nCreated: {DateTime.UtcNow}\nType: {request.BackupType}";
             return Encoding.UTF8.GetBytes(data);
         }
 
         private async Task RestoreDatabaseFromFileAsync(string backupPath, RestoreRequest request)
         {
-            // Get database name from connection string
-            var connection = _context.Database.GetDbConnection();
-            var databaseName = connection.Database;
-            var originalConnectionString = connection.ConnectionString;
-            
-            // Close all existing connections to the database
-            await _context.Database.CloseConnectionAsync();
-            
-            // Build master connection string using SqlConnectionStringBuilder for reliability
-            var builder = new SqlConnectionStringBuilder(originalConnectionString)
+            if (!await BelongsToThisDatabaseAsync(backupPath))
             {
-                InitialCatalog = "master"
+                throw new InvalidOperationException("The selected file is not a valid backup of this application's database.");
+            }
+
+            var liveConnectionString = _context.Database.GetDbConnection().ConnectionString;
+
+            // Release EF's connection so the backup API can take the write lock.
+            await _context.Database.CloseConnectionAsync();
+
+            var sourceBuilder = new SqliteConnectionStringBuilder
+            {
+                DataSource = backupPath,
+                Mode = SqliteOpenMode.ReadOnly,
+                Pooling = false
             };
-            
-            // Build RESTORE command with proper error handling
-            var restoreSql = $@"
-                USE master;
-                
-                -- Kill all connections to the target database
-                DECLARE @kill varchar(8000) = '';
-                SELECT @kill = @kill + 'KILL ' + CONVERT(varchar(5), session_id) + ';'
-                FROM sys.dm_exec_sessions
-                WHERE database_id = DB_ID('{databaseName}');
-                EXEC(@kill);
-                
-                -- Set database to single user mode
-                IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{databaseName}')
-                BEGIN
-                    ALTER DATABASE [{databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                END
-                
-                -- Restore the database
-                RESTORE DATABASE [{databaseName}] 
-                FROM DISK = N'{backupPath}'
-                WITH REPLACE, STATS = 10;
-                
-                -- Set database back to multi-user mode
-                ALTER DATABASE [{databaseName}] SET MULTI_USER;
-            ";
-            
-            // Execute restore using a separate connection to master database
-            using var masterConnection = new SqlConnection(builder.ConnectionString);
-            await masterConnection.OpenAsync();
-            
-            using var command = masterConnection.CreateCommand();
-            command.CommandText = restoreSql;
-            command.CommandTimeout = 600; // 10 minutes timeout for large databases
-            
-            await command.ExecuteNonQueryAsync();
+
+            // SQLite online backup API, source = backup file, destination = live database.
+            // It rewrites the live database in place, so no file swapping or app restart is needed.
+            using (var source = new SqliteConnection(sourceBuilder.ConnectionString))
+            using (var destination = new SqliteConnection(liveConnectionString))
+            {
+                await source.OpenAsync();
+                await destination.OpenAsync();
+                source.BackupDatabase(destination);
+            }
+
+            // Drop pooled connections that may hold stale page caches of the pre-restore file.
+            SqliteConnection.ClearAllPools();
+
+            // A backup taken before a schema change is restored with the old schema; bring it up to date.
+            await _context.Database.MigrateAsync();
+        }
+
+        private string GetDatabaseFilePath()
+        {
+            var dataSource = new SqliteConnectionStringBuilder(_context.Database.GetDbConnection().ConnectionString).DataSource;
+            return Path.GetFullPath(dataSource);
         }
 
         /// <summary>

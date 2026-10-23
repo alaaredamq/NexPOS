@@ -41,6 +41,11 @@ namespace Application.DTOs.Settings
         public decimal MaxDiscountPercentage { get; set; } = 50;
         public bool RequireCustomerForSale { get; set; } = false;
 
+        // Barcode sticker (label) size. The sticker *printer* is a per-machine choice kept in the
+        // browser's localStorage (see wwwroot/js/sticker-label.js), not a shared setting.
+        public int StickerWidthMm { get; set; } = 40;
+        public int StickerHeightMm { get; set; } = 25;
+
         // Inventory Settings
         public bool EnableLowStockAlerts { get; set; } = true;
         public int LowStockThreshold { get; set; } = 10;

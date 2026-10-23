@@ -179,17 +179,13 @@ function createBackup() {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function(response) {
+            // The backup runs synchronously on the server, so the response already carries the final result
             if (response.success) {
-                operationId = response.data?.id;
-                toastr.success(window.backupLocalizedStrings.backupStartedSuccessfully);
-                if (operationId) {
-                    pollOperationStatus();
-                } else {
-                    hideProgress(true);
-                }
+                hideProgress(true);
+                toastr.success(response.message || window.backupLocalizedStrings.operationCompletedSuccessfully);
             } else {
-                hideProgress(false);
-                toastr.error(response.message);
+                hideProgress(false, response.message);
+                toastr.error(response.message || window.backupLocalizedStrings.failedToCreateBackup);
             }
         },
         error: function() {
@@ -207,9 +203,11 @@ function showProgress(message) {
     $('#progressModal').modal('show');
 }
 
-function hideProgress(success) {
+function hideProgress(success, errorMessage) {
     $('#progressBar').css('width', '100%');
-    $('#progressMessage').text(success ? window.backupLocalizedStrings.operationCompletedSuccessfully : window.backupLocalizedStrings.operationFailed);
+    $('#progressMessage').text(success
+        ? window.backupLocalizedStrings.operationCompletedSuccessfully
+        : window.backupLocalizedStrings.operationFailed + (errorMessage ? ': ' + errorMessage : ''));
     $('#progressCloseBtn').show();
     $('#progressCancelBtn').hide();
     loadBackups();
@@ -221,16 +219,22 @@ function pollOperationStatus() {
     
     $.get(window.backupUrls.getOperationStatus, { operationId: operationId }, function(response) {
         if (response.success) {
-            $('#progressBar').css('width', response.data.progress + '%');
-            $('#progressMessage').text(response.data.message);
-            
-            if (response.data.isCompleted) {
-                hideProgress(response.data.isSuccess);
+            $('#progressBar').css('width', (response.progress || 0) + '%');
+            $('#progressMessage').text(response.message || '');
+
+            if (response.isCompleted) {
+                hideProgress(response.isSuccess, response.isSuccess ? null : response.message);
                 operationId = null;
             } else {
                 setTimeout(pollOperationStatus, 2000);
             }
+        } else {
+            hideProgress(false, response.message);
+            operationId = null;
         }
+    }).fail(function() {
+        hideProgress(false);
+        operationId = null;
     });
 }
 

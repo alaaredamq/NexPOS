@@ -1,0 +1,58 @@
+@using Application.DTOs.Licensing
+@inject Application.IServices.Licensing.ILicenseService License
+@*
+    Shown only when the license needs attention: the week before a time-limited license expires,
+    the week after it (selling still works), and once selling is stopped.
+
+    Normal pages get a full-width strip under the top bar. Pages with their own fixed chrome (the
+    POS, login) set ViewData["LicenseBannerFloating"] and get a small dismissible card in the
+    corner instead, so it can never cover the checkout controls. It comes back on the next page load.
+*@
+@{
+    var licenseState = License.GetState();
+    var floating = ViewData["LicenseBannerFloating"] as bool? ?? false;
+    var onLicensePage = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "License", StringComparison.OrdinalIgnoreCase);
+}
+@if ((licenseState.ShowsWarning || !licenseState.AllowsSales) && !onLicensePage)
+{
+    var severity = LicenseMessageHelper.Severity(licenseState);
+    var bannerLang = ViewBag.CurrentLanguage as string ?? System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    <div class="license-banner alert alert-@severity @(floating ? "license-banner-floating" : "d-flex align-items-center justify-content-between gap-3 mx-3 mt-3 mb-0")" role="alert">
+        <div>
+            <i class="fas fa-key me-2"></i><strong>@LicenseMessageHelper.Title(licenseState, SharedLocalizer)</strong>
+            <span class="ms-1">@LicenseMessageHelper.Message(licenseState, SharedLocalizer)</span>
+        </div>
+        @if (floating)
+        {
+            <div class="mt-2 text-end">
+                <a class="btn btn-sm btn-outline-dark" href="/@bannerLang/License">@SharedLocalizer["License_Manage"]</a>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-1" aria-label="Close"
+                        onclick="this.closest('.license-banner').remove()">&times;</button>
+            </div>
+        }
+        else
+        {
+            <a class="btn btn-sm btn-outline-dark text-nowrap" href="/@bannerLang/License">@SharedLocalizer["License_Manage"]</a>
+        }
+    </div>
+
+    if (floating)
+    {
+        <style>
+            .license-banner-floating {
+                position: fixed;
+                left: 12px;
+                bottom: 12px;
+                z-index: 2000;
+                max-width: min(520px, calc(100vw - 24px));
+                margin: 0;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
+            }
+            [dir="rtl"] .license-banner-floating {
+                left: auto;
+                right: 12px;
+            }
+        </style>
+    }
+}

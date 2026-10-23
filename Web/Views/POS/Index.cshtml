@@ -1,6 +1,6 @@
 @using System.Globalization
 @{
-    ViewData["Title"] = Localizer["PointOfSale"].ToString();
+    ViewData["Title"] = Localizer["PointOfSale"].Value;
     Layout = null; // No layout as per POS.md requirements
     var currentCulture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
     var isRtl = currentCulture == "ar";
@@ -11,21 +11,22 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>@ViewData["Title"] - @Brand.AppName</title>
+    <link rel="icon" href="~/branding/favicon?v=@Brand.Version" />
     
     <!-- Bootstrap CSS -->
     <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/lib/select2/css/select2.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/lib/font-awesome/css/all.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Toastr -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <link href="/lib/toastr/toastr.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="/lib/sweetalert2/sweetalert2.min.css" rel="stylesheet">
     <!-- jQuery UI -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css">
+    <link rel="stylesheet" href="/lib/jquery-ui/themes/ui-lightness/jquery-ui.min.css">
     <!-- POS Custom CSS -->
     <link href="~/css/colors.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/pages/pos.css" rel="stylesheet" asp-append-version="true" />
@@ -246,7 +247,9 @@
             background: white;
             padding: 0.75rem;
             border-radius: 0;
-            max-height: calc(100vh - 450px);
+            /* Fill whatever the card has left instead of a fixed "100vh - N" cap, which
+               squeezed the cart and product grid on short screens (e.g. 1366x768). */
+            min-height: 0;
             overflow-y: auto;
             flex: 1;
             display: flex;
@@ -312,7 +315,8 @@
         
         /* Cart Items Styling */
         .cart-items-area {
-            min-height: 200px;
+            min-height: 0;
+            max-height: none;
         }
         
         .empty-state {
@@ -1262,6 +1266,77 @@
             animation: successPulse 0.3s ease;
         }
         
+        /* Compact desktop: 1366x768 screens and Windows scaling (125-150%) give a
+           ~1093x614 or ~910x512 viewport. Give the cart a usable width and tighten
+           vertical spacing so checkout stays on screen. */
+        @@media (min-width: 768px) and (max-width: 1399.98px) {
+            .pos-row > .cart-column {
+                flex: 0 0 auto;
+                width: clamp(300px, 32%, 380px);
+            }
+
+            .pos-row > .products-column {
+                flex: 1 1 0;
+                width: auto;
+                max-width: none;
+                min-width: 0;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 0.6rem;
+            }
+
+            .navbar-nav .nav-link {
+                padding: 0.5rem 0.6rem !important;
+            }
+        }
+
+        @@media (max-height: 800px) {
+            .pos-container {
+                padding: 0.5rem;
+            }
+
+            .pos-card-header {
+                padding: 0.5rem 0.75rem;
+            }
+
+            .pos-card-header .mb-3 {
+                margin-bottom: 0.5rem !important;
+            }
+
+            .empty-state {
+                padding: 1rem;
+            }
+
+            .empty-state i {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .totals-section {
+                padding: 0.5rem 0.75rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .btn-checkout {
+                padding: 0.55rem 1rem;
+            }
+
+            .quick-action-btn {
+                min-height: 56px;
+                padding: 0.35rem;
+            }
+
+            .quick-action-btn small {
+                display: none;
+            }
+
+            .product-card {
+                padding: 0.5rem;
+            }
+        }
+
         /* Responsive Enhancements */
         @@media (max-width: 768px) {
             .pos-container {
@@ -1323,12 +1398,15 @@
     <script src="/js/Plugins/JqueryUI.min.js"></script>
 </head>
 <body>
+    @{ ViewData["LicenseBannerFloating"] = true; }
+    @await Html.PartialAsync("_LicenseBanner")
+
     <!-- Top Navigation Bar for POS -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-teal shadow-sm fixed-top">
         <div class="container-fluid">
             <!-- Brand/Logo -->
             <a class="navbar-brand d-flex align-items-center" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
-                <img src="~/images/logo-light.svg" alt="NexPos" height="32" />
+                <img src="~/branding/logo?variant=light&v=@Brand.Version" alt="@Brand.AppName" height="32" />
             </a>
 
             <!-- Mobile Toggle -->
@@ -1360,10 +1438,10 @@
 
                     <!-- Cash Drawer -->
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "CashDrawer")" title="Cash Drawer Management">
+                        <a class="nav-link" href="@Url.Action("Index", "CashDrawer")" title="@SharedLocalizer["CashDrawer"]">
                             <i class="fas fa-cash-register me-1"></i>
-                            <span class="d-none d-lg-inline">Cash Drawer</span>
-                            <span class="badge bg-success ms-1" id="drawerStatusBadge" style="display: none;">Open</span>
+                            <span class="d-none d-lg-inline">@SharedLocalizer["CashDrawer"]</span>
+                            <span class="badge bg-success ms-1" id="drawerStatusBadge" style="display: none;">@SharedLocalizer["Open"]</span>
                         </a>
                     </li>
 
@@ -1400,19 +1478,22 @@
                             @User.Identity?.Name
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><h6 class="dropdown-header">Account</h6></li>
+                            <li><h6 class="dropdown-header">@SharedLocalizer["Account"]</h6></li>
                             <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Profile", "Account")">
-                                <i class="fas fa-user me-2"></i>Profile
+                                <i class="fas fa-user me-2"></i>@SharedLocalizer["Profile"]
                             </a></li>
                             <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("ChangePassword", "Account")">
-                                <i class="fas fa-key me-2"></i>Change PIN
+                                <i class="fas fa-key me-2"></i>@SharedLocalizer["ChangePin"]
                             </a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            @if (User.HasClaim("Permission", "Settings.Manage"))
+                            {
+                                <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Index", "Settings")"><i class="fas fa-cog me-2"></i>@SharedLocalizer["Settings"]</a></li>
+                            }
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                     <button type="submit" class="dropdown-item">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        <i class="fas fa-sign-out-alt me-2"></i>@SharedLocalizer["Logout"]
                                     </button>
                                 </form>
                             </li>

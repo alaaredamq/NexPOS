@@ -473,7 +473,7 @@
     <value>Checkout</value>
   </data>
   <data name="CompleteCheckout" xml:space="preserve">
-    <value>Complete Checkout</value>
+    <value>Complete</value>
   </data>
   <data name="CustomerOptional" xml:space="preserve">
     <value>Customer (Optional)</value>
@@ -1647,4 +1647,765 @@
   <data name="ProductDeletedSuccessfully" xml:space="preserve">
     <value>Product has been deleted successfully.</value>
   </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>Out of Stock</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>Low Stock</value>
+  </data>
+  <data name="PackOf" xml:space="preserve">
+    <value>Pack of {0}</value>
+  </data>
+  <data name="ChangePin" xml:space="preserve">
+    <value>Change PIN</value>
+  </data>
+  <data name="Set_Subtitle" xml:space="preserve">
+    <value>Make the app your own and set up receipts and printers</value>
+  </data>
+  <data name="Set_Branding" xml:space="preserve">
+    <value>Branding</value>
+  </data>
+  <data name="Set_BrandingCardDesc" xml:space="preserve">
+    <value>App name, logo and favicon shown across the app and on the login screen.</value>
+  </data>
+  <data name="Set_StoreReceipts" xml:space="preserve">
+    <value>Store &amp; Receipts</value>
+  </data>
+  <data name="Set_StoreReceiptsDesc" xml:space="preserve">
+    <value>Business name, address, phone, tax ID and the footer printed on receipts.</value>
+  </data>
+  <data name="Set_PrintersLabels" xml:space="preserve">
+    <value>Printers &amp; Labels</value>
+  </data>
+  <data name="Set_PrintersLabelsDesc" xml:space="preserve">
+    <value>Receipt printer and barcode sticker printer and size.</value>
+  </data>
+  <data name="Set_Configure" xml:space="preserve">
+    <value>Configure</value>
+  </data>
+  <data name="Set_BrandingSubtitle" xml:space="preserve">
+    <value>Replace the NexPos name, logo and favicon with your own. Anything left empty uses the default.</value>
+  </data>
+  <data name="Set_AppName" xml:space="preserve">
+    <value>App name</value>
+  </data>
+  <data name="Set_AppNameHelp" xml:space="preserve">
+    <value>Shown in the browser tab, the login screen and the loading screen. Default: {0}</value>
+  </data>
+  <data name="Set_Logo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="Set_LogoHelp" xml:space="preserve">
+    <value>PNG, JPG, SVG or WebP, up to 2 MB. A wide logo on a transparent background works best.</value>
+  </data>
+  <data name="Set_RemoveLogo" xml:space="preserve">
+    <value>Remove and use the default logo</value>
+  </data>
+  <data name="Set_Favicon" xml:space="preserve">
+    <value>Favicon</value>
+  </data>
+  <data name="Set_FaviconHelp" xml:space="preserve">
+    <value>Square PNG, ICO or SVG, up to 2 MB. Shown in the browser tab.</value>
+  </data>
+  <data name="Set_RemoveFavicon" xml:space="preserve">
+    <value>Remove and use the default favicon</value>
+  </data>
+  <data name="Set_BackToSettings" xml:space="preserve">
+    <value>Back to Settings</value>
+  </data>
+  <data name="Set_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Set_SaveSettings" xml:space="preserve">
+    <value>Save Settings</value>
+  </data>
+  <data name="Set_PrintersSubtitle" xml:space="preserve">
+    <value>Choose the receipt printer and set up barcode stickers</value>
+  </data>
+  <data name="Set_ReceiptPrinter" xml:space="preserve">
+    <value>Receipt Printer</value>
+  </data>
+  <data name="Set_SelectPrinter" xml:space="preserve">
+    <value>-- Select a printer --</value>
+  </data>
+  <data name="Set_TestTooltip" xml:space="preserve">
+    <value>Send a test print to the selected printer</value>
+  </data>
+  <data name="Set_Test" xml:space="preserve">
+    <value>Test</value>
+  </data>
+  <data name="Set_ReceiptPrinterHelp" xml:space="preserve">
+    <value>Detected from printers installed on this computer. Pick one, save, and use Test to confirm it prints.</value>
+  </data>
+  <data name="Set_BarcodeStickers" xml:space="preserve">
+    <value>Barcode Stickers</value>
+  </data>
+  <data name="Set_StickerPrinter" xml:space="preserve">
+    <value>Sticker Printer (this computer)</value>
+  </data>
+  <data name="Set_SystemDefault" xml:space="preserve">
+    <value>System default</value>
+  </data>
+  <data name="Set_StickerDesktopOnly" xml:space="preserve">
+    <value>Only available in the installed desktop app - stickers print via the browser's print dialog here instead.</value>
+  </data>
+  <data name="Set_StickerPrinterHelp" xml:space="preserve">
+    <value>Where "Print label" sends barcode stickers on this computer (e.g. an Xprinter XP-365B). Saved immediately; prints silently once set, with no dialog.</value>
+  </data>
+  <data name="Set_StickerWidth" xml:space="preserve">
+    <value>Sticker Width (mm)</value>
+  </data>
+  <data name="Set_StickerHeight" xml:space="preserve">
+    <value>Sticker Height (mm)</value>
+  </data>
+  <data name="Set_SelectPrinterFirst" xml:space="preserve">
+    <value>Select a printer first</value>
+  </data>
+  <data name="Set_TestFailed" xml:space="preserve">
+    <value>Test print request failed</value>
+  </data>
+  <data name="Set_LoadPrintersFailed" xml:space="preserve">
+    <value>Could not load installed printers</value>
+  </data>
+  <data name="Set_NotDetected" xml:space="preserve">
+    <value>(not detected)</value>
+  </data>
+  <data name="Set_StickerSaved" xml:space="preserve">
+    <value>Sticker printer saved for this computer</value>
+  </data>
+  <data name="Pin_UpdateYourLogin" xml:space="preserve">
+    <value>Update your login PIN</value>
+  </data>
+  <data name="Pin_SetNew" xml:space="preserve">
+    <value>Set a new PIN for logging in</value>
+  </data>
+  <data name="Pin_BackToProfile" xml:space="preserve">
+    <value>Back to Profile</value>
+  </data>
+  <data name="Pin_Update" xml:space="preserve">
+    <value>PIN Update</value>
+  </data>
+  <data name="Pin_UpdateButton" xml:space="preserve">
+    <value>Update PIN</value>
+  </data>
+  <data name="Pin_About" xml:space="preserve">
+    <value>About your PIN</value>
+  </data>
+  <data name="Pin_Rule4" xml:space="preserve">
+    <value>Must be exactly 4 digits</value>
+  </data>
+  <data name="Pin_RuleDifferent" xml:space="preserve">
+    <value>Must be different from your current PIN</value>
+  </data>
+  <data name="Pin_RuleSequences" xml:space="preserve">
+    <value>Avoid obvious sequences like 1234 or 0000</value>
+  </data>
+  <data name="Current PIN" xml:space="preserve">
+    <value>Current PIN</value>
+  </data>
+  <data name="New PIN" xml:space="preserve">
+    <value>New PIN</value>
+  </data>
+  <data name="Confirm New PIN" xml:space="preserve">
+    <value>Confirm New PIN</value>
+  </data>
+  <data name="Confirm PIN" xml:space="preserve">
+    <value>Confirm PIN</value>
+  </data>
+  <data name="Current PIN is required" xml:space="preserve">
+    <value>Current PIN is required</value>
+  </data>
+  <data name="New PIN is required" xml:space="preserve">
+    <value>New PIN is required</value>
+  </data>
+  <data name="PIN must be exactly 4 digits" xml:space="preserve">
+    <value>PIN must be exactly 4 digits</value>
+  </data>
+  <data name="Please confirm your new PIN" xml:space="preserve">
+    <value>Please confirm your new PIN</value>
+  </data>
+  <data name="PINs do not match" xml:space="preserve">
+    <value>PINs do not match</value>
+  </data>
+  <data name="Current PIN is incorrect" xml:space="preserve">
+    <value>Current PIN is incorrect</value>
+  </data>
+  <data name="New PIN must be different from your current PIN" xml:space="preserve">
+    <value>New PIN must be different from your current PIN</value>
+  </data>
+  <data name="Please choose a PIN different from your current one" xml:space="preserve">
+    <value>Please choose a PIN different from your current one</value>
+  </data>
+  <data name="An error occurred while updating your PIN. Please try again." xml:space="preserve">
+    <value>An error occurred while updating your PIN. Please try again.</value>
+  </data>
+  <data name="Prof_Subtitle" xml:space="preserve">
+    <value>Your account information</value>
+  </data>
+  <data name="Prof_AccountInformation" xml:space="preserve">
+    <value>Account Information</value>
+  </data>
+  <data name="Prof_FullName" xml:space="preserve">
+    <value>Full Name</value>
+  </data>
+  <data name="Prof_Role" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Prof_UserId" xml:space="preserve">
+    <value>User ID</value>
+  </data>
+  <data name="Prof_RoleId" xml:space="preserve">
+    <value>Role ID</value>
+  </data>
+  <data name="Prof_SessionInformation" xml:space="preserve">
+    <value>Session Information</value>
+  </data>
+  <data name="Prof_LoginTime" xml:space="preserve">
+    <value>Login Time:</value>
+  </data>
+  <data name="Prof_SessionDuration" xml:space="preserve">
+    <value>Session Duration:</value>
+  </data>
+  <data name="Prof_IpAddress" xml:space="preserve">
+    <value>IP Address:</value>
+  </data>
+  <data name="Prof_Browser" xml:space="preserve">
+    <value>Browser:</value>
+  </data>
+  <data name="Prof_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Prof_Minutes" xml:space="preserve">
+    <value>{0} minutes</value>
+  </data>
+  <data name="Prof_HoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+  </data>
+  <data name="Prof_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Username is required" xml:space="preserve">
+    <value>Username is required</value>
+  </data>
+  <data name="PIN is required" xml:space="preserve">
+    <value>PIN is required</value>
+  </data>
+  <data name="Invalid username or PIN" xml:space="preserve">
+    <value>Invalid username or PIN</value>
+  </data>
+  <data name="Invalid username or password" xml:space="preserve">
+    <value>Invalid username or password</value>
+  </data>
+  <data name="Account is disabled" xml:space="preserve">
+    <value>Account is disabled</value>
+  </data>
+  <data name="An error occurred during login. Please try again." xml:space="preserve">
+    <value>An error occurred during login. Please try again.</value>
+  </data>
+  <data name="Signing in..." xml:space="preserve">
+    <value>Signing in...</value>
+  </data>
+  <data name="Cust_EditTitle" xml:space="preserve">
+    <value>Edit Customer</value>
+  </data>
+  <data name="Cust_EditSubtitle" xml:space="preserve">
+    <value>Edit customer information</value>
+  </data>
+  <data name="Cust_BackToCustomers" xml:space="preserve">
+    <value>Back to Customers</value>
+  </data>
+  <data name="Cust_Information" xml:space="preserve">
+    <value>Customer Information</value>
+  </data>
+  <data name="First Name" xml:space="preserve">
+    <value>First Name</value>
+  </data>
+  <data name="Last Name" xml:space="preserve">
+    <value>Last Name</value>
+  </data>
+  <data name="Email Address" xml:space="preserve">
+    <value>Email Address</value>
+  </data>
+  <data name="Phone Number" xml:space="preserve">
+    <value>Phone Number</value>
+  </data>
+  <data name="Date of Birth" xml:space="preserve">
+    <value>Date of Birth</value>
+  </data>
+  <data name="Company Name" xml:space="preserve">
+    <value>Company Name</value>
+  </data>
+  <data name="Tax Number" xml:space="preserve">
+    <value>Tax Number</value>
+  </data>
+  <data name="Customer Type" xml:space="preserve">
+    <value>Customer Type</value>
+  </data>
+  <data name="Cust_PhFirstName" xml:space="preserve">
+    <value>Enter first name</value>
+  </data>
+  <data name="Cust_PhLastName" xml:space="preserve">
+    <value>Enter last name</value>
+  </data>
+  <data name="Cust_PhEmail" xml:space="preserve">
+    <value>Enter email address</value>
+  </data>
+  <data name="Cust_PhPhone" xml:space="preserve">
+    <value>Enter phone number</value>
+  </data>
+  <data name="Cust_PhAddress" xml:space="preserve">
+    <value>Enter full address</value>
+  </data>
+  <data name="Cust_PhCompanyOptional" xml:space="preserve">
+    <value>Enter company name (optional)</value>
+  </data>
+  <data name="Cust_PhCompanyRequired" xml:space="preserve">
+    <value>Enter company name (required)</value>
+  </data>
+  <data name="Cust_PhTaxOptional" xml:space="preserve">
+    <value>Enter tax number (optional)</value>
+  </data>
+  <data name="Cust_PhTax" xml:space="preserve">
+    <value>Enter tax number</value>
+  </data>
+  <data name="Cust_PhNotes" xml:space="preserve">
+    <value>Enter any additional notes about the customer</value>
+  </data>
+  <data name="Cust_IsCompany" xml:space="preserve">
+    <value>This is a company customer</value>
+  </data>
+  <data name="Cust_IsActive" xml:space="preserve">
+    <value>Customer is active</value>
+  </data>
+  <data name="Cust_UpdateCustomer" xml:space="preserve">
+    <value>Update Customer</value>
+  </data>
+  <data name="Cust_Guidelines" xml:space="preserve">
+    <value>Customer Guidelines</value>
+  </data>
+  <data name="Cust_G1" xml:space="preserve">
+    <value>Use full legal names for better record keeping</value>
+  </data>
+  <data name="Cust_G2" xml:space="preserve">
+    <value>Email addresses must be valid and unique</value>
+  </data>
+  <data name="Cust_G3" xml:space="preserve">
+    <value>Phone numbers help with communication</value>
+  </data>
+  <data name="Cust_G4" xml:space="preserve">
+    <value>Complete addresses enable delivery services</value>
+  </data>
+  <data name="Cust_G5" xml:space="preserve">
+    <value>Company customers can have tax numbers</value>
+  </data>
+  <data name="Cust_G6" xml:space="preserve">
+    <value>Notes help track customer preferences</value>
+  </data>
+  <data name="Cust_Preview" xml:space="preserve">
+    <value>Customer Preview</value>
+  </data>
+  <data name="Cust_NoPhone" xml:space="preserve">
+    <value>No phone</value>
+  </data>
+  <data name="Cust_Individual" xml:space="preserve">
+    <value>Individual</value>
+  </data>
+  <data name="Cust_Company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="Cust_PvFirst" xml:space="preserve">
+    <value>First</value>
+  </data>
+  <data name="Cust_PvLast" xml:space="preserve">
+    <value>Last</value>
+  </data>
+  <data name="Cust_PvPhone" xml:space="preserve">
+    <value>Phone number</value>
+  </data>
+  <data name="Cust_FillRequired" xml:space="preserve">
+    <value>Please fill in all required fields (First Name, Last Name, Email)!</value>
+  </data>
+  <data name="Cust_DetailsTitle" xml:space="preserve">
+    <value>Customer Details</value>
+  </data>
+  <data name="Cust_NotProvided" xml:space="preserve">
+    <value>Not provided</value>
+  </data>
+  <data name="Cust_NoAddress" xml:space="preserve">
+    <value>No address provided</value>
+  </data>
+  <data name="Cust_DebtInformation" xml:space="preserve">
+    <value>Debt Information</value>
+  </data>
+  <data name="Cust_AddTransaction" xml:space="preserve">
+    <value>Add Transaction</value>
+  </data>
+  <data name="Cust_OwesMe" xml:space="preserve">
+    <value>What Customer Owes Me</value>
+  </data>
+  <data name="Cust_IOwe" xml:space="preserve">
+    <value>What I Owe Customer</value>
+  </data>
+  <data name="Cust_NetBalance" xml:space="preserve">
+    <value>Net Balance</value>
+  </data>
+  <data name="Cust_CustomerOwesMe" xml:space="preserve">
+    <value>Customer owes me: {0}</value>
+  </data>
+  <data name="Cust_IOweCustomer" xml:space="preserve">
+    <value>I owe customer: {0}</value>
+  </data>
+  <data name="Cust_BalancedNoDebt" xml:space="preserve">
+    <value>Balanced - No debt</value>
+  </data>
+  <data name="Cust_Receivable" xml:space="preserve">
+    <value>Receivable</value>
+  </data>
+  <data name="Cust_Payable" xml:space="preserve">
+    <value>Payable</value>
+  </data>
+  <data name="Cust_Balanced" xml:space="preserve">
+    <value>Balanced</value>
+  </data>
+  <data name="Cust_Note" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Cust_TypeSale" xml:space="preserve">
+    <value>Sale</value>
+  </data>
+  <data name="Cust_TypePayment" xml:space="preserve">
+    <value>Payment</value>
+  </data>
+  <data name="Cust_TypeAdjustment" xml:space="preserve">
+    <value>Adjustment</value>
+  </data>
+  <data name="Cust_OrderRef" xml:space="preserve">
+    <value>Order #{0}</value>
+  </data>
+  <data name="Cust_ShowingRecent" xml:space="preserve">
+    <value>Showing the 20 most recent of {0} transactions</value>
+  </data>
+  <data name="Cust_OrderHistory" xml:space="preserve">
+    <value>Order History</value>
+  </data>
+  <data name="Cust_OrderNumber" xml:space="preserve">
+    <value>Order #</value>
+  </data>
+  <data name="Cust_TotalAmount" xml:space="preserve">
+    <value>Total Amount</value>
+  </data>
+  <data name="Cust_St_Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Cust_St_Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="Cust_St_Shipped" xml:space="preserve">
+    <value>Shipped</value>
+  </data>
+  <data name="Cust_St_Delivered" xml:space="preserve">
+    <value>Delivered</value>
+  </data>
+  <data name="Cust_St_Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Cust_St_Returned" xml:space="preserve">
+    <value>Returned</value>
+  </data>
+  <data name="Cust_ViewAllOrders" xml:space="preserve">
+    <value>View All Orders ({0})</value>
+  </data>
+  <data name="Cust_NoOrders" xml:space="preserve">
+    <value>No orders found for this customer</value>
+  </data>
+  <data name="Cust_Summary" xml:space="preserve">
+    <value>Customer Summary</value>
+  </data>
+  <data name="Cust_TotalOrders" xml:space="preserve">
+    <value>Total Orders</value>
+  </data>
+  <data name="Cust_TotalSpent" xml:space="preserve">
+    <value>Total Spent</value>
+  </data>
+  <data name="Cust_AverageOrder" xml:space="preserve">
+    <value>Average Order</value>
+  </data>
+  <data name="Cust_LastOrder" xml:space="preserve">
+    <value>Last Order</value>
+  </data>
+  <data name="Cust_Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Cust_ViewOrders" xml:space="preserve">
+    <value>View Orders</value>
+  </data>
+  <data name="Cust_SendEmail" xml:space="preserve">
+    <value>Send Email</value>
+  </data>
+  <data name="Cust_DeleteCustomer" xml:space="preserve">
+    <value>Delete Customer</value>
+  </data>
+  <data name="Cust_AreYouSure" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="Cust_CannotUndo" xml:space="preserve">
+    <value>This action cannot be undone!</value>
+  </data>
+  <data name="Cust_YesDelete" xml:space="preserve">
+    <value>Yes, delete it!</value>
+  </data>
+  <data name="Cust_DeletedTitle" xml:space="preserve">
+    <value>Deleted!</value>
+  </data>
+  <data name="Cust_ErrorTitle" xml:space="preserve">
+    <value>Error!</value>
+  </data>
+  <data name="Cust_DeleteError" xml:space="preserve">
+    <value>An error occurred while deleting the customer.</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>The {0} field is required.</value>
+  </data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve">
+    <value>The {0} field is not a valid e-mail address.</value>
+  </data>
+  <data name="The {0} field is not a valid phone number." xml:space="preserve">
+    <value>The {0} field is not a valid phone number.</value>
+  </data>
+  <data name="The field {0} must be a string with a minimum length of {2} and a maximum length of {1}." xml:space="preserve">
+    <value>The field {0} must be a string with a minimum length of {2} and a maximum length of {1}.</value>
+  </data>
+  <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve">
+    <value>The field {0} must be a string with a maximum length of {1}.</value>
+  </data>
+  <data name="Product Name" xml:space="preserve">
+    <value>Product Name</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Brand</value>
+  </data>
+  <data name="Purchase Price" xml:space="preserve">
+    <value>Purchase Price</value>
+  </data>
+  <data name="Selling Price" xml:space="preserve">
+    <value>Selling Price</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
+  <data name="Initial Stock Quantity" xml:space="preserve">
+    <value>Initial Stock Quantity</value>
+  </data>
+  <data name="Minimum Stock Level" xml:space="preserve">
+    <value>Minimum Stock Level</value>
+  </data>
+  <data name="Pack Size" xml:space="preserve">
+    <value>Pack Size</value>
+  </data>
+  <data name="Single Product" xml:space="preserve">
+    <value>Single Product</value>
+  </data>
+  <data name="Prod_CreateTitle" xml:space="preserve">
+    <value>Create Product</value>
+  </data>
+  <data name="Prod_CreateSubtitle" xml:space="preserve">
+    <value>Add a new product to inventory</value>
+  </data>
+  <data name="Prod_BackToProducts" xml:space="preserve">
+    <value>Back to Products</value>
+  </data>
+  <data name="Prod_Information" xml:space="preserve">
+    <value>Product Information</value>
+  </data>
+  <data name="Prod_PhName" xml:space="preserve">
+    <value>Enter product name</value>
+  </data>
+  <data name="Prod_PhBarcode" xml:space="preserve">
+    <value>Enter barcode</value>
+  </data>
+  <data name="Prod_Generate" xml:space="preserve">
+    <value>Generate</value>
+  </data>
+  <data name="Prod_GenerateTip" xml:space="preserve">
+    <value>Generate a new barcode</value>
+  </data>
+  <data name="Prod_Print" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Prod_PrintTip" xml:space="preserve">
+    <value>Print barcode stickers</value>
+  </data>
+  <data name="Prod_PhDescription" xml:space="preserve">
+    <value>Enter product description</value>
+  </data>
+  <data name="Prod_PhCategory" xml:space="preserve">
+    <value>Select a category</value>
+  </data>
+  <data name="Prod_PhSupplier" xml:space="preserve">
+    <value>Select a supplier</value>
+  </data>
+  <data name="Prod_Discount" xml:space="preserve">
+    <value>{0}% discount</value>
+  </data>
+  <data name="Prod_PhBrand" xml:space="preserve">
+    <value>Enter brand name</value>
+  </data>
+  <data name="Prod_PhCurrency" xml:space="preserve">
+    <value>Select currency</value>
+  </data>
+  <data name="Prod_PhUnit" xml:space="preserve">
+    <value>Select unit</value>
+  </data>
+  <data name="Prod_Unit_piece" xml:space="preserve">
+    <value>Piece</value>
+  </data>
+  <data name="Prod_Unit_kg" xml:space="preserve">
+    <value>Kilogram</value>
+  </data>
+  <data name="Prod_Unit_lb" xml:space="preserve">
+    <value>Pound</value>
+  </data>
+  <data name="Prod_Unit_liter" xml:space="preserve">
+    <value>Liter</value>
+  </data>
+  <data name="Prod_Unit_gallon" xml:space="preserve">
+    <value>Gallon</value>
+  </data>
+  <data name="Prod_Unit_box" xml:space="preserve">
+    <value>Box</value>
+  </data>
+  <data name="Prod_Unit_pack" xml:space="preserve">
+    <value>Pack</value>
+  </data>
+  <data name="Prod_IsActive" xml:space="preserve">
+    <value>Product is active</value>
+  </data>
+  <data name="Prod_IsPack" xml:space="preserve">
+    <value>This is a pack product</value>
+  </data>
+  <data name="Prod_PhPackSize" xml:space="preserve">
+    <value>e.g., 6</value>
+  </data>
+  <data name="Prod_PackSizeHelp" xml:space="preserve">
+    <value>Number of single products in this pack</value>
+  </data>
+  <data name="Prod_SearchPlaceholder" xml:space="preserve">
+    <value>Type at least 3 characters to search...</value>
+  </data>
+  <data name="Prod_SingleProductHelp" xml:space="preserve">
+    <value>The single product this pack contains (search by name or barcode)</value>
+  </data>
+  <data name="Prod_AddProduct" xml:space="preserve">
+    <value>Add Product</value>
+  </data>
+  <data name="Prod_AddProductHelp" xml:space="preserve">
+    <value>Open product creation page in a new tab</value>
+  </data>
+  <data name="Prod_CreateButton" xml:space="preserve">
+    <value>Create Product</value>
+  </data>
+  <data name="Prod_Guidelines" xml:space="preserve">
+    <value>Product Guidelines</value>
+  </data>
+  <data name="Prod_G1" xml:space="preserve">
+    <value>Product name should be descriptive and unique</value>
+  </data>
+  <data name="Prod_G2" xml:space="preserve">
+    <value>Barcode helps with quick product identification</value>
+  </data>
+  <data name="Prod_G3" xml:space="preserve">
+    <value>Set appropriate minimum stock levels for alerts</value>
+  </data>
+  <data name="Prod_G4" xml:space="preserve">
+    <value>Selling price should be higher than purchase price</value>
+  </data>
+  <data name="Prod_G5" xml:space="preserve">
+    <value>Choose the correct category for better organization</value>
+  </data>
+  <data name="Prod_ProfitPreview" xml:space="preserve">
+    <value>Profit Preview</value>
+  </data>
+  <data name="Prod_PurchasePriceL" xml:space="preserve">
+    <value>Purchase Price:</value>
+  </data>
+  <data name="Prod_SellingPriceL" xml:space="preserve">
+    <value>Selling Price:</value>
+  </data>
+  <data name="Prod_ProfitMargin" xml:space="preserve">
+    <value>Profit Margin:</value>
+  </data>
+  <data name="Prod_GenFail" xml:space="preserve">
+    <value>Could not generate a barcode.</value>
+  </data>
+  <data name="Prod_PriceWarn" xml:space="preserve">
+    <value>Selling price must be higher than purchase price for a profitable business!</value>
+  </data>
+  <data name="Barcode is required" xml:space="preserve">
+    <value>Barcode is required</value>
+  </data>
+  <data name="Category is required" xml:space="preserve">
+    <value>Category is required</value>
+  </data>
+  <data name="Supplier is required" xml:space="preserve">
+    <value>Supplier is required</value>
+  </data>
+  <data name="Purchase price must be greater than 0" xml:space="preserve">
+    <value>Purchase price must be greater than 0</value>
+  </data>
+  <data name="Selling price must be greater than 0" xml:space="preserve">
+    <value>Selling price must be greater than 0</value>
+  </data>
+  <data name="Pack size must be greater than 0" xml:space="preserve">
+    <value>Pack size must be greater than 0</value>
+  </data>
+  <data name="The field {0} must be between {1} and {2}." xml:space="preserve">
+    <value>The field {0} must be between {1} and {2}.</value>
+  </data>
+  <!-- Licensing -->
+  <data name="License_Title" xml:space="preserve"><value>License</value></data>
+  <data name="License_Manage" xml:space="preserve"><value>Manage license</value></data>
+  <data name="License_BackToApp" xml:space="preserve"><value>Back to NexPOS</value></data>
+  <data name="License_StatusActive" xml:space="preserve"><value>Licensed</value></data>
+  <data name="License_StatusExpiringSoon" xml:space="preserve"><value>License expires soon</value></data>
+  <data name="License_StatusGracePeriod" xml:space="preserve"><value>License renewal needed</value></data>
+  <data name="License_StatusExpired" xml:space="preserve"><value>License expired</value></data>
+  <data name="License_StatusNotActivated" xml:space="preserve"><value>Not activated</value></data>
+  <data name="License_StatusInvalid" xml:space="preserve"><value>Invalid license</value></data>
+  <data name="License_StatusWrongMachine" xml:space="preserve"><value>License is for another computer</value></data>
+  <data name="License_StatusUpdatesNotCovered" xml:space="preserve"><value>Version not covered</value></data>
+  <data name="License_MsgActive" xml:space="preserve"><value>NexPOS is activated on this computer.</value></data>
+  <data name="License_MsgDevBuild" xml:space="preserve"><value>Development build: the license is not enforced.</value></data>
+  <data name="License_MsgNotActivated" xml:space="preserve"><value>NexPOS is not activated on this computer, so the POS and new sales are stopped. Send the Machine ID below to your provider to get a license key, then paste it here.</value></data>
+  <data name="License_MsgInvalid" xml:space="preserve"><value>The saved license key is invalid or was modified, so the POS and new sales are stopped. Paste a valid license key below.</value></data>
+  <data name="License_MsgWrongMachine" xml:space="preserve"><value>The saved license key was issued for a different computer, so the POS and new sales are stopped. Send the Machine ID below to your provider to get a key for this computer.</value></data>
+  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>This version of NexPOS (built {0}) was released after your updates plan ended on {1}, so the POS and new sales are stopped. Renew your support plan to use this version, or reinstall your previous version.</value></data>
+  <data name="License_MsgExpiringSoon" xml:space="preserve"><value>Your license expires in {0} day(s), on {1}. Contact your provider to renew it.</value></data>
+  <data name="License_MsgExpiringToday" xml:space="preserve"><value>Your license expires today ({0}). Contact your provider to renew it.</value></data>
+  <data name="License_MsgGrace" xml:space="preserve"><value>Your license expired on {0}. Renew it now: the POS and new sales will stop after {1} ({2} day(s) left).</value></data>
+  <data name="License_MsgGraceLastDay" xml:space="preserve"><value>Your license expired on {0}. Today is the last day you can sell: the POS and new sales stop after today. Renew now.</value></data>
+  <data name="License_MsgExpired" xml:space="preserve"><value>Your license expired on {0}. The POS and new sales are stopped. Your data is safe: you can still view products, orders, reports and backups. Renew your license to continue selling.</value></data>
+  <data name="License_Customer" xml:space="preserve"><value>Customer</value></data>
+  <data name="License_Type" xml:space="preserve"><value>License type</value></data>
+  <data name="License_Serial" xml:space="preserve"><value>Serial</value></data>
+  <data name="License_IssuedOn" xml:space="preserve"><value>Issued on</value></data>
+  <data name="License_UpdatesUntil" xml:space="preserve"><value>Updates until</value></data>
+  <data name="License_ExpiresOn" xml:space="preserve"><value>Expires on</value></data>
+  <data name="License_Kind_Full" xml:space="preserve"><value>Full</value></data>
+  <data name="License_Kind_Provisional" xml:space="preserve"><value>Provisional</value></data>
+  <data name="License_Kind_Trial" xml:space="preserve"><value>Trial</value></data>
+  <data name="License_MachineId" xml:space="preserve"><value>Machine ID</value></data>
+  <data name="License_MachineIdHelp" xml:space="preserve"><value>Send this code to your provider. The license key you receive works only on this computer.</value></data>
+  <data name="License_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="License_Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="License_ActivateTitle" xml:space="preserve"><value>Activate or renew</value></data>
+  <data name="License_PasteHint" xml:space="preserve"><value>Paste the license key here</value></data>
+  <data name="License_ActivateButton" xml:space="preserve"><value>Activate</value></data>
+  <data name="License_Success" xml:space="preserve"><value>License activated successfully.</value></data>
+  <data name="License_Error_Malformed" xml:space="preserve"><value>The license key is incomplete or has extra characters. Paste the whole key exactly as you received it.</value></data>
+  <data name="License_Error_BadSignature" xml:space="preserve"><value>This license key is not valid. It may have been changed.</value></data>
+  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>This license key needs a newer version of NexPOS.</value></data>
+  <data name="License_Error_WrongMachine" xml:space="preserve"><value>This license key was issued for a different computer.</value></data>
+  <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>A newer license is already active on this computer.</value></data>
+  <data name="License_Error_StorageFailed" xml:space="preserve"><value>The license could not be saved on this computer.</value></data>
+  <data name="License_SalesStopped" xml:space="preserve"><value>Sales are stopped because the license is not active. Open the License page to renew or activate.</value></data>
 </root>

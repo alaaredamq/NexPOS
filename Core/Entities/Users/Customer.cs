@@ -10,7 +10,12 @@ public class Customer: ISSoftDeletable, IEntityBase<int>
     public string LastName { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string? PhoneNumber { get; set; }
-    public decimal Dept { get; set; }
+
+    /// <summary>
+    /// Running debt balance, kept in sync with <see cref="DebtTransactions"/>. Positive means
+    /// the customer owes the business; negative means the business owes the customer.
+    /// </summary>
+    public decimal Balance { get; set; }
 
     #region Address
 
@@ -27,6 +32,7 @@ public class Customer: ISSoftDeletable, IEntityBase<int>
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Cart> Carts { get; set; } = new List<Cart>();
     public ICollection<CustomerCart> CustomerCarts { get; set; } = new List<CustomerCart>();
+    public ICollection<CustomerDebtTransaction> DebtTransactions { get; set; } = new List<CustomerDebtTransaction>();
 
     #endregion
 
@@ -47,15 +53,4 @@ public class Customer: ISSoftDeletable, IEntityBase<int>
 
     #endregion
 
-    #region Methods
-
-    public void AddDept(decimal amount)
-    {
-        if (amount <= 0)
-            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
-
-        Dept += amount;
-    }
-
-    #endregion
 }

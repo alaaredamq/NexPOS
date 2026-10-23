@@ -26,3 +26,17 @@ public enum TaxType
     ExciseTax = 3,
     CustomTax = 4
 }
+
+/// <summary>
+/// Labels a <c>CustomerDebtTransaction</c> entry for display/reporting. The transaction's
+/// signed Amount (not this Type) is what actually drives the customer's balance.
+/// </summary>
+public enum CustomerDebtTransactionType
+{
+    /// <summary>A POS sale completed on the customer's account (positive amount).</summary>
+    Sale = 0,
+    /// <summary>A payment settling part of the balance (negative amount).</summary>
+    Payment = 1,
+    /// <summary>A manual correction entered by staff (either sign).</summary>
+    ManualAdjustment = 2
+}

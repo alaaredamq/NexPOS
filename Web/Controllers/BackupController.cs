@@ -121,7 +121,11 @@ namespace Web.Controllers
             try
             {
                 var backup = await _backupService.CreateBackupAsync(request);
-                return Json(new { success = true, data = backup, message = "Backup started successfully" });
+                if (backup.Status == "Failed")
+                {
+                    return Json(new { success = false, data = backup, message = string.IsNullOrEmpty(backup.ErrorMessage) ? "Backup failed" : backup.ErrorMessage });
+                }
+                return Json(new { success = true, data = backup, message = "Backup completed successfully" });
             }
             catch (Exception ex)
             {
@@ -343,8 +347,9 @@ namespace Web.Controllers
                         type = "backup",
                         status = backupProgress.Status,
                         progress = backupProgress.ProgressPercentage,
-                        message = backupProgress.CurrentOperation,
-                        isCompleted = backupProgress.Status == "Completed" || backupProgress.Status == "Failed" || backupProgress.Status == "Cancelled"
+                        message = string.IsNullOrEmpty(backupProgress.ErrorMessage) ? backupProgress.CurrentOperation : backupProgress.ErrorMessage,
+                        isCompleted = backupProgress.Status == "Completed" || backupProgress.Status == "Failed" || backupProgress.Status == "Cancelled",
+                        isSuccess = backupProgress.Status == "Completed"
                     });
                 }
 
@@ -357,8 +362,9 @@ namespace Web.Controllers
                         type = "restore",
                         status = restoreProgress.Status,
                         progress = restoreProgress.ProgressPercentage,
-                        message = restoreProgress.CurrentOperation,
-                        isCompleted = restoreProgress.Status == "Completed" || restoreProgress.Status == "Failed" || restoreProgress.Status == "Cancelled"
+                        message = string.IsNullOrEmpty(restoreProgress.ErrorMessage) ? restoreProgress.CurrentOperation : restoreProgress.ErrorMessage,
+                        isCompleted = restoreProgress.Status == "Completed" || restoreProgress.Status == "Failed" || restoreProgress.Status == "Cancelled",
+                        isSuccess = restoreProgress.Status == "Completed"
                     });
                 }
 

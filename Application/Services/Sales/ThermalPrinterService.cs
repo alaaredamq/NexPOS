@@ -5,6 +5,7 @@ using Application.IServices.Settings;
 using Core.Entities.Configuration;
 using Core.Entities.Sales;
 using Core.IRepositories.PrinterTransport;
+using Core.IRepositories.Sales;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Services.Sales;
@@ -15,6 +16,7 @@ public class ThermalPrinterService : IThermalPrinterService
     private readonly IEscPosBuilder _escPos;
     private readonly IStoreSettingsService _storeSettingsService;
     private readonly ISystemSettingsService _systemSettingsService;
+    private readonly IReceiptRepository _receiptRepository;
 
     /// <summary>
     /// Used only when no printer is configured in Settings yet (e.g. right after a fresh
@@ -27,12 +29,14 @@ public class ThermalPrinterService : IThermalPrinterService
         IPrinterTransport printer,
         IEscPosBuilder escPos,
         IStoreSettingsService storeSettingsService,
-        ISystemSettingsService systemSettingsService)
+        ISystemSettingsService systemSettingsService,
+        IReceiptRepository receiptRepository)
     {
         _printer = printer;
         _escPos = escPos;
         _storeSettingsService = storeSettingsService;
         _systemSettingsService = systemSettingsService;
+        _receiptRepository = receiptRepository;
     }
 
     /// <summary>
@@ -66,6 +70,12 @@ public class ThermalPrinterService : IThermalPrinterService
 
     public async Task<bool> PrintReceiptAsync(Receipt receipt, string? printerName = null)
     {
+        // Callers often hold a receipt without its navigation properties (e.g. the one
+        // CreateReceiptAsync just saved, or one from GetAllAsync) - reload it fully so the
+        // printout has its items, cashier, payment method and currency.
+        if (receipt.Id > 0)
+            receipt = await _receiptRepository.GetByIdAsync(receipt.Id) ?? receipt;
+
         // Get store settings for receipt printing
         var storeSettings = await _storeSettingsService.GetStoreSettingsEntityAsync();
         var bytes = _escPos.BuildReceipt(receipt, storeSettings);
@@ -76,9 +86,14 @@ public class ThermalPrinterService : IThermalPrinterService
     {
         printerName ??= await ResolveDefaultPrinterAsync();
 
+        // Codepage 437 would turn Arabic (or any other non-437 character) into "?" -
+        // print those as an image instead.
+        if (_escPos.RequiresImage(text))
+            return _printer.SendBytes(printerName, _escPos.BuildTextImage(text), "Text Receipt");
+
         Console.WriteLine($"[THERMAL SERVICE] Printing pure text directly...");
         Console.WriteLine($"[THERMAL SERVICE] Text preview: {text.Substring(0, Math.Min(200, text.Length))}...");
-        
+
         // Convert text to ESC/POS commands for better formatting
         var escPosText = ConvertTextToEscPos(text);
         
@@ -153,19 +168,10 @@ public class ThermalPrinterService : IThermalPrinterService
             
             if (order == null) return "ERROR: Order is null";
 
-            var receiptBytes = BuildDirectOrderReceipt(order);
-            var receiptText = Encoding.GetEncoding(437).GetString(receiptBytes);
-            
-            // Clean up ESC/POS commands for preview
-            var preview = receiptText
-                .Replace("\x1B@", "[INIT]")
-                .Replace("\x1B" + "a\x01", "[CENTER]")
-                .Replace("\x1B" + "a\x00", "[LEFT]")
-                .Replace("\x1D" + "!\x11", "[LARGE]")
-                .Replace("\x1D" + "!\x00", "[NORMAL]")
-                .Replace("\x1B" + "E\x01", "[BOLD]")
-                .Replace("\x1B" + "E\x00", "[/BOLD]")
-                .Replace("\x1D" + "V\x01", "[CUT]");
+            // Same layout the printer gets, as Unicode text so Arabic shows correctly on screen.
+            var receipt = GetReceiptForOrderAsync(order).GetAwaiter().GetResult();
+            var storeSettings = _storeSettingsService.GetStoreSettingsEntityAsync().GetAwaiter().GetResult();
+            var preview = _escPos.BuildPreviewText(receipt, storeSettings);
 
             Console.WriteLine($"[RECEIPT PREVIEW] Generated preview with {preview.Length} characters");
             return preview;
@@ -290,252 +296,51 @@ public class ThermalPrinterService : IThermalPrinterService
         }
     }
 
-    private byte[] BuildDirectOrderReceipt(Order order)
+    /// <summary>
+    /// The receipt to print for an order: its stored Receipt row when there is one (real
+    /// cashier, payment method and change), otherwise an unsaved one built from the order
+    /// for orders that never got a receipt.
+    /// </summary>
+    private async Task<Receipt> GetReceiptForOrderAsync(Order order)
     {
-        return BuildDirectOrderReceiptAsync(order).GetAwaiter().GetResult();
+        var stored = (await _receiptRepository.GetByOrderIdAsync(order.Id)).FirstOrDefault(r => !r.IsVoid);
+        return stored ?? ReceiptFromOrder(order);
+    }
+
+    private static Receipt ReceiptFromOrder(Order order)
+    {
+        var cartItems = order.Cart?.CartItems?.Where(ci => ci != null).ToList()
+            ?? new List<Core.Entities.Inventory.CartItem>();
+
+        var receipt = new Receipt(
+            $"ORD-{order.Id:D6}", order.Id, order.CustomerId, cashierId: 0,
+            subTotal: cartItems.Sum(ci => ci.TotalPrice), taxAmount: 0,
+            discountAmount: order.Cart?.DiscountAmount ?? 0, totalAmount: order.TotalAmount,
+            paymentMethodId: 0, currencyId: order.CurrencyId)
+        {
+            ReceiptDate = order.OrderDate,
+            Customer = order.Customer,
+            Currency = order.Currency,
+        };
+
+        foreach (var ci in cartItems)
+        {
+            // Weighed/volume products carry the real amount in WeightOrVolume.
+            var quantity = ci.WeightOrVolume is > 0 ? ci.WeightOrVolume.Value : ci.Quantity;
+            receipt.ReceiptItems.Add(new ReceiptItem(0, ci.ProductId, ci.Product?.Name ?? "Unknown Item",
+                quantity, ci.UnitPrice, 0, ci.Product?.Barcode, ci.Product?.Unit, ci.WeightOrVolume)
+            {
+                LineTotal = ci.TotalPrice, // what the customer was actually charged
+            });
+        }
+
+        return receipt;
     }
 
     private async Task<byte[]> BuildDirectOrderReceiptAsync(Order order)
     {
-        try
-        {
-            Console.WriteLine($"[BUILD RECEIPT] Starting receipt generation for order {order?.Id}");
-            
-            if (order == null)
-            {
-                Console.WriteLine($"[BUILD RECEIPT ERROR] Order is null!");
-                throw new ArgumentNullException(nameof(order), "Order cannot be null");
-            }
-
-            // Get store settings from database
-            var storeSettings = await _storeSettingsService.GetStoreSettingsEntityAsync();
-
-            var sb = new StringBuilder();
-            const string ESC = "\x1B";
-            const string GS = "\x1D";
-
-            // Initialize printer (reduced top margin - start printing immediately)
-            sb.Append(ESC + "@");
-            
-            // Store header - start immediately without extra spacing
-            sb.Append(ESC + "a\x01"); // Center align
-            sb.Append(GS + "!\x11"); // Double height and width
-            sb.AppendLine(storeSettings.StoreName);
-            sb.Append(GS + "!\x00"); // Normal size
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine1))
-                sb.AppendLine(storeSettings.AddressLine1);
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine2))
-                sb.AppendLine(storeSettings.AddressLine2);
-            if (!string.IsNullOrEmpty(storeSettings.Phone))
-                sb.AppendLine($"Phone: {storeSettings.Phone}");
-            if (!string.IsNullOrEmpty(storeSettings.TaxId))
-                sb.AppendLine($"Tax ID: {storeSettings.TaxId}");
-            sb.Append(ESC + "a\x00"); // Left align
-            
-            sb.AppendLine("================================================");
-            
-            // Receipt Meta - use full width formatting
-            var receiptNumber = $"ORD-{order.Id:D6}";
-            var receiptLine = FormatTotalLine("Receipt #:", receiptNumber);
-            sb.AppendLine(receiptLine);
-            
-            var dateLine = FormatTotalLine("Date:", order.OrderDate.ToString("yyyy-MM-dd HH:mm"));
-            sb.AppendLine(dateLine);
-            
-            var customerName = $"{order.Customer?.FirstName} {order.Customer?.LastName}".Trim();
-            if (string.IsNullOrEmpty(customerName))
-            {
-                customerName = "Walk-in Customer";
-            }
-            var customerLine = FormatTotalLine("Customer:", customerName);
-            sb.AppendLine(customerLine);
-            
-            var cashierLine = FormatTotalLine("Cashier:", "System");
-            sb.AppendLine(cashierLine);
-            
-            sb.AppendLine("================================================");
-            
-            // Items section header
-            sb.AppendLine("ITEMS");
-            sb.AppendLine("------------------------------------------------");
-            
-            // Items - exactly like Receipt.cshtml structure
-            Console.WriteLine($"[BUILD RECEIPT] Processing cart items...");
-            
-            if (order.Cart?.CartItems != null && order.Cart.CartItems.Any())
-            {
-                Console.WriteLine($"[BUILD RECEIPT] Processing {order.Cart.CartItems.Count} items");
-                
-                foreach (var item in order.Cart.CartItems)
-                {
-                    if (item == null)
-                    {
-                        Console.WriteLine($"[BUILD RECEIPT] Skipping null cart item");
-                        continue;
-                    }
-                    
-                    // Item name (bold in Receipt.cshtml)
-                    var name = item.Product?.Name ?? "Unknown Item";
-                    if (name.Length > 30) name = name.Substring(0, 27) + "...";
-                    sb.Append(ESC + "E\x01"); // Bold on
-                    sb.AppendLine(name);
-                    sb.Append(ESC + "E\x00"); // Bold off
-                    
-                    // Quantity x Price = Total (using full width)
-                    // For weight/volume products, use WeightOrVolume; for piece products, use Quantity
-                    decimal displayQuantity = item.WeightOrVolume.HasValue && item.WeightOrVolume.Value > 0 
-                        ? item.WeightOrVolume.Value 
-                        : item.Quantity;
-                    var quantityDisplay = displayQuantity.ToString("F3");
-                    var unit = item.Product?.Unit;
-                    if (!string.IsNullOrEmpty(unit) && unit.ToLower() != "piece")
-                    {
-                        quantityDisplay += $" {unit}";
-                    }
-                    var qtyPrice = $"{quantityDisplay} x ${item.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)}";
-                    var total = $"${item.TotalPrice.ToString("F2", CultureInfo.InvariantCulture)}";
-                    var itemTotalLine = FormatTotalLine(qtyPrice, total);
-                    sb.AppendLine(itemTotalLine);
-                    
-                    sb.AppendLine($"");
-                    
-                    // Reduced spacing between products to save space
-                    // (since we added more bottom margin)
-                }
-            }
-            else
-            {
-                Console.WriteLine($"[BUILD RECEIPT] No cart items found");
-                sb.AppendLine("No items");
-                sb.AppendLine();
-            }
-            
-            sb.AppendLine("================================================");
-            
-            // Totals - use full page width (48 characters for thermal printer)
-            var items = order.Cart?.CartItems?.ToList() ?? new List<Core.Entities.Inventory.CartItem>();
-            var subtotal = items.Sum(i => i.TotalPrice);
-            var discountAmount = order.Cart?.DiscountAmount ?? 0;
-            var cartTotal = subtotal - discountAmount;
-            var adjustment = order.TotalAmount - cartTotal;
-            
-            // Format totals with proper spacing across full width
-            var subtotalLine = FormatTotalLine("Subtotal:", $"${subtotal.ToString("F2", CultureInfo.InvariantCulture)}");
-            sb.AppendLine(subtotalLine);
-            
-            if (discountAmount > 0)
-            {
-                var discountLine = FormatTotalLine("Discount:", $"-${discountAmount.ToString("F2", CultureInfo.InvariantCulture)}");
-                sb.AppendLine(discountLine);
-            }
-            
-            if (adjustment != 0)
-            {
-                var adjustmentLabel = adjustment > 0 ? "Surcharge:" : "Adjustment:";
-                var adjustmentValue = adjustment > 0 ? $"+${Math.Abs(adjustment).ToString("F2", CultureInfo.InvariantCulture)}" : $"${adjustment.ToString("F2", CultureInfo.InvariantCulture)}";
-                var adjustmentLine = FormatTotalLine(adjustmentLabel, adjustmentValue);
-                sb.AppendLine(adjustmentLine);
-            }
-            
-            var taxLine = FormatTotalLine("Tax:", "$0.00");
-            sb.AppendLine(taxLine);
-            sb.AppendLine("================================================");
-            
-            // Total - bold (like Receipt.cshtml) - use full width
-            sb.Append(ESC + "E\x01"); // Bold on
-            var currencyNotation = order.Currency?.Notation ?? "";
-            var totalLine = FormatTotalLine("TOTAL:", $"{currencyNotation}{order.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)}");
-            sb.AppendLine(totalLine);
-            sb.Append(ESC + "E\x00"); // Bold off
-            
-            sb.AppendLine("================================================");
-            
-            // Payment Info - use full width formatting
-            var paymentMethodLine = FormatTotalLine("Payment Method:", "Cash");
-            sb.AppendLine(paymentMethodLine);
-            
-            var amountPaidLine = FormatTotalLine("Amount Paid:", $"${order.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)}");
-            sb.AppendLine(amountPaidLine);
-            
-            var changeLine = FormatTotalLine("Change:", "$0.00");
-            sb.AppendLine(changeLine);
-            
-            sb.AppendLine("================================================");
-            
-            // Barcode - like Receipt.cshtml
-            sb.Append(ESC + "a\x01"); // Center align
-            sb.AppendLine($"*{receiptNumber}*");
-            sb.Append(ESC + "a\x00"); // Left align
-            
-            sb.AppendLine("================================================");
-            
-            // Footer - using store settings
-            sb.Append(ESC + "a\x01"); // Center align
-            sb.Append(ESC + "E\x01"); // Bold on
-            sb.AppendLine(storeSettings.ReceiptFooterMessage.ToUpperInvariant());
-            sb.Append(ESC + "E\x00"); // Bold off
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine1))
-                sb.AppendLine(storeSettings.FooterLine1);
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine2))
-                sb.AppendLine(storeSettings.FooterLine2);
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine3))
-                sb.AppendLine(storeSettings.FooterLine3);
-            sb.AppendLine();
-            if (!string.IsNullOrEmpty(storeSettings.Website))
-                sb.AppendLine($"Questions? Visit us at {storeSettings.Website}");
-            if (!string.IsNullOrEmpty(storeSettings.Phone))
-                sb.AppendLine($"or call {storeSettings.Phone}");
-            sb.Append(ESC + "a\x00"); // Left align
-            
-            sb.AppendLine();
-            sb.AppendLine("================================================");
-            
-            // Receipt ID for Reference - like Receipt.cshtml
-            sb.Append(ESC + "a\x01"); // Center align
-            sb.AppendLine($"Order ID: {order.Id} | {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss UTC}");
-            sb.Append(ESC + "a\x00"); // Left align
-            
-            // Add generous bottom margin (10 lines) to prevent text bleeding to next page
-            // This compensates for the reduced top margin and ensures clean separation
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            sb.AppendLine();
-            
-            // Cut paper
-            sb.Append(GS + "V\x01");
-            
-            var receiptText = sb.ToString();
-            Console.WriteLine($"[BUILD RECEIPT] Generated receipt text length: {receiptText.Length}");
-            Console.WriteLine($"[BUILD RECEIPT] First 300 chars: {receiptText.Substring(0, Math.Min(300, receiptText.Length))}");
-            
-            // Convert to bytes using Code Page 437 (same as BuildReceipt)
-            var bytes = Encoding.GetEncoding(437).GetBytes(receiptText);
-            Console.WriteLine($"[BUILD RECEIPT] Generated {bytes.Length} bytes");
-            
-            return bytes;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[BUILD RECEIPT ERROR] {ex.Message}");
-            Console.WriteLine($"[BUILD RECEIPT ERROR] Stack trace: {ex.StackTrace}");
-            throw;
-        }
-    }
-
-    private string FormatTotalLine(string label, string value)
-    {
-        // Use full thermal printer width (48 characters)
-        const int totalWidth = 48;
-        var spaces = totalWidth - label.Length - value.Length;
-        if (spaces < 1) spaces = 1;
-        
-        return $"{label}{new string(' ', spaces)}{value}";
+        var receipt = await GetReceiptForOrderAsync(order);
+        var storeSettings = await _storeSettingsService.GetStoreSettingsEntityAsync();
+        return _escPos.BuildReceipt(receipt, storeSettings);
     }
 }

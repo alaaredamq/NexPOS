@@ -1,6 +1,6 @@
 {
   "name": "nexpos-desktop-app",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "NexPos Desktop Application",
   "main": "electron-main.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "electron-builder",
     "build:win": "electron-builder --win",
     "build:win-portable": "electron-builder --win portable",
-    "build:win-installer": "electron-builder --win --x64",
+    "build:win-installer": "electron-builder --win nsis --x64",
     "publish": "electron-builder --publish=always"
   },
   "keywords": [
@@ -34,13 +34,20 @@
     },
     "files": [
       "electron-main.js",
+      "electron-preload.js",
       "assets/**/*"
     ],
+    "electronLanguages": ["en-US", "ar"],
     "extraFiles": [
       {
         "from": "publish/app",
         "to": "app",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*",
+          "!lib*.pdb",
+          "!appsettings.Development.json",
+          "!libman.json"
+        ]
       }
     ],
     "win": {

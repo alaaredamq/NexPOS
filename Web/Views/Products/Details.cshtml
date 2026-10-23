@@ -7,6 +7,12 @@
 
 <!-- Product Details Header -->
 <div class="d-flex justify-content-end gap-2 mb-4">
+    @if (!string.IsNullOrEmpty(Model.Barcode))
+    {
+        <button type="button" class="btn btn-outline-secondary" id="printLabelBtn">
+            <i class="fas fa-barcode me-2"></i>Print Label
+        </button>
+    }
     <a href="@Url.Action("Edit", "Products", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
         <i class="fas fa-edit me-2"></i>Edit Product
     </a>
@@ -236,7 +242,17 @@
 </div>
 
 @section Scripts {
+    <partial name="_StickerLabelScripts" />
     <script>
+        $('#printLabelBtn').on('click', function () {
+            StickerLabel.prompt(@Json.Serialize(new
+            {
+                name = Model.Name,
+                code = Model.Barcode,
+                price = FormatCurrency(Model.SellingPrice, Model.Currency?.Notation)
+            }));
+        });
+
         function deleteProduct(id) {
             if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
                 $.ajax({

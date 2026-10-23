@@ -118,4 +118,15 @@ public class ProductRepository : Repository<Product>, IProductRepository {
         return rowsAffected > 0;
     }
 
+    public async Task<bool> ForceDeductStockAsync(int productId, decimal quantity)
+    {
+        var rowsAffected = await _Entities
+            .Where(p => p.Id == productId && !p.IsDeleted)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(p => p.StockQuantity, p => p.StockQuantity >= quantity ? p.StockQuantity - quantity : 0)
+                .SetProperty(p => p.UpdatedAt, DateTime.UtcNow));
+
+        return rowsAffected > 0;
+    }
+
 }

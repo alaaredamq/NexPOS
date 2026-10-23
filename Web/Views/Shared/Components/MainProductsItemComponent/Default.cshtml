@@ -32,7 +32,7 @@
                 @product.Name
                 @if (product.IsPack)
                 {
-                    <span class="badge bg-info ms-2">Pack of @(product.PackSize ?? 0)</span>
+                    <span class="badge bg-info ms-2">@SharedLocalizer["PackOf", product.PackSize ?? 0]</span>
                 }
             </div>
             @if (hasDiscount)
@@ -47,15 +47,15 @@
             <div class="product-stock @(product.StockQuantity <= 0 ? "out-of-stock" : product.StockQuantity <= (product.MinimumStock ?? 5) ? "low-stock" : "")">
                 @if (product.StockQuantity <= 0)
                 {
-                    @:<i class="fas fa-times-circle"></i> Out of Stock
+                    @:<i class="fas fa-times-circle"></i> @SharedLocalizer["OutOfStock"]
                 }
                 else if (product.StockQuantity <= (product.MinimumStock ?? 5))
                 {
-                    @:<i class="fas fa-exclamation-triangle"></i> Low Stock
+                    @:<i class="fas fa-exclamation-triangle"></i> @SharedLocalizer["LowStock"]
                 }
                 else
                 {
-                    @:<i class="fas fa-check-circle"></i> @product.StockQuantity units
+                    @:<i class="fas fa-check-circle"></i> @product.StockQuantity @SharedLocalizer["Units"]
                 }
             </div>
         </div>

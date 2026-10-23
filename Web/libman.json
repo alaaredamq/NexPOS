@@ -33,6 +33,14 @@
       ]
     },
     {
+      "library": "jsbarcode@3.12.3",
+      "destination": "wwwroot/lib/jsbarcode/",
+      "provider": "jsdelivr",
+      "files": [
+        "dist/JsBarcode.all.min.js"
+      ]
+    },
+    {
       "library": "toastr.js@2.1.4",
       "destination": "wwwroot/lib/toastr/",
       "files": [

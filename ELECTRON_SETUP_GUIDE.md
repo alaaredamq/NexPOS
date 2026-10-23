@@ -91,10 +91,11 @@ After building, your EXE files will be in the `dist` folder:
 
 ### Database Connection
 
-Your app uses SQL Server. Make sure:
-1. SQL Server is installed on the target machine
-2. The connection string in `appsettings.json` is correct for the target environment
-3. Consider using a configuration file that can be edited after installation
+The app uses SQLite - no separate database server needs to be installed on the target
+machine. The `.db` file is created and migrated automatically on first launch, at
+`%LocalAppData%\NexPOS\nexpos.db` for the logged-in Windows user. Useful for
+support/troubleshooting: delete that file (with the app closed) to reset to a fresh,
+freshly-seeded database.
 
 ### Port Configuration
 

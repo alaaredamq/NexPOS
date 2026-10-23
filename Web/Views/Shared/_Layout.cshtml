@@ -14,12 +14,11 @@
 <html lang="@currentCulture" dir="@(isRtl ? "rtl" : "ltr")" data-kt-theme="true" data-kt-theme-mode="light">
 <head>
     <meta charset="utf-8" />
-    <title>@(ViewData["Title"]?.ToString() ?? "NexPos") - NexPos</title>
+    <title>@(ViewData["Title"]?.ToString() ?? Brand.AppName) - @Brand.AppName</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
-    <link rel="alternate icon" type="image/x-icon" href="~/favicon.ico" />
-    <link rel="apple-touch-icon" href="~/images/logo-icon-256.png" />
+    <link rel="icon" href="~/branding/favicon?v=@Brand.Version" />
+    <link rel="apple-touch-icon" href="~/branding/logo?variant=icon&v=@Brand.Version" />
 
     <!-- local Font -->
     <link href="/css/Fonts.css" rel="stylesheet" />
@@ -49,6 +48,8 @@
             <!-- Main Content -->
             <main class="@(noSidebar ? "col-12" : "col-md-9 ms-sm-auto col-lg-10") @(noSidebar ? "px-3" : "px-0")">
                 @await Html.PartialAsync("_TopBar")
+
+                @await Html.PartialAsync("_LicenseBanner")
 
                 <!-- Main Content Area -->
                 <div class="content-wrapper" data-page-controller="@ViewContext.RouteData.Values["Controller"]" data-page-action="@ViewContext.RouteData.Values["Action"]">

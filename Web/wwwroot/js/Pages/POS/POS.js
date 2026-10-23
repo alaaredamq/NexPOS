@@ -446,101 +446,11 @@ class POS {
                 return;
             }
             
-            console.log(`=== ADDING PRODUCT TO CART ===`);
-            console.log(`Product: ${name}`);
-            console.log(`Original Price: ${price}`);
-            console.log(`Product Unit: ${productUnit}`);
-            console.log(`Product Currency ID: ${currencyId}`);
-            console.log(`Product Currency Notation: ${productCurrencyNotation}`);
-            console.log(`Default Currency ID: ${this.defaultCurrency?.id}`);
-            console.log(`Default Currency Notation: ${this.defaultCurrency?.notation}`);
-            
-            // Convert price to default currency if needed
-            let convertedPrice = price;
-            let displayNotation = this.defaultCurrency?.notation || 'LBP';
-            
-            if (this.defaultCurrency && currencyId && currencyId !== this.defaultCurrency.id) {
-                console.log(`🔄 CONVERTING: ${price} from currency ${currencyId} to ${this.defaultCurrency.id}`);
-                convertedPrice = await this.convertPrice(price, currencyId, this.defaultCurrency.id);
-                console.log(`✅ Converted price: ${convertedPrice}`);
-                console.log(`Will display as: ${displayNotation} ${convertedPrice}`);
-            } else {
-                console.log(`ℹ️ No conversion needed - same currency (or default not loaded)`);
-                console.log(`Will display as: ${displayNotation} ${convertedPrice}`);
-            }
-            
-            // Use the quantity from prefix (either from input field or pendingQuantity)
-            let quantity = clickQuantity;
-            let unit = productUnit || 'piece';
-            let weightOrVolume = null; // Store the actual weight/volume in base unit
-            let displayValue = null; // Original entered value (e.g., 300 for 300g)
-            let displayUnit = null; // Original entered unit (e.g., 'g')
-            
-            // Show modal for weight/volume products to enter the amount
-            try {
-                if (typeof UnitConverter !== 'undefined' && 
-                    UnitConverter.requiresConversion &&
-                    productUnit && 
-                    productUnit !== 'piece' && 
-                    productUnit !== '' &&
-                    UnitConverter.requiresConversion(productUnit)) {
-                    // Show quantity input modal with unit selection
-                    console.log('Product requires weight/volume input, showing modal');
-                    const quantityResult = await this.showQuantityInputModal(name, productUnit, convertedPrice, displayNotation);
-                    if (!quantityResult) {
-                        console.log('User cancelled quantity modal');
-                        return; // User cancelled or modal failed
-                    }
-                    quantity = quantityResult.quantity;
-                    unit = quantityResult.unit || productUnit;
-                    weightOrVolume = quantityResult.weightOrVolume; // Weight/volume in base unit (kg or L)
-                    displayValue = quantityResult.displayValue; // Original entered value for display
-                    displayUnit = quantityResult.displayUnit; // Original entered unit for display
-                } else {
-                    console.log('No unit conversion needed, using default quantity');
-                }
-            } catch (error) {
-                console.error('Error in unit conversion check:', error);
-                // Fallback to default quantity if anything fails
-                quantity = 1;
-                unit = productUnit || 'piece';
-            }
-            console.log('Quantity/WeightOrVolume:', { quantity, unit, weightOrVolume, displayValue, displayUnit });
-            
-            console.log('Creating cart item:', { id, name, quantity, unit, productUnit, weightOrVolume, displayValue, displayUnit });
-            
-            try {
-                const newItem = new CartItem(
-                    id, 
-                    name, 
-                    price, 
-                    quantity, 
-                    sku, 
-                    category, 
-                    currencyId, 
-                    price, 
-                    convertedPrice,
-                    displayNotation,  // Cart ALWAYS shows in default currency
-                    productUnit || 'piece',  // Product's base unit
-                    unit,              // Selected/entered unit
-                    weightOrVolume,    // Weight or volume in base unit (e.g., 0.3 for 300g in kg)
-                    displayValue,      // Original entered value for display (e.g., 300)
-                    displayUnit        // Original entered unit for display (e.g., 'g')
-                );
-                console.log('CartItem created successfully:', newItem);
-                console.log(`=== END ADD TO CART ===\n`);
-                this.addToCart(newItem);
-                console.log('Item added to cart, cart length:', this.cart.length);
-                
-                // Show confirmation if multiple items were added (via quantity prefix)
-                if (quantity > 1) {
-                    toastr.success(window.i18n.t('pos.addedMultipleItems', `Added ${quantity}x ${name}`).replace('${quantity}', quantity).replace('${name}', name));
-                }
-            } catch (error) {
-                console.error('Error creating CartItem:', error);
-                toastr.error('Error adding product to cart: ' + error.message);
-            }
-            
+            const added = await this.addProductToCart({
+                id, name, price, sku, category, currencyId, productUnit, quantity: clickQuantity
+            });
+            if (!added) return;
+
             // Visual feedback - simple border flash
             $card.css('border-color', '#20c997');
             setTimeout(() => $card.css('border-color', ''), 200);
@@ -551,6 +461,80 @@ class POS {
         this.setupProductAutocomplete();
         
         console.log('✅ POS constructor completed');
+    }
+
+    /**
+     * Add a (non-pack) product to the cart. For weight/volume products, prompts for the amount first.
+     * Shared by product card clicks and the product search autocomplete.
+     * @returns {Promise<boolean>} true if added, false if cancelled or failed
+     */
+    async addProductToCart({ id, name, price, sku, category, currencyId, productUnit, quantity = 1 }) {
+        productUnit = (productUnit || 'piece').toLowerCase();
+
+        // Convert price to default currency if needed (cart ALWAYS shows in default currency)
+        let convertedPrice = price;
+        const displayNotation = this.defaultCurrency?.notation || 'LBP';
+        if (this.defaultCurrency && currencyId && currencyId !== this.defaultCurrency.id) {
+            convertedPrice = await this.convertPrice(price, currencyId, this.defaultCurrency.id);
+        }
+
+        let unit = productUnit;
+        let weightOrVolume = null; // Weight/volume in base unit (e.g., 0.3 for 300g in kg)
+        let displayValue = null;   // Original entered value (e.g., 300)
+        let displayUnit = null;    // Original entered unit (e.g., 'g')
+
+        // Show modal for weight/volume products to enter the amount
+        try {
+            if (typeof UnitConverter !== 'undefined' &&
+                UnitConverter.requiresConversion &&
+                productUnit !== 'piece' &&
+                UnitConverter.requiresConversion(productUnit)) {
+                const quantityResult = await this.showQuantityInputModal(name, productUnit, convertedPrice, displayNotation);
+                if (!quantityResult) {
+                    return false; // User cancelled
+                }
+                quantity = quantityResult.quantity;
+                unit = quantityResult.unit || productUnit;
+                weightOrVolume = quantityResult.weightOrVolume;
+                displayValue = quantityResult.displayValue;
+                displayUnit = quantityResult.displayUnit;
+            }
+        } catch (error) {
+            console.error('Error in unit conversion check:', error);
+            quantity = 1;
+            unit = productUnit;
+        }
+
+        try {
+            const newItem = new CartItem(
+                id,
+                name,
+                price,
+                quantity,
+                sku,
+                category,
+                currencyId,
+                price,
+                convertedPrice,
+                displayNotation,
+                productUnit,
+                unit,
+                weightOrVolume,
+                displayValue,
+                displayUnit
+            );
+            this.addToCart(newItem);
+
+            // Show confirmation if multiple items were added (via quantity prefix)
+            if (quantity > 1) {
+                toastr.success(window.i18n.t('pos.addedMultipleItems', `Added ${quantity}x ${name}`).replace('${quantity}', quantity).replace('${name}', name));
+            }
+            return true;
+        } catch (error) {
+            console.error('Error creating CartItem:', error);
+            toastr.error('Error adding product to cart: ' + error.message);
+            return false;
+        }
     }
 
     // ===== PRODUCT SEARCH AUTocomplete =====
@@ -648,76 +632,42 @@ class POS {
                 
                 const productId = product.id || product.Id;
                 const productName = product.name || product.Name;
-                const productPrice = product.price || product.sellingPrice || product.SellingPrice || 0;
+                // Same price the product card uses (selling price minus supplier discount)
+                const productPrice = product.effectivePrice ?? product.EffectivePrice ?? product.sellingPrice ?? product.SellingPrice ?? 0;
                 const productBarcode = product.barcode || product.Barcode || '';
                 const productUnit = product.unit || product.Unit || 'piece';
-                
-                console.log('🛒 Adding to cart:', { productId, productName, productPrice, productBarcode, productUnit });
-                
-                try {
-                    // Handle unit conversion if needed
-                    let quantity = 1;
-                    let unit = (productUnit || 'piece').toLowerCase();
-                    
-                    if (typeof UnitConverter !== 'undefined' && 
-                        productUnit && 
-                        productUnit !== 'piece' && 
-                        UnitConverter.requiresConversion(productUnit)) {
-                        // Show quantity input modal
-                        try {
-                            const quantityResult = await self.showQuantityInputModal(productName, productUnit);
-                            if (!quantityResult) {
-                                return false; // User cancelled
-                            }
-                            quantity = quantityResult.quantity;
-                            unit = quantityResult.unit;
-                        } catch (error) {
-                            console.error('Error showing quantity modal:', error);
-                            // Fallback to default
-                            quantity = 1;
-                            unit = productUnit;
-                        }
-                    }
-                    
-                    // Convert price to default currency if needed
-                    const currencyId = product.currencyId || product.CurrencyId || self.defaultCurrency?.id;
-                    let convertedPrice = productPrice;
-                    if (self.defaultCurrency && currencyId && currencyId !== self.defaultCurrency.id) {
-                        convertedPrice = await self.convertPrice(productPrice, currencyId, self.defaultCurrency.id);
-                    }
-                    
-                    // Create cart item
-                    const newItem = new CartItem(
-                        productId,
-                        productName,
-                        productPrice,
-                        quantity,
-                        productBarcode,
-                        product.categoryId || product.CategoryId,
-                        currencyId,
-                        productPrice,
-                        convertedPrice,
-                        self.defaultCurrency?.notation || 'LBP',
-                        productUnit,  // Product's base unit
-                        unit          // Selected unit
+                const categoryId = product.categoryId || product.CategoryId;
+                const currencyId = product.currencyId || product.CurrencyId || self.defaultCurrency?.id;
+                const currency = product.currency || product.Currency;
+                const currencyNotation = currency?.notation || currency?.Notation || 'LBP';
+
+                // Close the dropdown before any modal opens
+                const $input = $(this);
+                $input.val('');
+                $input.autocomplete('close');
+
+                if (product.isPack ?? product.IsPack) {
+                    await self.handlePackProduct(
+                        productId, productName, productPrice, productBarcode, categoryId, currencyId, currencyNotation,
+                        product.packSize ?? product.PackSize ?? 0,
+                        product.singleProductId ?? product.SingleProductId ?? 0
                     );
-                    
-                    self.addToCart(newItem);
-                    console.log('✅ Product added to cart successfully');
-                    
-                    // Show success message
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success(`${productName} added to cart!`);
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error adding to cart:', error);
+                    return false;
                 }
-                
-                // Only clear input and close if product was successfully added
-                $(this).val('');
-                $(this).autocomplete('close');
-                
+
+                const added = await self.addProductToCart({
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    sku: productBarcode,
+                    category: categoryId,
+                    currencyId,
+                    productUnit
+                });
+                if (added && typeof toastr !== 'undefined') {
+                    toastr.success(`${productName} added to cart!`);
+                }
+
                 return false;
             },
             focus: function(event, ui) {
@@ -913,42 +863,52 @@ class POS {
             const result = await Swal.fire({
                 title: window.i18n.t('pos.completeCheckout', 'Complete Checkout'),
                 html: `
-                    <div class="text-start">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">${window.i18n.t('pos.customerOptional', 'Customer (Optional)')}</label>
-                            <select id="checkout-customer-select" class="form-select">
+                    <div class="text-start" style="font-size:0.85rem">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1">${window.i18n.t('pos.customerOptional', 'Customer (Optional)')}</label>
+                            <select id="checkout-customer-select" class="form-select form-select-sm">
                                 <option value="">${window.i18n.t('pos.loadingCustomers', 'Loading customers...')}</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">${window.i18n.t('pos.paymentMethodRequired', 'Payment Method *')}</label>
-                            <select id="checkout-payment-method" class="form-select" required>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1">${window.i18n.t('pos.paymentMethodRequired', 'Payment Method *')}</label>
+                            <select id="checkout-payment-method" class="form-select form-select-sm" required>
                                 <option value="">${window.i18n.t('pos.selectPaymentMethod', 'Select payment method...')}</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">${window.i18n.t('pos.totalAmountEditable', 'Total Amount (Editable)')}</label>
-                            <div class="input-group">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1">${window.i18n.t('pos.totalAmountEditable', 'Total Amount (Editable)')}</label>
+                            <div class="input-group input-group-sm">
                                 <span class="input-group-text">${this.defaultCurrency?.notation || 'LBP'}</span>
                                 <input type="number" id="checkout-total-amount" class="form-control fw-bold" value="${this.calculateTotal().toFixed(2)}" step="0.01" min="0">
                             </div>
                             <small class="text-muted">${window.i18n.t('pos.original', 'Original')}: ${this.defaultCurrency?.notation || 'LBP'} ${this.calculateTotal().toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</small>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">${window.i18n.t('pos.notesOptional', 'Notes (Optional)')}</label>
-                            <textarea id="checkout-notes" class="form-control" rows="2" placeholder="${window.i18n.t('pos.addNotes', 'Add notes...')}"></textarea>
+                        <div>
+                            <label class="form-label mb-1">${window.i18n.t('pos.notesOptional', 'Notes (Optional)')}</label>
+                            <input type="text" id="checkout-notes" class="form-control form-control-sm" placeholder="${window.i18n.t('pos.addNotes', 'Add notes...')}">
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-check me-2"></i>' + window.i18n.t('pos.completeCheckout', 'Complete Checkout'),
+                showDenyButton: true,
+                confirmButtonText: '<i class="fas fa-check me-1"></i>' + window.i18n.t('pos.completeCheckout', 'Complete Checkout'),
+                denyButtonText: '<i class="fas fa-hand-holding-usd me-1"></i>' + window.i18n.t('pos.addToDebt', 'Add to Customer Debt'),
                 cancelButtonText: window.i18n.t('common.cancel', 'Cancel'),
                 customClass: {
-                    confirmButton: 'btn btn-success btn-lg',
-                    cancelButton: 'btn btn-secondary'
+                    popup: 'swal-compact',
+                    confirmButton: 'pos-checkout-btn pos-checkout-btn-confirm',
+                    denyButton: 'pos-checkout-btn pos-checkout-btn-deny',
+                    cancelButton: 'pos-checkout-btn pos-checkout-btn-cancel'
                 },
-                width: '500px',
+                width: '440px',
+                padding: '1rem',
                 didOpen: async () => {
+                    // Disabled by default - the customer select defaults to walk-in, and a
+                    // walk-in sale has no account to put on debt.
+                    const denyButton = Swal.getDenyButton();
+                    if (denyButton) denyButton.disabled = true;
+
                     // Load customers
                     try {
                         const customersResponse = await $.ajax({
@@ -971,6 +931,13 @@ class POS {
                         console.error('Error loading customers:', error);
                         $('#checkout-customer-select').html(`<option value="0" selected>${window.i18n.t('pos.walkInCustomer', 'Walk-in Customer')}</option>`);
                     }
+
+                    // "Add to Customer Debt" only makes sense for a real customer - keep it
+                    // disabled while walk-in ("0"/empty) is selected.
+                    $('#checkout-customer-select').on('change', function () {
+                        const btn = Swal.getDenyButton();
+                        if (btn) btn.disabled = !this.value || this.value === '0';
+                    });
 
                     // Load payment methods
                     try {
@@ -1012,10 +979,31 @@ class POS {
                         totalAmount: totalAmount,
                         notes: $('#checkout-notes').val()
                     };
+                },
+                preDeny: () => {
+                    const customerVal = $('#checkout-customer-select').val();
+                    if (!customerVal || customerVal === '0') {
+                        Swal.showValidationMessage(window.i18n.t('pos.selectCustomerForDebt', 'Select a customer to add this sale to their debt'));
+                        return false;
+                    }
+
+                    const totalAmount = parseFloat($('#checkout-total-amount').val());
+                    if (isNaN(totalAmount) || totalAmount < 0) {
+                        Swal.showValidationMessage(window.i18n.t('pos.pleaseEnterValidAmount', 'Please enter a valid total amount'));
+                        return false;
+                    }
+
+                    return {
+                        customerId: parseInt(customerVal),
+                        totalAmount: totalAmount,
+                        notes: $('#checkout-notes').val()
+                    };
                 }
             });
 
-            if (result.isConfirmed) {
+            const isAddToDebt = result.isDenied;
+
+            if (result.isConfirmed || isAddToDebt) {
                 // Process checkout immediately - no loading popup for speed
                 
                 // First, create a cart in the backend (keep it active for checkout)
@@ -1053,23 +1041,56 @@ class POS {
                     cartId: cartId,
                     customerId: result.value.customerId,
                     totalAmount: result.value.totalAmount, // Use the edited total amount
-                    paymentMethodId: result.value.paymentMethodId,
+                    // Ignored server-side when addToDebt is true - the server resolves the
+                    // "Customer Debt" payment method itself.
+                    paymentMethodId: result.value.paymentMethodId || 0,
+                    addToDebt: isAddToDebt,
                     discountAmount: this.currentDiscount?.type === 'amount' ? this.currentDiscount.value : null,
                     discountCode: this.currentDiscount?.name || null,
                     discountPercentage: this.currentDiscount?.type === 'percentage' ? this.currentDiscount.value : null,
                     notes: result.value.notes,
                     currencyId: this.defaultCurrency?.id || 1,
-                    printReceipt: false
+                    // The server prints the receipt itself (EscPosBuilder, Arabic-capable) and
+                    // reports the outcome in data.receiptPrinted.
+                    printReceipt: true
                 };
                 console.log('🛒 Checkout request data:', checkoutData);
                 console.log('🛒 Checkout JSON:', JSON.stringify(checkoutData));
                 
-                const checkoutResponse = await $.ajax({
+                const postCheckout = () => $.ajax({
                     url: '/POS/Checkout',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(checkoutData)
                 });
+
+                let checkoutResponse = await postCheckout();
+
+                // Not enough stock (often just a mistyped quantity): let the cashier either go back
+                // and fix the cart, or sell anyway. The failed attempt rolled back, so the same cart
+                // can be resubmitted with the override flag.
+                if (!checkoutResponse.success && checkoutResponse.errorCode === 'insufficient_stock') {
+                    const override = await Swal.fire({
+                        icon: 'warning',
+                        title: window.i18n.t('pos.insufficientStockTitle', 'Not enough stock'),
+                        text: `${checkoutResponse.message} ${window.i18n.t('pos.sellAnywayPrompt', 'Do you want to sell anyway?')}`,
+                        showCancelButton: true,
+                        confirmButtonText: window.i18n.t('pos.sellAnyway', 'Sell anyway'),
+                        cancelButtonText: window.i18n.t('pos.reviewCart', 'Review cart'),
+                        customClass: {
+                            confirmButton: 'btn btn-warning',
+                            cancelButton: 'btn btn-secondary'
+                        }
+                    });
+
+                    if (!override.isConfirmed) {
+                        this.focusBarcodeInput();
+                        return;
+                    }
+
+                    checkoutData.allowInsufficientStock = true;
+                    checkoutResponse = await postCheckout();
+                }
 
                 if (checkoutResponse.success) {
                     const orderData = checkoutResponse.data;
@@ -1082,64 +1103,29 @@ class POS {
                     // Refresh product grid to show updated stock quantities
                     await this.refreshProductGrid();
                     
-                    // Print receipt using direct ESC/POS commands - no HTML involved
-                    try {
-                        // Fix case sensitivity - C# returns OrderId (uppercase), JS expects orderId (lowercase)
-                        const orderId = orderData.OrderId || orderData.orderId;
-                        console.log('🖨️ Attempting direct thermal print for order:', orderId);
-                        
-                        if (!orderId) {
-                            throw new Error('Order ID not found in checkout response');
-                        }
-                        
-                        var formData = new FormData();
-                        formData.append("orderId", orderId)
-                        
-                        const printResponse = await $.ajax({
-                            url: '/Orders/PrintReceiptForCheckout',
-                            method: 'POST',
-                            contentType: false,
-                            processData: false,
-                            data: formData
+                    // The receipt was already sent to the thermal printer during checkout;
+                    // only fall back to the browser receipt page if that failed.
+                    const orderId = orderData.OrderId || orderData.orderId;
+                    const orderNumber = orderData.OrderNumber || orderData.orderNumber || orderId;
+                    const receiptPrinted = orderData.ReceiptPrinted ?? orderData.receiptPrinted;
+
+                    if (receiptPrinted) {
+                        toastr.success(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${orderNumber}`, window.i18n.t('common.success', 'Success'), {
+                            timeOut: 4000,
+                            closeButton: true,
+                            progressBar: true
                         });
-
-                        console.log('🖨️ Direct print response:', printResponse);
-
-                        if (printResponse.success) {
-                            console.log('✅ Direct thermal receipt printed successfully');
-                            const orderNumber = orderData.OrderNumber || orderData.orderNumber || orderId;
-                            toastr.success(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${orderNumber} - Printed via Direct ESC/POS`, window.i18n.t('common.success', 'Success'), {
-                                timeOut: 4000,
-                                closeButton: true,
-                                progressBar: true
-                            });
-                        } else {
-                            console.warn('⚠️ Direct thermal printing failed:', printResponse.message);
-                            const warningOrderNumber = orderData.OrderNumber || orderData.orderNumber || orderId;
-                            toastr.warning(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${warningOrderNumber} - ${printResponse.message}`, window.i18n.t('common.warning', 'Warning'), {
-                                timeOut: 5000,
-                                closeButton: true,
-                                progressBar: true
-                            });
-                            
-                            // Fallback: Open receipt in browser for manual printing
-                            if (printResponse.receiptUrl) {
-                                window.open(printResponse.receiptUrl, '_blank');
-                            }
-                        }
-                    } catch (printError) {
-                        console.error('❌ Error with direct thermal printing:', printError);
-                        const errorOrderNumber = orderData.OrderNumber || orderData.orderNumber || orderId || 'Unknown';
-                        toastr.error(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${errorOrderNumber} - ${window.i18n.t('pos.printError', 'Print Error')}`, window.i18n.t('common.error', 'Error'), {
+                    } else {
+                        console.warn('⚠️ Thermal printing failed for order:', orderId);
+                        toastr.warning(`${window.i18n.t('pos.saleComplete', 'Sale Complete!')} ${window.i18n.t('pos.receipt', 'Receipt')} #${orderNumber} - ${window.i18n.t('pos.printError', 'Print Error')}`, window.i18n.t('common.warning', 'Warning'), {
                             timeOut: 5000,
                             closeButton: true,
                             progressBar: true
                         });
-                        
-                        // Fallback: Open receipt in browser for manual printing
-                        const fallbackOrderId = orderData.OrderId || orderData.orderId;
-                        if (fallbackOrderId) {
-                            window.open(`/Orders/Receipt/${fallbackOrderId}`, '_blank');
+
+                        // Fallback: open the receipt in the browser for manual printing
+                        if (orderId) {
+                            window.open(`/Orders/Receipt/${orderId}`, '_blank');
                         }
                     }
                     
@@ -2609,7 +2595,7 @@ class POS {
                     $('#create-single-product-btn').on('click', () => {
                         const currentLang = window.location.pathname.split('/')[1] || 'en';
                         const createUrl = `/${currentLang}/Products/Create?noSidebar=true&packId=${packId}&packSize=${packSize}`;
-                        window.open(createUrl, '_blank');
+                        window.open(createUrl, '_blank', 'width=1200,height=850');
                         Swal.close();
                     });
                 },

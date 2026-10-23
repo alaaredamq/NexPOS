@@ -14,179 +14,235 @@ public class EscPosBuilder : IEscPosBuilder
     private const float Margin = 16f;
     private const float NormalFontSize = 26f;
     private const float HeaderFontSize = 40f;
+    private const float MinFontSize = 16f;
     private const float LineSpacing = 1.4f;
+
+    /// <summary>Font A columns on 80mm paper - the text-mode line width.</summary>
+    private const int TextColumns = 48;
+
+    /// <summary>Lines fed before the cut so the last printed line clears the cutter.</summary>
+    private const byte FeedLinesBeforeCut = 5;
+
+    private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
+    // Strict CP437 encoder: throws instead of silently writing '?' for characters the
+    // printer's built-in code page can't represent - that's how we decide to rasterize.
+    private static readonly Encoding Cp437Strict;
+
+    // .NET Core/5+ only ships Unicode encodings out of the box; code page 437 (used for the
+    // plain-text ESC/POS receipt path) needs this provider registered before it can be resolved.
+    static EscPosBuilder()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Cp437Strict = Encoding.GetEncoding(437, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+    }
 
     public byte[] BuildReceipt(Receipt receipt, StoreSettings? storeSettings = null)
     {
-        if (ReceiptContainsArabic(receipt, storeSettings))
-        {
-            return BuildReceiptImage(receipt, storeSettings);
-        }
-
-        return BuildReceiptText(receipt, storeSettings);
+        var lines = BuildLines(receipt, storeSettings);
+        return lines.All(l => CanPrintAsText(l.Text) && CanPrintAsText(l.Right))
+            ? EncodeLinesAsText(lines)
+            : EncodeLinesAsImage(lines);
     }
 
-    private static bool ReceiptContainsArabic(Receipt receipt, StoreSettings? storeSettings)
-    {
-        if (storeSettings != null &&
-            (ContainsArabic(storeSettings.StoreName) ||
-             ContainsArabic(storeSettings.AddressLine1) ||
-             ContainsArabic(storeSettings.AddressLine2) ||
-             ContainsArabic(storeSettings.ReceiptFooterMessage) ||
-             ContainsArabic(storeSettings.FooterLine1) ||
-             ContainsArabic(storeSettings.FooterLine2)))
-        {
-            return true;
-        }
-
-        return receipt.ReceiptItems.Any(i => ContainsArabic(i.ProductName));
-    }
-
-    private byte[] BuildReceiptText(Receipt receipt, StoreSettings? storeSettings)
+    public string BuildPreviewText(Receipt receipt, StoreSettings? storeSettings = null)
     {
         var sb = new StringBuilder();
-        const string ESC = "\x1B";
-        const string GS = "\x1D";
-
-        sb.Append(ESC + "@");
-        sb.Append(ESC + "a\x01"); // Center align
-        sb.Append(GS + "!\x11"); // Double height and width
-
-        // Use store settings for header if available
-        if (storeSettings != null)
+        foreach (var line in BuildLines(receipt, storeSettings))
         {
-            sb.AppendLine(storeSettings.StoreName);
-            sb.Append(GS + "!\x00"); // Normal size
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine1))
-                sb.AppendLine(storeSettings.AddressLine1);
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine2))
-                sb.AppendLine(storeSettings.AddressLine2);
-            if (!string.IsNullOrEmpty(storeSettings.Phone))
-                sb.AppendLine($"Phone: {storeSettings.Phone}");
-            if (!string.IsNullOrEmpty(storeSettings.TaxId))
-                sb.AppendLine($"Tax ID: {storeSettings.TaxId}");
-        }
-        else
-        {
-            sb.AppendLine("RECEIPT");
-            sb.Append(GS + "!\x00"); // Normal size
-        }
-
-        sb.AppendLine("--------------------------------");
-        sb.Append(ESC + "a\x00"); // Left align
-
-        sb.AppendLine($"Receipt #: {receipt.ReceiptNumber}");
-        sb.AppendLine($"Date: {receipt.ReceiptDate:yyyy-MM-dd HH:mm}");
-
-        sb.AppendLine("--------------------------------");
-
-        foreach (var item in receipt.ReceiptItems)
-        {
-            sb.AppendLine(item.ProductName);
-            var quantityDisplay = item.Quantity.ToString("F3");
-            if (!string.IsNullOrEmpty(item.Unit) && item.Unit != "piece")
+            sb.AppendLine(line.Kind switch
             {
-                quantityDisplay += $" {item.Unit}";
-            }
-            sb.AppendLine($"  {quantityDisplay} x {item.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)}");
+                LineKind.Separator => new string('-', TextColumns),
+                LineKind.Spacer => "",
+                _ when line.Right != null => FormatRow(line.Text, line.Right),
+                _ when line.Align == SKTextAlign.Center => line.Text.PadLeft((TextColumns + line.Text.Length) / 2),
+                _ => line.Text,
+            });
         }
+        return sb.ToString();
+    }
 
-        sb.AppendLine("--------------------------------");
-        sb.Append(ESC + "E\x01"); // Bold on
-        sb.AppendLine($"TOTAL: {receipt.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)}");
-        sb.Append(ESC + "E\x00"); // Bold off
+    public bool RequiresImage(string text) => !CanPrintAsText(text);
 
-        sb.AppendLine();
-        sb.Append(ESC + "a\x01"); // Center align
+    public byte[] BuildTextImage(string text)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n')
+            .Select(t => new ReceiptLine(t, SKTextAlign.Left, t.Length == 0 ? LineKind.Spacer : LineKind.Normal))
+            .ToList();
+        return EncodeLinesAsImage(lines);
+    }
 
-        // Use store settings for footer if available
-        if (storeSettings != null)
+    private static bool CanPrintAsText(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return true;
+        try
         {
-            sb.AppendLine(storeSettings.ReceiptFooterMessage);
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine1))
-                sb.AppendLine(storeSettings.FooterLine1);
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine2))
-                sb.AppendLine(storeSettings.FooterLine2);
+            Cp437Strict.GetByteCount(text);
+            return true;
         }
-        else
+        catch (EncoderFallbackException)
         {
-            sb.AppendLine("Thank you!");
+            return false;
         }
-
-        sb.Append(GS + "V\x01"); // Cut paper
-
-        return Encoding.GetEncoding(437).GetBytes(sb.ToString());
     }
 
     private enum LineKind { Header, Normal, Bold, Separator, Spacer }
 
-    private record ReceiptLine(string Text, SKTextAlign Align, LineKind Kind);
+    /// <summary>
+    /// One printed line. When <paramref name="Right"/> is set the line is a two-column row:
+    /// <paramref name="Text"/> on the left edge, <paramref name="Right"/> on the right edge.
+    /// </summary>
+    private record ReceiptLine(string Text, SKTextAlign Align, LineKind Kind, string? Right = null);
 
     /// <summary>
-    /// Same content and order as <see cref="BuildReceipt"/>, kept in one place so the two
-    /// rendering paths (text vs. image) never drift apart.
+    /// The receipt's content and order, kept in one place so the two rendering paths
+    /// (text vs. image) never drift apart.
     /// </summary>
     private static List<ReceiptLine> BuildLines(Receipt receipt, StoreSettings? storeSettings)
     {
         var lines = new List<ReceiptLine>();
+        var notation = receipt.Currency?.Notation ?? "";
+        string Money(decimal amount) => $"{notation}{amount.ToString("F2", Inv)}";
+        void Row(string label, string value, LineKind kind = LineKind.Normal) =>
+            lines.Add(new ReceiptLine(label, SKTextAlign.Left, kind, value));
+        void Centered(string? text)
+        {
+            if (!string.IsNullOrEmpty(text))
+                lines.Add(new ReceiptLine(text, SKTextAlign.Center, LineKind.Normal));
+        }
+        void Separator() => lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Separator));
 
+        // Header
         if (storeSettings != null)
         {
             lines.Add(new ReceiptLine(storeSettings.StoreName, SKTextAlign.Center, LineKind.Header));
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine1))
-                lines.Add(new ReceiptLine(storeSettings.AddressLine1, SKTextAlign.Center, LineKind.Normal));
-            if (!string.IsNullOrEmpty(storeSettings.AddressLine2))
-                lines.Add(new ReceiptLine(storeSettings.AddressLine2, SKTextAlign.Center, LineKind.Normal));
+            Centered(storeSettings.AddressLine1);
+            Centered(storeSettings.AddressLine2);
             if (!string.IsNullOrEmpty(storeSettings.Phone))
-                lines.Add(new ReceiptLine($"Phone: {storeSettings.Phone}", SKTextAlign.Center, LineKind.Normal));
+                Centered($"Phone: {storeSettings.Phone}");
             if (!string.IsNullOrEmpty(storeSettings.TaxId))
-                lines.Add(new ReceiptLine($"Tax ID: {storeSettings.TaxId}", SKTextAlign.Center, LineKind.Normal));
+                Centered($"Tax ID: {storeSettings.TaxId}");
         }
         else
         {
             lines.Add(new ReceiptLine("RECEIPT", SKTextAlign.Center, LineKind.Header));
         }
 
-        lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Separator));
-        lines.Add(new ReceiptLine($"Receipt #: {receipt.ReceiptNumber}", SKTextAlign.Left, LineKind.Normal));
-        lines.Add(new ReceiptLine($"Date: {receipt.ReceiptDate:yyyy-MM-dd HH:mm}", SKTextAlign.Left, LineKind.Normal));
-        lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Separator));
+        // Receipt meta
+        Separator();
+        Row("Receipt #:", receipt.ReceiptNumber);
+        Row("Date:", receipt.ReceiptDate.ToString("yyyy-MM-dd HH:mm", Inv));
 
-        foreach (var item in receipt.ReceiptItems)
+        var customerName = !string.IsNullOrWhiteSpace(receipt.CustomerName)
+            ? receipt.CustomerName.Trim()
+            : $"{receipt.Customer?.FirstName} {receipt.Customer?.LastName}".Trim();
+        if (!string.IsNullOrEmpty(customerName))
+            Row("Customer:", customerName);
+
+        if (receipt.Cashier != null)
         {
-            lines.Add(new ReceiptLine(item.ProductName, SKTextAlign.Left, LineKind.Normal));
-            var quantityDisplay = item.Quantity.ToString("F3");
-            if (!string.IsNullOrEmpty(item.Unit) && item.Unit != "piece")
-            {
-                quantityDisplay += $" {item.Unit}";
-            }
-            lines.Add(new ReceiptLine($"  {quantityDisplay} x {item.UnitPrice.ToString("F2", CultureInfo.InvariantCulture)}", SKTextAlign.Left, LineKind.Normal));
+            var cashierName = $"{receipt.Cashier.FirstName} {receipt.Cashier.LastName}".Trim();
+            Row("Cashier:", string.IsNullOrEmpty(cashierName) ? receipt.Cashier.Username : cashierName);
         }
 
-        lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Separator));
-        lines.Add(new ReceiptLine($"TOTAL: {receipt.TotalAmount.ToString("F2", CultureInfo.InvariantCulture)}", SKTextAlign.Left, LineKind.Bold));
-        lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Spacer));
+        // Items
+        Separator();
+        foreach (var item in receipt.ReceiptItems)
+        {
+            lines.Add(new ReceiptLine(item.ProductName, SKTextAlign.Left, LineKind.Bold));
 
+            var quantityDisplay = item.Quantity.ToString("0.###", Inv);
+            if (!string.IsNullOrEmpty(item.Unit) && !item.Unit.Equals("piece", StringComparison.OrdinalIgnoreCase))
+                quantityDisplay += $" {item.Unit}";
+            Row($"  {quantityDisplay} x {Money(item.UnitPrice)}", Money(item.LineTotal));
+
+            if (item.DiscountAmount > 0)
+                Row("  Discount", $"-{Money(item.DiscountAmount)}");
+        }
+
+        // Totals
+        Separator();
+        Row("Subtotal:", Money(receipt.SubTotal));
+        if (receipt.DiscountAmount > 0)
+            Row("Discount:", $"-{Money(receipt.DiscountAmount)}");
+        if (receipt.TaxAmount > 0)
+            Row("Tax:", Money(receipt.TaxAmount));
+        Row("TOTAL:", Money(receipt.TotalAmount), LineKind.Bold);
+
+        // Payment
+        Separator();
+        if (!string.IsNullOrEmpty(receipt.PaymentMethod?.Name))
+            Row("Payment:", receipt.PaymentMethod.Name);
+        if (receipt.AmountPaid > 0)
+            Row("Paid:", Money(receipt.AmountPaid));
+        if (receipt.ChangeAmount > 0)
+            Row("Change:", Money(receipt.ChangeAmount));
+
+        // Footer
+        lines.Add(new ReceiptLine("", SKTextAlign.Left, LineKind.Spacer));
         if (storeSettings != null)
         {
-            if (!string.IsNullOrEmpty(storeSettings.ReceiptFooterMessage))
-                lines.Add(new ReceiptLine(storeSettings.ReceiptFooterMessage, SKTextAlign.Center, LineKind.Normal));
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine1))
-                lines.Add(new ReceiptLine(storeSettings.FooterLine1, SKTextAlign.Center, LineKind.Normal));
-            if (!string.IsNullOrEmpty(storeSettings.FooterLine2))
-                lines.Add(new ReceiptLine(storeSettings.FooterLine2, SKTextAlign.Center, LineKind.Normal));
+            Centered(storeSettings.ReceiptFooterMessage);
+            Centered(storeSettings.FooterLine1);
+            Centered(storeSettings.FooterLine2);
+            Centered(storeSettings.FooterLine3);
         }
         else
         {
-            lines.Add(new ReceiptLine("Thank you!", SKTextAlign.Center, LineKind.Normal));
+            Centered("Thank you!");
         }
 
         return lines;
     }
 
+    private static string FormatRow(string left, string right)
+    {
+        var spaces = Math.Max(1, TextColumns - left.Length - right.Length);
+        return left + new string(' ', spaces) + right;
+    }
+
+    private static byte[] EncodeLinesAsText(List<ReceiptLine> lines)
+    {
+        var sb = new StringBuilder();
+        const string ESC = "\x1B";
+        const string GS = "\x1D";
+
+        sb.Append(ESC + "@");
+        foreach (var line in lines)
+        {
+            switch (line.Kind)
+            {
+                case LineKind.Separator:
+                    sb.Append(ESC + "a\x00");
+                    sb.AppendLine(new string('-', TextColumns));
+                    continue;
+                case LineKind.Spacer:
+                    sb.AppendLine();
+                    continue;
+                case LineKind.Header:
+                    sb.Append(ESC + "a\x01");
+                    sb.Append(GS + "!\x11"); // Double height and width
+                    sb.AppendLine(line.Text);
+                    sb.Append(GS + "!\x00");
+                    continue;
+            }
+
+            sb.Append(ESC + "a" + (line.Right == null && line.Align == SKTextAlign.Center ? "\x01" : "\x00"));
+            if (line.Kind == LineKind.Bold) sb.Append(ESC + "E\x01");
+            sb.AppendLine(line.Right != null ? FormatRow(line.Text, line.Right) : line.Text);
+            if (line.Kind == LineKind.Bold) sb.Append(ESC + "E\x00");
+        }
+
+        sb.Append(ESC + "a\x00");
+        sb.Append(ESC + "d" + (char)FeedLinesBeforeCut);
+        sb.Append(GS + "V\x01"); // Cut paper
+
+        return Cp437Strict.GetBytes(sb.ToString());
+    }
+
     /// <summary>
-    /// Arabic (incl. presentation forms) - the ranges ESC/POS codepage 437 cannot represent
-    /// at all, and the reason this receipt needs to be rasterized instead of sent as text.
+    /// Arabic (incl. presentation forms) - needs HarfBuzz shaping and right-to-left layout
+    /// when drawn into the receipt image.
     /// </summary>
     private static bool ContainsArabic(string? text)
     {
@@ -205,16 +261,14 @@ public class EscPosBuilder : IEscPosBuilder
         return false;
     }
 
-    private byte[] BuildReceiptImage(Receipt receipt, StoreSettings? storeSettings)
+    private static byte[] EncodeLinesAsImage(List<ReceiptLine> lines)
     {
-        using var bitmap = RenderBitmap(receipt, storeSettings);
+        using var bitmap = RenderBitmap(lines);
         return EncodeRaster(bitmap);
     }
 
-    private SKBitmap RenderBitmap(Receipt receipt, StoreSettings? storeSettings)
+    private static SKBitmap RenderBitmap(List<ReceiptLine> lines)
     {
-        var lines = BuildLines(receipt, storeSettings);
-
         using var latinTypeface = SKTypeface.Default;
         // MatchCharacter asks the OS font system for whichever installed font actually has
         // Arabic glyphs (varies by machine/Windows language pack) rather than betting on one
@@ -225,8 +279,8 @@ public class EscPosBuilder : IEscPosBuilder
         using var arabicShaper = new SKShaper(arabicTypeface);
 
         // Height is computed analytically (font size * fixed spacing per line) rather than by
-        // an actual measure pass - matches how the text version has no real line-wrapping
-        // either, and keeps this a single drawing pass.
+        // an actual measure pass - lines that are too wide shrink their font instead of
+        // wrapping, so every line keeps its fixed height and this stays a single drawing pass.
         float height = Margin * 2;
         foreach (var line in lines)
         {
@@ -244,6 +298,20 @@ public class EscPosBuilder : IEscPosBuilder
         canvas.Clear(SKColors.White);
 
         using var linePaint = new SKPaint { Color = SKColors.Black, StrokeWidth = 2, IsAntialias = true };
+        using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+        const float usableWidth = PaperWidthDots - Margin * 2;
+        const float columnGap = 12f;
+
+        SKFont MakeFont(string text, float size, bool bold) =>
+            new(ContainsArabic(text) ? arabicTypeface : latinTypeface, size) { Embolden = bold };
+
+        void Draw(string text, float x, float y, SKTextAlign align, SKFont font)
+        {
+            if (ContainsArabic(text))
+                canvas.DrawShapedText(arabicShaper, text, x, y, align, font, paint);
+            else
+                canvas.DrawText(text, x, y, align, font, paint);
+        }
 
         float y = Margin;
         foreach (var line in lines)
@@ -262,44 +330,46 @@ public class EscPosBuilder : IEscPosBuilder
                 continue;
             }
 
-            var fontSize = line.Kind == LineKind.Header ? HeaderFontSize : NormalFontSize;
-            var isArabic = ContainsArabic(line.Text);
-            using var font = new SKFont(isArabic ? arabicTypeface : latinTypeface, fontSize)
-            {
-                Embolden = line.Kind == LineKind.Bold,
-            };
-            using var paint = new SKPaint
-            {
-                Color = SKColors.Black,
-                IsAntialias = true,
-            };
+            var lineBoxSize = line.Kind == LineKind.Header ? HeaderFontSize : NormalFontSize;
+            var bold = line.Kind == LineKind.Bold;
 
-            var x = line.Align switch
+            using var leftFont = MakeFont(line.Text, lineBoxSize, bold);
+            using var rightFont = MakeFont(line.Right ?? "", lineBoxSize, bold);
+
+            // Shrink (both columns together) until the line fits the paper, rather than
+            // letting a long product name run off the edge.
+            float Needed() => leftFont.MeasureText(line.Text) +
+                (line.Right != null ? columnGap + rightFont.MeasureText(line.Right) : 0);
+            while (Needed() > usableWidth && leftFont.Size > MinFontSize)
             {
-                SKTextAlign.Center => PaperWidthDots / 2f,
-                SKTextAlign.Right => PaperWidthDots - Margin,
-                _ => Margin,
-            };
+                leftFont.Size -= 1;
+                rightFont.Size -= 1;
+            }
 
-            // Arabic text is right-aligned regardless of the line's nominal alignment - a
-            // left-aligned "field" of Arabic text should still start from the paper's right
-            // edge and read right-to-left, matching how a receipt in an RTL language is
-            // actually laid out rather than how the (LTR-authored) line list positions it.
-            var effectiveAlign = isArabic && line.Align == SKTextAlign.Left ? SKTextAlign.Right : line.Align;
-            var effectiveX = isArabic && line.Align == SKTextAlign.Left ? PaperWidthDots - Margin : x;
+            y += lineBoxSize; // baseline sits at the bottom of this line's box
 
-            y += fontSize; // baseline sits at the bottom of this line's box
-
-            if (isArabic)
+            if (line.Right != null)
             {
-                canvas.DrawShapedText(arabicShaper, line.Text, effectiveX, y, effectiveAlign, font, paint);
+                Draw(line.Text, Margin, y, SKTextAlign.Left, leftFont);
+                Draw(line.Right, PaperWidthDots - Margin, y, SKTextAlign.Right, rightFont);
             }
             else
             {
-                canvas.DrawText(line.Text, effectiveX, y, effectiveAlign, font, paint);
+                // Arabic text is right-aligned regardless of the line's nominal alignment - a
+                // left-aligned "field" of Arabic text should still start from the paper's right
+                // edge and read right-to-left, matching how a receipt in an RTL language is
+                // actually laid out rather than how the (LTR-authored) line list positions it.
+                var align = ContainsArabic(line.Text) && line.Align == SKTextAlign.Left ? SKTextAlign.Right : line.Align;
+                var x = align switch
+                {
+                    SKTextAlign.Center => PaperWidthDots / 2f,
+                    SKTextAlign.Right => PaperWidthDots - Margin,
+                    _ => Margin,
+                };
+                Draw(line.Text, x, y, align, leftFont);
             }
 
-            y += fontSize * (LineSpacing - 1f);
+            y += lineBoxSize * (LineSpacing - 1f);
         }
 
         using var image = surface.Snapshot();
@@ -338,6 +408,7 @@ public class EscPosBuilder : IEscPosBuilder
             (byte)(bitmap.Height & 0xFF), (byte)((bitmap.Height >> 8) & 0xFF),
         });
         result.AddRange(data);
+        result.AddRange(new byte[] { 0x1B, (byte)'d', FeedLinesBeforeCut }); // Feed past the cutter
         result.AddRange(new byte[] { 0x1D, (byte)'V', 0x01 }); // Cut paper
 
         return result.ToArray();

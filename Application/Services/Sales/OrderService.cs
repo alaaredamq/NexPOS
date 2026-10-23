@@ -1,3 +1,5 @@
+using Application.Exceptions;
+using Application.IServices.Licensing;
 using Application.IServices.Sales;
 using Application.IServices.Notifications;
 using Core.Entities.Inventory;
@@ -16,14 +18,16 @@ public class OrderService : IOrderService
     private readonly ICartItemRepository _cartItemRepo;
     private readonly IProductRepository _productRepo;
     private readonly IStockAlertService _stockAlertService;
+    private readonly ILicenseService _licenseService;
     private readonly ILogger<OrderService> _logger;
 
     public OrderService(
-        IOrderRepository orderRepo, 
+        IOrderRepository orderRepo,
         ICartRepository cartRepo,
         ICartItemRepository cartItemRepo,
         IProductRepository productRepo,
         IStockAlertService stockAlertService,
+        ILicenseService licenseService,
         ILogger<OrderService> logger)
     {
         _orderRepo = orderRepo;
@@ -31,20 +35,25 @@ public class OrderService : IOrderService
         _cartItemRepo = cartItemRepo;
         _productRepo = productRepo;
         _stockAlertService = stockAlertService;
+        _licenseService = licenseService;
         _logger = logger;
     }
 
-    public async Task<Order> CreateOrderFromCartAsync(int cartId, int? customerId, decimal totalAmount, int? currencyId = null, int? cashDrawerSessionId = null)
+    public async Task<Order> CreateOrderFromCartAsync(int cartId, int? customerId, decimal totalAmount, int? currencyId = null, int? cashDrawerSessionId = null, bool allowInsufficientStock = false)
     {
         var cart = await _cartRepo.GetByIdAsync(cartId);
         if (cart == null) throw new ArgumentException("Cart not found");
 
         var cartItems = await _cartItemRepo.GetByCartIdAsync(cartId);
-        return await CreateOrderFromCartAsync(cart, cartItems, customerId, totalAmount, currencyId, cashDrawerSessionId);
+        return await CreateOrderFromCartAsync(cart, cartItems, customerId, totalAmount, currencyId, cashDrawerSessionId, allowInsufficientStock);
     }
 
-    public async Task<Order> CreateOrderFromCartAsync(Cart cart, IReadOnlyList<CartItem> cartItems, int? customerId, decimal totalAmount, int? currencyId = null, int? cashDrawerSessionId = null)
+    public async Task<Order> CreateOrderFromCartAsync(Cart cart, IReadOnlyList<CartItem> cartItems, int? customerId, decimal totalAmount, int? currencyId = null, int? cashDrawerSessionId = null, bool allowInsufficientStock = false)
     {
+        // Every new order in the system comes through here, so this is the last line of defence
+        // for the license rule (see ILicenseService).
+        _licenseService.EnsureSalesAllowed();
+
         if (cart == null) throw new ArgumentException("Cart not found");
         if (cartItems == null || !cartItems.Any())
         {
@@ -75,9 +84,16 @@ public class OrderService : IOrderService
             var deducted = await _productRepo.TryDeductStockAsync(product.Id, quantityToDeduct);
             if (!deducted)
             {
-                _logger.LogWarning("Insufficient stock for product {ProductId} ({ProductName}). Requested: {Requested}",
-                    product.Id, product.Name, quantityToDeduct);
-                throw new InvalidOperationException($"Insufficient stock for {product.Name}. Requested {quantityToDeduct}, available {product.StockQuantity}.");
+                if (!allowInsufficientStock)
+                {
+                    _logger.LogWarning("Insufficient stock for product {ProductId} ({ProductName}). Requested: {Requested}",
+                        product.Id, product.Name, quantityToDeduct);
+                    throw new InsufficientStockException($"Insufficient stock for {product.Name}. Requested {quantityToDeduct}, available {product.StockQuantity}.");
+                }
+
+                _logger.LogWarning("Selling product {ProductId} ({ProductName}) past available stock by cashier override. Requested: {Requested}, available: {Available}",
+                    product.Id, product.Name, quantityToDeduct, product.StockQuantity);
+                await _productRepo.ForceDeductStockAsync(product.Id, quantityToDeduct);
             }
 
             _logger.LogDebug("Deducted {Quantity} {Unit} of product {ProductId} ({ProductName})",

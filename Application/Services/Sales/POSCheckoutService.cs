@@ -2,8 +2,11 @@ using Application.DTOs.Sales;
 using Application.Helpers;
 using Application.IServices.Sales;
 using Application.IServices.Inventory;
+using Application.IServices.Licensing;
+using Application.IServices.Users;
 using Core.Entities.Sales;
 using Core.Entities.Inventory;
+using Core.ICache;
 using Core.IRepositories.Sales;
 using Core.IRepositories.Inventory;
 using Infrastructure.Data;
@@ -24,10 +27,20 @@ namespace Application.Services.Sales
         private readonly IReceiptService _receiptService;
         private readonly IThermalPrinterService _thermalPrinterService;
         private readonly ICheckoutIdempotencyGuard _idempotencyGuard;
+        private readonly ICustomerDebtService _customerDebtService;
+        private readonly ICacheService _cache;
         private readonly ErpDbContext _dbContext;
+        private readonly ILicenseService _licenseService;
         private readonly ILogger<POSCheckoutService> _logger;
 
         private static readonly TimeSpan IdempotencyWindow = TimeSpan.FromSeconds(30);
+
+        /// <summary>
+        /// Name of the system payment method used to mark a sale as placed on a customer's
+        /// account (seeded in ErpDbContext). Resolved by name rather than a hardcoded id so a
+        /// re-seed/migration doesn't silently break this.
+        /// </summary>
+        private const string DebtPaymentMethodName = "Customer Debt";
 
         public POSCheckoutService(
             IOrderService orderService,
@@ -40,7 +53,10 @@ namespace Application.Services.Sales
             IReceiptService receiptService,
             IThermalPrinterService thermalPrinterService,
             ICheckoutIdempotencyGuard idempotencyGuard,
+            ICustomerDebtService customerDebtService,
+            ICacheService cache,
             ErpDbContext dbContext,
+            ILicenseService licenseService,
             ILogger<POSCheckoutService> logger)
         {
             _orderService = orderService;
@@ -53,7 +69,10 @@ namespace Application.Services.Sales
             _receiptService = receiptService;
             _thermalPrinterService = thermalPrinterService;
             _idempotencyGuard = idempotencyGuard;
+            _customerDebtService = customerDebtService;
+            _cache = cache;
             _dbContext = dbContext;
+            _licenseService = licenseService;
             _logger = logger;
         }
 
@@ -79,6 +98,11 @@ namespace Application.Services.Sales
 
         public async Task<CheckoutResponse> ProcessCheckoutAsync(CheckoutRequest request)
         {
+            // Backstop for the middleware: whatever route a sale arrives by, an expired or
+            // unlicensed install cannot create new orders. Checked before the idempotency
+            // key is taken so a refused attempt does not consume it.
+            _licenseService.EnsureSalesAllowed();
+
             var idempotencyKey = BuildIdempotencyKey(request);
             if (!_idempotencyGuard.TryBeginCheckout(idempotencyKey, IdempotencyWindow))
             {
@@ -112,6 +136,34 @@ namespace Application.Services.Sales
                     // We use null in the database to represent walk-in/anonymous customers
                     int? effectiveCustomerId = request.CustomerId is > 0 ? request.CustomerId : null;
                     _logger.LogInformation("Processing checkout for customer {CustomerId} (null = walk-in)", effectiveCustomerId?.ToString() ?? "walk-in");
+
+                    // Resolve the system "Customer Debt" payment method once - used both to
+                    // route an AddToDebt sale onto it, and to block a client from picking it
+                    // directly as if it were a normal payment method (S-loophole: that would
+                    // record a "paid" sale that never actually touched the customer's balance).
+                    var debtPaymentMethod = (await _paymentMethodService.GetAllAsync())
+                        .FirstOrDefault(pm => pm.Name.Equals(DebtPaymentMethodName, StringComparison.OrdinalIgnoreCase));
+
+                    if (request.AddToDebt)
+                    {
+                        if (effectiveCustomerId == null)
+                        {
+                            throw new InvalidOperationException(
+                                "Cannot add a walk-in sale to customer debt. Please select a customer first.");
+                        }
+
+                        if (debtPaymentMethod == null)
+                        {
+                            throw new InvalidOperationException("The 'Customer Debt' payment method is not configured.");
+                        }
+
+                        // The client never needs to know this id - it only sends AddToDebt.
+                        request.PaymentMethodId = debtPaymentMethod.Id;
+                    }
+                    else if (debtPaymentMethod != null && request.PaymentMethodId == debtPaymentMethod.Id)
+                    {
+                        throw new InvalidOperationException("Use \"Add to Customer Debt\" to place a sale on the customer's account.");
+                    }
 
                     // If CartId is provided, use existing cart
                     if (request.CartId.HasValue)
@@ -238,10 +290,20 @@ namespace Application.Services.Sales
                         effectiveCustomerId,
                         finalTotal,
                         request.CurrencyId,
-                        cashDrawerSessionId);
+                        cashDrawerSessionId,
+                        request.AllowInsufficientStock);
 
                     // Generate order number
                     var orderNumber = $"ORD-{order.Id:D6}-{DateTime.UtcNow:yyyyMMdd}";
+
+                    if (request.AddToDebt)
+                    {
+                        // Still inside the ambient transaction, so a failure here rolls back
+                        // the order/stock changes too instead of leaving a sale with no debt
+                        // record.
+                        await _customerDebtService.AddSaleTransactionAsync(
+                            effectiveCustomerId!.Value, request.UserId, order.Id, finalTotal);
+                    }
 
                     // Create receipt for the order
                     Receipt receipt = null;
@@ -357,18 +419,31 @@ namespace Application.Services.Sales
                     // All DB state for this sale (cart, order, stock deduction, receipt) is final -
                     // commit before the printer I/O below, which has nothing to do with the transaction.
                     await transaction.CommitAsync();
+                    // Stock was deducted via ExecuteUpdate - drop the POS search cache so it doesn't serve stale quantities.
+                    await _cache.ClearPOSCachesAsync();
 
                     if (request.PrintReceipt)
                     {
-                        try
+                        response.ReceiptPrinted = false;
+                        if (receipt == null)
                         {
-                            _logger.LogInformation("Printing receipt for order {OrderId} on thermal printer", order.Id);
-                            await _thermalPrinterService.PrintReceiptAsync(receipt);
-                            _logger.LogInformation("Receipt printed successfully");
+                            _logger.LogWarning("No receipt was created for order {OrderId}, nothing to print", order.Id);
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            _logger.LogError(ex, "Error printing receipt for order {OrderId}", order.Id);
+                            try
+                            {
+                                _logger.LogInformation("Printing receipt for order {OrderId} on thermal printer", order.Id);
+                                response.ReceiptPrinted = await _thermalPrinterService.PrintReceiptAsync(receipt);
+                                if (response.ReceiptPrinted == true)
+                                    _logger.LogInformation("Receipt printed successfully");
+                                else
+                                    _logger.LogWarning("Thermal printer rejected the receipt for order {OrderId}", order.Id);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error printing receipt for order {OrderId}", order.Id);
+                            }
                         }
                     }
 
@@ -425,7 +500,11 @@ namespace Application.Services.Sales
         public async Task<List<PaymentMethodDto>> GetPaymentMethodsAsync()
         {
             var paymentMethods = await _paymentMethodService.GetAllAsync();
-            return paymentMethods.Select(pm => new PaymentMethodDto
+            return paymentMethods
+                // Not a real payment method - only reachable through the "Add to Customer
+                // Debt" checkout action, which resolves it on the server.
+                .Where(pm => !pm.Name.Equals(DebtPaymentMethodName, StringComparison.OrdinalIgnoreCase))
+                .Select(pm => new PaymentMethodDto
             {
                 Id = pm.Id,
                 Name = pm.Name,

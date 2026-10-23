@@ -1,0 +1,94 @@
+@using Web.Services
+@{
+    ViewData["Title"] = SharedLocalizer["Set_Branding"].Value;
+    var logoAccept = string.Join(",", BrandingService.LogoExtensions);
+    var faviconAccept = string.Join(",", BrandingService.FaviconExtensions);
+}
+
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title mb-0"><i class="fas fa-paint-brush me-2"></i>@SharedLocalizer["Set_Branding"]</h4>
+            <p class="card-subtitle text-muted mb-0">@SharedLocalizer["Set_BrandingSubtitle"]</p>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="erp-alert erp-alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="erp-alert erp-alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Branding" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-lg-4 mb-4">
+                        <label for="appName" class="form-label">@SharedLocalizer["Set_AppName"]</label>
+                        <input type="text" class="form-control" id="appName" name="appName"
+                               value="@(Brand.HasCustomName ? Brand.AppName : "")"
+                               placeholder="@Brand.DefaultAppName" maxlength="@BrandingService.MaxNameLength" />
+                        <div class="form-text">@SharedLocalizer["Set_AppNameHelp", Brand.DefaultAppName]</div>
+                    </div>
+
+                    <div class="col-lg-4 mb-4">
+                        <label for="logo" class="form-label">@SharedLocalizer["Set_Logo"]</label>
+                        <div class="border rounded p-3 mb-2 text-center bg-body-tertiary">
+                            <img id="logoPreview" src="~/branding/logo?v=@Brand.Version" alt="Logo" style="max-height:80px;max-width:100%;" />
+                        </div>
+                        <input type="file" class="form-control" id="logo" name="logo" accept="@logoAccept" />
+                        <div class="form-text">@SharedLocalizer["Set_LogoHelp"]</div>
+                        @if (Brand.HasCustomLogo)
+                        {
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="removeLogo" name="removeLogo" value="true" />
+                                <label class="form-check-label" for="removeLogo">@SharedLocalizer["Set_RemoveLogo"]</label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-lg-4 mb-4">
+                        <label for="favicon" class="form-label">@SharedLocalizer["Set_Favicon"]</label>
+                        <div class="border rounded p-3 mb-2 text-center bg-body-tertiary">
+                            <img id="faviconPreview" src="~/branding/favicon?v=@Brand.Version" alt="Favicon" style="height:48px;width:48px;object-fit:contain;" />
+                        </div>
+                        <input type="file" class="form-control" id="favicon" name="favicon" accept="@faviconAccept" />
+                        <div class="form-text">@SharedLocalizer["Set_FaviconHelp"]</div>
+                        @if (Brand.HasCustomFavicon)
+                        {
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="removeFavicon" name="removeFavicon" value="true" />
+                                <label class="form-check-label" for="removeFavicon">@SharedLocalizer["Set_RemoveFavicon"]</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="@Url.ActionWithCurrentLanguage("Index", "Settings")" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>@SharedLocalizer["Set_BackToSettings"]</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>@SharedLocalizer["Set_Save"]</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Preview a newly chosen image before saving.
+        function previewFile(inputId, imgId) {
+            $('#' + inputId).on('change', function () {
+                var file = this.files && this.files[0];
+                if (file) $('#' + imgId).attr('src', URL.createObjectURL(file));
+            });
+        }
+        previewFile('logo', 'logoPreview');
+        previewFile('favicon', 'faviconPreview');
+    </script>
+}

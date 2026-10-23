@@ -32,12 +32,16 @@ public class ReportService : IReportService
     public async Task<object> GetSalesByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var data = await _db.Orders
+        var orders = await _db.Orders
             .Where(o => o.OrderDate >= since)
-            .GroupBy(o => EF.Functions.DateFromParts(o.OrderDate.Year, 1, 1).AddDays((o.OrderDate.DayOfYear / 7) * 7))
+            .Select(o => new { o.OrderDate, o.TotalAmount })
+            .ToListAsync();
+
+        var data = orders
+            .GroupBy(o => GetWeekBucketStart(o.OrderDate))
             .Select(g => new { week = g.Key, total = g.Sum(x => x.TotalAmount) })
             .OrderBy(x => x.week)
-            .ToListAsync();
+            .ToList();
 
         var labels = data.Select(d => $"Week {d.week:MMM dd}").ToList();
         var totals = data.Select(d => (double)d.total).ToList();
@@ -103,19 +107,25 @@ public class ReportService : IReportService
     public async Task<object> GetProfitByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var data = await _db.Orders
+        var orders = await _db.Orders
             .Where(o => o.OrderDate >= since)
-            .Include(o => o.Cart)
-            .ThenInclude(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .GroupBy(o => EF.Functions.DateFromParts(o.OrderDate.Year, 1, 1).AddDays((o.OrderDate.DayOfYear / 7) * 7))
-            .Select(g => new { 
-                week = g.Key, 
+            .Select(o => new
+            {
+                o.OrderDate,
+                o.TotalAmount,
+                Cost = o.Cart.CartItems.Sum(ci => ci.Quantity * (ci.Product.CostPrice ?? 0))
+            })
+            .ToListAsync();
+
+        var data = orders
+            .GroupBy(o => GetWeekBucketStart(o.OrderDate))
+            .Select(g => new {
+                week = g.Key,
                 totalSales = g.Sum(x => x.TotalAmount),
-                totalCost = g.SelectMany(x => x.Cart.CartItems).Sum(ci => ci.Quantity * (ci.Product.CostPrice ?? 0))
+                totalCost = g.Sum(x => x.Cost)
             })
             .OrderBy(x => x.week)
-            .ToListAsync();
+            .ToList();
 
         var labels = data.Select(d => $"Week {d.week:MMM dd}").ToList();
         var profits = data.Select(d => (double)(d.totalSales - d.totalCost)).ToList();
@@ -203,19 +213,25 @@ public class ReportService : IReportService
     public async Task<object> GetIncomeExpensesByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var data = await _db.Orders
+        var orders = await _db.Orders
             .Where(o => o.OrderDate >= since)
-            .Include(o => o.Cart)
-            .ThenInclude(c => c.CartItems)
-            .ThenInclude(ci => ci.Product)
-            .GroupBy(o => EF.Functions.DateFromParts(o.OrderDate.Year, 1, 1).AddDays((o.OrderDate.DayOfYear / 7) * 7))
-            .Select(g => new { 
-                week = g.Key, 
+            .Select(o => new
+            {
+                o.OrderDate,
+                o.TotalAmount,
+                Expense = o.Cart.CartItems.Sum(ci => ci.Quantity * (ci.Product.CostPrice ?? 0))
+            })
+            .ToListAsync();
+
+        var data = orders
+            .GroupBy(o => GetWeekBucketStart(o.OrderDate))
+            .Select(g => new {
+                week = g.Key,
                 income = g.Sum(x => x.TotalAmount),
-                expenses = g.SelectMany(x => x.Cart.CartItems).Sum(ci => ci.Quantity * (ci.Product.CostPrice ?? 0))
+                expenses = g.Sum(x => x.Expense)
             })
             .OrderBy(x => x.week)
-            .ToListAsync();
+            .ToList();
 
         var labels = data.Select(d => $"Week {d.week:MMM dd}").ToList();
         var income = data.Select(d => (double)d.income).ToList();
@@ -374,4 +390,9 @@ public class ReportService : IReportService
 
         return new { labels, datasets = new[] { new { label = "Sales", data = sales } } };
     }
+
+    // EF.Functions.DateFromParts is SQL-Server-only, with no SQLite translation - week-bucketing
+    // is done in-memory on already-materialized rows instead (see the *ByWeekAsync methods above).
+    private static DateTime GetWeekBucketStart(DateTime orderDate) =>
+        new DateTime(orderDate.Year, 1, 1).AddDays((orderDate.DayOfYear / 7) * 7);
 }

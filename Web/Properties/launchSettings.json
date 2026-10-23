@@ -9,7 +9,7 @@
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5000"
     },
-    "http-electron": {
+    "Electron": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",

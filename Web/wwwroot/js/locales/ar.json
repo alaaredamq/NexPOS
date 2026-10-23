@@ -64,6 +64,8 @@
     "cartCleared": "تم مسح السلة",
     "checkout": "الدفع",
     "completeCheckout": "إكمال الدفع",
+    "addToDebt": "إضافة إلى دين العميل",
+    "selectCustomerForDebt": "الرجاء اختيار عميل لإضافة هذا البيع إلى دينه",
     "customerOptional": "العميل (اختياري)",
     "walkInCustomer": "عميل عابر",
     "paymentMethod": "طريقة الدفع",
@@ -75,6 +77,10 @@
     "notesOptional": "ملاحظات (اختياري)",
     "addNotes": "إضافة ملاحظات...",
     "checkoutFailed": "فشل الدفع",
+    "insufficientStockTitle": "المخزون غير كاف",
+    "sellAnywayPrompt": "هل تريد البيع على أي حال؟",
+    "sellAnyway": "البيع على أي حال",
+    "reviewCart": "مراجعة السلة",
     "errorOccurred": "حدث خطأ أثناء الدفع",
     "saleComplete": "اكتمال البيع!",
     "receipt": "إيصال",
@@ -166,7 +172,23 @@
   },
   "products": {
     "areYouSureYouWantToDeleteThisProduct": "هل أنت متأكد أنك تريد حذف هذا المنتج؟",
-    "anErrorOccurredWhileDeletingTheProduct": "حدث خطأ أثناء حذف المنتج"
+    "anErrorOccurredWhileDeletingTheProduct": "حدث خطأ أثناء حذف المنتج",
+    "printLabel": {
+      "title": "طباعة ملصق",
+      "printer": "طابعة الملصقات",
+      "systemDefault": "الافتراضية للنظام",
+      "notDetected": "غير متصلة",
+      "size": "حجم الملصق (مم)",
+      "width": "العرض",
+      "height": "الارتفاع",
+      "copies": "عدد الملصقات",
+      "increase": "ملصق إضافي",
+      "decrease": "ملصق أقل",
+      "hint": "حتى {max} ملصق في كل عملية طباعة.",
+      "print": "طباعة {count} ملصق",
+      "missingBarcode": "أدخل باركود أو قم بتوليده أولاً.",
+      "failed": "فشلت طباعة الملصق"
+    }
   },
   "dashboard": {
     "failedToLoadChartData": "فشل تحميل بيانات الرسم البياني"

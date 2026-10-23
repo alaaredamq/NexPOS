@@ -48,23 +48,16 @@ public class StoreSettingsService : IStoreSettingsService
         settings.AddressLine2 = request.AddressLine2;
         settings.Phone = request.Phone;
         settings.TaxId = request.TaxId;
-        settings.Email = request.Email;
         settings.Website = request.Website;
         settings.ReceiptFooterMessage = request.ReceiptFooterMessage;
         settings.FooterLine1 = request.FooterLine1;
         settings.FooterLine2 = request.FooterLine2;
         settings.FooterLine3 = request.FooterLine3;
-        settings.CurrencySymbol = request.CurrencySymbol;
-        settings.DefaultLanguage = request.DefaultLanguage;
-        settings.PrintLogo = request.PrintLogo;
-        settings.LogoPath = request.LogoPath;
-        settings.ReturnPolicyDays = request.ReturnPolicyDays;
-        settings.ShowTaxBreakdown = request.ShowTaxBreakdown;
-        settings.PrintBarcode = request.PrintBarcode;
-        settings.SocialMedia = request.SocialMedia;
-        settings.BusinessRegistrationNumber = request.BusinessRegistrationNumber;
+        // Only the fields printed on receipts are editable. The remaining columns (email, currency
+        // symbol, language, logo, return policy, tax/barcode toggles, social, registration number)
+        // aren't used anywhere, so a save leaves them untouched.
         settings.LastModifiedByUserId = userId;
-        
+
         var updated = await _repository.UpdateStoreSettingsAsync(settings);
         return MapToDTO(updated);
     }

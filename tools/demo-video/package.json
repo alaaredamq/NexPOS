@@ -1,0 +1,13 @@
+{
+  "name": "nexpos-demo-video",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Records the NexPOS client demo video against a seeded demo database",
+  "scripts": {
+    "record": "node record-demo.js"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright": "1.62.1"
+  }
+}

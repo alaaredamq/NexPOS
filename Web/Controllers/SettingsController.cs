@@ -10,20 +10,23 @@ namespace Web.Controllers
 {
     [Authorize]
     [RequirePermission("Settings.Manage")]
-    public class SettingsController : Controller
+    public class SettingsController : BaseController
     {
         private readonly ISystemSettingsService _settingsService;
         private readonly IStoreSettingsService _storeSettingsService;
         private readonly IThermalPrinterService _thermalPrinterService;
+        private readonly Web.Services.IBrandingService _branding;
 
         public SettingsController(
             ISystemSettingsService settingsService,
             IStoreSettingsService storeSettingsService,
-            IThermalPrinterService thermalPrinterService)
+            IThermalPrinterService thermalPrinterService,
+            Web.Services.IBrandingService branding)
         {
             _settingsService = settingsService;
             _storeSettingsService = storeSettingsService;
             _thermalPrinterService = thermalPrinterService;
+            _branding = branding;
         }
 
         /// <summary>
@@ -72,18 +75,44 @@ namespace Web.Controllers
             }
         }
 
-        public async Task<IActionResult> Index()
+        // Landing page: links to the settings pages that actually change app behaviour.
+        public IActionResult Index() => View();
+
+        [HttpGet]
+        public IActionResult Branding() => View();
+
+        /// <summary>
+        /// White-label branding: app name, logo and favicon. Blank / "remove" falls back to the NexPos defaults.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Branding(string? appName, IFormFile? logo, IFormFile? favicon, bool removeLogo, bool removeFavicon)
         {
             try
             {
-                var categories = await _settingsService.GetSettingsByCategoryAsync();
-                return View(categories);
+                _branding.SetAppName(appName);
+
+                if (removeLogo) _branding.RemoveLogo();
+                else if (logo is { Length: > 0 })
+                {
+                    using var stream = logo.OpenReadStream();
+                    _branding.SaveLogo(stream, Path.GetExtension(logo.FileName));
+                }
+
+                if (removeFavicon) _branding.RemoveFavicon();
+                else if (favicon is { Length: > 0 })
+                {
+                    using var stream = favicon.OpenReadStream();
+                    _branding.SaveFavicon(stream, Path.GetExtension(favicon.FileName));
+                }
+
+                TempData["SuccessMessage"] = "Branding saved";
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                TempData["ErrorMessage"] = $"Error loading settings: {ex.Message}";
-                return View(new List<SettingCategoryDTO>());
+                TempData["ErrorMessage"] = ex.Message;
             }
+            return RedirectToAction(nameof(Branding));
         }
 
         [HttpGet]

@@ -18,4 +18,11 @@ public interface IProductRepository : IRepository<Product>
     /// Returns false if the product doesn't exist or has insufficient stock.
     /// </summary>
     Task<bool> TryDeductStockAsync(int productId, decimal quantity);
+
+    /// <summary>
+    /// Decrements stock without requiring enough on hand, flooring at zero. Used when the cashier
+    /// explicitly overrides an insufficient-stock warning (the stock count was wrong or the item is
+    /// physically there anyway).
+    /// </summary>
+    Task<bool> ForceDeductStockAsync(int productId, decimal quantity);
 }

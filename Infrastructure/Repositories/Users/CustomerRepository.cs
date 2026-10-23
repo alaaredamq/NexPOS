@@ -13,6 +13,9 @@ public class CustomerRepository : Repository<Customer>, ICustomerRepository
     {
     }
 
+    public async Task<List<Customer>> GetAllWithOrdersAsync() =>
+        await GetAllQueryable().Include(c => c.Orders).AsSplitQuery().ToListAsync();
+
     public new async Task<Customer> GetByIdAsync(int id)
     {
         var customer = await GetAllQueryable()

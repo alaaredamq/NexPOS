@@ -9,20 +9,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - NexPos</title>
-    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
-    <link rel="alternate icon" type="image/x-icon" href="~/favicon.ico" />
+    <title>@ViewData["Title"] - @Brand.AppName</title>
+    <link rel="icon" href="~/branding/favicon?v=@Brand.Version" />
 
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/lib/font-awesome/css/all.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- Toastr -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+    <link href="/lib/toastr/toastr.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="/lib/sweetalert2/sweetalert2.min.css" rel="stylesheet">
     
     <!-- Auth Pages CSS -->
     <link href="~/css/colors.css" rel="stylesheet" asp-append-version="true" />
@@ -41,14 +40,17 @@
 
     @RenderBody()
 
+    @{ ViewData["LicenseBannerFloating"] = true; }
+    @await Html.PartialAsync("_LicenseBanner")
+
     <!-- Minimal JavaScript for login page only -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Toastr -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="/lib/toastr/toastr.min.js"></script>
     <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/lib/sweetalert2/sweetalert2.min.js"></script>
     
     <!-- Localization -->
     <script src="~/js/localization.js" asp-append-version="true"></script>

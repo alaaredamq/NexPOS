@@ -105,6 +105,15 @@
         }
     };
 
+    window.addCustomerDebt = function(id) {
+        var urls = window.customersUrls || {};
+        window.openDebtTransactionDialog(id, urls.addDebtTransactionUrl || '', function () {
+            if (window.dataTable_customersTable) {
+                window.dataTable_customersTable.ajax.reload(null, false);
+            }
+        });
+    };
+
     window.updateCustomerStats = function() {
         var getCustomersUrl = window.customersUrls?.getCustomersUrl || '/Customers/GetCustomers';
         

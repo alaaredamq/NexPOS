@@ -11,6 +11,12 @@ namespace Application.DTOs.Sales
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public string ReceiptUrl { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Whether the receipt reached the thermal printer. Null when the request didn't ask
+        /// for printing (<see cref="CheckoutRequest.PrintReceipt"/> false).
+        /// </summary>
+        public bool? ReceiptPrinted { get; set; }
         public List<CheckoutItemResponse> Items { get; set; } = new List<CheckoutItemResponse>();
     }
     

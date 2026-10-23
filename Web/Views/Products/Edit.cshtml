@@ -39,6 +39,9 @@
                                 <button type="button" class="btn btn-outline-secondary" id="generateBarcodeBtn" title="Generate a new barcode">
                                     <i class="fas fa-wand-magic-sparkles me-1"></i>Generate
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary" id="printLabelBtn" title="Print barcode stickers">
+                                    <i class="fas fa-barcode me-1"></i>Print
+                                </button>
                             </div>
                             <span asp-validation-for="Barcode" class="text-danger"></span>
                         </div>
@@ -248,6 +251,7 @@
 </div>
 
 @section Scripts {
+    <partial name="_StickerLabelScripts" />
     <script>
         $(document).ready(function() {
             // Calculate profit margin in real-time
@@ -292,6 +296,16 @@
                     })
                     .fail(function() { alert('Could not generate a barcode.'); })
                     .always(function() { $btn.prop('disabled', false).html(originalHtml); });
+            });
+
+            // Print barcode stickers from what's in the form (including unsaved changes)
+            $('#printLabelBtn').on('click', function() {
+                const notation = ($('#CurrencyId option:selected').text().match(/\(([^)]*)\)\s*$/) || [])[1];
+                StickerLabel.prompt({
+                    name: $('#Name').val(),
+                    code: $('#Barcode').val(),
+                    price: StickerLabel.formatPrice($('#SellingPrice').val(), notation)
+                });
             });
 
             // Form validation

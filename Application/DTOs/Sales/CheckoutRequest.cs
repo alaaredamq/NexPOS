@@ -23,8 +23,19 @@ namespace Application.DTOs.Sales
         
         public decimal? AmountPaid { get; set; } // How much customer actually paid (for change calculation)
         
+        /// <summary>
+        /// Ignored when <see cref="AddToDebt"/> is true - the server resolves the "Customer
+        /// Debt" system payment method itself so the client never has to know its id.
+        /// </summary>
         public int PaymentMethodId { get; set; }
-        
+
+        /// <summary>
+        /// When true, this sale is placed on the customer's account instead of being paid for
+        /// now: the total is added to the customer's debt balance rather than collected as
+        /// payment. Requires a real customer (not walk-in/CustomerId null or 0).
+        /// </summary>
+        public bool AddToDebt { get; set; }
+
         public decimal? DiscountAmount { get; set; }
         
         public string? DiscountCode { get; set; }
@@ -36,6 +47,13 @@ namespace Application.DTOs.Sales
         public int CurrencyId { get; set; } = 1; // Default to USD
         
         public bool PrintReceipt { get; set; } = true;
+
+        /// <summary>
+        /// Cashier override: complete the sale even if a product doesn't have enough stock on hand
+        /// (stock is floored at zero). Set by the POS after the cashier confirms the
+        /// insufficient-stock warning.
+        /// </summary>
+        public bool AllowInsufficientStock { get; set; }
     }
     
     public class CheckoutItemRequest

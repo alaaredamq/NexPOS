@@ -1,0 +1,115 @@
+@using Application.DTOs.Licensing
+@using Common.Licensing
+@model LicenseState
+@{
+    ViewData["Title"] = SharedLocalizer["License_Title"].Value;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    if (!signedIn)
+    {
+        Layout = "_AuthLayout";
+    }
+
+    var lang = ViewBag.CurrentLanguage as string ?? "en";
+    var severity = LicenseMessageHelper.Severity(Model);
+    string D(DateOnly? date) => date?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) ?? "-";
+
+    var kindLabel = Model.Kind is { } kind ? SharedLocalizer[$"License_Kind_{kind}"].Value : "-";
+    var isTimeLimited = Model.Kind is LicenseKind.Provisional or LicenseKind.Trial;
+    var errorKey = TempData["LicenseError"] as string;
+}
+
+<div class="container py-4" style="max-width: 820px;">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                <h4 class="mb-0"><i class="fas fa-key me-2"></i>@SharedLocalizer["License_Title"]</h4>
+                <span class="badge bg-@severity fs-6">@LicenseMessageHelper.Title(Model, SharedLocalizer)</span>
+            </div>
+
+            @if (TempData["LicenseSuccess"] is not null)
+            {
+                <div class="alert alert-success">@SharedLocalizer["License_Success"]</div>
+            }
+            @if (errorKey is not null)
+            {
+                <div class="alert alert-danger">@SharedLocalizer[$"License_Error_{errorKey}"]</div>
+            }
+
+            <div class="alert alert-@severity">@LicenseMessageHelper.Message(Model, SharedLocalizer)</div>
+
+            @if (Model.Kind is not null)
+            {
+                <dl class="row mb-4">
+                    <dt class="col-sm-4">@SharedLocalizer["License_Customer"]</dt>
+                    <dd class="col-sm-8">@Model.Customer</dd>
+
+                    <dt class="col-sm-4">@SharedLocalizer["License_Type"]</dt>
+                    <dd class="col-sm-8">@kindLabel</dd>
+
+                    <dt class="col-sm-4">@SharedLocalizer["License_Serial"]</dt>
+                    <dd class="col-sm-8"><span class="font-monospace">@Model.Serial</span></dd>
+
+                    <dt class="col-sm-4">@SharedLocalizer["License_IssuedOn"]</dt>
+                    <dd class="col-sm-8">@D(Model.IssuedOn)</dd>
+
+                    <dt class="col-sm-4">@SharedLocalizer[isTimeLimited ? "License_ExpiresOn" : "License_UpdatesUntil"]</dt>
+                    <dd class="col-sm-8">@D(Model.ValidUntil)</dd>
+                </dl>
+            }
+
+            <h6>@SharedLocalizer["License_MachineId"]</h6>
+            <div class="input-group mb-1" dir="ltr">
+                <input type="text" id="machineId" class="form-control font-monospace" value="@Model.MachineId" readonly />
+                <button type="button" id="copyMachineId" class="btn btn-outline-secondary"
+                        data-copied="@SharedLocalizer["License_Copied"]">@SharedLocalizer["License_Copy"]</button>
+            </div>
+            <div class="form-text mb-4">@SharedLocalizer["License_MachineIdHelp"]</div>
+
+            <h6>@SharedLocalizer["License_ActivateTitle"]</h6>
+            <form method="post" action="/@lang/License/Activate">
+                @Html.AntiForgeryToken()
+                <textarea name="licenseKey" rows="4" class="form-control font-monospace" dir="ltr"
+                          maxlength="4000" spellcheck="false" autocomplete="off"
+                          placeholder="@SharedLocalizer["License_PasteHint"]"></textarea>
+                <button type="submit" class="btn btn-primary mt-3">@SharedLocalizer["License_ActivateButton"]</button>
+            </form>
+
+            <div class="mt-4">
+                <a href="/@lang/@(signedIn ? "Home" : "Account/Login")" class="text-decoration-none">
+                    <i class="fas fa-arrow-@(ViewBag.IsRtl == true ? "right" : "left") me-1"></i>@SharedLocalizer["License_BackToApp"]
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var button = document.getElementById('copyMachineId');
+            var input = document.getElementById('machineId');
+            if (!button || !input) return;
+
+            button.addEventListener('click', function () {
+                var original = button.textContent;
+                var done = function () {
+                    button.textContent = button.getAttribute('data-copied');
+                    setTimeout(function () { button.textContent = original; }, 1500);
+                };
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(input.value).then(done, function () {
+                        input.select();
+                        document.execCommand('copy');
+                        done();
+                    });
+                } else {
+                    input.select();
+                    document.execCommand('copy');
+                    done();
+                }
+            });
+        })();
+    </script>
+}

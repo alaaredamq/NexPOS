@@ -571,8 +571,15 @@ html[dir="rtl"] .d-flex.align-items-center .customer-avatar {
    Action Buttons in Tables RTL
    ===================================================== */
 html[dir="rtl"] .action-buttons {
-    flex-direction: row-reverse;
+    /* Natural RTL order: the first button (view) sits on the right. */
+    flex-direction: row;
     justify-content: center;
+}
+
+/* Same for button groups inside table rows (customers, products, ...). */
+html[dir="rtl"] td .btn-group,
+html[dir="rtl"] .table .btn-group {
+    flex-direction: row;
 }
 
 html[dir="rtl"] .action-buttons .btn {

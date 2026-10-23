@@ -298,11 +298,11 @@
         function createDailySalesChart(dailySales) {
             const ctx = document.getElementById('dailySalesChart').getContext('2d');
             
-            if (window.dailySalesChart) {
-                window.dailySalesChart.destroy();
+            if (window._dailySalesChart) {
+                window._dailySalesChart.destroy();
             }
 
-            window.dailySalesChart = new Chart(ctx, {
+            window._dailySalesChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: dailySales.map(d => formatDate(d.date)),
@@ -343,11 +343,11 @@
         function createCategoryChart(categorySales) {
             const ctx = document.getElementById('categoryChart').getContext('2d');
             
-            if (window.categoryChart) {
-                window.categoryChart.destroy();
+            if (window._categoryChart) {
+                window._categoryChart.destroy();
             }
 
-            window.categoryChart = new Chart(ctx, {
+            window._categoryChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: categorySales.map(c => c.categoryName),
@@ -373,11 +373,11 @@
         function createPaymentMethodChart(paymentMethodSales) {
             const ctx = document.getElementById('paymentMethodChart').getContext('2d');
             
-            if (window.paymentMethodChart) {
-                window.paymentMethodChart.destroy();
+            if (window._paymentMethodChart) {
+                window._paymentMethodChart.destroy();
             }
 
-            window.paymentMethodChart = new Chart(ctx, {
+            window._paymentMethodChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: paymentMethodSales.map(p => p.paymentMethodName),

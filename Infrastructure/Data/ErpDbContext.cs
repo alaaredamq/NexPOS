@@ -18,6 +18,7 @@ public class ErpDbContext : DbContext
 
     public DbSet<Currency> Currencies { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<CustomerDebtTransaction> CustomerDebtTransactions { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
@@ -163,6 +164,27 @@ public class ErpDbContext : DbContext
             .HasForeignKey(ca => ca.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Customer>()
+            .HasMany(c => c.DebtTransactions)
+            .WithOne(t => t.Customer)
+            .HasForeignKey(t => t.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Restrict, not Cascade: Order already has its own delete path from Customer via
+        // ClientSetNull above, so cascading through it too would hit the same multi-path
+        // conflict that ClientSetNull was introduced to avoid.
+        modelBuilder.Entity<CustomerDebtTransaction>()
+            .HasOne(t => t.Order)
+            .WithMany()
+            .HasForeignKey(t => t.OrderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CustomerDebtTransaction>()
+            .HasOne(t => t.User)
+            .WithMany()
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<ProductCategory>()
             .HasMany(pc => pc.Products)
             .WithOne(p => p.Category)
@@ -193,8 +215,7 @@ public class ErpDbContext : DbContext
             entity.ToTable("Receipts");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ReceiptNumber).HasMaxLength(50).IsRequired();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            
+
             entity.HasIndex(e => e.ReceiptNumber).IsUnique();
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.CustomerId);
@@ -251,8 +272,7 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.Unit).HasMaxLength(50);
             entity.Property(e => e.Quantity).HasPrecision(18, 3);
             entity.Property(e => e.WeightOrVolume).HasPrecision(18, 3);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            
+
             entity.HasIndex(e => e.ReceiptId);
             entity.HasIndex(e => e.ProductId);
             
@@ -266,8 +286,7 @@ public class ErpDbContext : DbContext
         {
             entity.ToTable("ReceiptPayments");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            
+
             entity.HasIndex(e => e.ReceiptId);
             entity.HasIndex(e => e.PaymentMethodId);
             
@@ -281,8 +300,7 @@ public class ErpDbContext : DbContext
         {
             entity.ToTable("MainScreenProducts");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            
+
             entity.HasOne(e => e.Product)
                 .WithMany()
                 .HasForeignKey(e => e.ProductId)
@@ -295,7 +313,6 @@ public class ErpDbContext : DbContext
             {
                 entity.ToTable("ProductDisplayOrders");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.Product)
                     .WithMany()
@@ -310,8 +327,6 @@ public class ErpDbContext : DbContext
         {
             entity.ToTable("SystemSettings");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             entity.HasIndex(e => e.SettingKey).IsUnique();
             entity.HasIndex(e => e.Category);
@@ -322,8 +337,6 @@ public class ErpDbContext : DbContext
         {
             entity.ToTable("Backups");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.BackupType);
@@ -335,8 +348,6 @@ public class ErpDbContext : DbContext
         {
             entity.ToTable("BackupSchedules");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.NextRun);
@@ -381,7 +392,7 @@ public class ErpDbContext : DbContext
             new Customer("Alaa", "Reda", "alaa@example.com", "78912345", "Hamra", "Beirut", "Lebanon", "1102")
             {
                 Id = 1,
-                Dept = 0,
+                Balance = 0,
                 IsActive = true,
                 CreatedAt = seedTimestamp
             }
@@ -397,7 +408,10 @@ public class ErpDbContext : DbContext
 
         modelBuilder.Entity<PaymentMethod>().HasData(
             new PaymentMethod("Cash", true) { Id = 1, CreatedAt = seedTimestamp },
-            new PaymentMethod("Card", false) { Id = 2, CreatedAt = seedTimestamp }
+            new PaymentMethod("Card", false) { Id = 2, CreatedAt = seedTimestamp },
+            // System entry used by POS "Add to Customer Debt" - not selectable as a normal
+            // payment method, resolved by name from POSCheckoutService.
+            new PaymentMethod("Customer Debt", false) { Id = 3, CreatedAt = seedTimestamp }
         );
 
         // No seed for notifications/audit logs/customer carts
@@ -472,8 +486,7 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.Message).HasMaxLength(1000).IsRequired();
             entity.Property(e => e.Type).HasConversion<int>();
             entity.Property(e => e.Priority).HasConversion<int>();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            
+
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
@@ -488,7 +501,6 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.Message).HasMaxLength(1000).IsRequired();
             entity.Property(e => e.Type).HasConversion<int>();
             entity.Property(e => e.Status).HasConversion<int>();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.Metadata).HasMaxLength(2000);
             
             // ClientSetNull, not SetNull: two ON DELETE SET NULL paths from Users to the same
@@ -516,7 +528,6 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.IpAddress).HasMaxLength(45).IsRequired();
             entity.Property(e => e.UserAgent).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Severity).HasConversion<int>();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.OldValuesJson).HasMaxLength(4000);
             entity.Property(e => e.NewValuesJson).HasMaxLength(4000);
             entity.Property(e => e.AdditionalInfoJson).HasMaxLength(2000);
@@ -545,7 +556,6 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.FilePath).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Type).HasConversion<int>();
             entity.Property(e => e.Status).HasConversion<int>();
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.ErrorMessage).HasMaxLength(1000);
         });
@@ -647,6 +657,50 @@ public class ErpDbContext : DbContext
         };
 
         modelBuilder.Entity<UrlRoute>().HasData(urlRoutes);
+
+        // =========================
+        // Case-insensitive lookups (SQLite only)
+        // =========================
+        // SQLite compares strings byte-for-byte by default. SQL Server's default collation is
+        // case-insensitive, and the app was written against that assumption (login by
+        // username/email, barcode scans, config-key lookups, unique constraints on those same
+        // columns all rely on it). NOCASE reproduces that behavior for exactly the columns that
+        // need it - deliberately an allow-list, not every string column, since free-text fields
+        // (descriptions, notes, etc.) have no such assumption baked into the app and NOCASE would
+        // just change their sort order for no benefit. A unique index inherits its column's
+        // collation, so this also fixes case-insensitive uniqueness (e.g. "Admin" vs "admin"
+        // usernames) without any separate index-level configuration.
+        ApplyCaseInsensitiveCollations(modelBuilder);
+    }
+
+    private static readonly Dictionary<Type, string[]> CaseInsensitiveProperties = new()
+    {
+        [typeof(User)] = [nameof(User.Username), nameof(User.Email)],
+        [typeof(Product)] = [nameof(Product.Barcode), nameof(Product.Name)],
+        [typeof(Receipt)] = [nameof(Receipt.ReceiptNumber), nameof(Receipt.CustomerPhone)],
+        [typeof(CodeList)] = [nameof(CodeList.Key)],
+        [typeof(SystemSettings)] = [nameof(Core.Entities.Configuration.SystemSettings.SettingKey)],
+        [typeof(UrlRoute)] = [nameof(UrlRoute.Key), nameof(UrlRoute.Controller)],
+        [typeof(AppSetting)] = [nameof(AppSetting.Name)],
+        [typeof(AuditLog)] = [nameof(AuditLog.EntityType), nameof(AuditLog.Action)],
+        [typeof(CartSession)] = [nameof(CartSession.SessionId)],
+        [typeof(Role)] = [nameof(Role.Name)],
+        [typeof(Permission)] = [nameof(Permission.Category), nameof(Permission.Action), nameof(Permission.Resource)],
+        [typeof(UserSession)] = [nameof(UserSession.SessionToken)],
+    };
+
+    private static void ApplyCaseInsensitiveCollations(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!CaseInsensitiveProperties.TryGetValue(entityType.ClrType, out var propertyNames))
+                continue;
+
+            foreach (var propertyName in propertyNames)
+            {
+                entityType.FindProperty(propertyName)?.SetCollation("NOCASE");
+            }
+        }
     }
 
     #endregion

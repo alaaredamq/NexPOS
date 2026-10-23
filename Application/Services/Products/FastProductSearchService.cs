@@ -258,6 +258,8 @@ namespace Application.Services.Products
                 IsPack = product.IsPack,
                 PackSize = product.PackSize,
                 SingleProductId = product.SingleProductId,
+                Unit = product.Unit,
+                Image = product.Image,
                 CreatedAt = product.CreatedAt,
                 UpdatedAt = product.UpdatedAt,
                 // Apply supplier discount rate

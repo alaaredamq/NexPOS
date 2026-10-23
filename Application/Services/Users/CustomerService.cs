@@ -14,6 +14,7 @@ public class CustomerService : ICustomerService
     }
 
     public async Task<List<Customer>> GetAllAsync() => await _repo.GetAllAsync();
+    public async Task<List<Customer>> GetAllWithOrdersAsync() => await _repo.GetAllWithOrdersAsync();
     public async Task<Customer> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
     public async Task<Customer> CreateAsync(Customer customer) => await _repo.SaveAsync(customer);
     public async Task UpdateAsync(int id, Customer customer)

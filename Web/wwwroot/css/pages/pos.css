@@ -1,4 +1,24 @@
 /* =====================================================
+   Disable text selection - POS is a touch/click surface,
+   repeated taps on buttons shouldn't highlight text.
+   Form fields stay selectable so users can edit values.
+   ===================================================== */
+
+body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* =====================================================
    Inline Overrides - Ensure POS page uses shared palette
    ===================================================== */
 
@@ -143,6 +163,43 @@
 
 #checkoutButton {
     color: var(--white) !important;
+}
+
+/* Checkout modal action buttons (Complete Checkout / Add to Customer Debt / Cancel) -
+   branded to match the app's palette instead of SweetAlert2's default bootstrap
+   green/yellow/gray, with smaller text than the swal2 large-button default. */
+.pos-checkout-btn {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding: 0.55rem 1.1rem !important;
+    box-shadow: none !important;
+}
+
+.pos-checkout-btn-confirm {
+    background: var(--gradient-primary) !important;
+    color: var(--white) !important;
+}
+
+.pos-checkout-btn-confirm:hover {
+    background: var(--primary-dark) !important;
+}
+
+.pos-checkout-btn-deny {
+    background: var(--warning-color) !important;
+    color: var(--white) !important;
+}
+
+.pos-checkout-btn-deny:hover {
+    background: var(--warning-dark) !important;
+}
+
+.pos-checkout-btn-cancel {
+    background: var(--neutral-200) !important;
+    color: var(--neutral-700) !important;
+}
+
+.pos-checkout-btn-cancel:hover {
+    background: var(--neutral-300) !important;
 }
 
 #checkoutButton * {

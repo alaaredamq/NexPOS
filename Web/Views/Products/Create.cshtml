@@ -1,8 +1,8 @@
 @model Application.DTOs.Products.CreateProductRequest
 
 @{
-    ViewData["Title"] = "Create Product";
-    ViewData["Subtitle"] = "Add a new product to inventory";
+    ViewData["Title"] = SharedLocalizer["Prod_CreateTitle"].Value;
+    ViewData["Subtitle"] = SharedLocalizer["Prod_CreateSubtitle"].Value;
     // Check if noSidebar parameter is in query string
     var noSidebar = Context.Request.Query.ContainsKey("noSidebar") && 
                     Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
@@ -14,7 +14,7 @@
 {
     <div class="d-flex justify-content-end mb-4">
         <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Products
+            <i class="fas fa-arrow-left me-2"></i>@SharedLocalizer["Prod_BackToProducts"]
         </a>
     </div>
 }
@@ -26,23 +26,26 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-edit me-2"></i>
-                    Product Information
+                    @SharedLocalizer["Prod_Information"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <form asp-action="Create" method="post">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Name" class="form-label">Product Name *</label>
-                            <input asp-for="Name" class="form-control" placeholder="Enter product name" />
+                            <label asp-for="Name" class="form-label">@SharedLocalizer["Product Name"] *</label>
+                            <input asp-for="Name" class="form-control" placeholder="@SharedLocalizer["Prod_PhName"]" />
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Barcode" class="form-label">Barcode *</label>
+                            <label asp-for="Barcode" class="form-label">@SharedLocalizer["Barcode"] *</label>
                             <div class="input-group">
-                                <input asp-for="Barcode" class="form-control" placeholder="Enter barcode" required onkeydown="return event.key !== 'Enter';" />
-                                <button type="button" class="btn btn-outline-secondary" id="generateBarcodeBtn" title="Generate a new barcode">
-                                    <i class="fas fa-wand-magic-sparkles me-1"></i>Generate
+                                <input asp-for="Barcode" class="form-control" placeholder="@SharedLocalizer["Prod_PhBarcode"]" required onkeydown="return event.key !== 'Enter';" />
+                                <button type="button" class="btn btn-outline-secondary" id="generateBarcodeBtn" title="@SharedLocalizer["Prod_GenerateTip"]">
+                                    <i class="fas fa-wand-magic-sparkles me-1"></i>@SharedLocalizer["Prod_Generate"]
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" id="printLabelBtn" title="@SharedLocalizer["Prod_PrintTip"]">
+                                    <i class="fas fa-barcode me-1"></i>@SharedLocalizer["Prod_Print"]
                                 </button>
                             </div>
                             <span asp-validation-for="Barcode" class="text-danger"></span>
@@ -50,14 +53,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Description" class="form-label">Description</label>
-                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter product description"></textarea>
+                        <label asp-for="Description" class="form-label">@SharedLocalizer["Description"]</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="@SharedLocalizer["Prod_PhDescription"]"></textarea>
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="CategoryId" class="form-label">Category *</label>
+                            <label asp-for="CategoryId" class="form-label">@SharedLocalizer["Category"] *</label>
                             @{
                                 var categories = ViewBag.Categories as List<Core.Entities.Products.ProductCategory> ?? new List<Core.Entities.Products.ProductCategory>();
                                 var categoryItems = categories.Select(c => new Web.Models.Shared.Select2Item
@@ -70,20 +73,20 @@
                             {
                                 Id = "CategoryId",
                                 Name = "CategoryId",
-                                Placeholder = "Select a category",
+                                Placeholder = SharedLocalizer["Prod_PhCategory"].Value,
                                 Required = true,
                                 Items = categoryItems
                             })
                             <span asp-validation-for="CategoryId" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="SupplierId" class="form-label">Supplier *</label>
+                            <label asp-for="SupplierId" class="form-label">@SharedLocalizer["Supplier"] *</label>
                             @{
                                 var suppliers = ViewBag.Suppliers as List<Core.Entities.Products.Supplier> ?? new List<Core.Entities.Products.Supplier>();
                                 var supplierItems = suppliers.OrderBy(x => x.OrderNumber).Select(s => new Web.Models.Shared.Select2Item
                                 {
                                     Id = s.Id.ToString(),
-                                    Text = s.Name + (s.DiscountRate > 0 ? $" ({s.DiscountRate}% discount)" : "")
+                                    Text = s.Name + (s.DiscountRate > 0 ? $" ({SharedLocalizer["Prod_Discount", s.DiscountRate].Value})" : "")
                                 }).ToList();
                                 var noSupplier = suppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase));
                                 var defaultSupplierId = noSupplier?.Id.ToString() ?? (supplierItems.Any() ? supplierItems.First().Id : "");
@@ -92,7 +95,7 @@
                             {
                                 Id = "SupplierId",
                                 Name = "SupplierId",
-                                Placeholder = "Select a supplier",
+                                Placeholder = SharedLocalizer["Prod_PhSupplier"].Value,
                                 Required = true,
                                 Value = defaultSupplierId,
                                 AllowClear = false,
@@ -104,25 +107,25 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Brand" class="form-label">Brand</label>
-                            <input asp-for="Brand" class="form-control" placeholder="Enter brand name" />
+                            <label asp-for="Brand" class="form-label">@SharedLocalizer["Brand"]</label>
+                            <input asp-for="Brand" class="form-control" placeholder="@SharedLocalizer["Prod_PhBrand"]" />
                             <span asp-validation-for="Brand" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <label asp-for="PurchasePrice" class="form-label">Purchase Price *</label>
+                            <label asp-for="PurchasePrice" class="form-label">@SharedLocalizer["Purchase Price"] *</label>
                             <input asp-for="PurchasePrice" class="form-control" placeholder="0.00" step="0.01" />
                             <span asp-validation-for="PurchasePrice" class="text-danger"></span>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label asp-for="SellingPrice" class="form-label">Selling Price *</label>
+                            <label asp-for="SellingPrice" class="form-label">@SharedLocalizer["Selling Price"] *</label>
                             <input asp-for="SellingPrice" class="form-control" placeholder="0.00" step="0.01" />
                             <span asp-validation-for="SellingPrice" class="text-danger"></span>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label asp-for="CurrencyId" class="form-label">Currency *</label>
+                            <label asp-for="CurrencyId" class="form-label">@SharedLocalizer["Currency"] *</label>
                             @{
                                 var currencies = ViewBag.Currencies as List<Core.Entities.Sales.Currency> ?? new List<Core.Entities.Sales.Currency>();
                                 var defaultCurrency = ViewBag.DefaultCurrency as Core.Entities.Sales.Currency;
@@ -136,28 +139,28 @@
                             {
                                 Id = "CurrencyId",
                                 Name = "CurrencyId",
-                                Placeholder = "Select currency",
+                                Placeholder = SharedLocalizer["Prod_PhCurrency"].Value,
                                 Value = defaultCurrency?.Id.ToString(),
                                 Items = currencyItems
                             })
                             <span asp-validation-for="CurrencyId" class="text-danger"></span>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label asp-for="Unit" class="form-label">Unit</label>
+                            <label asp-for="Unit" class="form-label">@SharedLocalizer["Unit"]</label>
                             @await Component.InvokeAsync("Select2", new Web.Models.Shared.Select2Model
                             {
                                 Id = "Unit",
                                 Name = "Unit",
-                                Placeholder = "Select unit",
+                                Placeholder = SharedLocalizer["Prod_PhUnit"].Value,
                                 Items = new List<Web.Models.Shared.Select2Item>
                                 {
-                                    new() { Id = "piece", Text = "Piece" },
-                                    new() { Id = "kg", Text = "Kilogram" },
-                                    new() { Id = "lb", Text = "Pound" },
-                                    new() { Id = "liter", Text = "Liter" },
-                                    new() { Id = "gallon", Text = "Gallon" },
-                                    new() { Id = "box", Text = "Box" },
-                                    new() { Id = "pack", Text = "Pack" }
+                                    new() { Id = "piece", Text = SharedLocalizer["Prod_Unit_piece"].Value },
+                                    new() { Id = "kg", Text = SharedLocalizer["Prod_Unit_kg"].Value },
+                                    new() { Id = "lb", Text = SharedLocalizer["Prod_Unit_lb"].Value },
+                                    new() { Id = "liter", Text = SharedLocalizer["Prod_Unit_liter"].Value },
+                                    new() { Id = "gallon", Text = SharedLocalizer["Prod_Unit_gallon"].Value },
+                                    new() { Id = "box", Text = SharedLocalizer["Prod_Unit_box"].Value },
+                                    new() { Id = "pack", Text = SharedLocalizer["Prod_Unit_pack"].Value }
                                 }
                             })
                             <span asp-validation-for="Unit" class="text-danger"></span>
@@ -166,12 +169,12 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="StockQuantity" class="form-label">Initial Stock Quantity</label>
+                            <label asp-for="StockQuantity" class="form-label">@SharedLocalizer["Initial Stock Quantity"]</label>
                             <input asp-for="StockQuantity" class="form-control" placeholder="0" min="0" />
                             <span asp-validation-for="StockQuantity" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="MinStockLevel" class="form-label">Minimum Stock Level</label>
+                            <label asp-for="MinStockLevel" class="form-label">@SharedLocalizer["Minimum Stock Level"]</label>
                             <input asp-for="MinStockLevel" class="form-control" placeholder="0" min="0" />
                             <span asp-validation-for="MinStockLevel" class="text-danger"></span>
                         </div>
@@ -181,7 +184,7 @@
                         <div class="form-check">
                             <input asp-for="IsActive" class="form-check-input" checked />
                             <label asp-for="IsActive" class="form-check-label">
-                                Product is active
+                                @SharedLocalizer["Prod_IsActive"]
                             </label>
                         </div>
                     </div>
@@ -191,7 +194,7 @@
                         <div class="form-check">
                             <input asp-for="IsPack" class="form-check-input" id="IsPack" />
                             <label asp-for="IsPack" class="form-check-label">
-                                This is a pack product
+                                @SharedLocalizer["Prod_IsPack"]
                             </label>
                         </div>
                     </div>
@@ -200,17 +203,17 @@
                     <div id="pack-fields" style="display: none;">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="PackSize" class="form-label">Pack Size *</label>
-                                <input type="number" id="PackSize" name="PackSize" class="form-control" placeholder="e.g., 6" min="1" />
-                                <small class="text-muted">Number of single products in this pack</small>
+                                <label for="PackSize" class="form-label">@SharedLocalizer["Pack Size"] *</label>
+                                <input type="number" id="PackSize" name="PackSize" class="form-control" placeholder="@SharedLocalizer["Prod_PhPackSize"]" min="1" />
+                                <small class="text-muted">@SharedLocalizer["Prod_PackSizeHelp"]</small>
                                 <span asp-validation-for="PackSize" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="SingleProductId" class="form-label">Single Product *</label>
+                                <label for="SingleProductId" class="form-label">@SharedLocalizer["Single Product"] *</label>
                                 <select id="SingleProductId" name="SingleProductId" class="form-select">
-                                    <option value="">Type at least 3 characters to search...</option>
+                                    <option value="">@SharedLocalizer["Prod_SearchPlaceholder"]</option>
                                 </select>
-                                <small class="text-muted">The single product this pack contains (search by name or barcode)</small>
+                                <small class="text-muted">@SharedLocalizer["Prod_SingleProductHelp"]</small>
                                 <span asp-validation-for="SingleProductId" class="text-danger"></span>
                             </div>
                         </div>
@@ -221,9 +224,9 @@
                     {
                         <div id="add-product-section" class="mb-3">
                             <button type="button" class="btn btn-outline-primary" id="add-product-btn">
-                                <i class="fas fa-plus me-2"></i>Add Product
+                                <i class="fas fa-plus me-2"></i>@SharedLocalizer["Prod_AddProduct"]
                             </button>
-                            <small class="text-muted d-block mt-2">Open product creation page in a new tab</small>
+                            <small class="text-muted d-block mt-2">@SharedLocalizer["Prod_AddProductHelp"]</small>
                         </div>
                     }
 
@@ -231,17 +234,17 @@
                         @if (noSidebar)
                         {
                             <button type="button" class="btn btn-outline-secondary" id="cancel-btn">
-                                <i class="fas fa-times me-2"></i>Cancel
+                                <i class="fas fa-times me-2"></i>@SharedLocalizer["Cancel"]
                             </button>
                         }
                         else
                         {
                             <a href="@Url.Action("Index", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i>Cancel
+                                <i class="fas fa-times me-2"></i>@SharedLocalizer["Cancel"]
                             </a>
                         }
                         <button type="submit" class="btn btn-teal" id="create-product-btn">
-                            <i class="fas fa-save me-2"></i>Create Product
+                            <i class="fas fa-save me-2"></i>@SharedLocalizer["Prod_CreateButton"]
                         </button>
                     </div>
                 </form>
@@ -254,47 +257,47 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-info-circle me-2"></i>
-                    Product Guidelines
+                    @SharedLocalizer["Prod_Guidelines"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="guidelines">
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Product name should be descriptive and unique</span>
+                        <span>@SharedLocalizer["Prod_G1"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Barcode helps with quick product identification</span>
+                        <span>@SharedLocalizer["Prod_G2"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Set appropriate minimum stock levels for alerts</span>
+                        <span>@SharedLocalizer["Prod_G3"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Selling price should be higher than purchase price</span>
+                        <span>@SharedLocalizer["Prod_G4"]</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Choose the correct category for better organization</span>
+                        <span>@SharedLocalizer["Prod_G5"]</span>
                     </div>
                 </div>
 
                 <hr>
 
                 <div class="profit-preview">
-                    <h6 class="text-muted mb-3">Profit Preview</h6>
+                    <h6 class="text-muted mb-3">@SharedLocalizer["Prod_ProfitPreview"]</h6>
                     <div class="profit-item">
-                        <span>Purchase Price:</span>
+                        <span>@SharedLocalizer["Prod_PurchasePriceL"]</span>
                         <span id="previewPurchasePrice">$0.00</span>
                     </div>
                     <div class="profit-item">
-                        <span>Selling Price:</span>
+                        <span>@SharedLocalizer["Prod_SellingPriceL"]</span>
                         <span id="previewSellingPrice">$0.00</span>
                     </div>
                     <div class="profit-item profit-total">
-                        <span>Profit Margin:</span>
+                        <span>@SharedLocalizer["Prod_ProfitMargin"]</span>
                         <span id="previewProfitMargin">$0.00</span>
                     </div>
                 </div>
@@ -309,6 +312,7 @@
 }
 
 @section Scripts {
+    <partial name="_StickerLabelScripts" />
     <script>
         $(document).ready(function() {
             // Pack/Add Product logic
@@ -334,7 +338,7 @@
                     if ($singleProductSelect.hasClass('select2-hidden-accessible')) {
                         $singleProductSelect.select2('destroy');
                         $singleProductSelect.empty();
-                        $singleProductSelect.append('<option value="">Type at least 3 characters to search...</option>');
+                        $singleProductSelect.append('<option value="">@SharedLocalizer["Prod_SearchPlaceholder"]</option>');
                     }
                 }
             }
@@ -342,7 +346,7 @@
             // Initialize Select2 with AJAX for single product search
             function initializeSingleProductSelect2() {
                 $singleProductSelect.select2({
-                    placeholder: 'Type at least 3 characters to search...',
+                    placeholder: @Json.Serialize(SharedLocalizer["Prod_SearchPlaceholder"].Value),
                     allowClear: true,
                     minimumInputLength: 3,
                     ajax: {
@@ -391,7 +395,7 @@
             $('#add-product-btn').on('click', function() {
                 const currentLang = window.location.pathname.split('/')[1] || 'en';
                 const createUrl = `/${currentLang}/Products/Create?noSidebar=true`;
-                window.open(createUrl, '_blank');
+                window.open(createUrl, '_blank', 'width=1200,height=850');
             });
             
             // Handle Cancel button in noSidebar mode
@@ -433,11 +437,21 @@
                             $('#Barcode').val(res.barcode).trigger('input').removeClass('input-validation-error');
                             $('span[data-valmsg-for="Barcode"]').text('');
                         } else {
-                            alert((res && res.message) || 'Could not generate a barcode.');
+                            alert((res && res.message) || @Json.Serialize(SharedLocalizer["Prod_GenFail"].Value));
                         }
                     })
-                    .fail(function() { alert('Could not generate a barcode.'); })
+                    .fail(function() { alert(@Json.Serialize(SharedLocalizer["Prod_GenFail"].Value)); })
                     .always(function() { $btn.prop('disabled', false).html(originalHtml); });
+            });
+
+            // Print barcode stickers from what's in the form (works before saving)
+            $('#printLabelBtn').on('click', function() {
+                const notation = ($('#CurrencyId option:selected').text().match(/\(([^)]*)\)\s*$/) || [])[1];
+                StickerLabel.prompt({
+                    name: $('#Name').val(),
+                    code: $('#Barcode').val(),
+                    price: StickerLabel.formatPrice($('#SellingPrice').val(), notation)
+                });
             });
 
             // Form validation
@@ -447,7 +461,7 @@
 
                 if (sellingPrice <= purchasePrice) {
                     e.preventDefault();
-                    alert('Selling price must be higher than purchase price for a profitable business!');
+                    alert(@Json.Serialize(SharedLocalizer["Prod_PriceWarn"].Value));
                     $('#SellingPrice').focus();
                 }
             });

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="~/css/receipts.css" asp-append-version="true" />
 }
 
+@Html.AntiForgeryToken()
+
 <div class="d-flex justify-content-end flex-wrap gap-2 mb-4">
     <a href="@Url.Action("Create", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-primary">
         <i class="fas fa-plus me-1"></i>@Localizer["AddCustomer"]
@@ -136,13 +138,13 @@
                             ClassName = "text-center",
                             Render = "function(data, type, row) { var badgeClass = data ? 'bg-success' : 'bg-secondary'; var statusText = data ? window.customersLocalizedStrings.active : window.customersLocalizedStrings.inactive; return '<span class=\"badge ' + badgeClass + '\">' + statusText + '</span>'; }"
                         },
-                        new() { 
-                            Data = "actions", 
-                            Title = Localizer["Actions"].Value, 
-                            Orderable = false, 
-                            Searchable = false, 
+                        new() {
+                            Data = "actions",
+                            Title = Localizer["Actions"].Value,
+                            Orderable = false,
+                            Searchable = false,
                             ClassName = "text-center",
-                            Width = 120
+                            Width = 150
                         }
                     },
                     AdditionalOptions = new Dictionary<string, object>
@@ -192,8 +194,10 @@
             exportUrl: '@Url.Action("ExportCustomers", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             detailsUrl: '@Url.Action("Details", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
             editUrl: '@Url.Action("Edit", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
-            deleteUrl: '@Url.Action("Delete", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })'
+            deleteUrl: '@Url.Action("Delete", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })',
+            addDebtTransactionUrl: '@Url.Action("AddDebtTransaction", "Customers")'
         };
     </script>
-    <script src="~/js/Pages/Customers/Index.js"></script>
+    <script src="~/js/Pages/Customers/DebtDialog.js" asp-append-version="true"></script>
+    <script src="~/js/Pages/Customers/Index.js" asp-append-version="true"></script>
 }

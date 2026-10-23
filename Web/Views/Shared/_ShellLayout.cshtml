@@ -8,7 +8,7 @@
     {
         noSidebar = Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
     }
-    var pageTitle = ViewData["Title"]?.ToString() ?? "NexPos";
+    var pageTitle = ViewData["Title"]?.ToString() ?? Brand.AppName;
 }
 @* Lightweight fragment returned for X-Partial:shell requests (language switch).
    No <head>, no base scripts/CSS — the live document keeps those. *@
@@ -24,6 +24,8 @@
 
         <main class="@(noSidebar ? "col-12" : "col-md-9 ms-sm-auto col-lg-10") @(noSidebar ? "px-3" : "px-0")">
             @await Html.PartialAsync("_TopBar")
+
+            @await Html.PartialAsync("_LicenseBanner")
 
             <div class="content-wrapper" data-page-controller="@ViewContext.RouteData.Values["Controller"]" data-page-action="@ViewContext.RouteData.Values["Action"]">
                 @RenderBody()

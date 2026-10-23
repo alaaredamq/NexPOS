@@ -1647,4 +1647,766 @@
   <data name="ProductDeletedSuccessfully" xml:space="preserve">
     <value>تم حذف المنتج بنجاح.</value>
   </data>
+  <data name="OutOfStock" xml:space="preserve">
+    <value>نفد من المخزون</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>مخزون منخفض</value>
+  </data>
+  <data name="PackOf" xml:space="preserve">
+    <value>عبوة من {0}</value>
+  </data>
+  <data name="ChangePin" xml:space="preserve">
+    <value>تغيير الرقم السري</value>
+  </data>
+  <data name="Set_Subtitle" xml:space="preserve">
+    <value>خصّص التطبيق وأعدّ الإيصالات والطابعات</value>
+  </data>
+  <data name="Set_Branding" xml:space="preserve">
+    <value>الهوية البصرية</value>
+  </data>
+  <data name="Set_BrandingCardDesc" xml:space="preserve">
+    <value>اسم التطبيق والشعار والأيقونة التي تظهر في التطبيق وفي شاشة تسجيل الدخول.</value>
+  </data>
+  <data name="Set_StoreReceipts" xml:space="preserve">
+    <value>المتجر والإيصالات</value>
+  </data>
+  <data name="Set_StoreReceiptsDesc" xml:space="preserve">
+    <value>اسم النشاط والعنوان والهاتف والرقم الضريبي وتذييل الإيصال المطبوع.</value>
+  </data>
+  <data name="Set_PrintersLabels" xml:space="preserve">
+    <value>الطابعات والملصقات</value>
+  </data>
+  <data name="Set_PrintersLabelsDesc" xml:space="preserve">
+    <value>طابعة الإيصالات وطابعة ملصقات الباركود وحجمها.</value>
+  </data>
+  <data name="Set_Configure" xml:space="preserve">
+    <value>إعداد</value>
+  </data>
+  <data name="Set_BrandingSubtitle" xml:space="preserve">
+    <value>استبدل اسم NexPos والشعار والأيقونة بما يخصك. أي حقل يُترك فارغاً يستخدم القيمة الافتراضية.</value>
+  </data>
+  <data name="Set_AppName" xml:space="preserve">
+    <value>اسم التطبيق</value>
+  </data>
+  <data name="Set_AppNameHelp" xml:space="preserve">
+    <value>يظهر في تبويب المتصفح وشاشة تسجيل الدخول وشاشة التحميل. الافتراضي: {0}</value>
+  </data>
+  <data name="Set_Logo" xml:space="preserve">
+    <value>الشعار</value>
+  </data>
+  <data name="Set_LogoHelp" xml:space="preserve">
+    <value>PNG أو JPG أو SVG أو WebP حتى 2 ميجابايت. الأفضل شعار عريض بخلفية شفافة.</value>
+  </data>
+  <data name="Set_RemoveLogo" xml:space="preserve">
+    <value>إزالة واستخدام الشعار الافتراضي</value>
+  </data>
+  <data name="Set_Favicon" xml:space="preserve">
+    <value>أيقونة الموقع</value>
+  </data>
+  <data name="Set_FaviconHelp" xml:space="preserve">
+    <value>PNG أو ICO أو SVG مربعة حتى 2 ميجابايت. تظهر في تبويب المتصفح.</value>
+  </data>
+  <data name="Set_RemoveFavicon" xml:space="preserve">
+    <value>إزالة واستخدام الأيقونة الافتراضية</value>
+  </data>
+  <data name="Set_BackToSettings" xml:space="preserve">
+    <value>العودة إلى الإعدادات</value>
+  </data>
+  <data name="Set_Save" xml:space="preserve">
+    <value>حفظ</value>
+  </data>
+  <data name="Set_SaveSettings" xml:space="preserve">
+    <value>حفظ الإعدادات</value>
+  </data>
+  <data name="Set_PrintersSubtitle" xml:space="preserve">
+    <value>اختر طابعة الإيصالات وأعدّ ملصقات الباركود</value>
+  </data>
+  <data name="Set_ReceiptPrinter" xml:space="preserve">
+    <value>طابعة الإيصالات</value>
+  </data>
+  <data name="Set_SelectPrinter" xml:space="preserve">
+    <value>-- اختر طابعة --</value>
+  </data>
+  <data name="Set_TestTooltip" xml:space="preserve">
+    <value>إرسال طباعة تجريبية إلى الطابعة المختارة</value>
+  </data>
+  <data name="Set_Test" xml:space="preserve">
+    <value>اختبار</value>
+  </data>
+  <data name="Set_ReceiptPrinterHelp" xml:space="preserve">
+    <value>يتم اكتشافها من الطابعات المثبّتة على هذا الجهاز. اختر واحدة، ثم احفظ، واستخدم اختبار للتأكد من الطباعة.</value>
+  </data>
+  <data name="Set_BarcodeStickers" xml:space="preserve">
+    <value>ملصقات الباركود</value>
+  </data>
+  <data name="Set_StickerPrinter" xml:space="preserve">
+    <value>طابعة الملصقات (هذا الجهاز)</value>
+  </data>
+  <data name="Set_SystemDefault" xml:space="preserve">
+    <value>الطابعة الافتراضية للنظام</value>
+  </data>
+  <data name="Set_StickerDesktopOnly" xml:space="preserve">
+    <value>متاح فقط في تطبيق سطح المكتب المثبّت - هنا تُطبع الملصقات عبر نافذة الطباعة في المتصفح.</value>
+  </data>
+  <data name="Set_StickerPrinterHelp" xml:space="preserve">
+    <value>الوجهة التي ترسل إليها "طباعة الملصق" ملصقات الباركود على هذا الجهاز (مثل Xprinter XP-365B). يُحفظ فوراً؛ وتتم الطباعة بصمت بعد التحديد دون نافذة.</value>
+  </data>
+  <data name="Set_StickerWidth" xml:space="preserve">
+    <value>عرض الملصق (مم)</value>
+  </data>
+  <data name="Set_StickerHeight" xml:space="preserve">
+    <value>ارتفاع الملصق (مم)</value>
+  </data>
+  <data name="Set_SelectPrinterFirst" xml:space="preserve">
+    <value>اختر طابعة أولاً</value>
+  </data>
+  <data name="Set_TestFailed" xml:space="preserve">
+    <value>فشل طلب الطباعة التجريبية</value>
+  </data>
+  <data name="Set_LoadPrintersFailed" xml:space="preserve">
+    <value>تعذر تحميل الطابعات المثبّتة</value>
+  </data>
+  <data name="Set_NotDetected" xml:space="preserve">
+    <value>(غير مكتشفة)</value>
+  </data>
+  <data name="Set_StickerSaved" xml:space="preserve">
+    <value>تم حفظ طابعة الملصقات لهذا الجهاز</value>
+  </data>
+  <data name="Pin_UpdateYourLogin" xml:space="preserve">
+    <value>حدّث رقمك السري لتسجيل الدخول
+Pin_SetNew</value>
+  </data>
+  <data name="Pin_SetNew" xml:space="preserve">
+    <value>عيّن رقماً سرياً جديداً لتسجيل الدخول</value>
+  </data>
+  <data name="Pin_BackToProfile" xml:space="preserve">
+    <value>العودة إلى الملف الشخصي</value>
+  </data>
+  <data name="Pin_Update" xml:space="preserve">
+    <value>تحديث الرقم السري</value>
+  </data>
+  <data name="Pin_UpdateButton" xml:space="preserve">
+    <value>تحديث الرقم السري</value>
+  </data>
+  <data name="Pin_About" xml:space="preserve">
+    <value>حول رقمك السري</value>
+  </data>
+  <data name="Pin_Rule4" xml:space="preserve">
+    <value>يجب أن يتكون من 4 أرقام بالضبط</value>
+  </data>
+  <data name="Pin_RuleDifferent" xml:space="preserve">
+    <value>يجب أن يختلف عن رقمك السري الحالي</value>
+  </data>
+  <data name="Pin_RuleSequences" xml:space="preserve">
+    <value>تجنّب التسلسلات الواضحة مثل 1234 أو 0000</value>
+  </data>
+  <data name="Current PIN" xml:space="preserve">
+    <value>الرقم السري الحالي</value>
+  </data>
+  <data name="New PIN" xml:space="preserve">
+    <value>الرقم السري الجديد</value>
+  </data>
+  <data name="Confirm New PIN" xml:space="preserve">
+    <value>تأكيد الرقم السري الجديد</value>
+  </data>
+  <data name="Confirm PIN" xml:space="preserve">
+    <value>تأكيد الرقم السري</value>
+  </data>
+  <data name="Current PIN is required" xml:space="preserve">
+    <value>الرقم السري الحالي مطلوب</value>
+  </data>
+  <data name="New PIN is required" xml:space="preserve">
+    <value>الرقم السري الجديد مطلوب</value>
+  </data>
+  <data name="PIN must be exactly 4 digits" xml:space="preserve">
+    <value>يجب أن يتكون الرقم السري من 4 أرقام بالضبط</value>
+  </data>
+  <data name="Please confirm your new PIN" xml:space="preserve">
+    <value>يرجى تأكيد الرقم السري الجديد</value>
+  </data>
+  <data name="PINs do not match" xml:space="preserve">
+    <value>الرقمان السريان غير متطابقين</value>
+  </data>
+  <data name="Current PIN is incorrect" xml:space="preserve">
+    <value>الرقم السري الحالي غير صحيح</value>
+  </data>
+  <data name="New PIN must be different from your current PIN" xml:space="preserve">
+    <value>يجب أن يختلف الرقم السري الجديد عن الحالي</value>
+  </data>
+  <data name="Please choose a PIN different from your current one" xml:space="preserve">
+    <value>يرجى اختيار رقم سري مختلف عن الحالي</value>
+  </data>
+  <data name="An error occurred while updating your PIN. Please try again." xml:space="preserve">
+    <value>حدث خطأ أثناء تحديث الرقم السري. يرجى المحاولة مرة أخرى.</value>
+  </data>
+  <data name="Prof_Subtitle" xml:space="preserve">
+    <value>معلومات حسابك</value>
+  </data>
+  <data name="Prof_AccountInformation" xml:space="preserve">
+    <value>معلومات الحساب</value>
+  </data>
+  <data name="Prof_FullName" xml:space="preserve">
+    <value>الاسم الكامل</value>
+  </data>
+  <data name="Prof_Role" xml:space="preserve">
+    <value>الدور</value>
+  </data>
+  <data name="Prof_UserId" xml:space="preserve">
+    <value>رقم المستخدم</value>
+  </data>
+  <data name="Prof_RoleId" xml:space="preserve">
+    <value>رقم الدور</value>
+  </data>
+  <data name="Prof_SessionInformation" xml:space="preserve">
+    <value>معلومات الجلسة</value>
+  </data>
+  <data name="Prof_LoginTime" xml:space="preserve">
+    <value>وقت الدخول:</value>
+  </data>
+  <data name="Prof_SessionDuration" xml:space="preserve">
+    <value>مدة الجلسة:</value>
+  </data>
+  <data name="Prof_IpAddress" xml:space="preserve">
+    <value>عنوان IP:</value>
+  </data>
+  <data name="Prof_Browser" xml:space="preserve">
+    <value>المتصفح:</value>
+  </data>
+  <data name="Prof_Loading" xml:space="preserve">
+    <value>جارٍ التحميل...</value>
+  </data>
+  <data name="Prof_Minutes" xml:space="preserve">
+    <value>{0} دقيقة</value>
+  </data>
+  <data name="Prof_HoursMinutes" xml:space="preserve">
+    <value>{0} س {1} د</value>
+  </data>
+  <data name="Prof_Unknown" xml:space="preserve">
+    <value>غير معروف</value>
+  </data>
+  <data name="Username is required" xml:space="preserve">
+    <value>اسم المستخدم مطلوب</value>
+  </data>
+  <data name="PIN is required" xml:space="preserve">
+    <value>الرقم السري مطلوب</value>
+  </data>
+  <data name="Invalid username or PIN" xml:space="preserve">
+    <value>اسم المستخدم أو الرقم السري غير صحيح</value>
+  </data>
+  <data name="Invalid username or password" xml:space="preserve">
+    <value>اسم المستخدم أو كلمة المرور غير صحيحة</value>
+  </data>
+  <data name="Account is disabled" xml:space="preserve">
+    <value>الحساب معطّل</value>
+  </data>
+  <data name="An error occurred during login. Please try again." xml:space="preserve">
+    <value>حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.</value>
+  </data>
+  <data name="Signing in..." xml:space="preserve">
+    <value>جارٍ تسجيل الدخول...</value>
+  </data>
+  <data name="Cust_EditTitle" xml:space="preserve">
+    <value>تعديل العميل</value>
+  </data>
+  <data name="Cust_EditSubtitle" xml:space="preserve">
+    <value>تعديل معلومات العميل</value>
+  </data>
+  <data name="Cust_BackToCustomers" xml:space="preserve">
+    <value>العودة إلى العملاء</value>
+  </data>
+  <data name="Cust_Information" xml:space="preserve">
+    <value>معلومات العميل</value>
+  </data>
+  <data name="First Name" xml:space="preserve">
+    <value>الاسم الأول</value>
+  </data>
+  <data name="Last Name" xml:space="preserve">
+    <value>اسم العائلة</value>
+  </data>
+  <data name="Email Address" xml:space="preserve">
+    <value>عنوان البريد الإلكتروني</value>
+  </data>
+  <data name="Phone Number" xml:space="preserve">
+    <value>رقم الهاتف</value>
+  </data>
+  <data name="Date of Birth" xml:space="preserve">
+    <value>تاريخ الميلاد</value>
+  </data>
+  <data name="Company Name" xml:space="preserve">
+    <value>اسم الشركة</value>
+  </data>
+  <data name="Tax Number" xml:space="preserve">
+    <value>الرقم الضريبي</value>
+  </data>
+  <data name="Customer Type" xml:space="preserve">
+    <value>نوع العميل</value>
+  </data>
+  <data name="Cust_PhFirstName" xml:space="preserve">
+    <value>أدخل الاسم الأول</value>
+  </data>
+  <data name="Cust_PhLastName" xml:space="preserve">
+    <value>أدخل اسم العائلة</value>
+  </data>
+  <data name="Cust_PhEmail" xml:space="preserve">
+    <value>أدخل البريد الإلكتروني</value>
+  </data>
+  <data name="Cust_PhPhone" xml:space="preserve">
+    <value>أدخل رقم الهاتف</value>
+  </data>
+  <data name="Cust_PhAddress" xml:space="preserve">
+    <value>أدخل العنوان الكامل</value>
+  </data>
+  <data name="Cust_PhCompanyOptional" xml:space="preserve">
+    <value>أدخل اسم الشركة (اختياري)</value>
+  </data>
+  <data name="Cust_PhCompanyRequired" xml:space="preserve">
+    <value>أدخل اسم الشركة (مطلوب)</value>
+  </data>
+  <data name="Cust_PhTaxOptional" xml:space="preserve">
+    <value>أدخل الرقم الضريبي (اختياري)</value>
+  </data>
+  <data name="Cust_PhTax" xml:space="preserve">
+    <value>أدخل الرقم الضريبي</value>
+  </data>
+  <data name="Cust_PhNotes" xml:space="preserve">
+    <value>أدخل أي ملاحظات إضافية عن العميل</value>
+  </data>
+  <data name="Cust_IsCompany" xml:space="preserve">
+    <value>هذا عميل شركة</value>
+  </data>
+  <data name="Cust_IsActive" xml:space="preserve">
+    <value>العميل نشط</value>
+  </data>
+  <data name="Cust_UpdateCustomer" xml:space="preserve">
+    <value>تحديث العميل</value>
+  </data>
+  <data name="Cust_Guidelines" xml:space="preserve">
+    <value>إرشادات العميل</value>
+  </data>
+  <data name="Cust_G1" xml:space="preserve">
+    <value>استخدم الأسماء القانونية الكاملة لتوثيق أفضل</value>
+  </data>
+  <data name="Cust_G2" xml:space="preserve">
+    <value>يجب أن يكون البريد الإلكتروني صالحاً وغير مكرر</value>
+  </data>
+  <data name="Cust_G3" xml:space="preserve">
+    <value>أرقام الهاتف تسهّل التواصل</value>
+  </data>
+  <data name="Cust_G4" xml:space="preserve">
+    <value>العناوين الكاملة تتيح خدمات التوصيل</value>
+  </data>
+  <data name="Cust_G5" xml:space="preserve">
+    <value>يمكن لعملاء الشركات إضافة أرقام ضريبية</value>
+  </data>
+  <data name="Cust_G6" xml:space="preserve">
+    <value>الملاحظات تساعد في تتبع تفضيلات العميل</value>
+  </data>
+  <data name="Cust_Preview" xml:space="preserve">
+    <value>معاينة العميل</value>
+  </data>
+  <data name="Cust_NoPhone" xml:space="preserve">
+    <value>لا يوجد هاتف</value>
+  </data>
+  <data name="Cust_Individual" xml:space="preserve">
+    <value>فرد</value>
+  </data>
+  <data name="Cust_Company" xml:space="preserve">
+    <value>شركة</value>
+  </data>
+  <data name="Cust_PvFirst" xml:space="preserve">
+    <value>الأول</value>
+  </data>
+  <data name="Cust_PvLast" xml:space="preserve">
+    <value>الأخير</value>
+  </data>
+  <data name="Cust_PvPhone" xml:space="preserve">
+    <value>رقم الهاتف</value>
+  </data>
+  <data name="Cust_FillRequired" xml:space="preserve">
+    <value>يرجى تعبئة جميع الحقول المطلوبة (الاسم الأول، اسم العائلة، البريد الإلكتروني)!</value>
+  </data>
+  <data name="Cust_DetailsTitle" xml:space="preserve">
+    <value>تفاصيل العميل</value>
+  </data>
+  <data name="Cust_NotProvided" xml:space="preserve">
+    <value>غير متوفر</value>
+  </data>
+  <data name="Cust_NoAddress" xml:space="preserve">
+    <value>لا يوجد عنوان</value>
+  </data>
+  <data name="Cust_DebtInformation" xml:space="preserve">
+    <value>معلومات الدين</value>
+  </data>
+  <data name="Cust_AddTransaction" xml:space="preserve">
+    <value>إضافة حركة</value>
+  </data>
+  <data name="Cust_OwesMe" xml:space="preserve">
+    <value>ما يدين به العميل لي</value>
+  </data>
+  <data name="Cust_IOwe" xml:space="preserve">
+    <value>ما أدين به للعميل</value>
+  </data>
+  <data name="Cust_NetBalance" xml:space="preserve">
+    <value>صافي الرصيد</value>
+  </data>
+  <data name="Cust_CustomerOwesMe" xml:space="preserve">
+    <value>العميل مدين لي بـ: {0}</value>
+  </data>
+  <data name="Cust_IOweCustomer" xml:space="preserve">
+    <value>أنا مدين للعميل بـ: {0}</value>
+  </data>
+  <data name="Cust_BalancedNoDebt" xml:space="preserve">
+    <value>متوازن - لا يوجد دين</value>
+  </data>
+  <data name="Cust_Receivable" xml:space="preserve">
+    <value>مستحق لي</value>
+  </data>
+  <data name="Cust_Payable" xml:space="preserve">
+    <value>مستحق عليّ</value>
+  </data>
+  <data name="Cust_Balanced" xml:space="preserve">
+    <value>متوازن</value>
+  </data>
+  <data name="Cust_Note" xml:space="preserve">
+    <value>ملاحظة</value>
+  </data>
+  <data name="Cust_TypeSale" xml:space="preserve">
+    <value>بيع</value>
+  </data>
+  <data name="Cust_TypePayment" xml:space="preserve">
+    <value>دفعة</value>
+  </data>
+  <data name="Cust_TypeAdjustment" xml:space="preserve">
+    <value>تسوية</value>
+  </data>
+  <data name="Cust_OrderRef" xml:space="preserve">
+    <value>الطلب رقم {0}</value>
+  </data>
+  <data name="Cust_ShowingRecent" xml:space="preserve">
+    <value>عرض أحدث 20 من أصل {0} حركة</value>
+  </data>
+  <data name="Cust_OrderHistory" xml:space="preserve">
+    <value>سجل الطلبات</value>
+  </data>
+  <data name="Cust_OrderNumber" xml:space="preserve">
+    <value>رقم الطلب</value>
+  </data>
+  <data name="Cust_TotalAmount" xml:space="preserve">
+    <value>المبلغ الإجمالي</value>
+  </data>
+  <data name="Cust_St_Pending" xml:space="preserve">
+    <value>قيد الانتظار</value>
+  </data>
+  <data name="Cust_St_Processing" xml:space="preserve">
+    <value>قيد المعالجة</value>
+  </data>
+  <data name="Cust_St_Shipped" xml:space="preserve">
+    <value>تم الشحن</value>
+  </data>
+  <data name="Cust_St_Delivered" xml:space="preserve">
+    <value>تم التسليم</value>
+  </data>
+  <data name="Cust_St_Cancelled" xml:space="preserve">
+    <value>ملغي</value>
+  </data>
+  <data name="Cust_St_Returned" xml:space="preserve">
+    <value>مرتجع</value>
+  </data>
+  <data name="Cust_ViewAllOrders" xml:space="preserve">
+    <value>عرض جميع الطلبات ({0})</value>
+  </data>
+  <data name="Cust_NoOrders" xml:space="preserve">
+    <value>لا توجد طلبات لهذا العميل</value>
+  </data>
+  <data name="Cust_Summary" xml:space="preserve">
+    <value>ملخص العميل</value>
+  </data>
+  <data name="Cust_TotalOrders" xml:space="preserve">
+    <value>إجمالي الطلبات</value>
+  </data>
+  <data name="Cust_TotalSpent" xml:space="preserve">
+    <value>إجمالي المصروف</value>
+  </data>
+  <data name="Cust_AverageOrder" xml:space="preserve">
+    <value>متوسط الطلب</value>
+  </data>
+  <data name="Cust_LastOrder" xml:space="preserve">
+    <value>آخر طلب</value>
+  </data>
+  <data name="Cust_Never" xml:space="preserve">
+    <value>أبداً</value>
+  </data>
+  <data name="Cust_ViewOrders" xml:space="preserve">
+    <value>عرض الطلبات</value>
+  </data>
+  <data name="Cust_SendEmail" xml:space="preserve">
+    <value>إرسال بريد إلكتروني</value>
+  </data>
+  <data name="Cust_DeleteCustomer" xml:space="preserve">
+    <value>حذف العميل</value>
+  </data>
+  <data name="Cust_AreYouSure" xml:space="preserve">
+    <value>هل أنت متأكد؟</value>
+  </data>
+  <data name="Cust_CannotUndo" xml:space="preserve">
+    <value>لا يمكن التراجع عن هذا الإجراء!</value>
+  </data>
+  <data name="Cust_YesDelete" xml:space="preserve">
+    <value>نعم، احذفه!</value>
+  </data>
+  <data name="Cust_DeletedTitle" xml:space="preserve">
+    <value>تم الحذف!</value>
+  </data>
+  <data name="Cust_ErrorTitle" xml:space="preserve">
+    <value>خطأ!</value>
+  </data>
+  <data name="Cust_DeleteError" xml:space="preserve">
+    <value>حدث خطأ أثناء حذف العميل.</value>
+  </data>
+  <data name="The {0} field is required." xml:space="preserve">
+    <value>حقل {0} مطلوب.</value>
+  </data>
+  <data name="The {0} field is not a valid e-mail address." xml:space="preserve">
+    <value>حقل {0} ليس عنوان بريد إلكتروني صالحاً.</value>
+  </data>
+  <data name="The {0} field is not a valid phone number." xml:space="preserve">
+    <value>حقل {0} ليس رقم هاتف صالحاً.</value>
+  </data>
+  <data name="The field {0} must be a string with a minimum length of {2} and a maximum length of {1}." xml:space="preserve">
+    <value>يجب أن يكون طول الحقل {0} بين {2} و{1} حرفاً.</value>
+  </data>
+  <data name="The field {0} must be a string with a maximum length of {1}." xml:space="preserve">
+    <value>يجب ألا يزيد طول الحقل {0} عن {1} حرفاً.</value>
+  </data>
+  <data name="Product Name" xml:space="preserve">
+    <value>اسم المنتج</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>العلامة التجارية</value>
+  </data>
+  <data name="Purchase Price" xml:space="preserve">
+    <value>سعر الشراء</value>
+  </data>
+  <data name="Selling Price" xml:space="preserve">
+    <value>سعر البيع</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>الوحدة</value>
+  </data>
+  <data name="Initial Stock Quantity" xml:space="preserve">
+    <value>كمية المخزون الأولية</value>
+  </data>
+  <data name="Minimum Stock Level" xml:space="preserve">
+    <value>الحد الأدنى للمخزون</value>
+  </data>
+  <data name="Pack Size" xml:space="preserve">
+    <value>حجم العبوة</value>
+  </data>
+  <data name="Single Product" xml:space="preserve">
+    <value>المنتج المفرد</value>
+  </data>
+  <data name="Prod_CreateTitle" xml:space="preserve">
+    <value>إنشاء منتج</value>
+  </data>
+  <data name="Prod_CreateSubtitle" xml:space="preserve">
+    <value>أضف منتجاً جديداً إلى المخزون</value>
+  </data>
+  <data name="Prod_BackToProducts" xml:space="preserve">
+    <value>العودة إلى المنتجات</value>
+  </data>
+  <data name="Prod_Information" xml:space="preserve">
+    <value>معلومات المنتج</value>
+  </data>
+  <data name="Prod_PhName" xml:space="preserve">
+    <value>أدخل اسم المنتج</value>
+  </data>
+  <data name="Prod_PhBarcode" xml:space="preserve">
+    <value>أدخل الباركود</value>
+  </data>
+  <data name="Prod_Generate" xml:space="preserve">
+    <value>توليد</value>
+  </data>
+  <data name="Prod_GenerateTip" xml:space="preserve">
+    <value>توليد باركود جديد</value>
+  </data>
+  <data name="Prod_Print" xml:space="preserve">
+    <value>طباعة</value>
+  </data>
+  <data name="Prod_PrintTip" xml:space="preserve">
+    <value>طباعة ملصقات الباركود</value>
+  </data>
+  <data name="Prod_PhDescription" xml:space="preserve">
+    <value>أدخل وصف المنتج</value>
+  </data>
+  <data name="Prod_PhCategory" xml:space="preserve">
+    <value>اختر فئة</value>
+  </data>
+  <data name="Prod_PhSupplier" xml:space="preserve">
+    <value>اختر مورداً</value>
+  </data>
+  <data name="Prod_Discount" xml:space="preserve">
+    <value>خصم {0}%</value>
+  </data>
+  <data name="Prod_PhBrand" xml:space="preserve">
+    <value>أدخل اسم العلامة التجارية</value>
+  </data>
+  <data name="Prod_PhCurrency" xml:space="preserve">
+    <value>اختر العملة</value>
+  </data>
+  <data name="Prod_PhUnit" xml:space="preserve">
+    <value>اختر الوحدة</value>
+  </data>
+  <data name="Prod_Unit_piece" xml:space="preserve">
+    <value>قطعة</value>
+  </data>
+  <data name="Prod_Unit_kg" xml:space="preserve">
+    <value>كيلوغرام</value>
+  </data>
+  <data name="Prod_Unit_lb" xml:space="preserve">
+    <value>رطل</value>
+  </data>
+  <data name="Prod_Unit_liter" xml:space="preserve">
+    <value>لتر</value>
+  </data>
+  <data name="Prod_Unit_gallon" xml:space="preserve">
+    <value>غالون</value>
+  </data>
+  <data name="Prod_Unit_box" xml:space="preserve">
+    <value>صندوق</value>
+  </data>
+  <data name="Prod_Unit_pack" xml:space="preserve">
+    <value>عبوة</value>
+  </data>
+  <data name="Prod_IsActive" xml:space="preserve">
+    <value>المنتج نشط</value>
+  </data>
+  <data name="Prod_IsPack" xml:space="preserve">
+    <value>هذا منتج عبوة</value>
+  </data>
+  <data name="Prod_PhPackSize" xml:space="preserve">
+    <value>مثال: 6</value>
+  </data>
+  <data name="Prod_PackSizeHelp" xml:space="preserve">
+    <value>عدد المنتجات المفردة في هذه العبوة</value>
+  </data>
+  <data name="Prod_SearchPlaceholder" xml:space="preserve">
+    <value>اكتب 3 أحرف على الأقل للبحث...</value>
+  </data>
+  <data name="Prod_SingleProductHelp" xml:space="preserve">
+    <value>المنتج المفرد الذي تحتويه هذه العبوة (ابحث بالاسم أو الباركود)</value>
+  </data>
+  <data name="Prod_AddProduct" xml:space="preserve">
+    <value>إضافة منتج</value>
+  </data>
+  <data name="Prod_AddProductHelp" xml:space="preserve">
+    <value>فتح صفحة إنشاء المنتج في تبويب جديد</value>
+  </data>
+  <data name="Prod_CreateButton" xml:space="preserve">
+    <value>إنشاء المنتج</value>
+  </data>
+  <data name="Prod_Guidelines" xml:space="preserve">
+    <value>إرشادات المنتج</value>
+  </data>
+  <data name="Prod_G1" xml:space="preserve">
+    <value>يجب أن يكون اسم المنتج وصفياً وفريداً</value>
+  </data>
+  <data name="Prod_G2" xml:space="preserve">
+    <value>الباركود يساعد في التعرف السريع على المنتج</value>
+  </data>
+  <data name="Prod_G3" xml:space="preserve">
+    <value>حدّد حدوداً دنيا مناسبة للمخزون لتفعيل التنبيهات</value>
+  </data>
+  <data name="Prod_G4" xml:space="preserve">
+    <value>يجب أن يكون سعر البيع أعلى من سعر الشراء</value>
+  </data>
+  <data name="Prod_G5" xml:space="preserve">
+    <value>اختر الفئة الصحيحة لتنظيم أفضل</value>
+  </data>
+  <data name="Prod_ProfitPreview" xml:space="preserve">
+    <value>معاينة الربح</value>
+  </data>
+  <data name="Prod_PurchasePriceL" xml:space="preserve">
+    <value>سعر الشراء:</value>
+  </data>
+  <data name="Prod_SellingPriceL" xml:space="preserve">
+    <value>سعر البيع:</value>
+  </data>
+  <data name="Prod_ProfitMargin" xml:space="preserve">
+    <value>هامش الربح:</value>
+  </data>
+  <data name="Prod_GenFail" xml:space="preserve">
+    <value>تعذّر توليد الباركود.</value>
+  </data>
+  <data name="Prod_PriceWarn" xml:space="preserve">
+    <value>يجب أن يكون سعر البيع أعلى من سعر الشراء لتحقيق الربح!</value>
+  </data>
+  <data name="Barcode is required" xml:space="preserve">
+    <value>الباركود مطلوب</value>
+  </data>
+  <data name="Category is required" xml:space="preserve">
+    <value>الفئة مطلوبة</value>
+  </data>
+  <data name="Supplier is required" xml:space="preserve">
+    <value>المورد مطلوب</value>
+  </data>
+  <data name="Purchase price must be greater than 0" xml:space="preserve">
+    <value>يجب أن يكون سعر الشراء أكبر من 0</value>
+  </data>
+  <data name="Selling price must be greater than 0" xml:space="preserve">
+    <value>يجب أن يكون سعر البيع أكبر من 0</value>
+  </data>
+  <data name="Pack size must be greater than 0" xml:space="preserve">
+    <value>يجب أن يكون حجم العبوة أكبر من 0</value>
+  </data>
+  <data name="The field {0} must be between {1} and {2}." xml:space="preserve">
+    <value>يجب أن تكون قيمة الحقل {0} بين {1} و{2}.</value>
+  </data>
+  <!-- Licensing -->
+  <data name="License_Title" xml:space="preserve"><value>الترخيص</value></data>
+  <data name="License_Manage" xml:space="preserve"><value>إدارة الترخيص</value></data>
+  <data name="License_BackToApp" xml:space="preserve"><value>العودة إلى NexPOS</value></data>
+  <data name="License_StatusActive" xml:space="preserve"><value>مرخّص</value></data>
+  <data name="License_StatusExpiringSoon" xml:space="preserve"><value>الترخيص على وشك الانتهاء</value></data>
+  <data name="License_StatusGracePeriod" xml:space="preserve"><value>الترخيص يحتاج إلى تجديد</value></data>
+  <data name="License_StatusExpired" xml:space="preserve"><value>انتهى الترخيص</value></data>
+  <data name="License_StatusNotActivated" xml:space="preserve"><value>غير مفعّل</value></data>
+  <data name="License_StatusInvalid" xml:space="preserve"><value>ترخيص غير صالح</value></data>
+  <data name="License_StatusWrongMachine" xml:space="preserve"><value>الترخيص لجهاز آخر</value></data>
+  <data name="License_StatusUpdatesNotCovered" xml:space="preserve"><value>الإصدار غير مشمول</value></data>
+  <data name="License_MsgActive" xml:space="preserve"><value>تم تفعيل NexPOS على هذا الجهاز.</value></data>
+  <data name="License_MsgDevBuild" xml:space="preserve"><value>نسخة تطوير: لا يتم فرض الترخيص.</value></data>
+  <data name="License_MsgNotActivated" xml:space="preserve"><value>NexPOS غير مفعّل على هذا الجهاز، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. أرسل معرّف الجهاز الظاهر أدناه إلى مزوّدك للحصول على مفتاح الترخيص، ثم الصقه هنا.</value></data>
+  <data name="License_MsgInvalid" xml:space="preserve"><value>مفتاح الترخيص المحفوظ غير صالح أو تم تعديله، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. الصق مفتاح ترخيص صالحاً أدناه.</value></data>
+  <data name="License_MsgWrongMachine" xml:space="preserve"><value>تم إصدار مفتاح الترخيص المحفوظ لجهاز آخر، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. أرسل معرّف الجهاز الظاهر أدناه إلى مزوّدك للحصول على مفتاح لهذا الجهاز.</value></data>
+  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>تم إصدار هذه النسخة من NexPOS (تاريخ البناء {0}) بعد انتهاء خطة التحديثات الخاصة بك في {1}، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. جدّد خطة الدعم لاستخدام هذه النسخة، أو أعد تثبيت نسختك السابقة.</value></data>
+  <data name="License_MsgExpiringSoon" xml:space="preserve"><value>ينتهي ترخيصك بعد {0} يوم (بتاريخ {1}). تواصل مع مزوّدك لتجديده.</value></data>
+  <data name="License_MsgExpiringToday" xml:space="preserve"><value>ينتهي ترخيصك اليوم ({0}). تواصل مع مزوّدك لتجديده.</value></data>
+  <data name="License_MsgGrace" xml:space="preserve"><value>انتهى ترخيصك بتاريخ {0}. جدّده الآن: ستتوقف نقاط البيع والمبيعات الجديدة بعد {1} (متبقٍ {2} يوم).</value></data>
+  <data name="License_MsgGraceLastDay" xml:space="preserve"><value>انتهى ترخيصك بتاريخ {0}. اليوم هو آخر يوم يمكنك فيه البيع: ستتوقف نقاط البيع والمبيعات الجديدة بعد اليوم. جدّد الآن.</value></data>
+  <data name="License_MsgExpired" xml:space="preserve"><value>انتهى ترخيصك بتاريخ {0}. تم إيقاف نقاط البيع والمبيعات الجديدة. بياناتك آمنة: لا يزال بإمكانك عرض المنتجات والطلبات والتقارير والنسخ الاحتياطية. جدّد ترخيصك لمتابعة البيع.</value></data>
+  <data name="License_Customer" xml:space="preserve"><value>العميل</value></data>
+  <data name="License_Type" xml:space="preserve"><value>نوع الترخيص</value></data>
+  <data name="License_Serial" xml:space="preserve"><value>الرقم التسلسلي</value></data>
+  <data name="License_IssuedOn" xml:space="preserve"><value>تاريخ الإصدار</value></data>
+  <data name="License_UpdatesUntil" xml:space="preserve"><value>التحديثات حتى</value></data>
+  <data name="License_ExpiresOn" xml:space="preserve"><value>ينتهي في</value></data>
+  <data name="License_Kind_Full" xml:space="preserve"><value>كامل</value></data>
+  <data name="License_Kind_Provisional" xml:space="preserve"><value>مؤقت</value></data>
+  <data name="License_Kind_Trial" xml:space="preserve"><value>تجريبي</value></data>
+  <data name="License_MachineId" xml:space="preserve"><value>معرّف الجهاز</value></data>
+  <data name="License_MachineIdHelp" xml:space="preserve"><value>أرسل هذا الرمز إلى مزوّدك. مفتاح الترخيص الذي ستستلمه يعمل على هذا الجهاز فقط.</value></data>
+  <data name="License_Copy" xml:space="preserve"><value>نسخ</value></data>
+  <data name="License_Copied" xml:space="preserve"><value>تم النسخ</value></data>
+  <data name="License_ActivateTitle" xml:space="preserve"><value>التفعيل أو التجديد</value></data>
+  <data name="License_PasteHint" xml:space="preserve"><value>الصق مفتاح الترخيص هنا</value></data>
+  <data name="License_ActivateButton" xml:space="preserve"><value>تفعيل</value></data>
+  <data name="License_Success" xml:space="preserve"><value>تم تفعيل الترخيص بنجاح.</value></data>
+  <data name="License_Error_Malformed" xml:space="preserve"><value>مفتاح الترخيص ناقص أو يحتوي على رموز زائدة. الصق المفتاح كاملاً كما استلمته.</value></data>
+  <data name="License_Error_BadSignature" xml:space="preserve"><value>مفتاح الترخيص هذا غير صالح. ربما تم تعديله.</value></data>
+  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>مفتاح الترخيص هذا يتطلب نسخة أحدث من NexPOS.</value></data>
+  <data name="License_Error_WrongMachine" xml:space="preserve"><value>تم إصدار مفتاح الترخيص هذا لجهاز آخر.</value></data>
+  <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
+  <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
+  <data name="License_SalesStopped" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. افتح صفحة الترخيص للتجديد أو التفعيل.</value></data>
 </root>

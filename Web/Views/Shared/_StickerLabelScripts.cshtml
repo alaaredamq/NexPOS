@@ -1,0 +1,3 @@
+@* Barcode sticker printing: exposes window.StickerLabel.prompt({ name, code, price }). *@
+<script src="~/lib/jsbarcode/dist/JsBarcode.all.min.js"></script>
+<script src="~/js/sticker-label.js" asp-append-version="true" data-settings-url="@Url.Action("StickerSettings", "Products")"></script>

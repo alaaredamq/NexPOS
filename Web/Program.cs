@@ -37,7 +37,12 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(
-        Path.Combine(context.HostingEnvironment.ContentRootPath, "logs", "log-.txt"),
+        // The Electron host points this at app-data, since the install dir may be read-only.
+        Path.Combine(
+            Environment.GetEnvironmentVariable("NEXPOS_LOG_DIR") is { Length: > 0 } logDir
+                ? logDir
+                : Path.Combine(context.HostingEnvironment.ContentRootPath, "logs"),
+            "log-.txt"),
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 14));
 
@@ -111,31 +116,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ✅ Database
+// ✅ Database — SQLite file in the per-user app-data folder, so a packaged (Electron)
+// install never needs a separately-installed database server.
+var sqliteConnectionString = AppDataPathProvider.GetConnectionString();
 builder.Services.AddDbContext<ErpDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql =>
-        {
-            sql.EnableRetryOnFailure(
-                maxRetryCount: 2,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null);
-            sql.CommandTimeout(10);
-        }));
+    options.UseSqlite(sqliteConnectionString));
 
 // Add DbContextFactory for services that need concurrent access
 builder.Services.AddDbContextFactory<ErpDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql =>
-        {
-            sql.EnableRetryOnFailure(
-                maxRetryCount: 2,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorNumbersToAdd: null);
-            sql.CommandTimeout(10);
-        }), ServiceLifetime.Scoped);
+    options.UseSqlite(sqliteConnectionString), ServiceLifetime.Scoped);
 
 builder.Services.AddMemoryCache();
 // Backs ISession (DistributedSessionStore). In-process only — CacheService no longer
@@ -146,6 +135,7 @@ builder.Services.AddHttpContextAccessor();
 // Preloaded JS translation tables — read the locale JSON files once at startup instead
 // of on every layout render.
 builder.Services.AddSingleton<Web.Services.ILocaleCatalog, Web.Services.LocaleCatalog>();
+builder.Services.AddSingleton<Web.Services.IBrandingService, Web.Services.BrandingService>();
 
 // ✅ Response compression (Brotli/Gzip) for text payloads — smaller transfers and faster
 // parse for the Electron renderer.
@@ -239,6 +229,8 @@ builder.Services.AddScoped<Core.IRepositories.Products.IProductCategoryRepositor
 builder.Services.AddScoped<Application.IServices.Products.IProductCategoryService, Application.Services.Products.ProductCategoryService>();
 builder.Services.AddScoped<Core.IRepositories.Users.ICustomerRepository, Infrastructure.Repositories.Users.CustomerRepository>();
 builder.Services.AddScoped<Application.IServices.Users.ICustomerService, Application.Services.Users.CustomerService>();
+builder.Services.AddScoped<Core.IRepositories.Users.ICustomerDebtTransactionRepository, Infrastructure.Repositories.Users.CustomerDebtTransactionRepository>();
+builder.Services.AddScoped<Application.IServices.Users.ICustomerDebtService, Application.Services.Users.CustomerDebtService>();
 builder.Services.AddScoped<Core.IRepositories.Inventory.ICartRepository, Infrastructure.Repositories.Inventory.CartRepository>();
 builder.Services.AddScoped<Core.IRepositories.Inventory.ICartItemRepository, Infrastructure.Repositories.Inventory.CartItemRepository>();
 builder.Services.AddScoped<Core.IRepositories.Inventory.ICustomerCartRepository, Infrastructure.Repositories.Inventory.CustomerCartRepository>();
@@ -291,7 +283,11 @@ builder.Services.AddScoped<Core.IRepositories.Sales.IReceiptRepository, Infrastr
 builder.Services.AddScoped<Application.IServices.Sales.IReceiptService, Application.Services.Sales.ReceiptService>();
 
 // Thermal Printer
-builder.Services.AddScoped<IPrinterTransport, Win32PrinterTransport>();
+// NEXPOS_DEMO=1 swaps in a no-op printer so demos/recordings never print on real hardware.
+if (Environment.GetEnvironmentVariable("NEXPOS_DEMO") == "1")
+    builder.Services.AddScoped<IPrinterTransport, DemoPrinterTransport>();
+else
+    builder.Services.AddScoped<IPrinterTransport, Win32PrinterTransport>();
 builder.Services.AddScoped<IEscPosBuilder, EscPosBuilder>();
 builder.Services.AddScoped<Application.IServices.Sales.IThermalPrinterService, Application.Services.Sales.ThermalPrinterService>();
 
@@ -328,8 +324,67 @@ builder.Services.AddScoped<Application.IServices.Auth.IJwtService, Application.S
 // View Rendering Service (for rendering views to HTML strings)
 builder.Services.AddScoped<Web.Services.IViewRenderService, Web.Services.ViewRenderService>();
 
+// Licensing — offline, signed, machine-bound key (WORKLOG L1). Warns a week before a time-limited
+// license expires, a week after, then stops the POS and new sales; data is never touched.
+// Debug builds skip enforcement so development never needs a key; set NEXPOS_LICENSE_ENFORCE=1 to test it there.
+var enforceLicense = true;
+#if DEBUG
+enforceLicense = Environment.GetEnvironmentVariable("NEXPOS_LICENSE_ENFORCE") == "1";
+#endif
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(new Application.Services.Licensing.LicenseOptions
+{
+    PublicKeySpkiBase64 = Common.Licensing.LicensePublicKey.SpkiBase64,
+    BuildDate = DateOnly.ParseExact(Web.BuildInfo.BuildDate, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+    EnforcementEnabled = enforceLicense
+});
+builder.Services.AddSingleton<Application.Services.Licensing.ILicenseStorage>(
+    _ => new Application.Services.Licensing.FileLicenseStorage(AppDataPathProvider.GetLicenseFilePath()));
+builder.Services.AddSingleton<Common.Licensing.IMachineIdProvider, Infrastructure.Licensing.WindowsMachineIdProvider>();
+builder.Services.AddSingleton<Application.IServices.Licensing.ILicenseService, Application.Services.Licensing.LicenseService>();
+
 // Build the app
 var app = builder.Build();
+
+// ✅ Apply pending EF migrations on startup — packaged (Electron) client installs have
+// no way to run `dotnet ef database update` themselves, so the SQLite schema must be
+// brought up to date automatically the moment the app starts.
+using (var migrationScope = app.Services.CreateScope())
+{
+    var dbContext = migrationScope.ServiceProvider.GetRequiredService<ErpDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal(ex, "Failed to apply database migrations on startup");
+        throw;
+    }
+}
+
+// Read the license once at startup: surfaces a bad/missing key in the log right away and warms the
+// machine-identity lookup (WMI) so the first page does not pay for it.
+try
+{
+    var licenseState = app.Services.GetRequiredService<Application.IServices.Licensing.ILicenseService>().GetState();
+    Log.Information("License: {Status} (customer {Customer}, valid until {ValidUntil}, machine {MachineId}, enforced {Enforced})",
+        licenseState.Status, licenseState.Customer ?? "-", licenseState.ValidUntil?.ToString("yyyy-MM-dd") ?? "-",
+        licenseState.MachineId, !licenseState.EnforcementDisabled);
+}
+catch (Exception ex)
+{
+    Log.Warning(ex, "Could not read the license state at startup");
+}
+
+// Optional sample data for demos/screenshots: `Web.exe --seed-demo` (or NEXPOS_SEED_DEMO=1).
+// Idempotent - only fills a database that doesn't already contain the demo catalogue.
+if (args.Contains("--seed-demo") || Environment.GetEnvironmentVariable("NEXPOS_SEED_DEMO") == "1")
+{
+    using var seedScope = app.Services.CreateScope();
+    var seeded = await DemoDataSeeder.SeedAsync(seedScope.ServiceProvider.GetRequiredService<ErpDbContext>());
+    Log.Information(seeded ? "Demo data seeded." : "Demo data already present - nothing to do.");
+}
 
 // ✅ Global exception handler — must be the very first middleware so it wraps everything
 // below it. AJAX/JSON requests get a clean {success,message} response instead of a raw
@@ -383,6 +438,10 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
+// ✅ License: close the POS screen and refuse new sales when the license does not allow selling.
+// After static files (assets are never blocked) and before routing/auth; reads and everything else pass.
+app.UseMiddleware<Web.Middlewares.LicenseEnforcementMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -414,4 +473,38 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}",
     defaults: new { lang = "en" });
 
+// Visual Studio "Electron" launch profile: open the desktop shell against this (debuggable) run.
+if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("ELECTRON_MODE") == "true")
+{
+    app.Lifetime.ApplicationStarted.Register(() => LaunchElectron(app));
+}
+
 app.Run();
+
+static void LaunchElectron(WebApplication app)
+{
+    var repoRoot = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, ".."));
+    var electronExe = Path.Combine(repoRoot, "node_modules", "electron", "dist", "electron.exe");
+    if (!File.Exists(electronExe))
+    {
+        app.Logger.LogWarning("Electron not found at {Path}. Run 'npm install' in {Root}.", electronExe, repoRoot);
+        return;
+    }
+
+    var startInfo = new System.Diagnostics.ProcessStartInfo(electronExe, ".")
+    {
+        WorkingDirectory = repoRoot,
+        UseShellExecute = false
+    };
+    // Tells electron-main.js to use this server instead of starting its own Web.exe,
+    // and which process to watch so the window closes when debugging stops.
+    startInfo.Environment["NEXPOS_EXTERNAL_SERVER"] = Environment.ProcessId.ToString();
+    // Inherited from VS Code and some tools; it would make electron.exe run as plain Node.
+    startInfo.Environment.Remove("ELECTRON_RUN_AS_NODE");
+
+    var electron = System.Diagnostics.Process.Start(startInfo);
+    if (electron == null) return;
+    electron.EnableRaisingEvents = true;
+    // Closing the Electron window ends the debug session.
+    electron.Exited += (_, _) => app.Lifetime.StopApplication();
+}

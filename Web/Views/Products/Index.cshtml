@@ -147,7 +147,7 @@
                             Orderable = false, 
                             Searchable = false, 
                             ClassName = "text-center",
-                            Width = 120
+                            Width = 160
                         }
                     },
                     AdditionalOptions = new Dictionary<string, object>
@@ -207,5 +207,6 @@
             deleteUrl: '@Url.Action("Delete", "Products", new { lang = ViewBag.CurrentLanguage ?? "en" })'
         };
     </script>
+    <partial name="_StickerLabelScripts" />
     <script src="~/js/Pages/Products/Index.js"></script>
 }

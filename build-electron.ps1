@@ -1,4 +1,4 @@
-# Build script for Electron Desktop App
+﻿# Build script for Electron Desktop App
 # This script publishes the .NET app and then builds the Electron package
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -18,7 +18,7 @@ if (Test-Path $publishPath) {
 }
 
 Write-Host "Publishing to: $publishPath" -ForegroundColor Gray
-dotnet publish "Web\Web.csproj" -c Release -r win-x64 --self-contained false `
+dotnet publish "Web\Web.csproj" -c Release -r win-x64 --self-contained true `
     -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=false -o $publishPath
 
 if ($LASTEXITCODE -ne 0) {

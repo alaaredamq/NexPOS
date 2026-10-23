@@ -1,22 +1,26 @@
 @model Core.Entities.Users.Customer
 @using Core.Enum
+@using Core.Entities.Users
 
 @{
-    ViewData["Title"] = "Customer Details";
+    ViewData["Title"] = SharedLocalizer["Cust_DetailsTitle"].Value;
     ViewData["Subtitle"] = $"{Model.FirstName} {Model.LastName}";
-    var debtToCustomer = 0m; // Placeholder for future implementation (refunds/credits)
-    var debtFromCustomer = Model.Dept;
-    var netDebt = debtFromCustomer - debtToCustomer;
+    var netDebt = Model.Balance;
+    var debtFromCustomer = netDebt > 0 ? netDebt : 0m;
+    var debtToCustomer = netDebt < 0 ? -netDebt : 0m;
     var currencyNotation = ViewBag.DefaultCurrencyNotation ?? "$";
+    var debtTransactions = ViewBag.DebtTransactions as List<CustomerDebtTransaction> ?? new List<CustomerDebtTransaction>();
 }
+
+@Html.AntiForgeryToken()
 
 <!-- Customer Details Header -->
 <div class="d-flex justify-content-end gap-2 mb-4">
     <a href="@Url.Action("Edit", "Customers", new { id = Model.Id, lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
-        <i class="fas fa-edit me-2"></i>Edit Customer
+        <i class="fas fa-edit me-2"></i>@SharedLocalizer["Cust_EditTitle"]
     </a>
     <a href="@Url.Action("Index", "Customers", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Back to Customers
+        <i class="fas fa-arrow-left me-2"></i>@SharedLocalizer["Cust_BackToCustomers"]
     </a>
 </div>
 
@@ -28,24 +32,24 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-id-card me-2"></i>
-                    Customer Information
+                    @SharedLocalizer["Cust_Information"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">First Name</label>
+                        <label class="detail-label">@SharedLocalizer["First Name"]</label>
                         <p class="detail-value">@Model.FirstName</p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">Last Name</label>
+                        <label class="detail-label">@SharedLocalizer["Last Name"]</label>
                         <p class="detail-value">@Model.LastName</p>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">Email Address</label>
+                        <label class="detail-label">@SharedLocalizer["Email Address"]</label>
                         <p class="detail-value">
                             <a href="mailto:@Model.Email" class="text-teal">
                                 <i class="fas fa-envelope me-2"></i>@Model.Email
@@ -53,7 +57,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">Phone Number</label>
+                        <label class="detail-label">@SharedLocalizer["Phone Number"]</label>
                         <p class="detail-value">
                             @if (!string.IsNullOrEmpty(Model.PhoneNumber))
                             {
@@ -63,7 +67,7 @@
                             }
                             else
                             {
-                                <span class="text-muted">Not provided</span>
+                                <span class="text-muted">@SharedLocalizer["Cust_NotProvided"]</span>
                             }
                         </p>
                     </div>
@@ -71,7 +75,7 @@
 
                 <div class="row">
                     <div class="col-md-12 mb-3">
-                        <label class="detail-label">Address</label>
+                        <label class="detail-label">@SharedLocalizer["Address"]</label>
                         <p class="detail-value">
                             @if (!string.IsNullOrEmpty(Model.Address))
                             {
@@ -91,7 +95,7 @@
                             }
                             else
                             {
-                                <span class="text-muted">No address provided</span>
+                                <span class="text-muted">@SharedLocalizer["Cust_NoAddress"]</span>
                             }
                         </p>
                     </div>
@@ -99,18 +103,18 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">Status</label>
+                        <label class="detail-label">@SharedLocalizer["Status"]</label>
                         <p class="detail-value">
                             @if (Model.IsActive)
                             {
                                 <span class="badge bg-success">
-                                    <i class="fas fa-check-circle me-1"></i>Active
+                                    <i class="fas fa-check-circle me-1"></i>@SharedLocalizer["Active"]
                                 </span>
                             }
                             else
                             {
                                 <span class="badge bg-danger">
-                                    <i class="fas fa-times-circle me-1"></i>Inactive
+                                    <i class="fas fa-times-circle me-1"></i>@SharedLocalizer["Inactive"]
                                 </span>
                             }
                         </p>
@@ -121,16 +125,19 @@
 
         <!-- Debt Information Card -->
         <div class="products-table-card mt-4 mb-4">
-            <div class="products-card-header">
+            <div class="products-card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-money-bill-wave me-2"></i>
-                    Debt Information
+                    @SharedLocalizer["Cust_DebtInformation"]
                 </h5>
+                <button type="button" class="btn btn-sm btn-teal" onclick="openAddDebtTransaction(@Model.Id)">
+                    <i class="fas fa-plus me-1"></i>@SharedLocalizer["Cust_AddTransaction"]
+                </button>
             </div>
             <div class="products-card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">What Customer Owes Me</label>
+                        <label class="detail-label">@SharedLocalizer["Cust_OwesMe"]</label>
                         <p class="detail-value">
                             <span class="text-success fw-bold">
                                 <i class="fas fa-arrow-down me-2"></i>@FormatCurrency(debtFromCustomer, currencyNotation)
@@ -138,7 +145,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="detail-label">What I Owe Customer</label>
+                        <label class="detail-label">@SharedLocalizer["Cust_IOwe"]</label>
                         <p class="detail-value">
                             <span class="text-danger fw-bold">
                                 <i class="fas fa-arrow-up me-2"></i>@FormatCurrency(debtToCustomer, currencyNotation)
@@ -152,19 +159,19 @@
                 <div class="erp-alert @(netDebt > 0 ? "erp-alert-success" : netDebt < 0 ? "erp-alert-danger" : "erp-alert-info") mb-0">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="mb-1"><strong>Net Balance</strong></h6>
+                            <h6 class="mb-1"><strong>@SharedLocalizer["Cust_NetBalance"]</strong></h6>
                             <p class="mb-0">
                                 @if (netDebt > 0)
                                 {
-                                    <span class="fw-bold">Customer owes me: @FormatCurrency(Math.Abs(netDebt), currencyNotation)</span>
+                                    <span class="fw-bold">@SharedLocalizer["Cust_CustomerOwesMe", FormatCurrency(Math.Abs(netDebt), currencyNotation)]</span>
                                 }
                                 else if (netDebt < 0)
                                 {
-                                    <span class="fw-bold">I owe customer: @FormatCurrency(Math.Abs(netDebt), currencyNotation)</span>
+                                    <span class="fw-bold">@SharedLocalizer["Cust_IOweCustomer", FormatCurrency(Math.Abs(netDebt), currencyNotation)]</span>
                                 }
                                 else
                                 {
-                                    <span class="fw-bold">Balanced - No debt</span>
+                                    <span class="fw-bold">@SharedLocalizer["Cust_BalancedNoDebt"]</span>
                                 }
                             </p>
                         </div>
@@ -172,24 +179,71 @@
                             @if (netDebt > 0)
                             {
                                 <span class="badge bg-success fs-6">
-                                    <i class="fas fa-check-circle me-1"></i>Receivable
+                                    <i class="fas fa-check-circle me-1"></i>@SharedLocalizer["Cust_Receivable"]
                                 </span>
                             }
                             else if (netDebt < 0)
                             {
                                 <span class="badge bg-danger fs-6">
-                                    <i class="fas fa-exclamation-triangle me-1"></i>Payable
+                                    <i class="fas fa-exclamation-triangle me-1"></i>@SharedLocalizer["Cust_Payable"]
                                 </span>
                             }
                             else
                             {
                                 <span class="badge bg-secondary fs-6">
-                                    <i class="fas fa-balance-scale me-1"></i>Balanced
+                                    <i class="fas fa-balance-scale me-1"></i>@SharedLocalizer["Cust_Balanced"]
                                 </span>
                             }
                         </div>
                     </div>
                 </div>
+
+                @if (debtTransactions.Any())
+                {
+                    <hr>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>@SharedLocalizer["Date"]</th>
+                                    <th>@SharedLocalizer["Type"]</th>
+                                    <th>@SharedLocalizer["Cust_Note"]</th>
+                                    <th class="text-end">@SharedLocalizer["Amount"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in debtTransactions.Take(20))
+                                {
+                                    <tr>
+                                        <td>@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>
+                                            @if (tx.Type == CustomerDebtTransactionType.Sale)
+                                            {
+                                                <span class="badge bg-info">@SharedLocalizer["Cust_TypeSale"]</span>
+                                            }
+                                            else if (tx.Type == CustomerDebtTransactionType.Payment)
+                                            {
+                                                <span class="badge bg-success">@SharedLocalizer["Cust_TypePayment"]</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@SharedLocalizer["Cust_TypeAdjustment"]</span>
+                                            }
+                                        </td>
+                                        <td>@(tx.Note ?? (tx.OrderId.HasValue ? SharedLocalizer["Cust_OrderRef", tx.OrderId].Value : "-"))</td>
+                                        <td class="text-end fw-bold @(tx.Amount > 0 ? "text-success" : "text-danger")">
+                                            @(tx.Amount > 0 ? "+" : "")@FormatCurrency(tx.Amount, currencyNotation)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (debtTransactions.Count > 20)
+                    {
+                        <p class="text-muted text-center mt-2 mb-0"><small>@SharedLocalizer["Cust_ShowingRecent", debtTransactions.Count]</small></p>
+                    }
+                }
             </div>
         </div>
 
@@ -198,7 +252,7 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-shopping-cart me-2"></i>
-                    Order History
+                    @SharedLocalizer["Cust_OrderHistory"]
                 </h5>
             </div>
             <div class="products-card-body">
@@ -208,11 +262,11 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Order #</th>
-                                    <th>Date</th>
-                                    <th>Total Amount</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>@SharedLocalizer["Cust_OrderNumber"]</th>
+                                    <th>@SharedLocalizer["Date"]</th>
+                                    <th>@SharedLocalizer["Cust_TotalAmount"]</th>
+                                    <th>@SharedLocalizer["Status"]</th>
+                                    <th>@SharedLocalizer["Actions"]</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -236,7 +290,7 @@
                                                     _ => "bg-secondary"
                                                 };
                                             }
-                                            <span class="badge @statusClass">@orderStatus.ToString()</span>
+                                            <span class="badge @statusClass">@SharedLocalizer["Cust_St_" + orderStatus.ToString()]</span>
                                         </td>
                                         <td>
                                             <a href="@Url.Action("Details", "Orders", new { id = order.Id })" class="btn btn-sm btn-outline-primary">
@@ -252,7 +306,7 @@
                     {
                         <div class="text-center mt-3">
                             <a href="@Url.Action("Index", "Orders", new { customerId = Model.Id })" class="btn btn-outline-teal">
-                                View All Orders (@Model.Orders.Count)
+                                @SharedLocalizer["Cust_ViewAllOrders", Model.Orders.Count]
                             </a>
                         </div>
                     }
@@ -261,7 +315,7 @@
                 {
                     <div class="text-center py-5">
                         <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No orders found for this customer</p>
+                        <p class="text-muted">@SharedLocalizer["Cust_NoOrders"]</p>
                     </div>
                 }
             </div>
@@ -274,7 +328,7 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-chart-bar me-2"></i>
-                    Customer Summary
+                    @SharedLocalizer["Cust_Summary"]
                 </h5>
             </div>
             <div class="products-card-body">
@@ -293,7 +347,7 @@
                             <i class="fas fa-shopping-bag"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-label">Total Orders</div>
+                            <div class="stat-label">@SharedLocalizer["Cust_TotalOrders"]</div>
                             <div class="stat-value">@(Model.Orders?.Count ?? 0)</div>
                         </div>
                     </div>
@@ -303,7 +357,7 @@
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-label">Total Spent</div>
+                            <div class="stat-label">@SharedLocalizer["Cust_TotalSpent"]</div>
                             <div class="stat-value">@FormatCurrency(Model.Orders?.Sum(o => o.TotalAmount) ?? 0, currencyNotation)</div>
                         </div>
                     </div>
@@ -313,7 +367,7 @@
                             <i class="fas fa-chart-line"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-label">Average Order</div>
+                            <div class="stat-label">@SharedLocalizer["Cust_AverageOrder"]</div>
                             <div class="stat-value">
                                 @{
                                     var avgOrder = Model.Orders != null && Model.Orders.Any() 
@@ -330,7 +384,7 @@
                             <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-label">Last Order</div>
+                            <div class="stat-label">@SharedLocalizer["Cust_LastOrder"]</div>
                             <div class="stat-value">
                                 @{
                                     var lastOrder = Model.Orders?.OrderByDescending(o => o.CreatedAt).FirstOrDefault();
@@ -341,7 +395,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted">Never</span>
+                                    <span class="text-muted">@SharedLocalizer["Cust_Never"]</span>
                                 }
                             </div>
                         </div>
@@ -352,7 +406,7 @@
                             <i class="fas fa-money-bill-wave"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-label">Net Balance</div>
+                            <div class="stat-label">@SharedLocalizer["Cust_NetBalance"]</div>
                             <div class="stat-value @(netDebt > 0 ? "text-success" : netDebt < 0 ? "text-danger" : "text-muted")">
                                 @if (netDebt > 0)
                                 {
@@ -378,22 +432,22 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-bolt me-2"></i>
-                    Quick Actions
+                    @SharedLocalizer["QuickActions"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="d-grid gap-2">
                     <a href="@Url.Action("Edit", "Customers", new { id = Model.Id })" class="btn btn-outline-teal">
-                        <i class="fas fa-edit me-2"></i>Edit Customer
+                        <i class="fas fa-edit me-2"></i>@SharedLocalizer["Cust_EditTitle"]
                     </a>
                     <a href="@Url.Action("Index", "Orders", new { customerId = Model.Id })" class="btn btn-outline-primary">
-                        <i class="fas fa-shopping-cart me-2"></i>View Orders
+                        <i class="fas fa-shopping-cart me-2"></i>@SharedLocalizer["Cust_ViewOrders"]
                     </a>
                     <a href="mailto:@Model.Email" class="btn btn-outline-info">
-                        <i class="fas fa-envelope me-2"></i>Send Email
+                        <i class="fas fa-envelope me-2"></i>@SharedLocalizer["Cust_SendEmail"]
                     </a>
                     <button type="button" class="btn btn-outline-danger" onclick="deleteCustomer(@Model.Id)">
-                        <i class="fas fa-trash me-2"></i>Delete Customer
+                        <i class="fas fa-trash me-2"></i>@SharedLocalizer["Cust_DeleteCustomer"]
                     </button>
                 </div>
             </div>
@@ -402,17 +456,23 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/Pages/Customers/DebtDialog.js" asp-append-version="true"></script>
     <script>
+        function openAddDebtTransaction(customerId) {
+            window.openDebtTransactionDialog(customerId, '@Url.Action("AddDebtTransaction", "Customers")',
+                () => window.location.reload());
+        }
+
         function deleteCustomer(id) {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "This action cannot be undone!",
+                title: @Json.Serialize(SharedLocalizer["Cust_AreYouSure"].Value),
+                text: @Json.Serialize(SharedLocalizer["Cust_CannotUndo"].Value),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
+                confirmButtonText: @Json.Serialize(SharedLocalizer["Cust_YesDelete"].Value),
+                cancelButtonText: @Json.Serialize(SharedLocalizer["Cancel"].Value)
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -422,7 +482,7 @@
                         success: function(response) {
                             if (response.success) {
                                 Swal.fire({
-                                    title: 'Deleted!',
+                                    title: @Json.Serialize(SharedLocalizer["Cust_DeletedTitle"].Value),
                                     text: response.message,
                                     icon: 'success',
                                     timer: 2000,
@@ -431,11 +491,11 @@
                                     window.location.href = '@Url.Action("Index", "Customers")';
                                 });
                             } else {
-                                Swal.fire('Error!', response.message, 'error');
+                                Swal.fire(@Json.Serialize(SharedLocalizer["Cust_ErrorTitle"].Value), response.message, 'error');
                             }
                         },
                         error: function() {
-                            Swal.fire('Error!', 'An error occurred while deleting the customer.', 'error');
+                            Swal.fire(@Json.Serialize(SharedLocalizer["Cust_ErrorTitle"].Value), @Json.Serialize(SharedLocalizer["Cust_DeleteError"].Value), 'error');
                         }
                     });
                 }

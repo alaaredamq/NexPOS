@@ -1,3 +1,4 @@
+using Application.Exceptions;
 using Application.IServices.Products;
 using Application.IServices.Sales;
 using Application.IServices.Inventory;
@@ -228,6 +229,19 @@ namespace Web.Controllers
                 
                 var result = await _checkoutService.ProcessCheckoutAsync(request);
                 return Json(new { success = true, data = result });
+            }
+            catch (InsufficientStockException ex)
+            {
+                // Distinct code so the POS can offer the cashier a "sell anyway" override.
+                _logger.LogWarning(ex, "Checkout blocked by insufficient stock");
+                return Json(new { success = false, message = ex.Message, errorCode = "insufficient_stock" });
+            }
+            catch (LicenseRequiredException ex)
+            {
+                // Normally LicenseEnforcementMiddleware answers first (with a localized message);
+                // this is the backstop if a sale reaches the service anyway.
+                _logger.LogWarning(ex, "Checkout blocked by license");
+                return Json(new { success = false, message = ex.Message, errorCode = "license_required" });
             }
             catch (Exception ex)
             {

@@ -2,6 +2,7 @@ using Application.IServices.Base;
 using Application.IServices.Products;
 using Core.DTOs;
 using Core.Entities.Products;
+using Core.ICache;
 using Core.IRepositories.Products;
 
 namespace Application.Services.Products;
@@ -10,11 +11,13 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _repo;
     private readonly ICurrencyConversionService _currencyService;
+    private readonly ICacheService _cache;
 
-    public ProductService(IProductRepository repo, ICurrencyConversionService currencyService)
+    public ProductService(IProductRepository repo, ICurrencyConversionService currencyService, ICacheService cache)
     {
         _repo = repo;
         _currencyService = currencyService;
+        _cache = cache;
     }
 
     public async Task<List<Product>> GetAllAsync()
@@ -39,7 +42,9 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
-        return await _repo.SaveAsync(product);
+        var created = await _repo.SaveAsync(product);
+        await _cache.ClearPOSCachesAsync();
+        return created;
     }
 
     public async Task UpdateAsync(int id, Product product)
@@ -59,6 +64,7 @@ public class ProductService : IProductService
         existing.Unit = product.Unit;
         existing.UpdatedAt = DateTime.UtcNow;
         await _repo.SaveAsync(existing);
+        await _cache.ClearPOSCachesAsync();
     }
 
     public async Task DeleteAsync(int id)
@@ -68,6 +74,7 @@ public class ProductService : IProductService
         {
             // Use soft delete instead of hard delete
             await _repo.SoftDeleteAsync(product);
+            await _cache.ClearPOSCachesAsync();
         }
     }
 
@@ -141,6 +148,8 @@ public class ProductService : IProductService
             Unit = product.Unit
         };
         
-        return await _repo.SaveAsync(productToSave);
+        var created = await _repo.SaveAsync(productToSave);
+        await _cache.ClearPOSCachesAsync();
+        return created;
     }
 }

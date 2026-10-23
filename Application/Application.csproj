@@ -15,10 +15,12 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
       <PackageReference Include="System.Drawing.Common" Version="10.0.2" />
+      <!-- JwtService.cs needs these directly - previously only compiled because
+           Microsoft.EntityFrameworkCore.SqlServer transitively pulled them in. -->
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
     </ItemGroup>
 
     <ItemGroup>

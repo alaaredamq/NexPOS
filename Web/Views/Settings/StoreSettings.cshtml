@@ -66,42 +66,18 @@
                                             <input type="text" class="form-control" id="addressLine2" value="@Model.AddressLine2" maxlength="200" />
                                             <div class="form-text">@Localizer["AddressLine2Hint"]</div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="phone" class="form-label">@Localizer["Phone"]</label>
-                                                    <input type="text" class="form-control" id="phone" value="@Model.Phone" maxlength="50" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="email" class="form-label">@Localizer["Email"]</label>
-                                                    <input type="email" class="form-control" id="email" value="@Model.Email" maxlength="200" />
-                                                </div>
-                                            </div>
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">@Localizer["Phone"]</label>
+                                            <input type="text" class="form-control" id="phone" value="@Model.Phone" maxlength="50" />
                                         </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="taxId" class="form-label">@Localizer["TaxId"]</label>
-                                                    <input type="text" class="form-control" id="taxId" value="@Model.TaxId" maxlength="50" />
-                                                    <div class="form-text">@Localizer["TaxIdHint"]</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="businessRegistrationNumber" class="form-label">@Localizer["BusinessRegistrationNumber"]</label>
-                                                    <input type="text" class="form-control" id="businessRegistrationNumber" value="@Model.BusinessRegistrationNumber" maxlength="50" />
-                                                </div>
-                                            </div>
+                                        <div class="mb-3">
+                                            <label for="taxId" class="form-label">@Localizer["TaxId"]</label>
+                                            <input type="text" class="form-control" id="taxId" value="@Model.TaxId" maxlength="50" />
+                                            <div class="form-text">@Localizer["TaxIdHint"]</div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="website" class="form-label">@Localizer["Website"]</label>
                                             <input type="text" class="form-control" id="website" value="@Model.Website" maxlength="200" placeholder="www.yourstore.com" />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="socialMedia" class="form-label">@Localizer["SocialMedia"]</label>
-                                            <input type="text" class="form-control" id="socialMedia" value="@Model.SocialMedia" maxlength="100" placeholder="@@yourstore" />
                                         </div>
                                     </div>
                                 </div>
@@ -131,61 +107,6 @@
                                             <label for="footerLine3" class="form-label">@Localizer["FooterLine3"]</label>
                                             <input type="text" class="form-control" id="footerLine3" value="@Model.FooterLine3" maxlength="200" />
                                         </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="currencySymbol" class="form-label">@Localizer["CurrencySymbol"]</label>
-                                                    <input type="text" class="form-control" id="currencySymbol" value="@Model.CurrencySymbol" maxlength="10" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="defaultLanguage" class="form-label">@Localizer["DefaultLanguage"]</label>
-                                                    <select class="form-select" id="defaultLanguage">
-                                                        @if (Model.DefaultLanguage == "en")
-                                                        {
-                                                            <option value="en" selected>English</option>
-                                                            <option value="ar">العربية</option>
-                                                        }
-                                                        else
-                                                        {
-                                                            <option value="en">English</option>
-                                                            <option value="ar" selected>العربية</option>
-                                                        }
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="returnPolicyDays" class="form-label">@Localizer["ReturnPolicyDays"]</label>
-                                            <input type="number" class="form-control" id="returnPolicyDays" value="@Model.ReturnPolicyDays" min="0" max="365" />
-                                            <div class="form-text">@Localizer["ReturnPolicyDaysHint"]</div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-check form-switch mb-3">
-                                                    <input class="form-check-input" type="checkbox" id="printLogo" @(Model.PrintLogo ? "checked" : "") />
-                                                    <label class="form-check-label" for="printLogo">@Localizer["PrintLogo"]</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-check form-switch mb-3">
-                                                    <input class="form-check-input" type="checkbox" id="printBarcode" @(Model.PrintBarcode ? "checked" : "") />
-                                                    <label class="form-check-label" for="printBarcode">@Localizer["PrintBarcode"]</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-check form-switch mb-3">
-                                                    <input class="form-check-input" type="checkbox" id="showTaxBreakdown" @(Model.ShowTaxBreakdown ? "checked" : "") />
-                                                    <label class="form-check-label" for="showTaxBreakdown">@Localizer["ShowTaxBreakdown"]</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3" id="logoPathContainer" style="display: @(Model.PrintLogo ? "block" : "none");">
-                                            <label for="logoPath" class="form-label">@Localizer["LogoPath"]</label>
-                                            <input type="text" class="form-control" id="logoPath" value="@Model.LogoPath" maxlength="500" />
-                                            <div class="form-text">@Localizer["LogoPathHint"]</div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -213,9 +134,9 @@
                                             <p class="small mb-2">Customer: Walk-in Customer</p>
                                             <hr />
                                             <p class="small mb-1"><strong>Sample Product</strong></p>
-                                            <p class="small mb-2">1 x <span id="previewCurrency">@Model.CurrencySymbol</span>10.00 = <span id="previewCurrency2">@Model.CurrencySymbol</span>10.00</p>
+                                            <p class="small mb-2">1 x 10.00 = 10.00</p>
                                             <hr />
-                                            <p class="small mb-1"><strong>TOTAL: <span id="previewCurrency3">@Model.CurrencySymbol</span>10.00</strong></p>
+                                            <p class="small mb-1"><strong>TOTAL: 10.00</strong></p>
                                             <hr />
                                             <div class="text-center">
                                                 <p id="previewFooterMessage" class="small mb-1"><strong>@Model.ReceiptFooterMessage.ToUpper()</strong></p>
@@ -260,11 +181,6 @@
                 $('#previewTaxId').text('Tax ID: ' + $(this).val());
             });
             
-            $('#currencySymbol').on('input', function() {
-                var currency = $(this).val() || '$';
-                $('#previewCurrency, #previewCurrency2, #previewCurrency3').text(currency);
-            });
-            
             $('#receiptFooterMessage').on('input', function() {
                 $('#previewFooterMessage').html('<strong>' + ($(this).val() || 'Thank you!').toUpperCase() + '</strong>');
             });
@@ -290,15 +206,6 @@
                 }
             });
             
-            // Toggle logo path visibility
-            $('#printLogo').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#logoPathContainer').slideDown();
-                } else {
-                    $('#logoPathContainer').slideUp();
-                }
-            });
-            
             // Save settings
             $('#saveSettings').on('click', function() {
                 var data = {
@@ -306,22 +213,12 @@
                     addressLine1: $('#addressLine1').val(),
                     addressLine2: $('#addressLine2').val(),
                     phone: $('#phone').val(),
-                    email: $('#email').val(),
                     taxId: $('#taxId').val(),
                     website: $('#website').val(),
                     receiptFooterMessage: $('#receiptFooterMessage').val(),
                     footerLine1: $('#footerLine1').val(),
                     footerLine2: $('#footerLine2').val(),
-                    footerLine3: $('#footerLine3').val(),
-                    currencySymbol: $('#currencySymbol').val(),
-                    defaultLanguage: $('#defaultLanguage').val(),
-                    printLogo: $('#printLogo').is(':checked'),
-                    logoPath: $('#logoPath').val(),
-                    returnPolicyDays: parseInt($('#returnPolicyDays').val()) || 30,
-                    showTaxBreakdown: $('#showTaxBreakdown').is(':checked'),
-                    printBarcode: $('#printBarcode').is(':checked'),
-                    socialMedia: $('#socialMedia').val(),
-                    businessRegistrationNumber: $('#businessRegistrationNumber').val()
+                    footerLine3: $('#footerLine3').val()
                 };
                 
                 $.ajax({

@@ -1,11 +1,41 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, dialog, ipcMain, screen } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+
+// Web.exe binds a fixed port, so a second copy can't start - focus the first window instead.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
+// The web app refuses to start without Jwt:SecretKey. An installed copy has no user-secrets,
+// so generate a random per-machine key on first launch and keep it in the user's app-data folder.
+function getJwtSecretKey() {
+  if (process.env.Jwt__SecretKey) return process.env.Jwt__SecretKey;
+  const keyFile = path.join(app.getPath('userData'), 'jwt.key');
+  try {
+    const existing = fs.readFileSync(keyFile, 'utf8').trim();
+    if (existing.length >= 32) return existing;
+  } catch (_) { /* first launch */ }
+  const key = crypto.randomBytes(48).toString('base64');
+  fs.mkdirSync(path.dirname(keyFile), { recursive: true });
+  fs.writeFileSync(keyFile, key, { encoding: 'utf8', mode: 0o600 });
+  return key;
+}
 
 let mainWindow = null;
 let dotnetProcess = null;
 const APP_URL = 'http://localhost:5000';
+// Set by the Visual Studio "Electron" profile: the web app is already running under the debugger
+// (the value is its process id), so connect to it instead of starting Web.exe.
+const EXTERNAL_SERVER_PID = Number(process.env.NEXPOS_EXTERNAL_SERVER) || 0;
 const MAX_RETRIES = 30;
 const RETRY_DELAY = 1000; // 1 second
 
@@ -89,8 +119,9 @@ function startDotNetApp() {
         }
       }
     } else {
-      // Production: Look in resources/app (electron-builder default)
+      // Production: extraFiles copies publish/app to <install dir>/app, next to NexPos.exe.
       const prodPaths = [
+        path.join(path.dirname(process.execPath), 'app', 'Web.exe'),
         path.join(process.resourcesPath, 'app', 'Web.exe'),
         path.join(__dirname, 'app', 'Web.exe'),
         path.join(__dirname, 'Web.exe')
@@ -111,11 +142,17 @@ function startDotNetApp() {
     }
 
     console.log(`Starting .NET app from: ${dotnetExePath}`);
+    // No shell: a cmd.exe wrapper breaks on install paths with spaces ("Program Files") and
+    // kill() would only end cmd.exe, leaving Web.exe holding the port and the database.
     dotnetProcess = spawn(dotnetExePath, [], {
       cwd: workingDir || path.dirname(dotnetExePath),
-      shell: true,
+      shell: false,
+      windowsHide: true,
       stdio: 'pipe',
       env: Object.assign({}, process.env, {
+        Jwt__SecretKey: getJwtSecretKey(),
+        // The install dir may not be writable, so keep logs in the user's app-data folder.
+        NEXPOS_LOG_DIR: process.env.NEXPOS_LOG_DIR || path.join(app.getPath('userData'), 'logs'),
         // Packaged / published runs use the Production pipeline (no DeveloperExceptionPage,
         // Serilog at Warning). Debug dev runs keep whatever the profile sets.
         ASPNETCORE_ENVIRONMENT: dotnetExePath.includes(`${path.sep}Debug${path.sep}`) ? (process.env.ASPNETCORE_ENVIRONMENT || 'Development') : 'Production',
@@ -161,42 +198,41 @@ function startDotNetApp() {
 
 // Create the main window
 function createWindow() {
+  // Size the window to the usable screen area (minus taskbar). A fixed 1400x900 with a
+  // 1024x768 minimum doesn't fit a 1366x768 display, or a larger one with Windows scaling
+  // (125% leaves ~1093x614 DIPs), so the bottom/right of the app ended up off-screen.
+  const { width: workW, height: workH } = screen.getPrimaryDisplay().workAreaSize;
+  const fitsPreferred = workW >= 1400 && workH >= 900;
+
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 1024,
-    minHeight: 768,
+    width: Math.min(1400, workW),
+    height: Math.min(900, workH),
+    minWidth: Math.min(900, workW),
+    minHeight: Math.min(560, workH),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true
+      webSecurity: true,
+      preload: path.join(__dirname, 'electron-preload.js')
     },
     icon: path.join(__dirname, 'assets', 'icon.png'), // Optional: add an icon
     show: false // Don't show until ready
   });
+
+  // No File/Edit/View menu bar - it's a kiosk-style POS, not a document app.
+  Menu.setApplicationMenu(null);
+
+  setupWebContents(mainWindow.webContents);
 
   // Load the application
   mainWindow.loadURL(APP_URL);
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
+    // On small screens the preferred size doesn't fit, so use all the room there is.
+    if (!fitsPreferred) mainWindow.maximize();
     mainWindow.show();
     mainWindow.focus();
-  });
-
-  // Handle external links - open in default browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
-    return { action: 'deny' };
-  });
-
-  // Prevent navigation to external URLs
-  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.origin !== APP_URL) {
-      event.preventDefault();
-      shell.openExternal(navigationUrl);
-    }
   });
 
   // Handle window closed
@@ -204,6 +240,144 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+const isAppUrl = (url) => {
+  try {
+    return new URL(url).origin === APP_URL;
+  } catch {
+    return false;
+  }
+};
+
+// UI zoom shared by every app window; chosen from the screen size on first use.
+let uiZoom = null;
+
+// Shared setup for the main window and any popup windows the app opens (e.g. Add Product).
+function setupWebContents(contents) {
+  // Scale the UI down on smaller screens so more fits (cart rows, product tiles, table columns).
+  // Re-applied after every load because navigation can reset it.
+  if (uiZoom === null) {
+    // workAreaSize is in DIPs, so Windows display scaling is already accounted for.
+    // Aim for roughly 1800 CSS px of width; never enlarge, never go below 65% (text gets unreadable).
+    const { width } = screen.getPrimaryDisplay().workAreaSize;
+    uiZoom = Math.min(1, Math.max(0.65, Math.round((width / 1800) * 100) / 100));
+  }
+  contents.on('did-finish-load', () => contents.setZoomFactor(uiZoom));
+
+  // Ctrl + / Ctrl - / Ctrl 0 to adjust the size (the removed menu carried these too).
+  contents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || !input.control) return;
+    const key = input.key;
+    if (key === '=' || key === '+') uiZoom = Math.min(1.5, uiZoom + 0.05);
+    else if (key === '-') uiZoom = Math.max(0.5, uiZoom - 0.05);
+    else if (key === '0') uiZoom = 1;
+    else return;
+    uiZoom = Math.round(uiZoom * 100) / 100;
+    contents.setZoomFactor(uiZoom);
+    event.preventDefault();
+  });
+
+  // The removed menu also carried the reload/DevTools shortcuts; keep those for development only.
+  if (!app.isPackaged) {
+    contents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown') return;
+      if (input.key === 'F12') {
+        contents.toggleDevTools();
+        event.preventDefault();
+      } else if (input.control && input.key.toLowerCase() === 'r') {
+        contents.reload();
+        event.preventDefault();
+      }
+    });
+  }
+
+  // App pages opened with window.open get their own app window; external links go to the default browser.
+  contents.setWindowOpenHandler(({ url }) => {
+    if (isAppUrl(url)) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          minWidth: 400,
+          minHeight: 400,
+          icon: path.join(__dirname, 'assets', 'icon.png'),
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            webSecurity: true,
+            preload: path.join(__dirname, 'electron-preload.js')
+          }
+        }
+      };
+    }
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  contents.on('did-create-window', (childWindow) => {
+    setupWebContents(childWindow.webContents);
+  });
+
+  // Prevent navigation to external URLs
+  contents.on('will-navigate', (event, navigationUrl) => {
+    if (!isAppUrl(navigationUrl)) {
+      event.preventDefault();
+      shell.openExternal(navigationUrl);
+    }
+  });
+}
+
+// Barcode sticker printing: silent (no OS/Electron dialog), sent straight to the sticker
+// printer chosen on this machine (or the system default if none is chosen) via a hidden
+// BrowserWindow that loads the label HTML built by the web app. The web app remembers the
+// chosen printer per machine in localStorage, so each till can use its own label printer.
+const isAppPage = (event) => new URL(event.senderFrame.url).origin === APP_URL;
+
+ipcMain.handle('sticker:printers', async (event) => {
+  if (!isAppPage(event)) return [];
+  const printers = await event.sender.getPrintersAsync();
+  return printers.map((p) => ({ name: p.name, displayName: p.displayName, isDefault: p.isDefault }));
+});
+
+ipcMain.handle('sticker:print', async (event, { html, printerName, copies, widthMm, heightMm }) => {
+  // Only the app's own pages may print.
+  if (!isAppPage(event)) {
+    return { success: false, failureReason: 'forbidden' };
+  }
+  // The renderer clamps these too; clamp again so a bad value can't hand the printer a huge
+  // (or zero/negative) job or a nonsense page size.
+  const copyCount = Math.min(100, Math.max(1, Math.floor(Number(copies) || 1)));
+  const width = Math.min(150, Math.max(15, Number(widthMm) || 40));
+  const height = Math.min(150, Math.max(10, Number(heightMm) || 25));
+  const printWin = new BrowserWindow({ show: false, webPreferences: { javascript: false } });
+  try {
+    await printWin.loadURL('data:text/html;charset=UTF-8,' + encodeURIComponent(String(html)));
+    // Race against a timeout so a stuck print job (e.g. a printer that's off/offline)
+    // can't leave this hidden window - or the renderer's awaited IPC call - hanging forever.
+    const result = await Promise.race([
+      new Promise((resolve) => {
+        printWin.webContents.print(
+          {
+            silent: true,
+            printBackground: true,
+            deviceName: printerName || undefined,
+            copies: copyCount,
+            margins: { marginType: 'none' },
+            pageSize: { width: Math.round(width * 1000), height: Math.round(height * 1000) }, // microns
+          },
+          (success, failureReason) => resolve({ success, failureReason }),
+        );
+      }),
+      // Bigger jobs take longer to hand off, so grow the ceiling with the copy count.
+      new Promise((resolve) =>
+        setTimeout(() => resolve({ success: false, failureReason: 'timeout' }), 15000 + copyCount * 500),
+      ),
+    ]);
+    if (!result.success) console.error('Sticker print failed:', result.failureReason || '(no reason given)');
+    return result;
+  } finally {
+    printWin.close();
+  }
+});
 
 // Fire a cheap request so EF builds its model and warms the connection pool before the
 // first real page is requested. Non-fatal.
@@ -224,13 +398,28 @@ function warmUp() {
 // App event handlers
 app.whenReady().then(async () => {
   try {
-    console.log('Starting .NET application...');
-    await startDotNetApp();
+    if (EXTERNAL_SERVER_PID) {
+      console.log('Using the web app started by Visual Studio...');
+      await checkServerReady();
+      // Quit when the debug session stops, rather than leaving a window on a dead server.
+      setInterval(() => {
+        try {
+          process.kill(EXTERNAL_SERVER_PID, 0);
+        } catch {
+          app.quit();
+        }
+      }, 2000);
+    } else {
+      console.log('Starting .NET application...');
+      await startDotNetApp();
+    }
     await warmUp();
     console.log('Creating Electron window...');
     createWindow();
   } catch (error) {
     console.error('Failed to start application:', error);
+    dialog.showErrorBox('NexPos failed to start',
+      `${error.message}\n\nLogs: ${path.join(app.getPath('userData'), 'logs')}`);
     app.quit();
   }
 });

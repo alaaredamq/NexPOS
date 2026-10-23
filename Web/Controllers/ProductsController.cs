@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Application.IServices.Products;
 using Application.IServices.Reports;
 using Application.IServices.Base;
+using Application.IServices.Settings;
 using Application.DTOs.Products;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Web.Attributes;
@@ -22,9 +23,10 @@ public class ProductsController : BaseController
     private readonly ICurrencyService _currencyService;
     private readonly IViewLocalizer _localizer;
     private readonly IExportService _exportService;
+    private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<ProductsController> _logger;
 
-    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IExportService exportService, ILogger<ProductsController> logger)
+    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IExportService exportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger)
     {
         _productService = productService;
         _categoryService = categoryService;
@@ -32,6 +34,7 @@ public class ProductsController : BaseController
         _currencyService = currencyService;
         _localizer = localizer;
         _exportService = exportService;
+        _settingsService = settingsService;
         _logger = logger;
     }
 
@@ -178,6 +181,20 @@ public class ProductsController : BaseController
             _logger.LogError(ex, "Error generating barcode");
             return Json(new { success = false, message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Default label size from App Settings, used by the "Print label" dialog.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> StickerSettings()
+    {
+        var settings = await _settingsService.GetAppSettingsAsync();
+        return Json(new
+        {
+            widthMm = settings.StickerWidthMm,
+            heightMm = settings.StickerHeightMm
+        });
     }
 
     private static string GenerateEan13Barcode()
@@ -603,6 +620,9 @@ public class ProductsController : BaseController
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-teal' onclick='editProduct({productId})' title='Edit'>
                     <i class='fas fa-edit'></i>
+                </button>
+                <button type='button' class='btn btn-sm btn-outline-secondary' onclick='printProductLabel({productId})' title='Print Label'>
+                    <i class='fas fa-barcode'></i>
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-danger' onclick='deleteProduct({productId})' title='Delete'>
                     <i class='fas fa-trash'></i>

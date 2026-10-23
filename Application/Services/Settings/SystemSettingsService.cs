@@ -126,8 +126,16 @@ namespace Application.Services.Settings
 
         public async Task<AppSettingsDTO> UpdateAppSettingsAsync(AppSettingsDTO appSettings)
         {
-            var properties = typeof(AppSettingsDTO).GetProperties();
-            
+            // Only the settings the app actually reads are exposed in the UI and saved here;
+            // the rest of AppSettingsDTO is unused, so a save must not overwrite those stored values.
+            var functional = new[]
+            {
+                nameof(AppSettingsDTO.ReceiptPrinterName),
+                nameof(AppSettingsDTO.StickerWidthMm),
+                nameof(AppSettingsDTO.StickerHeightMm),
+            };
+            var properties = typeof(AppSettingsDTO).GetProperties().Where(p => functional.Contains(p.Name));
+
             foreach (var property in properties)
             {
                 var value = property.GetValue(appSettings);
@@ -351,6 +359,8 @@ namespace Application.Services.Settings
                 new() { SettingKey = "MaxDiscountPercentage", SettingValue = "50", SettingType = "decimal", Category = "POS", Description = "Max Discount Percentage", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "ReceiptPrinterName", SettingValue = "", SettingType = "string", Category = "POS", Description = "Receipt Printer", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "RequireCustomerForSale", SettingValue = "false", SettingType = "bool", Category = "POS", Description = "Require Customer for Sale", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "StickerWidthMm", SettingValue = "40", SettingType = "int", Category = "POS", Description = "Sticker Width (mm)", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "StickerHeightMm", SettingValue = "25", SettingType = "int", Category = "POS", Description = "Sticker Height (mm)", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
 
                 // Inventory Settings
                 new() { SettingKey = "EnableLowStockAlerts", SettingValue = "true", SettingType = "bool", Category = "Inventory", Description = "Enable Low Stock Alerts", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Localization;
 using Application.IServices.Auth;
 using Application.IServices.Users;
 using Web.Models.Auth;
@@ -14,9 +15,11 @@ public class AccountController : BaseController
     private readonly IAuthService _authService;
     private readonly IUserService _userService;
     private readonly ILogger<AccountController> _logger;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger)
+    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger, IStringLocalizer<SharedResource> localizer)
     {
+        _localizer = localizer;
         _authService = authService;
         _userService = userService;
         _logger = logger;
@@ -55,6 +58,7 @@ public class AccountController : BaseController
     {
         if (!ModelState.IsValid)
         {
+            ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
             return View(model);
         }
@@ -132,14 +136,16 @@ public class AccountController : BaseController
         return RedirectToAction("Index", "POS", new { lang = currentLang });
             }
 
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Invalid username or PIN");
+            ModelState.AddModelError(string.Empty, _localizer[result.ErrorMessage ?? "Invalid username or PIN"].Value);
+            ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
             return View(model);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Login error for user: {Username}", model.Username);
-            ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again.");
+            ModelState.AddModelError(string.Empty, _localizer["An error occurred during login. Please try again."].Value);
+            ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
             return View(model);
         }
@@ -167,8 +173,8 @@ public class AccountController : BaseController
             RoleId = User.FindFirst("RoleId")?.Value
         };
 
-        ViewData["Title"] = "Profile";
-        ViewData["Subtitle"] = "Your account information";
+        ViewData["Title"] = _localizer["Profile"].Value;
+        ViewData["Subtitle"] = _localizer["Prof_Subtitle"].Value;
         return View(userInfo);
     }
 
@@ -176,8 +182,8 @@ public class AccountController : BaseController
     [Authorize]
     public IActionResult ChangePassword()
     {
-        ViewData["Title"] = "Change PIN";
-        ViewData["Subtitle"] = "Update your login PIN";
+        ViewData["Title"] = _localizer["ChangePin"].Value;
+        ViewData["Subtitle"] = _localizer["Pin_UpdateYourLogin"].Value;
         return View(new ChangePasswordViewModel());
     }
 
@@ -186,12 +192,12 @@ public class AccountController : BaseController
     [Authorize]
     public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
-        ViewData["Title"] = "Change PIN";
-        ViewData["Subtitle"] = "Update your login PIN";
+        ViewData["Title"] = _localizer["ChangePin"].Value;
+        ViewData["Subtitle"] = _localizer["Pin_UpdateYourLogin"].Value;
 
         if (model.NewPin != model.ConfirmPin)
         {
-            ModelState.AddModelError(nameof(model.ConfirmPin), "PINs do not match");
+            ModelState.AddModelError(nameof(model.ConfirmPin), _localizer["PINs do not match"].Value);
         }
 
         if (!ModelState.IsValid)
@@ -211,14 +217,14 @@ public class AccountController : BaseController
             var user = await _userService.GetByIdAsync(userId);
             if (user == null || !await _userService.ValidatePinAsync(user, model.CurrentPin))
             {
-                ModelState.AddModelError(nameof(model.CurrentPin), "Current PIN is incorrect");
+                ModelState.AddModelError(nameof(model.CurrentPin), _localizer["Current PIN is incorrect"].Value);
                 ClearPins(model);
                 return View(model);
             }
 
             if (model.NewPin == model.CurrentPin)
             {
-                ModelState.AddModelError(nameof(model.NewPin), "New PIN must be different from your current PIN");
+                ModelState.AddModelError(nameof(model.NewPin), _localizer["New PIN must be different from your current PIN"].Value);
                 ClearPins(model);
                 return View(model);
             }
@@ -231,26 +237,44 @@ public class AccountController : BaseController
         catch (Exception ex)
         {
             _logger.LogError(ex, "PIN change error for user: {UserId}", userId);
-            ModelState.AddModelError(string.Empty, "An error occurred while updating your PIN. Please try again.");
+            ModelState.AddModelError(string.Empty, _localizer["An error occurred while updating your PIN. Please try again."].Value);
         }
 
         ClearPins(model);
         return View(model);
     }
 
-    private static void ClearPins(ChangePasswordViewModel model)
+    // Tag helpers render values from ModelState before the model, so the posted values
+    // must be overwritten there too (SetModelValue keeps the validation errors intact).
+    private void ClearPins(ChangePasswordViewModel model)
     {
         model.CurrentPin = string.Empty;
         model.NewPin = string.Empty;
         model.ConfirmPin = string.Empty;
+        ResetPinModelState(nameof(model.CurrentPin), nameof(model.NewPin), nameof(model.ConfirmPin));
+    }
+
+    private void ClearPins(ChangePinViewModel model)
+    {
+        model.NewPin = string.Empty;
+        model.ConfirmPin = string.Empty;
+        ResetPinModelState(nameof(model.NewPin), nameof(model.ConfirmPin));
+    }
+
+    private void ResetPinModelState(params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            ModelState.SetModelValue(key, string.Empty, string.Empty);
+        }
     }
 
     [HttpGet]
     [Authorize]
     public IActionResult ChangePin()
     {
-        ViewData["Title"] = "Change PIN";
-        ViewData["Subtitle"] = "Set a new PIN for logging in";
+        ViewData["Title"] = _localizer["ChangePin"].Value;
+        ViewData["Subtitle"] = _localizer["Pin_SetNew"].Value;
         return View(new ChangePinViewModel());
     }
 
@@ -259,18 +283,17 @@ public class AccountController : BaseController
     [Authorize]
     public async Task<IActionResult> ChangePin(ChangePinViewModel model)
     {
-        ViewData["Title"] = "Change PIN";
-        ViewData["Subtitle"] = "Set a new PIN for logging in";
+        ViewData["Title"] = _localizer["ChangePin"].Value;
+        ViewData["Subtitle"] = _localizer["Pin_SetNew"].Value;
 
         if (model.NewPin != model.ConfirmPin)
         {
-            ModelState.AddModelError(nameof(model.ConfirmPin), "PINs do not match");
+            ModelState.AddModelError(nameof(model.ConfirmPin), _localizer["PINs do not match"].Value);
         }
 
         if (!ModelState.IsValid)
         {
-            model.NewPin = string.Empty;
-            model.ConfirmPin = string.Empty;
+            ClearPins(model);
             return View(model);
         }
 
@@ -283,9 +306,8 @@ public class AccountController : BaseController
         var user = await _userService.GetByIdAsync(userId);
         if (user != null && await _userService.ValidatePinAsync(user, model.NewPin))
         {
-            ModelState.AddModelError(nameof(model.NewPin), "Please choose a PIN different from your current one");
-            model.NewPin = string.Empty;
-            model.ConfirmPin = string.Empty;
+            ModelState.AddModelError(nameof(model.NewPin), _localizer["Please choose a PIN different from your current one"].Value);
+            ClearPins(model);
             return View(model);
         }
 

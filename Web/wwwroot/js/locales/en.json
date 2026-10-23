@@ -63,7 +63,9 @@
     "yesClearIt": "Yes, clear it!",
     "cartCleared": "Cart cleared",
     "checkout": "Checkout",
-    "completeCheckout": "Complete Checkout",
+    "completeCheckout": "Complete",
+    "addToDebt": "Add to Debt",
+    "selectCustomerForDebt": "Select a customer to add this sale to their debt",
     "customerOptional": "Customer (Optional)",
     "walkInCustomer": "Walk-in Customer",
     "paymentMethod": "Payment Method",
@@ -73,8 +75,12 @@
     "original": "Original",
     "notes": "Notes",
     "notesOptional": "Notes (Optional)",
-    "addNotes": "Add notes...",
+    "addNotes"xx: "Add notes...",
     "checkoutFailed": "Checkout Failed",
+    "insufficientStockTitle": "Not enough stock",
+    "sellAnywayPrompt": "Do you want to sell anyway?",
+    "sellAnyway": "Sell anyway",
+    "reviewCart": "Review cart",
     "errorOccurred": "An error occurred during checkout",
     "saleComplete": "Sale Complete!",
     "receipt": "Receipt",
@@ -166,7 +172,23 @@
   },
   "products": {
     "areYouSureYouWantToDeleteThisProduct": "Are you sure you want to delete this product?",
-    "anErrorOccurredWhileDeletingTheProduct": "An error occurred while deleting the product"
+    "anErrorOccurredWhileDeletingTheProduct": "An error occurred while deleting the product",
+    "printLabel": {
+      "title": "Print label",
+      "printer": "Sticker printer",
+      "systemDefault": "System default",
+      "notDetected": "not detected",
+      "size": "Sticker size (mm)",
+      "width": "Width",
+      "height": "Height",
+      "copies": "Number of labels",
+      "increase": "One more label",
+      "decrease": "One less label",
+      "hint": "Up to {max} labels per job.",
+      "print": "Print {count} label(s)",
+      "missingBarcode": "Enter or generate a barcode first.",
+      "failed": "Sticker print failed"
+    }
   },
   "dashboard": {
     "failedToLoadChartData": "Failed to load chart data"

@@ -47,7 +47,7 @@ All EXE files are created in: **`dist`** folder
 
 ## ⚠️ Important Notes
 
-1. **Database**: Make sure SQL Server is accessible on target machines
+1. **Database**: SQLite, self-contained - auto-created at `%LocalAppData%\NexPOS\nexpos.db` on first launch, no server install needed
 2. **Port**: App runs on `http://localhost:5000` (change in `appsettings.json` if needed)
 3. **Testing**: Run `npm run dev` to test before building
 

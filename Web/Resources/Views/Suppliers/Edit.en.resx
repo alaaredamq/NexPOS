@@ -154,4 +154,10 @@
   <data name="Balanced" xml:space="preserve">
     <value>Balanced</value>
   </data>
+  <data name="UpdateSupplierButton" xml:space="preserve">
+    <value>Update Supplier</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>View Details</value>
+  </data>
 </root>

@@ -17,13 +17,15 @@ namespace Web.Controllers;
 public class CustomersController : BaseController
 {
     private readonly ICustomerService _customerService;
+    private readonly ICustomerDebtService _customerDebtService;
     private readonly IViewLocalizer _localizer;
     private readonly IExportService _exportService;
     private readonly ICurrencyService _currencyService;
 
-    public CustomersController(ICustomerService customerService, IViewLocalizer localizer, IExportService exportService, ICurrencyService currencyService)
+    public CustomersController(ICustomerService customerService, ICustomerDebtService customerDebtService, IViewLocalizer localizer, IExportService exportService, ICurrencyService currencyService)
     {
         _customerService = customerService;
+        _customerDebtService = customerDebtService;
         _localizer = localizer;
         _exportService = exportService;
         _currencyService = currencyService;
@@ -46,7 +48,7 @@ public class CustomersController : BaseController
     {
         try
         {
-            var customers = await _customerService.GetAllAsync();
+            var customers = await _customerService.GetAllWithOrdersAsync();
             
             // Apply search filter
             if (!string.IsNullOrEmpty(searchValue))
@@ -254,7 +256,8 @@ public class CustomersController : BaseController
             // Get default currency for debt display
             var defaultCurrency = await _currencyService.GetDefaultAsync();
             ViewBag.DefaultCurrencyNotation = defaultCurrency?.Notation ?? "$";
-            
+            ViewBag.DebtTransactions = await _customerDebtService.GetTransactionsAsync(id);
+
             return View(customer);
         }
         catch (Exception ex)
@@ -262,6 +265,43 @@ public class CustomersController : BaseController
             TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
             return RedirectToAction("Index");
         }
+    }
+
+    /// <summary>
+    /// Records a manual debt adjustment (editing what the customer owes, or what the business
+    /// owes the customer) from the customer's Details page.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequirePermission(PermissionHelper.Permissions.Customers_Edit)]
+    public async Task<IActionResult> AddDebtTransaction(AddCustomerDebtTransactionRequest model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+            return Json(new { success = false, message = firstError ?? "Invalid request." });
+        }
+
+        try
+        {
+            var signedAmount = model.CustomerOwesMore ? model.Amount : -model.Amount;
+            await _customerDebtService.AddManualTransactionAsync(model.CustomerId, GetCurrentUserId(), signedAmount, model.Note);
+            return Json(new { success = true, message = "Debt updated successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
+        }
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
+        {
+            throw new UnauthorizedAccessException("Unable to determine the current user from the authentication claims.");
+        }
+        return userId;
     }
 
     private string GetActionButtons(int customerId)
@@ -273,6 +313,9 @@ public class CustomersController : BaseController
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-teal' onclick='editCustomer({customerId})' title='Edit'>
                     <i class='fas fa-edit'></i>
+                </button>
+                <button type='button' class='btn btn-sm btn-outline-warning' onclick='addCustomerDebt({customerId})' title='Add Debt Transaction'>
+                    <i class='fas fa-hand-holding-usd'></i>
                 </button>
                 <button type='button' class='btn btn-sm btn-outline-danger' onclick='deleteCustomer({customerId})' title='Delete'>
                     <i class='fas fa-trash'></i>

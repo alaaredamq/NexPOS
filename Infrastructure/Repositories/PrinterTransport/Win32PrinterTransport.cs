@@ -43,13 +43,72 @@ public class Win32PrinterTransport : IPrinterTransport
 
     public bool SendBytes(string printerName, byte[] data, string jobName)
     {
+        if (IsDocumentPrinter(printerName))
+        {
+            // ESC/POS bytes mean nothing to a PDF/XPS driver - it would write a corrupt file.
+            _logger.LogWarning("Printer '{Printer}' is a document printer and cannot print raw ESC/POS data (job '{Job}').", printerName, jobName);
+            return false;
+        }
+
         return RawPrint(printerName, data, jobName);
     }
 
     public bool SendString(string printerName, string content, string jobName)
     {
+        if (IsDocumentPrinter(printerName))
+            return GdiPrintText(printerName, StripEscPos(content), jobName);
+
         var bytes = Encoding.GetEncoding(437).GetBytes(content);
         return RawPrint(printerName, bytes, jobName);
+    }
+
+    /// <summary>
+    /// "Print to PDF"-style virtual printers need normal Windows (GDI) print output;
+    /// RAW data sent to them produces a file that cannot be opened.
+    /// </summary>
+    private static bool IsDocumentPrinter(string printerName)
+    {
+        var name = printerName.ToLowerInvariant();
+        return name.Contains("pdf") || name.Contains("xps") || name.Contains("onenote")
+            || name.Contains("fax") || name.Contains("document writer");
+    }
+
+    private static string StripEscPos(string content)
+        => System.Text.RegularExpressions.Regex.Replace(content, @"\x1B@|\x1B[taEM!2-3dJ].|\x1D[V].", string.Empty);
+
+    private bool GdiPrintText(string printerName, string text, string jobName)
+    {
+        try
+        {
+            var lines = text.Replace("\r", string.Empty).Split('\n');
+            var index = 0;
+
+            using var font = new System.Drawing.Font("Courier New", 10);
+            using var doc = new System.Drawing.Printing.PrintDocument();
+            doc.PrinterSettings.PrinterName = printerName;
+            doc.DocumentName = jobName;
+            doc.PrintPage += (_, e) =>
+            {
+                var g = e.Graphics!;
+                var lineHeight = font.GetHeight(g);
+                var y = (float)e.MarginBounds.Top;
+
+                while (index < lines.Length && y + lineHeight <= e.MarginBounds.Bottom)
+                {
+                    g.DrawString(lines[index++], font, System.Drawing.Brushes.Black, e.MarginBounds.Left, y);
+                    y += lineHeight;
+                }
+
+                e.HasMorePages = index < lines.Length;
+            };
+            doc.Print();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GDI print to '{Printer}' failed", printerName);
+            return false;
+        }
     }
 
     public List<string> GetAvailablePrinters()

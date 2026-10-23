@@ -1968,6 +1968,101 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 /* =====================================================
+   Compact Desktop (1366x768, or Windows scaling at 125-150%)
+   The viewport is only ~900-1400 CSS px wide here, so the sidebar
+   uses a fixed width instead of a percentage and spacing tightens.
+   ===================================================== */
+
+/* Body is overflow-x:hidden, so anything wider than the page was cut off
+   with no way to reach it. Let the content area scroll sideways instead. */
+.content-wrapper {
+    overflow-x: auto;
+}
+
+@media (min-width: 769px) and (max-width: 1399.98px) {
+    .sidebar {
+        width: 220px;
+    }
+
+    main.col-md-9 {
+        flex: 0 0 auto;
+        width: calc(100% - 220px);
+        max-width: none;
+    }
+
+    .sidebar .nav-link {
+        padding: 9px 12px;
+        margin: 1px 6px;
+        font-size: 14px;
+    }
+
+    .sidebar .nav-section-label {
+        padding: 12px 14px 4px;
+    }
+
+    .content-wrapper {
+        padding: 16px;
+    }
+
+    main > .border-bottom h1.h2 {
+        font-size: 1.5rem;
+    }
+
+    .welcome-card,
+    .pos-header,
+    .products-header {
+        padding: 18px 20px;
+        margin-bottom: 16px;
+    }
+
+    .welcome-title,
+    .pos-title,
+    .products-title {
+        font-size: 24px;
+    }
+
+    .stats-card.modern-card {
+        padding: 18px;
+    }
+
+    .stats-number {
+        font-size: 24px;
+    }
+
+    .modern-header,
+    .products-card-header {
+        padding: 14px 18px;
+    }
+
+    .products-card-body,
+    .pos-card-body {
+        padding: 16px;
+    }
+
+    .modern-table thead th,
+    .modern-table tbody td {
+        padding: 10px 8px !important;
+    }
+}
+
+/* Short screens (768px tall or less once scaling is applied): keep the page chrome slim */
+@media (max-height: 800px) {
+    .sidebar .logo-section,
+    .sidebar-sticky > .text-center {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .sidebar .nav-link {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .content-wrapper {
+        min-height: 0;
+    }
+}
+
+/* =====================================================
    Utility Classes
    ===================================================== */
 
@@ -2207,3 +2302,143 @@ table.dataTable .btn-outline-danger:hover {
 .select2-container--default .select2-selection--single .select2-selection__clear:hover {
     color: #dc3545;
 }
+/* Compact SweetAlert2 popups (checkout, add-debt) - keep short forms from needing to scroll */
+.swal-compact .swal2-title {
+    font-size: 1.15rem !important;
+    padding: 0.25rem 0 0.5rem !important;
+    margin: 0 !important;
+}
+
+.swal-compact .swal2-html-container {
+    margin: 0.25rem 0 0.5rem !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    /* Metronic caps .swal2-html-container at 200px; taller forms would spill under the buttons */
+    max-height: none !important;
+}
+
+.swal-compact .swal2-actions {
+    margin: 0.75rem 0 0 !important;
+}
+
+/* Add-debt dialog: two sign-marked direction cards (+ customer owes me / − I got paid) */
+.debt-dialog {
+    font-size: 0.85rem;
+    text-align: start;
+}
+
+.debt-dialog .form-label {
+    font-size: 0.8rem;
+    color: #495057;
+}
+
+.debt-dir-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.debt-dir-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.3rem;
+    padding: 0.7rem 0.5rem 0.6rem;
+    border: 1.5px solid #e3e6ea;
+    border-radius: 0.6rem;
+    background: #fff;
+    cursor: pointer;
+    margin: 0;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+
+.debt-dir-card:hover {
+    border-color: #c5cbd2;
+}
+
+.debt-dir-card input {
+    display: none;
+}
+
+.debt-dir-sign {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #adb5bd;
+    background: #f1f3f5;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.debt-dir-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #212529;
+    line-height: 1.2;
+}
+
+.debt-dir-sub {
+    font-size: 0.72rem;
+    color: #868e96;
+    line-height: 1.25;
+}
+
+.debt-dir-plus:has(input:checked) {
+    border-color: #198754;
+    background: #f0f9f4;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.12);
+}
+
+.debt-dir-plus:has(input:checked) .debt-dir-sign {
+    background: #198754;
+    color: #fff;
+}
+
+.debt-dir-minus:has(input:checked) {
+    border-color: #dc3545;
+    background: #fdf2f3;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.12);
+}
+
+.debt-dir-minus:has(input:checked) .debt-dir-sign {
+    background: #dc3545;
+    color: #fff;
+}
+
+.debt-amount-wrap {
+    position: relative;
+}
+
+.debt-amount-sign {
+    position: absolute;
+    inset-inline-start: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.15rem;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.debt-amount-sign.is-plus { color: #198754; }
+.debt-amount-sign.is-minus { color: #dc3545; }
+
+.debt-amount-wrap .form-control {
+    padding-inline-start: 2rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    height: 2.4rem;
+}
+
+.debt-effect {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+}
+
+.debt-effect.is-plus { color: #198754; }
+.debt-effect.is-minus { color: #dc3545; }

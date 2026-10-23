@@ -1,12 +1,12 @@
 @{
-    ViewData["Title"] = "Profile";
-    ViewData["Subtitle"] = "Your account information";
+    ViewData["Title"] = SharedLocalizer["Profile"].Value;
+    ViewData["Subtitle"] = SharedLocalizer["Prof_Subtitle"].Value;
 }
 
 <!-- Profile Header -->
 <div class="d-flex justify-content-end mb-4">
     <a href="@Url.Action("ChangePassword", "Account", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-secondary">
-        <i class="fas fa-key me-2"></i>Change PIN
+        <i class="fas fa-key me-2"></i>@SharedLocalizer["ChangePin"]
     </a>
 </div>
 
@@ -17,19 +17,19 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-user me-2"></i>
-                    Account Information
+                    @SharedLocalizer["Prof_AccountInformation"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Username</label>
+                        $1@SharedLocalizer["Username"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Username
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Email Address</label>
+                        $1@SharedLocalizer["EmailAddress"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Email
                         </div>
@@ -38,13 +38,13 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Full Name</label>
+                        $1@SharedLocalizer["Prof_FullName"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.FullName
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Role</label>
+                        $1@SharedLocalizer["Prof_Role"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             <span class="badge bg-teal">@Model.Role</span>
                         </div>
@@ -53,13 +53,13 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">User ID</label>
+                        $1@SharedLocalizer["Prof_UserId"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.Id
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Role ID</label>
+                        $1@SharedLocalizer["Prof_RoleId"]$2
                         <div class="form-control-plaintext bg-light p-2 rounded">
                             @Model.RoleId
                         </div>
@@ -75,19 +75,19 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-cogs me-2"></i>
-                    Quick Actions
+                    @SharedLocalizer["QuickActions"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="d-grid gap-2">
                     <a href="@Url.Action("ChangePassword", "Account", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
-                        <i class="fas fa-key me-2"></i>Change PIN
+                        <i class="fas fa-key me-2"></i>@SharedLocalizer["ChangePin"]
                     </a>
                     <a href="@Url.Action("Index", "Settings", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
-                        <i class="fas fa-cog me-2"></i>Account Settings
+                        <i class="fas fa-cog me-2"></i>@SharedLocalizer["AccountSettings"]
                     </a>
                     <a href="@Url.Action("Index", "Dashboard", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-outline-teal">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        <i class="fas fa-tachometer-alt me-2"></i>@SharedLocalizer["Dashboard"]
                     </a>
                 </div>
             </div>
@@ -98,26 +98,26 @@
             <div class="products-card-header">
                 <h5 class="card-title mb-0">
                     <i class="fas fa-info-circle me-2"></i>
-                    Session Information
+                    @SharedLocalizer["Prof_SessionInformation"]
                 </h5>
             </div>
             <div class="products-card-body">
                 <div class="session-info">
                     <div class="session-item">
-                        <span class="session-label">Login Time:</span>
-                        <span class="session-value" id="loginTime">Loading...</span>
+                        $1@SharedLocalizer["Prof_LoginTime"]$2
+                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        <span class="session-label">Session Duration:</span>
-                        <span class="session-value" id="sessionDuration">Loading...</span>
+                        $1@SharedLocalizer["Prof_SessionDuration"]$2
+                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        <span class="session-label">IP Address:</span>
-                        <span class="session-value" id="ipAddress">Loading...</span>
+                        $1@SharedLocalizer["Prof_IpAddress"]$2
+                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                     <div class="session-item">
-                        <span class="session-label">Browser:</span>
-                        <span class="session-value" id="browser">Loading...</span>
+                        $1@SharedLocalizer["Prof_Browser"]$2
+                        <span class="session-value" dir="ltr" id="$1">@SharedLocalizer["Prof_Loading"]</span>
                     </div>
                 </div>
             </div>
@@ -127,6 +127,12 @@
 
 @section Scripts {
     <script>
+        const i18n = {
+            minutes: @Json.Serialize(SharedLocalizer["Prof_Minutes"].Value),
+            hoursMinutes: @Json.Serialize(SharedLocalizer["Prof_HoursMinutes"].Value),
+            unknown: @Json.Serialize(SharedLocalizer["Prof_Unknown"].Value)
+        };
+
         $(document).ready(function() {
             // Update session information
             updateSessionInfo();
@@ -148,11 +154,11 @@
 
         function formatDuration(minutes) {
             if (minutes < 60) {
-                return `${minutes} minutes`;
+                return i18n.minutes.replace("{0}", minutes);
             } else {
                 const hours = Math.floor(minutes / 60);
                 const remainingMinutes = minutes % 60;
-                return `${hours}h ${remainingMinutes}m`;
+                return i18n.hoursMinutes.replace("{0}", hours).replace("{1}", remainingMinutes);
             }
         }
 
@@ -167,7 +173,7 @@
             if (userAgent.includes('Firefox')) return 'Firefox';
             if (userAgent.includes('Safari')) return 'Safari';
             if (userAgent.includes('Edge')) return 'Edge';
-            return 'Unknown';
+            return i18n.unknown;
         }
     </script>
 

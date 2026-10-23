@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data;
 
@@ -17,14 +16,8 @@ public class ErpDbContextFactory : IDesignTimeDbContextFactory<ErpDbContext>
 {
     public ErpDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "..", "Web"))
-            .AddJsonFile("appsettings.json")
-            .AddJsonFile("appsettings.Development.json", optional: true)
-            .Build();
-
         var optionsBuilder = new DbContextOptionsBuilder<ErpDbContext>();
-        optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+        optionsBuilder.UseSqlite(AppDataPathProvider.GetConnectionString());
 
         return new ErpDbContext(optionsBuilder.Options);
     }

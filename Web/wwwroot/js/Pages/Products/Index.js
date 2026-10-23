@@ -110,6 +110,13 @@
         window.location.href = (urls.editUrl || '') + '?id=' + id;
     };
 
+    window.printProductLabel = function(id) {
+        var table = window.dataTable_productsTable;
+        var row = table && table.rows().data().toArray().find(function(r) { return r.id === id; });
+        if (!row) return;
+        window.StickerLabel.prompt({ name: row.name, code: row.barcode, price: row.sellingPrice });
+    };
+
     window.deleteProduct = function(id) {
         var localizedStrings = window.productsLocalizedStrings || {};
         var urls = window.productsUrls || {};
