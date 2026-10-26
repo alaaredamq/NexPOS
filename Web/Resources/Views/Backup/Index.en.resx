@@ -265,9 +265,6 @@
   <data name="ScheduleManagementComingSoon" xml:space="preserve">
     <value>Schedule management coming soon.</value>
   </data>
-  <data name="successful" xml:space="preserve">
-    <value>successful</value>
-  </data>
   <data name="TestingConnections" xml:space="preserve">
     <value>Testing connections...</value>
   </data>
@@ -531,11 +528,5 @@
   </data>
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>Delete Multiple Backups</value>
-  </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
-  </data>
-  <data name="Delete" xml:space="preserve">
-    <value>Delete</value>
   </data>
 </root>

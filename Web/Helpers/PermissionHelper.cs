@@ -131,9 +131,15 @@ public static class PermissionHelper
 
         // Alerts
         public const string Alerts_View = "Alerts.Read";
+        public const string Alerts_Create = "Alerts.Create";
+        public const string Alerts_Update = "Alerts.Update";
+        public const string Alerts_Delete = "Alerts.Delete";
 
         // Audit Logs
         public const string AuditLogs_View = "AuditLogs.Read";
+
+        // License (view status, machine ID, activate a key)
+        public const string License_Manage = "License.Manage";
 
         /// <summary>
         /// Every permission constant declared above. Used to grant SuperAdmin everything
@@ -245,7 +251,11 @@ public static class PermissionHelper
             Permissions.PaymentMethods_View,
             Permissions.PaymentMethods_Manage,
             Permissions.Alerts_View,
+            Permissions.Alerts_Create,
+            Permissions.Alerts_Update,
+            Permissions.Alerts_Delete,
             Permissions.AuditLogs_View,
+            Permissions.License_Manage,
         },
         [Roles.Manager] = new[]
         {
@@ -271,6 +281,7 @@ public static class PermissionHelper
             Permissions.PaymentMethods_View,
             Permissions.PaymentMethods_Manage,
             Permissions.Alerts_View,
+            Permissions.Alerts_Update, // acknowledge / resolve
             Permissions.Currency_View,
             Permissions.Tax_View,
         },

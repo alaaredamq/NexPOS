@@ -31,6 +31,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    // Warns "Cache-Control/Pragma headers have been overridden" on every page that renders a form
+    // (hundreds per session); that is the antiforgery token doing its job, not a problem.
+    .MinimumLevel.Override("Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery", Serilog.Events.LogEventLevel.Error)
     // EF Core logs every SQL statement at Information — writing all of that to a rolling file
     // on the request path is a measurable cost. Keep it at Warning.
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
@@ -68,6 +71,9 @@ builder.Services
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = false;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Accept both camelCase and PascalCase from JSON
+        // Stored timestamps are UTC but come back Unspecified; write them with a "Z" so the browser shows local time.
+        options.JsonSerializerOptions.Converters.Add(new Core.Time.UtcDateTimeJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new Core.Time.UtcNullableDateTimeJsonConverter());
     });
 
 // ✅ Configure supported cultures
@@ -225,6 +231,7 @@ builder.Services.AddScoped<Application.IServices.Products.ISupplierService, Appl
 builder.Services.AddScoped<Core.IRepositories.Products.ISupplierDebtTransactionRepository, Infrastructure.Repositories.Products.SupplierDebtTransactionRepository>();
 builder.Services.AddScoped<Application.IServices.Products.ISupplierDebtService, Application.Services.Products.SupplierDebtService>();
 builder.Services.AddScoped<Application.IServices.Products.IProductService, Application.Services.Products.ProductService>();
+builder.Services.AddScoped<Application.IServices.Products.IProductImportExportService, Application.Services.Products.ProductImportExportService>();
 builder.Services.AddScoped<Application.IServices.Products.IMainScreenProductService, Application.Services.Products.MainScreenProductService>();
 builder.Services.AddScoped<Application.IServices.Products.IFastProductSearchService, Application.Services.Products.FastProductSearchService>();
 builder.Services.AddScoped<Application.IServices.Sales.IPOSCheckoutService, Application.Services.Sales.POSCheckoutService>();
@@ -286,6 +293,7 @@ builder.Services.AddScoped<Application.IServices.Dashboard.IDashboardService, Ap
 // Receipts
 builder.Services.AddScoped<Core.IRepositories.Sales.IReceiptRepository, Infrastructure.Repositories.Sales.ReceiptRepository>();
 builder.Services.AddScoped<Application.IServices.Sales.IReceiptService, Application.Services.Sales.ReceiptService>();
+builder.Services.AddScoped<Application.IServices.Sales.ISaleReversalService, Application.Services.Sales.SaleReversalService>();
 
 // Thermal Printer
 // NEXPOS_DEMO=1 swaps in a no-op printer so demos/recordings never print on real hardware.

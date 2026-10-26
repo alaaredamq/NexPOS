@@ -1,4 +1,5 @@
 using Application.IServices.Base;
+using Application.IServices.Inventory;
 using Application.Services.Inventory;
 using Core.Entities.Inventory;
 using Core.Entities.Products;
@@ -111,6 +112,50 @@ public class CartServiceTests : IDisposable
         Assert.Equal(7, existingItem.Quantity); // 2 + 5
         Assert.Equal(10.00m, existingItem.UnitPrice); // repriced from Product, not the caller's 0.01
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public async Task AddItemToCartAsync_NonPositiveQuantity_IsRejected(int quantity)
+    {
+        using var context = _dbFactory.CreateContext();
+        var cartItemRepo = new Mock<ICartItemRepository>();
+        var sut = CreateSut(context, cartItemRepo);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.AddItemToCartAsync(cartId: 1, productId: 1, quantity: quantity, unitPrice: 1m));
+
+        cartItemRepo.Verify(r => r.SaveAsync(It.IsAny<CartItem>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-3)]
+    public async Task AddItemsToCartAsync_NonPositiveQuantity_IsRejectedBeforeAnythingIsSaved(int quantity)
+    {
+        using var context = _dbFactory.CreateContext();
+        var cartItemRepo = new Mock<ICartItemRepository>();
+        var sut = CreateSut(context, cartItemRepo);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.AddItemsToCartAsync(1, new[] { new CartItemInput(ProductId: 1, Quantity: quantity) }));
+
+        cartItemRepo.Verify(r => r.GetByCartIdAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AddItemsToCartAsync_NonPositiveWeightOrVolume_IsRejected()
+    {
+        using var context = _dbFactory.CreateContext();
+        var sut = CreateSut(context, new Mock<ICartItemRepository>());
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.AddItemsToCartAsync(1, new[] { new CartItemInput(ProductId: 1, Quantity: 1, WeightOrVolume: -0.5m) }));
+    }
+
+    private static CartService CreateSut(Infrastructure.Data.ErpDbContext context, Mock<ICartItemRepository> cartItemRepo) =>
+        new(Mock.Of<ICartRepository>(), cartItemRepo.Object, Mock.Of<ICustomerCartRepository>(),
+            Mock.Of<ICurrencyConversionService>(), context);
 
     public void Dispose() => _dbFactory.Dispose();
 }

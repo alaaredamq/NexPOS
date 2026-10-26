@@ -307,9 +307,6 @@
   <data name="Reset" xml:space="preserve">
     <value>Reset</value>
   </data>
-  <data name="Clear" xml:space="preserve">
-    <value>Clear</value>
-  </data>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
   </data>
@@ -910,9 +907,6 @@
   <data name="ScanBarcode" xml:space="preserve">
     <value>Scan barcode</value>
   </data>
-  <data name="CartIsEmpty" xml:space="preserve">
-    <value>Cart is Empty</value>
-  </data>
   <data name="StartAddingProductsToBegin" xml:space="preserve">
     <value>Start adding products to begin checkout</value>
   </data>
@@ -931,12 +925,6 @@
   <data name="TotalLBP" xml:space="preserve">
     <value>Total (LBP)</value>
   </data>
-  <data name="Checkout" xml:space="preserve">
-    <value>Checkout</value>
-  </data>
-  <data name="Clear" xml:space="preserve">
-    <value>Clear</value>
-  </data>
   <data name="ProductCatalog" xml:space="preserve">
     <value>Product Catalog</value>
   </data>
@@ -949,26 +937,11 @@
   <data name="HeldCart" xml:space="preserve">
     <value>Held cart</value>
   </data>
-  <data name="RetrieveHeldCart" xml:space="preserve">
-    <value>Retrieve Held Cart</value>
-  </data>
   <data name="AddItemManual" xml:space="preserve">
     <value>Add Item (Manual)</value>
   </data>
   <data name="Manual" xml:space="preserve">
     <value>Manual</value>
-  </data>
-  <data name="Discount" xml:space="preserve">
-    <value>Discount</value>
-  </data>
-  <data name="Apply" xml:space="preserve">
-    <value>Apply</value>
-  </data>
-  <data name="ApplyDiscount" xml:space="preserve">
-    <value>Apply Discount</value>
-  </data>
-  <data name="PriceCheck" xml:space="preserve">
-    <value>Price Check</value>
   </data>
   <data name="Check" xml:space="preserve">
     <value>Check</value>
@@ -1192,9 +1165,6 @@
   <data name="SupplierSummary" xml:space="preserve">
     <value>Supplier Summary</value>
   </data>
-  <data name="QuickActions" xml:space="preserve">
-    <value>Quick Actions</value>
-  </data>
   <data name="SendEmail" xml:space="preserve">
     <value>Send Email</value>
   </data>
@@ -1203,9 +1173,6 @@
   </data>
   <data name="DeleteSupplier" xml:space="preserve">
     <value>Delete Supplier</value>
-  </data>
-  <data name="TotalProducts" xml:space="preserve">
-    <value>Total Products</value>
   </data>
   <data name="NotProvided" xml:space="preserve">
     <value>Not provided</value>
@@ -1623,26 +1590,11 @@
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>Delete Multiple Backups</value>
   </data>
-  <data name="YesDelete" xml:space="preserve">
-    <value>Yes, delete it!</value>
-  </data>
   <data name="Deleted" xml:space="preserve">
     <value>Deleted!</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="DeleteProduct" xml:space="preserve">
-    <value>Delete Product</value>
-  </data>
   <data name="ThisActionCannotBeUndone" xml:space="preserve">
     <value>This action cannot be undone.</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
-  </data>
-  <data name="No" xml:space="preserve">
-    <value>No</value>
   </data>
   <data name="ProductDeletedSuccessfully" xml:space="preserve">
     <value>Product has been deleted successfully.</value>
@@ -2023,7 +1975,7 @@
     <value>Phone number</value>
   </data>
   <data name="Cust_FillRequired" xml:space="preserve">
-    <value>Please fill in all required fields (First Name, Last Name, Email)!</value>
+    <value>Please fill in the required fields (First Name, Last Name)!</value>
   </data>
   <data name="Cust_DetailsTitle" xml:space="preserve">
     <value>Customer Details</value>
@@ -2078,6 +2030,9 @@
   </data>
   <data name="Cust_TypeAdjustment" xml:space="preserve">
     <value>Adjustment</value>
+  </data>
+  <data name="Cust_TypeReversal" xml:space="preserve">
+    <value>Sale reversed</value>
   </data>
   <data name="Cust_OrderRef" xml:space="preserve">
     <value>Order #{0}</value>
@@ -2409,6 +2364,7 @@
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>A newer license is already active on this computer.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>The license could not be saved on this computer.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>Sales are stopped because the license is not active. Open the License page to renew or activate.</value></data>
+  <data name="License_SalesStoppedAskAdmin" xml:space="preserve"><value>Sales are stopped because the license is not active. Please ask your administrator to renew or activate it.</value></data>
   <data name="Print_Menu" xml:space="preserve"><value>Print</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>Print on receipt paper</value></data>
   <data name="Print_DownloadPdf" xml:space="preserve"><value>Download PDF</value></data>

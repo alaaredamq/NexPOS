@@ -39,7 +39,7 @@ public class CurrencyConversionService : ICurrencyConversionService
     public async Task<int> GetSystemDefaultCurrencyIdAsync()
     {
         var defaultCurrency = await _dbContext.Currencies.AsNoTracking().FirstOrDefaultAsync(c => c.IsDefault);
-        return defaultCurrency?.Id ?? (await _dbContext.Currencies.AsNoTracking().FirstAsync()).Id;
+        return defaultCurrency?.Id ?? (await _dbContext.Currencies.AsNoTracking().OrderBy(c => c.Id).FirstAsync()).Id;
     }
 
     public int GetSupplierDefaultCurrencyId(int supplierId)

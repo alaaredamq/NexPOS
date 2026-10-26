@@ -80,8 +80,8 @@
             const startDate = new Date();
             startDate.setDate(startDate.getDate() - 30);
             
-            $('#startDate').val(startDate.toISOString().split('T')[0]);
-            $('#endDate').val(endDate.toISOString().split('T')[0]);
+            $('#startDate').val(localDateString(startDate));
+            $('#endDate').val(localDateString(endDate));
             
             loadHistory();
         });

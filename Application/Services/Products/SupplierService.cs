@@ -1,6 +1,7 @@
 using Application.IServices.Products;
 using Core.Entities.Products;
 using Core.IRepositories.Products;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Products;
 
@@ -47,7 +48,23 @@ public class SupplierService : ISupplierService
     public async Task DeleteAsync(int id)
     {
         var existing = await _repo.GetByIdAsync(id);
-        await _repo.DeleteAsync(existing);
+
+        if (existing.Balance != 0)
+        {
+            throw new InvalidOperationException(
+                $"There is an outstanding balance of {Math.Abs(existing.Balance):N2} with this supplier. Settle it before deleting, or deactivate the supplier instead.");
+        }
+
+        try
+        {
+            await _repo.DeleteAsync(existing);
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
+        {
+            // Products (including soft-deleted ones kept for sales history) or debt records still point at this supplier.
+            throw new InvalidOperationException(
+                "This supplier is still referenced by products (including deleted ones kept for sales history) or debt records, so it can't be removed. Deactivate it instead.", ex);
+        }
     }
 }
 

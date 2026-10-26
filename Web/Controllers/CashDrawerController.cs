@@ -1,3 +1,4 @@
+using Core.Time;
 using Application.IServices.Sales;
 using Application.Services.Printing;
 using Core.Printing;
@@ -231,13 +232,17 @@ public class CashDrawerController : BaseController
         {
             var userId = GetCurrentUserId();
 
-            // The date picker sends midnight; make the end date inclusive of the whole day
-            if (endDate.HasValue && endDate.Value.TimeOfDay == TimeSpan.Zero)
+            // The pickers choose LOCAL calendar days (midnight, so the end date means the whole day); sessions are stored in UTC.
+            var fromUtc = startDate.HasValue ? startDate.Value.LocalToUtc() : (DateTime?)null;
+            DateTime? toUtc = null;
+            if (endDate.HasValue)
             {
-                endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
+                toUtc = endDate.Value.TimeOfDay == TimeSpan.Zero
+                    ? AppTime.LocalDayStartUtc(endDate.Value.AddDays(1)).AddTicks(-1)
+                    : endDate.Value.LocalToUtc();
             }
 
-            var sessions = await _cashDrawerService.GetSessionHistoryAsync(userId, startDate, endDate);
+            var sessions = await _cashDrawerService.GetSessionHistoryAsync(userId, fromUtc, toUtc);
 
             var data = sessions.Select(s => new {
                 id = s.Id,

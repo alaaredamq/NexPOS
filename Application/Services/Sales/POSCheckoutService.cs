@@ -142,6 +142,12 @@ namespace Application.Services.Sales
                     int? effectiveCustomerId = request.CustomerId is > 0 ? request.CustomerId : null;
                     _logger.LogInformation("Processing checkout for customer {CustomerId} (null = walk-in)", effectiveCustomerId?.ToString() ?? "walk-in");
 
+                    // Fail with a clear message instead of a foreign-key error from SaveChanges.
+                    if (effectiveCustomerId != null && !await _dbContext.Customers.AnyAsync(c => c.Id == effectiveCustomerId))
+                    {
+                        throw new InvalidOperationException("The selected customer no longer exists. Please select a customer again.");
+                    }
+
                     // Resolve the system "Customer Debt" payment method once - used both to
                     // route an AddToDebt sale onto it, and to block a client from picking it
                     // directly as if it were a normal payment method (S-loophole: that would
@@ -259,6 +265,13 @@ namespace Application.Services.Sales
                         await _cartRepository.SaveAsync(cart);
                     }
                 
+                    // The POS doesn't send AmountPaid, but when a caller does it must cover the sale.
+                    if (!request.AddToDebt && request.AmountPaid.HasValue && request.AmountPaid.Value < finalTotal)
+                    {
+                        throw new InvalidOperationException(
+                            $"Amount paid ({request.AmountPaid.Value:F2}) is less than the total ({finalTotal:F2}).");
+                    }
+
                     // Process payment with the final total
                     var paymentResult = await ProcessPaymentAsync(finalTotal, request.PaymentMethodId);
                     if (!paymentResult.Success)
@@ -299,7 +312,7 @@ namespace Application.Services.Sales
                         request.AllowInsufficientStock);
 
                     // Generate order number
-                    var orderNumber = $"ORD-{order.Id:D6}-{DateTime.UtcNow:yyyyMMdd}";
+                    var orderNumber = $"ORD-{order.Id:D6}-{DateTime.Now:yyyyMMdd}"; // local date, matching the receipt number
 
                     if (request.AddToDebt)
                     {

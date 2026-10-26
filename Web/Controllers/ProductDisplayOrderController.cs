@@ -4,11 +4,12 @@ using Core.Entities.Products;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Attributes;
+using Web.Helpers;
 
 namespace Web.Controllers
 {
     // [Authorize(Roles = "Admin,Manager")]
-    [RequirePermission("MainScreenProducts.Manage")]
+    [RequirePermission(PermissionHelper.Permissions.MainScreenProducts_Manage)]
     public class ProductDisplayOrderController : BaseController
     {
         private readonly IProductDisplayOrderService _productDisplayOrderService;

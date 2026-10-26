@@ -17,11 +17,11 @@ public class UpdateCustomerRequest
     [Display(Name = "Last Name")]
     public string LastName { get; set; } = string.Empty;
 
-    [Required]
+    // Optional: only first and last name are required (nullable, otherwise MVC adds an implicit [Required])
     [EmailAddress]
     [StringLength(255)]
     [Display(Name = "Email Address")]
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
 
     [Phone]
     [StringLength(20)]

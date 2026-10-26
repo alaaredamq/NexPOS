@@ -2,6 +2,7 @@ using Application.IServices.Products;
 using Core.Entities.Products;
 using Core.ICache;
 using Core.IRepositories.Products;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Products;
 
@@ -60,7 +61,16 @@ public class ProductCategoryService : IProductCategoryService
     public async Task DeleteAsync(int id)
     {
         var existing = await _repo.GetByIdAsync(id);
-        await _repo.DeleteAsync(existing);
+        try
+        {
+            await _repo.DeleteAsync(existing);
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
+        {
+            // Products (including soft-deleted ones kept for sales history) still point at this category.
+            throw new InvalidOperationException(
+                "This category is still used by products, including deleted ones kept for sales history, so it can't be removed. Deactivate it instead.", ex);
+        }
         _cache.Remove(CacheKeys.Categories);
     }
 }

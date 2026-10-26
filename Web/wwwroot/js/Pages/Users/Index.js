@@ -31,16 +31,10 @@
         $('#addUserForm').on('submit', function(e) {
             e.preventDefault();
 
-            const password = $('#password').val();
-            const confirmPassword = $('#confirmPassword').val();
             const pin = $('#pin').val();
 
-            if (password !== confirmPassword) {
-                notifyError(strings().passwordsDoNotMatch || 'Passwords do not match');
-                return;
-            }
-            if (!/^\d{4,6}$/.test(pin)) {
-                notifyError('PIN must be 4-6 digits');
+            if (!/^\d{4}$/.test(pin)) {
+                notifyError('PIN must be exactly 4 digits');
                 return;
             }
 
@@ -49,8 +43,6 @@
                 email: $('#email').val(),
                 firstName: $('#firstName').val(),
                 lastName: $('#lastName').val(),
-                password: password,
-                confirmPassword: confirmPassword,
                 pin: pin,
                 role: $('#userRole').val(),
                 isActive: $('#isActive').is(':checked')
@@ -114,8 +106,8 @@
             const id = $('#resetPinUserId').val();
             const newPin = $('#newPin').val();
 
-            if (!/^\d{4,6}$/.test(newPin)) {
-                notifyError('PIN must be 4-6 digits');
+            if (!/^\d{4}$/.test(newPin)) {
+                notifyError('PIN must be exactly 4 digits');
                 return;
             }
 

@@ -1,3 +1,4 @@
+using Core.Time;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.IServices.Sales;
@@ -25,6 +26,7 @@ namespace Web.Controllers
         private readonly IReceiptService _receiptService;
         private readonly IThermalPrinterService _thermalPrinterService;
         private readonly IStoreSettingsService _storeSettingsService;
+        private readonly ISaleReversalService _saleReversalService;
 
         public OrdersController(
             IOrderService orderService,
@@ -32,7 +34,8 @@ namespace Web.Controllers
             IExportService exportService,
             IReceiptService receiptService,
             IThermalPrinterService thermalPrinterService,
-            IStoreSettingsService storeSettingsService)
+            IStoreSettingsService storeSettingsService,
+            ISaleReversalService saleReversalService)
         {
             _orderService = orderService;
             _localizer = localizer;
@@ -40,6 +43,17 @@ namespace Web.Controllers
             _receiptService = receiptService;
             _thermalPrinterService = thermalPrinterService;
             _storeSettingsService = storeSettingsService;
+            _saleReversalService = saleReversalService;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedAccessException("Unable to determine the current user from the authentication claims.");
+            }
+            return userId;
         }
 
         public async Task<IActionResult> Index()
@@ -85,7 +99,7 @@ namespace Web.Controllers
                         id = o.Id,
                         orderNumber = $"ORD-{o.Id:D6}",
                         customerName = $"{o.Customer?.FirstName} {o.Customer?.LastName}".Trim(),
-                        orderDate = o.OrderDate.ToString("yyyy-MM-dd HH:mm"),
+                        orderDate = o.OrderDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                         totalAmount = FormatCurrency(o.TotalAmount, o.Currency?.Notation),
                         status = ((OrderStatus)o.Status).ToString(),
                         statusBadge = GetStatusBadge((OrderStatus)o.Status),
@@ -210,6 +224,16 @@ namespace Web.Controllers
 
             try
             {
+                if (model.Status == (int)OrderStatus.Cancelled)
+                {
+                    // Cancelling reverses the whole sale: receipt voided, stock back, debt/drawer adjusted.
+                    var result = await _saleReversalService.CancelOrderAsync(
+                        model.OrderId, GetCurrentUserId(), "Cancelled from the Orders page");
+                    TempData["SuccessMessage"] = $"Order {result.OrderNumber} cancelled: receipt voided and " +
+                        $"{result.StockLinesRestored} item line(s) returned to stock.";
+                    return RedirectToAction("Index");
+                }
+
                 await _orderService.UpdateOrderStatusAsync(model.OrderId, model.Status);
                 TempData["SuccessMessage"] = "Order status updated successfully!";
                 return RedirectToAction("Index");
@@ -247,10 +271,12 @@ namespace Web.Controllers
         {
             try
             {
-                startDate ??= DateTime.UtcNow.AddDays(-30);
-                endDate ??= DateTime.UtcNow;
+                // Picked dates are local calendar days; orders are stored in UTC. Default: the last 30 days.
+                startDate ??= DateTime.Now.AddDays(-30);
+                endDate ??= DateTime.Now;
+                var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(startDate.Value, endDate.Value);
 
-                var orders = await _orderService.GetByDateRangeAsync(startDate.Value, endDate.Value);
+                var orders = await _orderService.GetByDateRangeAsync(fromUtc, toUtc);
 
                 ViewData["Title"] = "Orders by Date Range";
                 ViewData["Subtitle"] = $"Orders from {startDate.Value:yyyy-MM-dd} to {endDate.Value:yyyy-MM-dd}";
@@ -383,7 +409,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestMarginAdjustments(int orderId)
         {
             try
@@ -425,7 +451,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestFullWidthFormatting(int orderId)
         {
             try
@@ -467,7 +493,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> PreviewThermalReceipt(int orderId)
         {
             try
@@ -490,7 +516,7 @@ namespace Web.Controllers
                     orderInfo = new {
                         id = order.Id,
                         total = order.TotalAmount,
-                        date = order.OrderDate.ToString("yyyy-MM-dd HH:mm"),
+                        date = order.OrderDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                         itemsCount = order.Cart?.CartItems?.Count ?? 0
                     }
                 });
@@ -503,7 +529,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestFullReceiptFormat(int orderId)
         {
             try
@@ -543,7 +569,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestSimplePrint()
         {
             try
@@ -585,7 +611,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> CompleteThermalDiagnostic()
         {
             try
@@ -660,7 +686,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestPrinterConnection()
         {
             try
@@ -698,7 +724,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestDirectPrint(int orderId)
         {
             try
@@ -733,7 +759,7 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        [RequirePermission(PermissionHelper.Permissions.Orders_View)]
+        [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
         public async Task<IActionResult> TestPureTextPrint(int orderId)
         {
             try
@@ -898,7 +924,7 @@ namespace Web.Controllers
             
             // Receipt info
             receipt.AppendLine($"Receipt: ORD-{order.Id:D6}");
-            receipt.AppendLine($"Date: {order.OrderDate:yyyy-MM-dd HH:mm}");
+            receipt.AppendLine($"Date: {order.OrderDate.UtcToLocal():yyyy-MM-dd HH:mm}");
             receipt.AppendLine($"Customer: {order.Customer?.FirstName} {order.Customer?.LastName}".Trim());
             receipt.AppendLine($"Cashier: {User.Identity?.Name ?? "System"}");
             receipt.AppendLine(line);
@@ -951,7 +977,7 @@ namespace Web.Controllers
             receipt.AppendLine("  Returns accepted within 30 days");
             receipt.AppendLine();
             receipt.AppendLine($"    Order ID: {order.Id}");
-            receipt.AppendLine($"  {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC");
+            receipt.AppendLine($"  {DateTime.Now:yyyy-MM-dd HH:mm}");
             
             return receipt.ToString();
         }

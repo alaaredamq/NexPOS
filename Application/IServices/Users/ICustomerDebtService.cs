@@ -18,4 +18,12 @@ public interface ICustomerDebtService : IBaseService
     /// always increases what the customer owes.
     /// </summary>
     Task<CustomerDebtTransaction> AddSaleTransactionAsync(int customerId, int userId, int orderId, decimal amount);
+
+    /// <summary>
+    /// Takes a voided/cancelled order off the customer's account: if the order was placed on debt
+    /// (it has a Sale entry) and has not been reversed yet, adds the cancelling negative entry and
+    /// lowers the balance. Returns the amount taken off, or 0 when the order was not a debt sale
+    /// (or was already reversed), so calling it twice is harmless.
+    /// </summary>
+    Task<decimal> ReverseSaleAsync(int orderId, int userId, string? note = null);
 }

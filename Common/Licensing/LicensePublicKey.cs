@@ -6,5 +6,5 @@ namespace Common.Licensing;
 /// </summary>
 public static class LicensePublicKey
 {
-    public const string SpkiBase64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwM8HC/mx6Jvg1qmZbo85uJPdeyimUDxB2OBZUCrTWDlmjsNlU2Vvw7A8UVqlLldk9heMnm5wBc3bsijT3RlY/Q==";
+    public const string SpkiBase64 = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEk2GRX6oebV5JD86cuSJ0hJ1+EAPYZmAqSfQE3PRwh3wpfnrClXtWrka7NYs0hy/EfeAqIRW2Rp7jb0MG2twqBA==";
 }

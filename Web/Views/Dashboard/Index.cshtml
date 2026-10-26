@@ -272,8 +272,8 @@
                                     <td class="fw-bold">@order.AmountFormatted</td>
                                     <td>
                                         <div class="date-info">
-                                            <div class="date-text">@order.OrderDate.ToString("d", System.Globalization.CultureInfo.CurrentUICulture)</div>
-                                            <small class="text-muted">@order.OrderDate.ToString("t", System.Globalization.CultureInfo.CurrentUICulture)</small>
+                                            <div class="date-text">@AppTime.UtcToLocal((DateTime)order.OrderDate).ToString("d", System.Globalization.CultureInfo.CurrentUICulture)</div>
+                                            <small class="text-muted">@AppTime.UtcToLocal((DateTime)order.OrderDate).ToString("t", System.Globalization.CultureInfo.CurrentUICulture)</small>
                                         </div>
                                     </td>
                                     <td>

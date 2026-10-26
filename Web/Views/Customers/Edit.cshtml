@@ -41,7 +41,7 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Email" class="form-label">@SharedLocalizer["Email Address"] *</label>
+                            <label asp-for="Email" class="form-label">@SharedLocalizer["Email Address"]</label>
                             <input asp-for="Email" type="email" class="form-control" placeholder="@SharedLocalizer["Cust_PhEmail"]" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
@@ -208,14 +208,12 @@
             $('form').on('submit', function(e) {
                 const firstName = $('#FirstName').val().trim();
                 const lastName = $('#LastName').val().trim();
-                const email = $('#Email').val().trim();
-                
-                if (!firstName || !lastName || !email) {
+
+                if (!firstName || !lastName) {
                     e.preventDefault();
                     appAlert(@Json.Serialize(SharedLocalizer["Cust_FillRequired"].Value), 'warning');
                     if (!firstName) $('#FirstName').focus();
-                    else if (!lastName) $('#LastName').focus();
-                    else if (!email) $('#Email').focus();
+                    else $('#LastName').focus();
                 }
             });
         });

@@ -51,9 +51,16 @@
                     <div class="col-md-6 mb-3">
                         <label class="detail-label">@SharedLocalizer["Email Address"]</label>
                         <p class="detail-value">
-                            <a href="mailto:@Model.Email" class="text-teal">
-                                <i class="fas fa-envelope me-2"></i>@Model.Email
-                            </a>
+                            @if (!string.IsNullOrWhiteSpace(Model.Email))
+                            {
+                                <a href="mailto:@Model.Email" class="text-teal">
+                                    <i class="fas fa-envelope me-2"></i>@Model.Email
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">@SharedLocalizer["Cust_NotProvided"]</span>
+                            }
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -215,7 +222,7 @@
                                 @foreach (var tx in debtTransactions.Take(20))
                                 {
                                     <tr>
-                                        <td>@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>@tx.CreatedAt.UtcToLocal().ToString("MMM dd, yyyy HH:mm")</td>
                                         <td>
                                             @if (tx.Type == CustomerDebtTransactionType.Sale)
                                             {
@@ -224,6 +231,10 @@
                                             else if (tx.Type == CustomerDebtTransactionType.Payment)
                                             {
                                                 <span class="badge bg-success">@SharedLocalizer["Cust_TypePayment"]</span>
+                                            }
+                                            else if (tx.Type == CustomerDebtTransactionType.SaleReversal)
+                                            {
+                                                <span class="badge bg-warning text-dark">@SharedLocalizer["Cust_TypeReversal"]</span>
                                             }
                                             else
                                             {
@@ -274,7 +285,7 @@
                                 {
                                     <tr>
                                         <td><strong>#@order.Id</strong></td>
-                                        <td>@order.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>@order.CreatedAt.UtcToLocal().ToString("MMM dd, yyyy HH:mm")</td>
                                         <td>@FormatCurrency(order.TotalAmount, order.Currency?.Notation ?? currencyNotation)</td>
                                         <td>
                                             @{
@@ -391,7 +402,7 @@
                                 }
                                 @if (lastOrder != null)
                                 {
-                                    @lastOrder.CreatedAt.ToString("MMM dd, yyyy")
+                                    @lastOrder.CreatedAt.UtcToLocal().ToString("MMM dd, yyyy")
                                 }
                                 else
                                 {
@@ -443,9 +454,12 @@
                     <a href="@Url.Action("Index", "Orders", new { customerId = Model.Id })" class="btn btn-outline-primary">
                         <i class="fas fa-shopping-cart me-2"></i>@SharedLocalizer["Cust_ViewOrders"]
                     </a>
-                    <a href="mailto:@Model.Email" class="btn btn-outline-info">
-                        <i class="fas fa-envelope me-2"></i>@SharedLocalizer["Cust_SendEmail"]
-                    </a>
+                    @if (!string.IsNullOrWhiteSpace(Model.Email))
+                    {
+                        <a href="mailto:@Model.Email" class="btn btn-outline-info">
+                            <i class="fas fa-envelope me-2"></i>@SharedLocalizer["Cust_SendEmail"]
+                        </a>
+                    }
                     <button type="button" class="btn btn-outline-danger" onclick="deleteCustomer(@Model.Id)">
                         <i class="fas fa-trash me-2"></i>@SharedLocalizer["Cust_DeleteCustomer"]
                     </button>

@@ -1,3 +1,4 @@
+using Core.Time;
 using System.Drawing.Printing;
 using Application.IServices.Sales;
 using Core.Entities.Sales;
@@ -9,11 +10,13 @@ namespace Application.Services.Sales;
 public class ReceiptService : IReceiptService
 {
     private readonly IReceiptRepository _receiptRepository;
+    private readonly ISaleReversalService _saleReversalService;
     private readonly ILogger<ReceiptService> _logger;
 
-    public ReceiptService(IReceiptRepository receiptRepository, ILogger<ReceiptService> logger)
+    public ReceiptService(IReceiptRepository receiptRepository, ISaleReversalService saleReversalService, ILogger<ReceiptService> logger)
     {
         _receiptRepository = receiptRepository;
+        _saleReversalService = saleReversalService;
         _logger = logger;
     }
 
@@ -131,9 +134,10 @@ public class ReceiptService : IReceiptService
 
     public async Task<Receipt> VoidReceiptAsync(int receiptId, int userId, string reason)
     {
-        var receipt = await _receiptRepository.GetByIdAsync(receiptId);
-        receipt.VoidReceipt(userId, reason);
-        return await _receiptRepository.SaveAsync(receipt);
+        // A void is not just a flag on the receipt: the sale behind it is reversed too (order
+        // cancelled, stock back, debt/drawer adjusted), so it always goes through the reversal service.
+        await _saleReversalService.VoidReceiptAsync(receiptId, userId, reason);
+        return await _receiptRepository.GetByIdAsync(receiptId);
     }
 
     public async Task<string> GenerateReceiptNumberAsync()
@@ -205,7 +209,7 @@ public class ReceiptService : IReceiptService
         <table>
             <tr>
                 <td width='50%'><strong>Receipt Number:</strong> {receipt.ReceiptNumber}</td>
-                <td><strong>Date:</strong> {receipt.ReceiptDate:yyyy-MM-dd HH:mm}</td>
+                <td><strong>Date:</strong> {receipt.ReceiptDate.UtcToLocal():yyyy-MM-dd HH:mm}</td>
             </tr>
             <tr>
                 <td><strong>Customer:</strong> {receipt.CustomerName ?? (receipt.Customer != null ? $"{receipt.Customer.FirstName} {receipt.Customer.LastName}" : "Walk-in")}</td>
@@ -306,10 +310,11 @@ public class ReceiptService : IReceiptService
 
     public async Task<ReceiptStatsDTO> GetReceiptStatsAsync(DateTime? startDate = null, DateTime? endDate = null)
     {
-        // Use UTC dates to match ReceiptDate which may be stored in UTC
-        var utcNow = DateTime.UtcNow;
-        var start = startDate ?? utcNow.Date.AddDays(-30);
-        var end = endDate ?? utcNow.Date.AddDays(1).AddTicks(-1); // End of today
+        // startDate/endDate are UTC bounds (receipts are stored in UTC). The defaults are the last 30 days up to the
+        // end of today, where 'today' is the LOCAL calendar day.
+        var nowLocal = DateTime.Now;
+        var start = startDate ?? AppTime.LocalDayStartUtc(nowLocal.AddDays(-30));
+        var end = endDate ?? AppTime.LocalDayStartUtc(nowLocal.AddDays(1)).AddTicks(-1);
 
         var receipts = await _receiptRepository.GetByDateRangeAsync(start, end);
         var validReceipts = receipts.Where(r => !r.IsVoid).ToList();
@@ -332,7 +337,7 @@ public class ReceiptService : IReceiptService
 
         // Daily sales breakdown
         stats.DailySales = validReceipts
-            .GroupBy(r => r.ReceiptDate.Date)
+            .GroupBy(r => r.ReceiptDate.UtcToLocal().Date)
             .ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.Sum(r => r.TotalAmount));
 
         return stats;

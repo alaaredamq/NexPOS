@@ -143,18 +143,7 @@
         });
     };
 
-    function showAlert(type, message) {
-        var alertHtml = `
-            <div class="erp-alert erp-alert-${type} alert-dismissible fade show" role="alert">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        $('.products-header').after(alertHtml);
-    }
-
-    window.showAlert = showAlert;
+    // showAlert(type, message) is the shared helper in site.js.
 
     // Initialize when document is ready
     $(document).ready(function() {

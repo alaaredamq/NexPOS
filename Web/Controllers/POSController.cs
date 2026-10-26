@@ -9,10 +9,12 @@ using Application.DTOs;
 using Application.DTOs.Sales;
 using Core.DTOs;
 using Core.Entities.Inventory;
+using Core.Entities.Users;
 using Core.IRepositories.Inventory;
 using Core.IRepositories.Sales;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Web.Attributes;
 using Web.Helpers;
 using System.Text.RegularExpressions;
 
@@ -504,6 +506,46 @@ namespace Web.Controllers
                 _logger.LogError(ex, "Error getting customers");
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Quick-create a customer from inside the POS checkout/hold dialogs so the cashier
+        /// never has to leave the page (and lose the cart). Takes first and last name only,
+        /// with the same 2-100 character rule as the Customers page; email is left empty.
+        /// </summary>
+        [HttpPost]
+        [RequirePermission(PermissionHelper.Permissions.Customers_Create)]
+        public async Task<IActionResult> QuickCreateCustomer([FromBody] QuickCreateCustomerRequest request)
+        {
+            try
+            {
+                var firstName = (request?.FirstName ?? string.Empty).Trim();
+                var lastName = (request?.LastName ?? string.Empty).Trim();
+                if (firstName.Length < 2 || lastName.Length < 2)
+                    return Json(new { success = false, message = "Enter the first and last name (at least 2 letters each)" });
+                if (firstName.Length > 100 || lastName.Length > 100)
+                    return Json(new { success = false, message = "Name is too long (100 characters max)" });
+
+                var customer = new Customer(firstName, lastName, string.Empty);
+                var created = await _customerService.CreateAsync(customer);
+
+                return Json(new
+                {
+                    success = true,
+                    data = new { id = created.Id, name = $"{created.FirstName} {created.LastName}" }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error quick-creating customer");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class QuickCreateCustomerRequest
+        {
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
         }
 
         /// <summary>
@@ -1002,17 +1044,6 @@ namespace Web.Controllers
             public string ReceiptUrl { get; set; }
             public string PrinterName { get; set; }
         }
-        /// <summary>
-        /// Test endpoint to verify routing and logging
-        /// </summary>
-        [HttpGet("/POS/PrintReceiptToUsbTest")]
-        [AllowAnonymous]
-        public IActionResult PrintReceiptToUsbTest()
-        {
-            _logger.LogInformation("PrintReceiptToUsbTest endpoint invoked");
-            return Json(new { success = true, message = "PrintReceiptToUsbTest reachable" });
-        }
-
 
         // Raw printer helper using Win32 API - sends raw bytes to the printer
         // Note: This works on Windows servers where the printer is installed and accessible by the server process.

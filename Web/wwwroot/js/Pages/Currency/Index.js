@@ -25,7 +25,7 @@
         }
 
         // Set today's date as default for valid from
-        $('#validFrom').val(new Date().toISOString().split('T')[0]);
+        $('#validFrom').val(localDateString(new Date()));
 
         // Add currency form submission
         $('#addCurrencyForm').on('submit', function(e) {
@@ -93,7 +93,7 @@
                         }
                         $('#addExchangeRateModal').modal('hide');
                         $('#addExchangeRateForm')[0].reset();
-                        $('#validFrom').val(new Date().toISOString().split('T')[0]);
+                        $('#validFrom').val(localDateString(new Date()));
                         // Reload table
                         if ($('#ratesTable').length) {
                             $('#ratesTable').DataTable().ajax.reload();

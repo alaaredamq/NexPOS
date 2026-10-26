@@ -237,6 +237,16 @@ public class InventoryController : BaseController
         var avgStockValue = stockValueData.Count > 0 ? totalStockValue / stockValueData.Count : 0;
         
         ViewBag.StockValueData = stockValueData;
+        ViewBag.CategoryChartData = stockValueData
+            .GroupBy(p => p.Category)
+            .Select(g => new { Label = g.Key, Value = Math.Round(g.Sum(p => p.StockValue), 2) })
+            .OrderByDescending(g => g.Value)
+            .Take(8)
+            .ToList();
+        ViewBag.TopProductsChartData = stockValueData
+            .Take(10)
+            .Select(p => new { Label = p.ProductName, Value = Math.Round(p.StockValue, 2) })
+            .ToList();
         ViewBag.TotalStockValue = totalStockValue;
         ViewBag.TotalStockValueFormatted = FormatCurrency(totalStockValue, currencyNotation);
         ViewBag.AvgStockValueFormatted = FormatCurrency(avgStockValue, currencyNotation);

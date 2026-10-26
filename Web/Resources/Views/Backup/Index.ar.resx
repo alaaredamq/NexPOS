@@ -265,9 +265,6 @@
   <data name="ScheduleManagementComingSoon" xml:space="preserve">
     <value>إدارة الجدولة قريباً.</value>
   </data>
-  <data name="successful" xml:space="preserve">
-    <value>ناجحة</value>
-  </data>
   <data name="TestingConnections" xml:space="preserve">
     <value>جاري اختبار الاتصالات...</value>
   </data>
@@ -531,11 +528,5 @@
   </data>
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>حذف نسخ احتياطية متعددة</value>
-  </data>
-  <data name="Never" xml:space="preserve">
-    <value>أبداً</value>
-  </data>
-  <data name="Delete" xml:space="preserve">
-    <value>حذف</value>
   </data>
 </root>

@@ -1,3 +1,4 @@
+using Core.Time;
 using Application.IServices.Reports;
 using Application.IServices.Products;
 using Application.IServices.Users;
@@ -55,7 +56,8 @@ public class ExportService : IExportService
                 // Handle different data types
                 return value switch
                 {
-                    DateTime dt => dt.ToString("yyyy-MM-dd HH:mm:ss"),
+                    // Timestamps are stored as UTC; show them local. Exactly-midnight values are date-only fields (e.g. birth date) with no zone.
+                    DateTime dt => (dt.TimeOfDay == TimeSpan.Zero ? dt : dt.UtcToLocal()).ToString("yyyy-MM-dd HH:mm:ss"),
                     decimal dec => dec.ToString("F2"),
                     bool b => b ? "Yes" : "No",
                     _ => value.ToString()?.Replace("\"", "\"\"") ?? ""

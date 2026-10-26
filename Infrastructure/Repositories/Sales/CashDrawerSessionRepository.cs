@@ -22,6 +22,7 @@ public class CashDrawerSessionRepository : BaseRepository<CashDrawerSession, int
             .Include(s => s.User)
             .Include(s => s.CashDrops)
             .Include(s => s.Orders)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.UserId == userId && s.IsOpen);
     }
 
@@ -66,6 +67,7 @@ public class CashDrawerSessionRepository : BaseRepository<CashDrawerSession, int
                     .ThenInclude(c => c.CartItems)
             .Include(s => s.Orders)
                 .ThenInclude(o => o.Customer)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(s => s.Id == sessionId);
     }
 

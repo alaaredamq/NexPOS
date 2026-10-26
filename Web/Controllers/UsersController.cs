@@ -1,3 +1,4 @@
+using Core.Time;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Web.Attributes;
@@ -18,6 +19,11 @@ public class UsersController : BaseController
         _userService = userService;
     }
 
+    private const string PinRuleMessage = "PIN must be exactly 4 digits";
+
+    private static bool IsValidPin(string? pin) =>
+        pin is { Length: 4 } && pin.All(char.IsAsciiDigit);
+
     public async Task<IActionResult> Index()
     {
         ViewData["Title"] = "User Management";
@@ -35,15 +41,10 @@ public class UsersController : BaseController
     {
         try
         {
-            if (dto.Password != dto.ConfirmPassword)
+            // Login is PIN-only and its keypad takes exactly 4 digits, so anything else could never sign in.
+            if (string.IsNullOrWhiteSpace(dto.Pin) || !IsValidPin(dto.Pin))
             {
-                return Json(new { success = false, message = "Passwords do not match" });
-            }
-
-            var hasPin = !string.IsNullOrWhiteSpace(dto.Pin);
-            if (hasPin && !System.Text.RegularExpressions.Regex.IsMatch(dto.Pin!, @"^\d{4,6}$"))
-            {
-                return Json(new { success = false, message = "PIN must be 4-6 digits" });
+                return Json(new { success = false, message = PinRuleMessage });
             }
 
             var roleId = await ResolveRoleIdAsync(dto.Role);
@@ -67,14 +68,8 @@ public class UsersController : BaseController
                 IsActive = dto.IsActive
             };
 
-            var created = await _userService.CreateAsync(user, dto.Password);
-
-            // Login is PIN-based, so a new account is unusable until it has a PIN. Require a
-            // change on first login when an admin sets the initial PIN here.
-            if (hasPin)
-            {
-                await _userService.SetPinAsync(created.Id, dto.Pin!, requireChangeOnNextLogin: true);
-            }
+            // The admin-chosen PIN is the account's only credential; the user must change it at first sign-in.
+            await _userService.CreateWithPinAsync(user, dto.Pin);
 
             return Json(new { success = true, message = "User created successfully" });
         }
@@ -144,8 +139,8 @@ public class UsersController : BaseController
                     email = u.Email,
                     roleBadge = GetRoleBadge(roleNames.GetValueOrDefault(u.RoleId, "Unknown")),
                     statusBadge = u.IsActive ? "<span class='badge bg-success'>Active</span>" : "<span class='badge bg-secondary'>Inactive</span>",
-                    lastLogin = u.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never",
-                    created = u.CreatedAt.ToString("yyyy-MM-dd"),
+                    lastLogin = u.LastLoginAt.UtcToLocal()?.ToString("yyyy-MM-dd HH:mm") ?? "Never",
+                    created = u.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd"),
                     actions = GetUserActionButtons(u.Id, u.IsActive)
                 })
             });
@@ -221,7 +216,7 @@ public class UsersController : BaseController
                     description = Enc(r.Description ?? ""),
                     userCount = users.Count(u => u.RoleId == r.Id),
                     permissionCount = PermissionHelper.GetPermissionsForRole(r.Name).Length,
-                    created = r.CreatedAt.ToString("yyyy-MM-dd"),
+                    created = r.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd"),
                     actions = r.IsSystemRole
                         ? "<span class='badge bg-light text-muted'><i class='fas fa-lock me-1'></i>System</span>"
                         : ""
@@ -272,8 +267,8 @@ public class UsersController : BaseController
                     deviceInfo = $"<i class='fas fa-desktop me-1'></i>{Enc(DescribeUserAgent(s.UserAgent))}",
                     ipAddress = Enc(s.IpAddress ?? "—"),
                     location = "—",
-                    loginTime = s.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
-                    lastActivity = (s.LastAccessedAt ?? s.CreatedAt).ToString("yyyy-MM-dd HH:mm"),
+                    loginTime = s.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
+                    lastActivity = (s.LastAccessedAt ?? s.CreatedAt).UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                     actions = $"<button class='btn btn-sm btn-outline-danger' onclick='terminateSession({s.Id})' title='Terminate'><i class='fas fa-times'></i></button>"
                 })
             });
@@ -339,9 +334,9 @@ public class UsersController : BaseController
     {
         try
         {
-            if (dto.NewPin == null || !System.Text.RegularExpressions.Regex.IsMatch(dto.NewPin, @"^\d{4,6}$"))
+            if (!IsValidPin(dto.NewPin))
             {
-                return Json(new { success = false, message = "PIN must be 4-6 digits" });
+                return Json(new { success = false, message = PinRuleMessage });
             }
 
             // Admin-set PIN must be changed by the user on their next login
@@ -493,7 +488,7 @@ public class UsersController : BaseController
 }
 
 // DTOs
-public record CreateUserDto(string Username, string Email, string FirstName, string LastName, string Password, string ConfirmPassword, string Role, bool IsActive, string? Pin = null);
+public record CreateUserDto(string Username, string Email, string FirstName, string LastName, string Role, bool IsActive, string? Pin = null);
 public record CreateRoleDto(string Name, string Description, string[] Permissions);
 public record UpdateUserDto(string FirstName, string LastName, string Email, int RoleId, bool IsActive);
 public record ResetPinDto(string NewPin);

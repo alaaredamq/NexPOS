@@ -48,3 +48,8 @@ Thumbs.db
 private.pem
 *.pem
 issued.csv
+
+# Local databases and logs from running the app or tools from this folder - may contain real data
+tools/*.db
+tools/*.db-*
+tools/log-*.txt

@@ -21,6 +21,7 @@ public class UserRepository : Repository<User>, IUserRepository
             .ThenInclude(rp => rp.Permission)
             .Include(u => u.UserPermissions)
             .ThenInclude(up => up.Permission)
+            .AsSplitQuery() // two sibling collections: one joined query would return role-permissions x user-permissions rows
             .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
     }
 

@@ -171,9 +171,6 @@
                     <a href="#" class="list-group-item list-group-item-action" onclick="refreshInventoryAlerts()">
                         <i class="fas fa-sync me-2"></i>@Localizer["RefreshInventoryAlerts"]
                     </a>
-                    <a href="@Url.Action("Settings", "Notifications")" class="list-group-item list-group-item-action">
-                        <i class="fas fa-cog me-2"></i>@Localizer["NotificationSettings"]
-                    </a>
                 </div>
             </div>
         </div>
@@ -256,7 +253,7 @@
         }
 
         function loadRecentActivity() {
-            $.get('@Url.Action("GetRecentActivity", "Notifications")', function(response) {
+            $.get('@Url.Action("GetRecentNotifications", "Notifications")', function(response) {
                 const list = $('#recentList');
                 list.empty();
                 
@@ -326,7 +323,7 @@
                         </div>
                         <div class="ms-3">
                             <p class="mb-0">${item.message}</p>
-                            <small class="text-muted">${item.time}</small>
+                            <small class="text-muted">${item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</small>
                         </div>
                     </div>
                 </div>

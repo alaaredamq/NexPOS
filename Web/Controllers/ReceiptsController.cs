@@ -1,3 +1,4 @@
+using Core.Time;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Web.Attributes;
@@ -14,11 +15,13 @@ public class ReceiptsController : BaseController
 {
     private readonly IReceiptService _receiptService;
     private readonly IThermalPrinterService _thermalPrinterService;
+    private readonly ISaleReversalService _saleReversalService;
 
-    public ReceiptsController(IReceiptService receiptService, IThermalPrinterService thermalPrinterService)
+    public ReceiptsController(IReceiptService receiptService, IThermalPrinterService thermalPrinterService, ISaleReversalService saleReversalService)
     {
         _receiptService = receiptService;
         _thermalPrinterService = thermalPrinterService;
+        _saleReversalService = saleReversalService;
     }
 
     public IActionResult Index()
@@ -26,32 +29,6 @@ public class ReceiptsController : BaseController
         ViewData["Title"] = "Receipt Management";
         ViewData["Subtitle"] = "Manage and view sales receipts";
         return View();
-    }
-
-    [HttpGet("test-connection")]
-    public async Task<IActionResult> TestConnection()
-    {
-        try
-        {
-            // Test if we can query the receipts table
-            var count = await _receiptService.GetAllAsync();
-            return Json(new { 
-                success = true, 
-                message = "Database connection successful", 
-                receiptCount = count?.Count ?? 0,
-                tablesExist = true
-            });
-        }
-        catch (Exception ex)
-        {
-            return Json(new { 
-                success = false, 
-                error = ex.Message,
-                innerError = ex.InnerException?.Message,
-                stackTrace = ex.StackTrace,
-                tablesExist = false
-            });
-        }
     }
 
     [HttpGet]
@@ -97,7 +74,7 @@ public class ReceiptsController : BaseController
                     ? r.CustomerName 
                     : (r.Customer != null ? $"{r.Customer.FirstName ?? ""} {r.Customer.LastName ?? ""}".Trim() : "Walk-in"),
                 totalAmount = r.TotalAmount,
-                receiptDate = r.ReceiptDate.ToString("yyyy-MM-dd HH:mm"),
+                receiptDate = r.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                 cashierName = r.Cashier != null 
                     ? $"{r.Cashier.FirstName ?? ""} {r.Cashier.LastName ?? ""}".Trim() 
                     : "N/A",
@@ -116,7 +93,10 @@ public class ReceiptsController : BaseController
     {
         try
         {
-            var stats = await _receiptService.GetReceiptStatsAsync(startDate, endDate);
+            // Picked dates are local calendar days; receipts are stored in UTC.
+            var fromUtc = startDate.HasValue ? AppTime.LocalDayStartUtc(startDate.Value) : (DateTime?)null;
+            var toUtc = endDate.HasValue ? AppTime.LocalDayStartUtc(endDate.Value.AddDays(1)).AddTicks(-1) : (DateTime?)null;
+            var stats = await _receiptService.GetReceiptStatsAsync(fromUtc, toUtc);
             return Json(stats);
         }
         catch (Exception ex)
@@ -175,7 +155,7 @@ public class ReceiptsController : BaseController
                     cashierName = r.Cashier != null 
                         ? $"{r.Cashier.FirstName ?? ""} {r.Cashier.LastName ?? ""}".Trim() 
                         : "N/A",
-                    receiptDate = r.ReceiptDate.ToString("yyyy-MM-dd HH:mm"),
+                    receiptDate = r.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                     totalAmount = FormatCurrency(r.TotalAmount, r.Currency?.Notation),
                     paymentMethod = r.PaymentMethod?.Name ?? "Cash",
                     statusBadge = r.IsVoid ? "<span class='badge bg-danger'>Void</span>" : "<span class='badge bg-success'>Valid</span>",
@@ -247,7 +227,7 @@ public class ReceiptsController : BaseController
                         ? r.CustomerName 
                         : (r.Customer != null ? $"{r.Customer.FirstName ?? ""} {r.Customer.LastName ?? ""}".Trim() : "Walk-in"),
                     totalAmount = FormatCurrency(r.TotalAmount, r.Currency?.Notation),
-                    receiptDate = r.ReceiptDate.ToString("yyyy-MM-dd HH:mm"),
+                    receiptDate = r.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                     actions = GetActionButtons(r.Id, r.IsVoid)
                 }).ToList()
             });
@@ -319,7 +299,7 @@ public class ReceiptsController : BaseController
                         ? r.CustomerName 
                         : (r.Customer != null ? $"{r.Customer.FirstName ?? ""} {r.Customer.LastName ?? ""}".Trim() : "Walk-in"),
                     totalAmount = FormatCurrency(r.TotalAmount, r.Currency?.Notation),
-                    voidDate = r.VoidDate.HasValue ? r.VoidDate.Value.ToString("yyyy-MM-dd HH:mm") : r.ReceiptDate.ToString("yyyy-MM-dd HH:mm"),
+                    voidDate = r.VoidDate.HasValue ? r.VoidDate.Value.UtcToLocal().ToString("yyyy-MM-dd HH:mm") : r.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                     voidReason = r.VoidReason ?? "N/A",
                     voidedBy = r.VoidedByUser != null 
                         ? $"{r.VoidedByUser.FirstName ?? ""} {r.VoidedByUser.LastName ?? ""}".Trim() 
@@ -379,7 +359,8 @@ public class ReceiptsController : BaseController
     {
         try
         {
-            var receipts = await _receiptService.GetReceiptsByDateRangeAsync(startDate, endDate);
+            var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(startDate, endDate);
+            var receipts = await _receiptService.GetReceiptsByDateRangeAsync(fromUtc, toUtc);
             return Json(receipts.Select(r => new
             {
                 id = r.Id,
@@ -388,7 +369,7 @@ public class ReceiptsController : BaseController
                     ? r.CustomerName 
                     : (r.Customer != null ? $"{r.Customer.FirstName ?? ""} {r.Customer.LastName ?? ""}".Trim() : "Walk-in"),
                 totalAmount = r.TotalAmount,
-                receiptDate = r.ReceiptDate.ToString("yyyy-MM-dd HH:mm"),
+                receiptDate = r.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm"),
                 cashierName = r.Cashier != null 
                     ? $"{r.Cashier.FirstName ?? ""} {r.Cashier.LastName ?? ""}".Trim() 
                     : "N/A",
@@ -409,8 +390,9 @@ public class ReceiptsController : BaseController
         try
         {
             var userId = GetCurrentUserId();
-            var receipt = await _receiptService.VoidReceiptAsync(id, userId, request.Reason);
-            return Json(new { success = true, message = "Receipt voided successfully" });
+            // Voids the receipt AND reverses the sale behind it (order cancelled, stock back, debt/drawer adjusted).
+            var result = await _saleReversalService.VoidReceiptAsync(id, userId, request.Reason);
+            return Json(new { success = true, message = "Receipt voided successfully", orderCancelled = result.OrderCancelled });
         }
         catch (Exception ex)
         {

@@ -154,13 +154,16 @@
                             <span class="nav-text">@SharedLocalizer["Settings"]</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "License" ? "active" : "")"
-                           href="@Url.ActionWithCurrentLanguage("Index", "License")">
-                            <i class="fas fa-key me-2"></i>
-                            <span class="nav-text">@SharedLocalizer["License_Title"]</span>
-                        </a>
-                    </li>
+                    @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.License_Manage))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "License" ? "active" : "")"
+                               href="@Url.ActionWithCurrentLanguage("Index", "License")">
+                                <i class="fas fa-key me-2"></i>
+                                <span class="nav-text">@SharedLocalizer["License_Title"]</span>
+                            </a>
+                        </li>
+                    }
                     @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.AuditLogs_View))
                     {
                         <li class="nav-item">

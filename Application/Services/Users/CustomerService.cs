@@ -34,7 +34,17 @@ public class CustomerService : ICustomerService
     public async Task DeleteAsync(int id)
     {
         var existing = await _repo.GetByIdAsync(id);
-        await _repo.DeleteAsync(existing);
+
+        // Deleted customers vanish from every list, so a debt (either direction) would vanish with them.
+        if (existing.Balance != 0)
+        {
+            throw new InvalidOperationException(
+                $"This customer has an outstanding balance of {Math.Abs(existing.Balance):N2}. Settle it before deleting, or deactivate the customer instead.");
+        }
+
+        // Soft delete: receipts, debt transactions and carts reference the customer with
+        // Restrict FKs, so a hard delete fails as soon as the customer has any history.
+        await _repo.SoftDeleteAsync(existing);
     }
 }
 

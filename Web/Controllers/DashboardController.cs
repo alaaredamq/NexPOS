@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Web.Attributes;
 using Web.Helpers;
+using Application.DTOs.Dashboard;
 using Application.IServices.Dashboard;
 using Core.ICache;
 
@@ -15,12 +16,14 @@ public class DashboardController : BaseController
     private readonly IViewLocalizer _localizer;
     private readonly IDashboardService _dashboardService;
     private readonly ICacheService _cache;
+    private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(IViewLocalizer localizer, IDashboardService dashboardService, ICacheService cache)
+    public DashboardController(IViewLocalizer localizer, IDashboardService dashboardService, ICacheService cache, ILogger<DashboardController> logger)
     {
         _localizer = localizer;
         _dashboardService = dashboardService;
         _cache = cache;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index()
@@ -40,21 +43,16 @@ public class DashboardController : BaseController
         }
         catch (Exception ex)
         {
-            // Fallback to mock data if service fails
-            ViewBag.Stats = new
-            {
-                TotalSales = 125430.50m,
-                TotalOrders = 1247,
-                TotalCustomers = 342,
-                TotalProducts = 156
-            };
+            _logger.LogError(ex, "Error loading the dashboard");
 
-            ViewBag.RecentOrders = new[]
-            {
-                new { Id = 1, OrderId = 1, CustomerName = "John Doe", Amount = 125.50m, OrderDate = DateTime.Now.AddHours(-2), Status = "Completed", PaymentMethod = "Cash" },
-                new { Id = 2, OrderId = 2, CustomerName = "Jane Smith", Amount = 89.25m, OrderDate = DateTime.Now.AddHours(-4), Status = "Completed", PaymentMethod = "Credit Card" },
-                new { Id = 3, OrderId = 3, CustomerName = "Bob Johnson", Amount = 234.75m, OrderDate = DateTime.Now.AddHours(-6), Status = "Completed", PaymentMethod = "Cash" }
-            };
+            // Empty figures, never sample ones: zeros are obviously "no data", invented sales look real.
+            ViewBag.Stats = new DashboardStatsDTO();
+            ViewBag.RecentOrders = new List<RecentOrderDTO>();
+            ViewBag.TopProducts = new List<TopProductDTO>();
+            ViewBag.TopCustomers = new List<TopCustomerDTO>();
+            ViewBag.CategoryAnalytics = new CategoryAnalyticsDTO();
+            ViewBag.SalesAnalytics = new SalesAnalyticsDTO();
+            ViewBag.InventoryStatus = new InventoryStatusDTO();
         }
 
         return View();

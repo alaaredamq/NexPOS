@@ -39,8 +39,8 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Email" class="form-label">Email Address *</label>
-                            <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                            <label asp-for="Email" class="form-label">Email Address</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address (optional)" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -130,7 +130,7 @@
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
-                        <span>Email addresses must be valid and unique</span>
+                        <span>Only first and last name are required</span>
                     </div>
                     <div class="guideline-item">
                         <i class="fas fa-check-circle text-success me-2"></i>
@@ -206,14 +206,12 @@
             $('form').on('submit', function(e) {
                 const firstName = $('#FirstName').val().trim();
                 const lastName = $('#LastName').val().trim();
-                const email = $('#Email').val().trim();
-                
-                if (!firstName || !lastName || !email) {
+
+                if (!firstName || !lastName) {
                     e.preventDefault();
-                    appAlert('Please fill in all required fields (First Name, Last Name, Email)!', 'warning');
+                    appAlert('Please fill in the required fields (First Name, Last Name)!', 'warning');
                     if (!firstName) $('#FirstName').focus();
-                    else if (!lastName) $('#LastName').focus();
-                    else if (!email) $('#Email').focus();
+                    else $('#LastName').focus();
                 }
             });
         });

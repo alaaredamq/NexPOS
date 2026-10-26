@@ -209,7 +209,7 @@
     <value>أدخل سبب إلغاء هذا الإيصال...</value>
   </data>
   <data name="VoidWarning" xml:space="preserve">
-    <value>لا يمكن التراجع عن هذا الإجراء. سيتم تعليم الإيصال على أنه ملغى.</value>
+    <value>لا يمكن التراجع عن هذا الإجراء. سيتم تعليم الإيصال على أنه ملغى، وإلغاء الطلب المرتبط به، وإعادة المنتجات إلى المخزون.</value>
   </data>
   <data name="PleaseEnterEmailAddress" xml:space="preserve">
     <value>الرجاء إدخال عنوان البريد الإلكتروني</value>
@@ -224,7 +224,7 @@
     <value>الرجاء إدخال سبب الإلغاء</value>
   </data>
   <data name="ReceiptVoidedSuccessfully" xml:space="preserve">
-    <value>تم إلغاء الإيصال بنجاح</value>
+    <value>تم إلغاء الإيصال وإلغاء الطلب وإعادة المنتجات إلى المخزون</value>
   </data>
   <data name="FailedToVoidReceipt" xml:space="preserve">
     <value>فشل إلغاء الإيصال</value>

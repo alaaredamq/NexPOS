@@ -217,6 +217,10 @@ public class CategoriesController : BaseController
             await _categoryService.DeleteAsync(id);
             return Json(new { success = true, message = "Category deleted successfully!" });
         }
+        catch (InvalidOperationException ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
         catch (Exception ex)
         {
             return Json(new { success = false, message = $"An error occurred: {ex.Message}" });

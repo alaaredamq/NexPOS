@@ -307,9 +307,6 @@
   <data name="Reset" xml:space="preserve">
     <value>إعادة تعيين</value>
   </data>
-  <data name="Clear" xml:space="preserve">
-    <value>مسح</value>
-  </data>
   <data name="Apply" xml:space="preserve">
     <value>تطبيق</value>
   </data>
@@ -910,9 +907,6 @@
   <data name="ScanBarcode" xml:space="preserve">
     <value>امسح الباركود</value>
   </data>
-  <data name="CartIsEmpty" xml:space="preserve">
-    <value>السلة فارغة</value>
-  </data>
   <data name="StartAddingProductsToBegin" xml:space="preserve">
     <value>ابدأ بإضافة المنتجات لبدء الدفع</value>
   </data>
@@ -931,12 +925,6 @@
   <data name="TotalLBP" xml:space="preserve">
     <value>المجموع (ليرة)</value>
   </data>
-  <data name="Checkout" xml:space="preserve">
-    <value>الدفع</value>
-  </data>
-  <data name="Clear" xml:space="preserve">
-    <value>مسح</value>
-  </data>
   <data name="ProductCatalog" xml:space="preserve">
     <value>كتالوج المنتجات</value>
   </data>
@@ -949,26 +937,11 @@
   <data name="HeldCart" xml:space="preserve">
     <value>سلة معلقة</value>
   </data>
-  <data name="RetrieveHeldCart" xml:space="preserve">
-    <value>استرجاع السلة المعلقة</value>
-  </data>
   <data name="AddItemManual" xml:space="preserve">
     <value>إضافة عنصر (يدوي)</value>
   </data>
   <data name="Manual" xml:space="preserve">
     <value>يدوي</value>
-  </data>
-  <data name="Discount" xml:space="preserve">
-    <value>خصم</value>
-  </data>
-  <data name="Apply" xml:space="preserve">
-    <value>تطبيق</value>
-  </data>
-  <data name="ApplyDiscount" xml:space="preserve">
-    <value>تطبيق خصم</value>
-  </data>
-  <data name="PriceCheck" xml:space="preserve">
-    <value>فحص السعر</value>
   </data>
   <data name="Check" xml:space="preserve">
     <value>فحص</value>
@@ -1192,9 +1165,6 @@
   <data name="SupplierSummary" xml:space="preserve">
     <value>ملخص المورد</value>
   </data>
-  <data name="QuickActions" xml:space="preserve">
-    <value>إجراءات سريعة</value>
-  </data>
   <data name="SendEmail" xml:space="preserve">
     <value>إرسال بريد إلكتروني</value>
   </data>
@@ -1203,9 +1173,6 @@
   </data>
   <data name="DeleteSupplier" xml:space="preserve">
     <value>حذف المورد</value>
-  </data>
-  <data name="TotalProducts" xml:space="preserve">
-    <value>إجمالي المنتجات</value>
   </data>
   <data name="NotProvided" xml:space="preserve">
     <value>غير متوفر</value>
@@ -1623,26 +1590,11 @@
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>حذف نسخ احتياطية متعددة</value>
   </data>
-  <data name="YesDelete" xml:space="preserve">
-    <value>نعم، احذف!</value>
-  </data>
   <data name="Deleted" xml:space="preserve">
     <value>تم الحذف!</value>
   </data>
-  <data name="Error" xml:space="preserve">
-    <value>خطأ</value>
-  </data>
-  <data name="DeleteProduct" xml:space="preserve">
-    <value>حذف المنتج</value>
-  </data>
   <data name="ThisActionCannotBeUndone" xml:space="preserve">
     <value>لا يمكن التراجع عن هذا الإجراء.</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>نعم</value>
-  </data>
-  <data name="No" xml:space="preserve">
-    <value>لا</value>
   </data>
   <data name="ProductDeletedSuccessfully" xml:space="preserve">
     <value>تم حذف المنتج بنجاح.</value>
@@ -1774,8 +1726,7 @@
     <value>تم حفظ طابعة الملصقات لهذا الجهاز</value>
   </data>
   <data name="Pin_UpdateYourLogin" xml:space="preserve">
-    <value>حدّث رقمك السري لتسجيل الدخول
-Pin_SetNew</value>
+    <value>حدّث رقمك السري لتسجيل الدخول</value>
   </data>
   <data name="Pin_SetNew" xml:space="preserve">
     <value>عيّن رقماً سرياً جديداً لتسجيل الدخول</value>
@@ -2024,7 +1975,7 @@ Pin_SetNew</value>
     <value>رقم الهاتف</value>
   </data>
   <data name="Cust_FillRequired" xml:space="preserve">
-    <value>يرجى تعبئة جميع الحقول المطلوبة (الاسم الأول، اسم العائلة، البريد الإلكتروني)!</value>
+    <value>يرجى تعبئة الحقول المطلوبة (الاسم الأول، اسم العائلة)!</value>
   </data>
   <data name="Cust_DetailsTitle" xml:space="preserve">
     <value>تفاصيل العميل</value>
@@ -2079,6 +2030,9 @@ Pin_SetNew</value>
   </data>
   <data name="Cust_TypeAdjustment" xml:space="preserve">
     <value>تسوية</value>
+  </data>
+  <data name="Cust_TypeReversal" xml:space="preserve">
+    <value>إلغاء بيع</value>
   </data>
   <data name="Cust_OrderRef" xml:space="preserve">
     <value>الطلب رقم {0}</value>
@@ -2410,6 +2364,7 @@ Pin_SetNew</value>
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. افتح صفحة الترخيص للتجديد أو التفعيل.</value></data>
+  <data name="License_SalesStoppedAskAdmin" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. يرجى مراجعة المسؤول لتجديده أو تفعيله.</value></data>
   <data name="Print_Menu" xml:space="preserve"><value>طباعة</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>طباعة على ورق الإيصال</value></data>
   <data name="Print_DownloadPdf" xml:space="preserve"><value>تنزيل PDF</value></data>

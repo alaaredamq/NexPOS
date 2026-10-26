@@ -852,6 +852,187 @@ class POS {
         });
     }
 
+    // ===== CUSTOMER PICKER (shared by the checkout and hold dialogs) =====
+
+    /**
+     * Markup for the customer select plus a "New" button that expands an inline
+     * quick-create form, so a cashier can add a customer without leaving the POS
+     * (and losing the cart). The button is only rendered for users who may create customers.
+     */
+    customerFieldHtml(selectId, { sizeClass = 'form-select-sm', labelClass = 'fw-bold mb-1' } = {}) {
+        const t = (key, fallback) => window.i18n.t(key, fallback);
+        const canCreate = window.__canCreateCustomer === true;
+        const btnSize = sizeClass === 'form-select-sm' ? 'btn-sm' : '';
+
+        const newButton = canCreate ? `
+            <button type="button" class="btn btn-outline-primary ${btnSize} pos-newcust-toggle"
+                    aria-expanded="false" aria-controls="${selectId}-new">
+                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                <span>${t('pos.newCustomer', 'New')}</span>
+            </button>` : '';
+
+        const panel = canCreate ? `
+            <div class="pos-newcust" id="${selectId}-new" inert>
+                <div class="pos-newcust-clip">
+                    <div class="pos-newcust-body">
+                        <div class="pos-newcust-title">${t('pos.newCustomerTitle', 'New customer')}</div>
+                        <div class="pos-newcust-fields">
+                            <div>
+                                <label class="form-label mb-1" for="${selectId}-first">${t('pos.firstName', 'First name')} *</label>
+                                <input type="text" id="${selectId}-first" class="form-control ${btnSize ? 'form-control-sm' : ''}"
+                                       maxlength="100" autocomplete="off">
+                            </div>
+                            <div>
+                                <label class="form-label mb-1" for="${selectId}-last">${t('pos.lastName', 'Last name')} *</label>
+                                <input type="text" id="${selectId}-last" class="form-control ${btnSize ? 'form-control-sm' : ''}"
+                                       maxlength="100" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="pos-newcust-error" role="alert" hidden></div>
+                        <div class="pos-newcust-actions">
+                            <button type="button" class="btn btn-light ${btnSize} pos-newcust-cancel">${t('common.cancel', 'Cancel')}</button>
+                            <button type="button" class="btn btn-primary ${btnSize} pos-newcust-save">
+                                <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>
+                                ${t('pos.saveAndSelect', 'Save and select')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>` : '';
+
+        return `
+            <div class="pos-customer-field text-start" data-select="${selectId}">
+                <label class="form-label ${labelClass}" for="${selectId}">${t('pos.customerOptional', 'Customer (Optional)')}</label>
+                <div class="pos-customer-row">
+                    <select id="${selectId}" class="form-select ${sizeClass}">
+                        <option value="">${t('pos.loadingCustomers', 'Loading customers...')}</option>
+                    </select>
+                    ${newButton}
+                </div>
+                ${panel}
+            </div>`;
+    }
+
+    /** Fills the select with Walk-in + all customers, then wires the quick-create panel. */
+    async initCustomerField(selectId) {
+        const t = (key, fallback) => window.i18n.t(key, fallback);
+        const $select = $('#' + selectId);
+        const walkIn = () => $('<option>').val('0').prop('selected', true).text(t('pos.walkInCustomer', 'Walk-in Customer'));
+
+        try {
+            const response = await $.ajax({ url: '/POS/GetCustomers', method: 'GET' });
+            $select.empty().append(walkIn());
+            if (response.success && response.data.length > 0) {
+                response.data.forEach((customer) => {
+                    $('<option>').val(customer.id).text(customer.name).appendTo($select);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading customers:', error);
+            $select.empty().append(walkIn());
+        }
+
+        const $field = $select.closest('.pos-customer-field');
+        const $toggle = $field.find('.pos-newcust-toggle');
+        if (!$toggle.length) return;
+
+        const $panel = $field.find('.pos-newcust');
+        const $first = $('#' + selectId + '-first');
+        const $last = $('#' + selectId + '-last');
+        const $error = $field.find('.pos-newcust-error');
+        const $save = $field.find('.pos-newcust-save');
+        const $spinner = $save.find('.spinner-border');
+
+        const showError = (message) => {
+            $error.text(message).prop('hidden', !message);
+            if (!message) $first.add($last).removeClass('is-invalid');
+        };
+        const setOpen = (open) => {
+            $panel.toggleClass('open', open).prop('inert', !open);
+            $toggle.attr('aria-expanded', String(open));
+            if (open) {
+                $first.trigger('focus');
+            } else {
+                showError('');
+                $toggle.trigger('focus');
+            }
+        };
+        const setBusy = (busy) => {
+            $save.prop('disabled', busy);
+            $field.find('.pos-newcust-cancel').prop('disabled', busy);
+            $spinner.toggleClass('d-none', !busy);
+        };
+
+        const save = async () => {
+            const firstName = ($first.val() || '').trim();
+            const lastName = ($last.val() || '').trim();
+            const firstOk = firstName.length >= 2;
+            const lastOk = lastName.length >= 2;
+            if (!firstOk || !lastOk) {
+                showError(t('pos.enterCustomerName', 'Enter the first and last name (at least 2 letters each)'));
+                $first.toggleClass('is-invalid', !firstOk);
+                $last.toggleClass('is-invalid', !lastOk);
+                (firstOk ? $last : $first).trigger('focus');
+                return;
+            }
+
+            showError('');
+            setBusy(true);
+            try {
+                const res = await $.ajax({
+                    url: '/POS/QuickCreateCustomer',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ firstName: firstName, lastName: lastName })
+                });
+                if (!res || !res.success) {
+                    throw new Error((res && res.message) || t('pos.failedToCreateCustomer', 'Could not create the customer'));
+                }
+
+                let $option = $select.find('option').filter((_, o) => o.value === String(res.data.id));
+                if (!$option.length) {
+                    $option = $('<option>').val(res.data.id).text(res.data.name).appendTo($select);
+                }
+                $select.val(String(res.data.id)).trigger('change');
+
+                toastr.success(t('pos.customerAdded', 'Customer added and selected'));
+
+                $first.val('');
+                $last.val('');
+                setOpen(false);
+                $select.trigger('focus');
+            } catch (error) {
+                showError(error.message || t('pos.failedToCreateCustomer', 'Could not create the customer'));
+            } finally {
+                setBusy(false);
+            }
+        };
+
+        $toggle.on('click', () => setOpen(!$panel.hasClass('open')));
+        $field.find('.pos-newcust-cancel').on('click', () => setOpen(false));
+        $save.on('click', save);
+        $first.add($last).on('input', () => showError(''));
+
+        // Keep Enter/Escape inside the panel: SweetAlert2 would otherwise confirm or close
+        // the whole dialog (checkout / hold) from a keypress meant for this form.
+        $first.add($last).on('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                // Enter on first name moves on to last name; on last name it saves
+                if (e.currentTarget === $first[0] && !($last.val() || '').trim()) {
+                    $last.trigger('focus');
+                } else {
+                    save();
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(false);
+            }
+        });
+    }
+
     async checkout() {
         if (this.cart.length === 0) {
             toastr.warning(window.i18n.t('pos.cartIsEmpty', 'Cart is empty!'));
@@ -865,10 +1046,7 @@ class POS {
                 html: `
                     <div class="text-start" style="font-size:0.85rem">
                         <div class="mb-2">
-                            <label class="form-label fw-bold mb-1">${window.i18n.t('pos.customerOptional', 'Customer (Optional)')}</label>
-                            <select id="checkout-customer-select" class="form-select form-select-sm">
-                                <option value="">${window.i18n.t('pos.loadingCustomers', 'Loading customers...')}</option>
-                            </select>
+                            ${this.customerFieldHtml('checkout-customer-select')}
                         </div>
                         <div class="mb-2">
                             <label class="form-label fw-bold mb-1">${window.i18n.t('pos.paymentMethodRequired', 'Payment Method *')}</label>
@@ -909,28 +1087,8 @@ class POS {
                     const denyButton = Swal.getDenyButton();
                     if (denyButton) denyButton.disabled = true;
 
-                    // Load customers
-                    try {
-                        const customersResponse = await $.ajax({
-                            url: '/POS/GetCustomers',
-                            method: 'GET'
-                        });
-
-                        const customerSelect = $('#checkout-customer-select');
-                        customerSelect.empty(); // Clear the loading placeholder
-
-                        // Walk-in customer (no specific customer) is the default option
-                        customerSelect.append(`<option value="0" selected>${window.i18n.t('pos.walkInCustomer', 'Walk-in Customer')}</option>`);
-
-                        if (customersResponse.success && customersResponse.data.length > 0) {
-                            customersResponse.data.forEach((customer) => {
-                                customerSelect.append(`<option value="${customer.id}">${customer.name}</option>`);
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Error loading customers:', error);
-                        $('#checkout-customer-select').html(`<option value="0" selected>${window.i18n.t('pos.walkInCustomer', 'Walk-in Customer')}</option>`);
-                    }
+                    // Load customers (+ wire the inline "New customer" form)
+                    await this.initCustomerField('checkout-customer-select');
 
                     // "Add to Customer Debt" only makes sense for a real customer - keep it
                     // disabled while walk-in ("0"/empty) is selected.
@@ -1486,10 +1644,7 @@ class POS {
                 title: window.i18n.t('pos.holdCart', 'Hold Cart'),
                 html: `
                     <div class="mb-3">
-                        <label class="form-label">${window.i18n.t('pos.customerOptional', 'Customer (Optional)')}</label>
-                        <select id="hold-customer-select" class="form-select">
-                            <option value="">${window.i18n.t('pos.loadingCustomers', 'Loading customers...')}</option>
-                        </select>
+                        ${this.customerFieldHtml('hold-customer-select', { sizeClass: 'form-select', labelClass: '' })}
                     </div>
                     <div class="mb-3">
                         <label class="form-label">${window.i18n.t('pos.notesOptional', 'Notes (Optional)')}</label>
@@ -1504,28 +1659,8 @@ class POS {
                     cancelButton: 'btn btn-secondary'
                 },
                 didOpen: async () => {
-                    // Load customers
-                    try {
-                        const response = await $.ajax({
-                            url: '/POS/GetCustomers',
-                            method: 'GET'
-                        });
-
-                        const $select = $('#hold-customer-select');
-                        $select.empty(); // Clear the loading placeholder
-
-                        // Walk-in customer (no specific customer) is the default option
-                        $select.append(`<option value="0" selected>${window.i18n.t('pos.walkInCustomer', 'Walk-in Customer')}</option>`);
-
-                        if (response.success && response.data.length > 0) {
-                            response.data.forEach((customer) => {
-                                $select.append(`<option value="${customer.id}">${customer.name}</option>`);
-                            });
-                        }
-                    } catch (error) {
-                        console.error('Error loading customers:', error);
-                        $('#hold-customer-select').html(`<option value="0" selected>${window.i18n.t('pos.walkInCustomer', 'Walk-in Customer')}</option>`);
-                    }
+                    // Load customers (+ wire the inline "New customer" form)
+                    await this.initCustomerField('hold-customer-select');
                 },
                 preConfirm: () => {
                     return {
@@ -2367,36 +2502,23 @@ class POS {
 
         const lbpNotation = lbpCurrency?.notation || 'LBP';
         const totalInLBP = lbpCurrency ? totalInUSD * lbpCurrency.rateToUSD : this.total;
-        const subtotalInLBP = lbpCurrency ? subtotalInUSD * lbpCurrency.rateToUSD : subtotal;
-        const discountInLBP = lbpCurrency ? discountInUSD * lbpCurrency.rateToUSD : discountAmount;
 
-        // Build total display with discount info
-        let totalText = `${lbpNotation} ${totalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
+        // Both totals stay single-line figures; discount detail gets its own line under USD.
+        this.elements.totalDisplay.text(`${lbpNotation} ${totalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}`);
+
+        const usdNotation = usdCurrency ? usdCurrency.notation : 'USD';
+        const usdFactor = usdCurrency ? usdCurrency.rateToUSD : 1;
+        const fmtUsd = value => `${usdNotation} ${(value * usdFactor).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        this.elements.totalUsdDisplay.text(fmtUsd(totalInUSD));
+
+        const $discountLine = $('#total-discount');
         if (this.currentDiscount && discountAmount > 0) {
-            totalText = `
-                <div>
-                    <small class="text-muted" style="text-decoration: line-through;">
-                        ${lbpNotation} ${subtotalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
-                    </small>
-                </div>
-                <div>
-                    ${lbpNotation} ${totalInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
-                </div>
-                <div>
-                    <small class="badge bg-success">
-                        -${lbpNotation} ${discountInLBP.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}
-                    </small>
-                </div>
-            `;
-        }
-        this.elements.totalDisplay.html(totalText);
-
-        if (usdCurrency) {
-            const totalInUsdAmount = totalInUSD * usdCurrency.rateToUSD;
-            this.elements.totalUsdDisplay.text(`${usdCurrency.notation} ${totalInUsdAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+            $discountLine.empty()
+                .append($('<s>').text(fmtUsd(subtotalInUSD)))
+                .append($('<span class="discount-chip">').text(`-${fmtUsd(discountInUSD)}`))
+                .prop('hidden', false);
         } else {
-            // Fallback if USD isn't configured
-            this.elements.totalUsdDisplay.text(`USD ${totalInUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+            $discountLine.prop('hidden', true).empty();
         }
         
         // Enable/disable checkout button

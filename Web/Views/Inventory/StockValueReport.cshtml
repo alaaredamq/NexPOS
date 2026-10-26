@@ -224,15 +224,16 @@
         };
 
         $(document).ready(function() {
-            initializeCharts();
+            initStockValueCharts();
             initializeTable();
         });
 
-        function initializeCharts() {
+        // Not named initializeCharts: that would shadow the global in site.js and run twice.
+        function initStockValueCharts() {
             // Category Chart Data
-            var categoryData = [];
-            var categoryLabels = [];
-            var categoryValues = [];
+            var categoryData = @Json.Serialize(ViewBag.CategoryChartData);
+            var categoryLabels = categoryData.map(function (c) { return c.label; });
+            var categoryValues = categoryData.map(function (c) { return c.value; });
 
             // Category Pie Chart
             var categoryCtx = document.getElementById('categoryChart').getContext('2d');
@@ -266,9 +267,9 @@
             });
 
             // Top Products Chart Data
-            var topProductsData = [];
-            var topProductNames = [];
-            var topProductValues = [];
+            var topProductsData = @Json.Serialize(ViewBag.TopProductsChartData);
+            var topProductNames = topProductsData.map(function (p) { return p.label; });
+            var topProductValues = topProductsData.map(function (p) { return p.value; });
 
             // Top Products Bar Chart
             var topProductsCtx = document.getElementById('topProductsChart').getContext('2d');

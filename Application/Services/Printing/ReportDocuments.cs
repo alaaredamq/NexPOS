@@ -1,3 +1,4 @@
+using Core.Time;
 using System.Globalization;
 using Application.IServices.Sales;
 using Core.Printing;
@@ -32,8 +33,8 @@ public static class ReportDocuments
             PrintLine.Separator(),
             PrintLine.Bold("SESSION INFORMATION"),
             PrintLine.Row("Cashier:", report.CashierName),
-            PrintLine.Row("Opened:", report.OpenedAt.ToString("yyyy-MM-dd HH:mm", Inv)),
-            PrintLine.Row("Closed:", report.ClosedAt.ToString("yyyy-MM-dd HH:mm", Inv)),
+            PrintLine.Row("Opened:", report.OpenedAt.UtcToLocal().ToString("yyyy-MM-dd HH:mm", Inv)),
+            PrintLine.Row("Closed:", report.ClosedAt.UtcToLocal().ToString("yyyy-MM-dd HH:mm", Inv)),
             PrintLine.Row("Duration:", $"{(report.ClosedAt - report.OpenedAt).TotalHours.ToString("F1", Inv)} hours"),
             PrintLine.Separator(),
             PrintLine.Bold("SALES SUMMARY"),
@@ -67,7 +68,7 @@ public static class ReportDocuments
             lines.Add(PrintLine.Bold("CASH DROPS"));
             foreach (var drop in report.CashDrops)
             {
-                lines.Add(PrintLine.Row($"  {drop.DroppedAt.ToString("HH:mm", Inv)} {drop.Reason ?? "-"}", Money(drop.Amount)));
+                lines.Add(PrintLine.Row($"  {drop.DroppedAt.UtcToLocal().ToString("HH:mm", Inv)} {drop.Reason ?? "-"}", Money(drop.Amount)));
                 if (!string.IsNullOrWhiteSpace(drop.Notes))
                     lines.Add(PrintLine.Plain($"    {drop.Notes}"));
             }
@@ -79,7 +80,7 @@ public static class ReportDocuments
             lines.Add(PrintLine.Bold("TRANSACTIONS"));
             foreach (var order in report.Orders)
             {
-                lines.Add(PrintLine.Row($"  {order.OrderNumber} {order.OrderDate.ToString("HH:mm", Inv)}", Money(order.TotalAmount)));
+                lines.Add(PrintLine.Row($"  {order.OrderNumber} {order.OrderDate.UtcToLocal().ToString("HH:mm", Inv)}", Money(order.TotalAmount)));
                 var detail = string.Join(" - ", new[] { order.CustomerName, order.PaymentMethod }.Where(s => !string.IsNullOrWhiteSpace(s)));
                 if (detail.Length > 0)
                     lines.Add(PrintLine.Plain($"    {detail}"));

@@ -1,4 +1,6 @@
 using Application.IServices.Reports;
+using Core.Entities.Sales;
+using Core.Enum;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,10 +15,14 @@ public class ReportService : IReportService
         _db = db;
     }
 
+    // Every report here is about sales: cancelled/returned orders (e.g. from a voided receipt) are not.
+    private IQueryable<Order> SoldOrders => _db.Orders
+        .Where(o => o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
+
     public async Task<object> GetSalesByDayAsync(int days = 7)
     {
         var since = DateTime.UtcNow.Date.AddDays(-days + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .GroupBy(o => o.OrderDate.Date)
             .Select(g => new { date = g.Key, total = g.Sum(x => x.TotalAmount) })
@@ -32,7 +38,7 @@ public class ReportService : IReportService
     public async Task<object> GetSalesByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var orders = await _db.Orders
+        var orders = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Select(o => new { o.OrderDate, o.TotalAmount })
             .ToListAsync();
@@ -52,7 +58,7 @@ public class ReportService : IReportService
     public async Task<object> GetSalesByMonthAsync(int months = 12)
     {
         var since = DateTime.UtcNow.Date.AddMonths(-months + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .GroupBy(o => new { o.OrderDate.Year, o.OrderDate.Month })
             .Select(g => new { year = g.Key.Year, month = g.Key.Month, total = g.Sum(x => x.TotalAmount) })
@@ -68,7 +74,7 @@ public class ReportService : IReportService
     public async Task<object> GetSalesByYearAsync(int years = 5)
     {
         var since = DateTime.UtcNow.Date.AddYears(-years + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .GroupBy(o => o.OrderDate.Year)
             .Select(g => new { year = g.Key, total = g.Sum(x => x.TotalAmount) })
@@ -84,7 +90,7 @@ public class ReportService : IReportService
     public async Task<object> GetProfitByDayAsync(int days = 7)
     {
         var since = DateTime.UtcNow.Date.AddDays(-days + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -107,7 +113,7 @@ public class ReportService : IReportService
     public async Task<object> GetProfitByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var orders = await _db.Orders
+        var orders = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Select(o => new
             {
@@ -136,7 +142,7 @@ public class ReportService : IReportService
     public async Task<object> GetProfitByMonthAsync(int months = 12)
     {
         var since = DateTime.UtcNow.Date.AddMonths(-months + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -160,7 +166,7 @@ public class ReportService : IReportService
     public async Task<object> GetProfitByYearAsync(int years = 5)
     {
         var since = DateTime.UtcNow.Date.AddYears(-years + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -183,7 +189,7 @@ public class ReportService : IReportService
     public async Task<object> GetIncomeExpensesByDayAsync(int days = 7)
     {
         var since = DateTime.UtcNow.Date.AddDays(-days + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -213,7 +219,7 @@ public class ReportService : IReportService
     public async Task<object> GetIncomeExpensesByWeekAsync(int weeks = 4)
     {
         var since = DateTime.UtcNow.Date.AddDays(-weeks * 7 + 1);
-        var orders = await _db.Orders
+        var orders = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Select(o => new
             {
@@ -249,7 +255,7 @@ public class ReportService : IReportService
     public async Task<object> GetIncomeExpensesByMonthAsync(int months = 12)
     {
         var since = DateTime.UtcNow.Date.AddMonths(-months + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -280,7 +286,7 @@ public class ReportService : IReportService
     public async Task<object> GetIncomeExpensesByYearAsync(int years = 5)
     {
         var since = DateTime.UtcNow.Date.AddYears(-years + 1);
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Where(o => o.OrderDate >= since)
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
@@ -309,7 +315,7 @@ public class ReportService : IReportService
 
     public async Task<object> GetTopSellingProductsAsync(int count = 10)
     {
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
             .ThenInclude(ci => ci.Product)
@@ -333,7 +339,7 @@ public class ReportService : IReportService
 
     public async Task<object> GetTopCustomersAsync(int count = 10)
     {
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Include(o => o.Customer)
             .GroupBy(o => new { o.Customer.Id, o.Customer.FirstName, o.Customer.LastName })
             .Select(g => new { 
@@ -354,7 +360,7 @@ public class ReportService : IReportService
 
     public async Task<object> GetTopSuppliersAsync(int count = 10)
     {
-        var data = await _db.Orders
+        var data = await SoldOrders
             .Include(o => o.Cart)
             .ThenInclude(c => c.CartItems)
             .ThenInclude(ci => ci.Product)
@@ -380,7 +386,7 @@ public class ReportService : IReportService
     public async Task<object> GetSalesByDiscountAsync()
     {
         // This would need discount tracking in orders - simplified for now
-        var data = await _db.Orders
+        var data = await SoldOrders
             .GroupBy(o => "No Discount") // Placeholder - would need actual discount tracking
             .Select(g => new { discount = g.Key, sales = g.Sum(x => x.TotalAmount) })
             .ToListAsync();

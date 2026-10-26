@@ -57,7 +57,7 @@
                         </div>
                         <div class="col-md-3">
                             <small class="text-muted d-block">@Localizer["OrderDate"]</small>
-                            <strong>@Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</strong>
+                            <strong>@Model.OrderDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</strong>
                         </div>
                         <div class="col-md-3">
                             <small class="text-muted d-block">@Localizer["Customer"]</small>
@@ -150,7 +150,7 @@
                                 <div class="timeline-marker bg-primary"></div>
                                 <div class="timeline-content">
                                     <h6 class="timeline-title">@Localizer["OrderPlaced"]</h6>
-                                    <p class="timeline-text">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                                    <p class="timeline-text">@Model.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</p>
                                 </div>
                             </div>
                             @if (Model.Status != Core.Enum.OrderStatus.Pending)

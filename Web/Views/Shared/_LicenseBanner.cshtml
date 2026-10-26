@@ -11,6 +11,7 @@
 @{
     var licenseState = License.GetState();
     var floating = ViewData["LicenseBannerFloating"] as bool? ?? false;
+    var canManageLicense = PermissionHelper.HasPermission(User, PermissionHelper.Permissions.License_Manage);
     var onLicensePage = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "License", StringComparison.OrdinalIgnoreCase);
 }
 @if ((licenseState.ShowsWarning || !licenseState.AllowsSales) && !onLicensePage)
@@ -26,12 +27,15 @@
         @if (floating)
         {
             <div class="mt-2 text-end">
-                <a class="btn btn-sm btn-outline-dark" href="/@bannerLang/License">@SharedLocalizer["License_Manage"]</a>
+                @if (canManageLicense)
+                {
+                    <a class="btn btn-sm btn-outline-dark" href="/@bannerLang/License">@SharedLocalizer["License_Manage"]</a>
+                }
                 <button type="button" class="btn btn-sm btn-outline-secondary ms-1" aria-label="Close"
                         onclick="this.closest('.license-banner').remove()">&times;</button>
             </div>
         }
-        else
+        else if (canManageLicense)
         {
             <a class="btn btn-sm btn-outline-dark text-nowrap" href="/@bannerLang/License">@SharedLocalizer["License_Manage"]</a>
         }

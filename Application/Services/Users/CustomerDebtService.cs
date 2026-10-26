@@ -30,6 +30,17 @@ public class CustomerDebtService : ICustomerDebtService
         return await AddTransactionAsync(customerId, userId, amount, CustomerDebtTransactionType.Sale, note: null, orderId);
     }
 
+    public async Task<decimal> ReverseSaleAsync(int orderId, int userId, string? note = null)
+    {
+        var entries = await _transactionRepo.GetByOrderIdAsync(orderId);
+        var sale = entries.FirstOrDefault(t => t.Type == CustomerDebtTransactionType.Sale);
+        if (sale == null || entries.Any(t => t.Type == CustomerDebtTransactionType.SaleReversal))
+            return 0m;
+
+        await AddTransactionAsync(sale.CustomerId, userId, -sale.Amount, CustomerDebtTransactionType.SaleReversal, note, orderId);
+        return sale.Amount;
+    }
+
     private async Task<CustomerDebtTransaction> AddTransactionAsync(int customerId, int userId, decimal signedAmount, CustomerDebtTransactionType type, string? note, int? orderId)
     {
         var customer = await _customerRepo.GetByIdAsync(customerId);

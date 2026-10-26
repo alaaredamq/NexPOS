@@ -82,8 +82,9 @@ public class CustomersController : BaseController
                     email = c.Email,
                     phoneNumber = c.PhoneNumber,
                     address = c.Address,
-                    ordersCount = c.Orders?.Count ?? 0,
-                    totalSpent = c.Orders?.Sum(o => o.TotalAmount) ?? 0,
+                    // Cancelled/returned orders (e.g. a voided receipt) are no longer purchases.
+                    ordersCount = c.Orders?.Count(o => o.Status != (int)global::Core.Enum.OrderStatus.Cancelled && o.Status != (int)global::Core.Enum.OrderStatus.Returned) ?? 0,
+                    totalSpent = c.Orders?.Where(o => o.Status != (int)global::Core.Enum.OrderStatus.Cancelled && o.Status != (int)global::Core.Enum.OrderStatus.Returned).Sum(o => o.TotalAmount) ?? 0,
                     isActive = c.IsActive, // Return boolean instead of string
                     actions = GetActionButtons(c.Id)
                 })
@@ -130,7 +131,7 @@ public class CustomersController : BaseController
 
         try
         {
-            var customer = new Customer(model.FirstName, model.LastName, model.Email, model.PhoneNumber, model.Address)
+            var customer = new Customer(model.FirstName, model.LastName, model.Email?.Trim() ?? string.Empty, model.PhoneNumber, model.Address)
             {
                 IsActive = model.IsActive
             };
@@ -206,7 +207,7 @@ public class CustomersController : BaseController
             // Update the customer properties
             customer.FirstName = model.FirstName;
             customer.LastName = model.LastName;
-            customer.Email = model.Email;
+            customer.Email = model.Email?.Trim() ?? string.Empty;
             customer.PhoneNumber = model.PhoneNumber;
             customer.Address = model.Address;
             customer.IsActive = model.IsActive;
@@ -231,6 +232,10 @@ public class CustomersController : BaseController
         {
             await _customerService.DeleteAsync(id);
             return Json(new { success = true, message = "Customer deleted successfully!" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Json(new { success = false, message = ex.Message });
         }
         catch (Exception ex)
         {

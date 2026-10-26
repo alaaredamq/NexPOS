@@ -4,6 +4,7 @@ using Core.Auditing;
 using Core.Entities.Backup;
 using Core.Entities.Logging;
 using Core.IRepositories.Backup;
+using Core.Time;
 using Infrastructure.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -86,7 +87,8 @@ namespace Application.Services.Backup
                 // Create backup entity - ensure no nulls for required DB columns
                 var backup = new BackupEntity
                 {
-                    Name = request.Name ?? string.Empty,
+                    // A blank name (an API call with no body) would list as an unnamed backup.
+                    Name = string.IsNullOrWhiteSpace(request.Name) ? $"Backup_{DateTime.Now:yyyyMMdd_HHmmss}" : request.Name.Trim(),
                     Description = request.Description ?? string.Empty,
                     FilePath = backupPath,
                     FileName = fileName ?? string.Empty,
@@ -198,7 +200,22 @@ namespace Application.Services.Backup
                 };
             }
 
-            return await ValidateBackupFileAsync(backup.FilePath);
+            var validation = await ValidateBackupFileAsync(backup.FilePath);
+
+            // The file alone can't say what it is; the catalog record can.
+            if (validation.BackupInfo is { } info)
+            {
+                var dto = MapToDTO(backup);
+                info.Name = dto.Name;
+                info.BackupType = dto.BackupType;
+                info.CreatedAt = backup.CreatedAt;
+                info.IsEncrypted = backup.IsEncrypted;
+                info.CompressionType = backup.CompressionType ?? string.Empty;
+                info.TablesIncluded = dto.TablesIncluded;
+                info.TableCount = dto.TablesIncluded.Count;
+            }
+
+            return validation;
         }
 
         public async Task<BackupValidationDTO> ValidateBackupFileAsync(string filePath)
@@ -219,7 +236,7 @@ namespace Application.Services.Backup
                 {
                     FileSizeBytes = fileInfo.Length,
                     FileSizeFormatted = FormatFileSize(fileInfo.Length),
-                    CreatedAt = fileInfo.CreationTime,
+                    CreatedAt = fileInfo.CreationTimeUtc,
                     Checksum = await CalculateBackupChecksumAsync(filePath)
                 };
 
@@ -622,7 +639,7 @@ namespace Application.Services.Backup
                 await CreateBackupAsync(backupRequest);
 
                 // Update last run time but keep the next run as scheduled
-                schedule.LastRun = DateTime.Now;
+                schedule.LastRun = DateTime.UtcNow;
                 await _scheduleRepository.SaveAsync(schedule);
 
                 return true;
@@ -891,7 +908,7 @@ namespace Application.Services.Backup
             var fromDate = DateTime.UtcNow.AddDays(-days);
             var backups = await _backupRepository.GetBackupsByDateRangeAsync(fromDate, DateTime.UtcNow);
             
-            return backups.Select(b => $"{b.Name} - {b.CreatedAt:yyyy-MM-dd HH:mm} - {b.Status}").ToList();
+            return backups.Select(b => $"{b.Name} - {b.CreatedAt.UtcToLocal():yyyy-MM-dd HH:mm} - {b.Status}").ToList();
         }
 
         public async Task<Dictionary<string, object>> GetSystemInfoAsync()
@@ -1022,7 +1039,7 @@ namespace Application.Services.Backup
             
             foreach (var backup in backups.OrderByDescending(b => b.CreatedAt))
             {
-                report.AppendLine($"{backup.Name} - {backup.Status} - {backup.CreatedAt:yyyy-MM-dd HH:mm}");
+                report.AppendLine($"{backup.Name} - {backup.Status} - {backup.CreatedAt.UtcToLocal():yyyy-MM-dd HH:mm}");
             }
 
             return report.ToString();
@@ -1036,7 +1053,7 @@ namespace Application.Services.Backup
         {
             var request = new BackupRequest
             {
-                Name = $"Emergency Backup - {DateTime.UtcNow:yyyy-MM-dd HH:mm}",
+                Name = $"Emergency Backup - {DateTime.Now:yyyy-MM-dd HH:mm}",
                 Description = "Emergency backup created automatically",
                 BackupType = "Full",
                 CompressionType = "GZip"
@@ -1060,7 +1077,7 @@ namespace Application.Services.Backup
                 .Where(b => b.Status == BackupStatus.Completed)
                 .OrderByDescending(b => b.CreatedAt)
                 .Take(10)
-                .Select(b => $"{b.Name} ({b.CreatedAt:yyyy-MM-dd HH:mm})")
+                .Select(b => $"{b.Name} ({b.CreatedAt.UtcToLocal():yyyy-MM-dd HH:mm})")
                 .ToList();
         }
 
@@ -1772,20 +1789,22 @@ namespace Application.Services.Backup
         }
 
         /// <summary>
-        /// Calculates the next run time using LOCAL time since users set schedules in local time
+        /// Calculates the next run time. Users pick the schedule on their LOCAL clock ("02:00"), so the
+        /// day/time rules run on local time; the result is returned as UTC, which is how NextRun is stored.
         /// </summary>
         private DateTime? CalculateNextRunTime(BackupSchedule schedule)
         {
-            var now = DateTime.Now; // Use LOCAL time
+            var now = DateTime.Now; // local wall clock
             var nextRun = now.Date.Add(schedule.ScheduleTime);
 
-            return schedule.ScheduleFrequency.ToLower() switch
+            DateTime? nextLocal = schedule.ScheduleFrequency.ToLower() switch
             {
                 "daily" => nextRun > now ? nextRun : nextRun.AddDays(1),
                 "weekly" => CalculateWeeklyNextRun(schedule, now),
                 "monthly" => CalculateMonthlyNextRun(schedule, now),
                 _ => null
             };
+            return nextLocal.LocalToUtc();
         }
 
         private DateTime CalculateWeeklyNextRun(BackupSchedule schedule, DateTime now)
@@ -1864,7 +1883,8 @@ namespace Application.Services.Backup
             return new BackupDTO
             {
                 Id = backup.Id,
-                Name = backup.Name,
+                // Backups made before a blank name was defaulted are listed by their file name.
+                Name = string.IsNullOrWhiteSpace(backup.Name) ? Path.GetFileNameWithoutExtension(backup.FileName ?? string.Empty) : backup.Name,
                 Description = backup.Description,
                 FilePath = backup.FilePath,
                 FileName = backup.FileName,

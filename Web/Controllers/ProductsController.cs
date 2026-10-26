@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.IServices.Products;
-using Application.IServices.Reports;
 using Application.IServices.Base;
 using Application.IServices.Settings;
 using Application.DTOs.Products;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Web.Attributes;
 using Web.Helpers;
+using Core.Auditing;
 using Core.Entities.Products;
 using Core.IRepositories.PrinterTransport;
 using Core.Printing;
@@ -24,22 +24,24 @@ public class ProductsController : BaseController
     private readonly ISupplierService _supplierService;
     private readonly ICurrencyService _currencyService;
     private readonly IViewLocalizer _localizer;
-    private readonly IExportService _exportService;
+    private readonly IProductImportExportService _importExportService;
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<ProductsController> _logger;
     private readonly ILabelPdfBuilder _labelPdfBuilder;
+    private readonly IAuditTrail _auditTrail;
 
-    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IExportService exportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger, ILabelPdfBuilder labelPdfBuilder)
+    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IProductImportExportService importExportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger, ILabelPdfBuilder labelPdfBuilder, IAuditTrail auditTrail)
     {
         _productService = productService;
         _categoryService = categoryService;
         _supplierService = supplierService;
         _currencyService = currencyService;
         _localizer = localizer;
-        _exportService = exportService;
+        _importExportService = importExportService;
         _settingsService = settingsService;
         _logger = logger;
         _labelPdfBuilder = labelPdfBuilder;
+        _auditTrail = auditTrail;
     }
 
     public async Task<IActionResult> Index()
@@ -55,21 +57,6 @@ public class ProductsController : BaseController
         return View();
     }
     
-    [HttpGet]
-    public async Task<IActionResult> TestProducts()
-    {
-        var products = await _productService.GetAllAsync();
-        return Json(new {
-            success = true,
-            count = products?.Count ?? 0,
-            products = products?.Take(3).Select(p => new {
-                id = p.Id,
-                name = p.Name,
-                barcode = p.Barcode
-            })
-        });
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetProducts(int draw = 1, int start = 0, int length = 10, string searchValue = "", string sortColumn = "name", string sortDirection = "asc")
     {
@@ -295,7 +282,13 @@ public class ProductsController : BaseController
     public async Task<IActionResult> Create(CreateProductRequest model)
     {
         _logger.LogInformation($"Create POST called with CategoryId: {model.CategoryId}, SupplierId: {model.SupplierId}");
-        
+
+        // Two products sharing a barcode make a POS scan ring up whichever one the lookup finds first.
+        if (!string.IsNullOrWhiteSpace(model.Barcode) && await _productService.GetByBarcodeAsync(model.Barcode) != null)
+        {
+            ModelState.AddModelError(nameof(model.Barcode), "A product with this barcode already exists.");
+        }
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("ModelState is invalid");
@@ -479,7 +472,16 @@ public class ProductsController : BaseController
     public async Task<IActionResult> Edit(UpdateProductRequest model)
     {
         _logger.LogInformation($"Edit POST called for ProductId: {model.Id} with CategoryId: {model.CategoryId}, SupplierId: {model.SupplierId}");
-        
+
+        if (!string.IsNullOrWhiteSpace(model.Barcode))
+        {
+            var sameBarcode = await _productService.GetByBarcodeAsync(model.Barcode);
+            if (sameBarcode != null && sameBarcode.Id != model.Id)
+            {
+                ModelState.AddModelError(nameof(model.Barcode), "A product with this barcode already exists.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("ModelState is invalid");
@@ -652,21 +654,70 @@ public class ProductsController : BaseController
     }
 
     /// <summary>
-    /// Export products to CSV
+    /// The whole catalog as a CSV, in the column layout <see cref="ImportProducts"/> reads.
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> ExportProducts()
     {
         try
         {
-            var csvData = await _exportService.ExportProductsToCsvAsync();
-            var fileName = $"products_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-            
-            return File(csvData, "text/csv", fileName);
+            var csvData = await _importExportService.ExportAsync();
+            _auditTrail.LogBusiness(AuditActions.ProductsExported, "Products exported to CSV", "Product");
+
+            return File(csvData, "text/csv", $"products_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = $"Export failed: {ex.Message}" });
+            _logger.LogError(ex, "Error exporting products");
+            TempData["ErrorMessage"] = $"Export failed: {ex.Message}";
+            return RedirectToAction(nameof(Index));
         }
     }
+
+    /// <summary>
+    /// An empty import file: the column headers and one example row.
+    /// </summary>
+    [HttpGet]
+    public IActionResult ImportTemplate()
+    {
+        return File(_importExportService.BuildTemplate(), "text/csv", "products_import_template.csv");
+    }
+
+    /// <summary>
+    /// Reads an uploaded CSV. With <paramref name="apply"/> false it only reports what would happen
+    /// (the preview step); with true it saves the valid rows. Existing barcodes are updated, new ones created.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequireAllPermissions(PermissionHelper.Permissions.Products_Create, PermissionHelper.Permissions.Products_Edit)]
+    public async Task<IActionResult> ImportProducts(IFormFile? file, bool apply)
+    {
+        if (file == null || file.Length == 0)
+            return Json(new { success = false, fileError = "No file uploaded." });
+        if (file.Length > MaxImportFileBytes)
+            return Json(new { success = false, fileError = "The file is larger than 10 MB." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await _importExportService.ImportAsync(stream, apply);
+
+            if (result is { Applied: true, Success: true })
+            {
+                _auditTrail.LogBusiness(AuditActions.ProductsImported,
+                    $"Products imported from CSV: {result.Created} created, {result.Updated} updated, {result.Failed} skipped",
+                    "Product",
+                    details: new { fileName = file.FileName, result.TotalRows, result.Created, result.Updated, result.Unchanged, result.NewCategories, result.Failed });
+            }
+
+            return Json(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing products");
+            return Json(new { success = false, fileError = $"Import failed: {ex.Message}" });
+        }
+    }
+
+    private const long MaxImportFileBytes = 10 * 1024 * 1024;
 }

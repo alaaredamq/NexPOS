@@ -158,6 +158,16 @@ public class OrderService : IOrderService
     public async Task<Order> UpdateOrderStatusAsync(int orderId, int status)
     {
         var order = await _orderRepo.GetByIdAsync(orderId);
+        if (order.Status == status) return order;
+
+        // Cancelling is not just a status number - stock, receipt, debt and drawer all have to follow -
+        // so it only happens through ISaleReversalService, and a cancelled order can't be reopened
+        // (its stock was returned, so it would be counted as sold again without being taken back out).
+        if (status == (int)Core.Enum.OrderStatus.Cancelled)
+            throw new InvalidOperationException("An order is cancelled through the sale reversal, not by setting its status.");
+        if (order.Status == (int)Core.Enum.OrderStatus.Cancelled)
+            throw new InvalidOperationException("A cancelled order cannot be reopened.");
+
         order.Status = status;
         return await _orderRepo.SaveAsync(order);
     }

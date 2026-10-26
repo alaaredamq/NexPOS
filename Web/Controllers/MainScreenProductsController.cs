@@ -2,12 +2,13 @@ using Application.IServices.Products;
 using Core.Entities.Products;
 using Microsoft.AspNetCore.Mvc;
 using Web.Attributes;
+using Web.Helpers;
 
 namespace Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[RequirePermission("Products.Read")]
+[RequirePermission(PermissionHelper.Permissions.Products_View)]
 public class MainScreenProductsController : ControllerBase
 {
     private readonly IMainScreenProductService _service;
@@ -55,7 +56,7 @@ public class MainScreenProductsController : ControllerBase
     }
 
     [HttpPost("pin")]
-    [RequirePermission("Products.Update")]
+    [RequirePermission(PermissionHelper.Permissions.Products_Edit)]
     public async Task<IActionResult> PinProduct([FromBody] PinProductRequest request)
     {
         await _service.PinProductAsync(request.ProductId, request.DisplayOrder);
@@ -63,7 +64,7 @@ public class MainScreenProductsController : ControllerBase
     }
 
     [HttpPost("unpin")]
-    [RequirePermission("Products.Update")]
+    [RequirePermission(PermissionHelper.Permissions.Products_Edit)]
     public async Task<IActionResult> UnpinProduct([FromBody] UnpinProductRequest request)
     {
         await _service.UnpinProductAsync(request.ProductId);
@@ -71,7 +72,7 @@ public class MainScreenProductsController : ControllerBase
     }
 
     [HttpPut("reorder")]
-    [RequirePermission("Products.Update")]
+    [RequirePermission(PermissionHelper.Permissions.Products_Edit)]
     public async Task<IActionResult> ReorderProducts([FromBody] ReorderProductsRequest request)
     {
         await _service.ReorderProductsAsync(request.ProductIds);
@@ -79,7 +80,7 @@ public class MainScreenProductsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    [RequirePermission("Products.Update")]
+    [RequirePermission(PermissionHelper.Permissions.Products_Edit)]
     public async Task<IActionResult> Update(int id, [FromBody] MainScreenProduct product)
     {
         product.Id = id;
@@ -88,7 +89,7 @@ public class MainScreenProductsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [RequirePermission("Products.Delete")]
+    [RequirePermission(PermissionHelper.Permissions.Products_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);

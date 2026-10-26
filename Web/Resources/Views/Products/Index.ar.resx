@@ -127,5 +127,59 @@
   <data name="AnErrorOccurredWhileDeletingTheProduct" xml:space="preserve">
     <value>حدث خطأ أثناء حذف المنتج.</value>
   </data>
+  <data name="Prod_Import" xml:space="preserve">
+    <value>استيراد</value>
+  </data>
+  <data name="Prod_Export" xml:space="preserve">
+    <value>تصدير</value>
+  </data>
+  <data name="Prod_ImportTitle" xml:space="preserve">
+    <value>استيراد المنتجات</value>
+  </data>
+  <data name="Prod_ImportHelp" xml:space="preserve">
+    <value>ارفع ملف CSV. الصف الذي يطابق باركود موجود يحدّث ذلك المنتج (الخانات الفارغة تبقى كما هي)، وأي صف آخر يضيف منتجاً جديداً. عمود الباركود هو الوحيد المطلوب في سطر العناوين.</value>
+  </data>
+  <data name="Prod_ImportTemplate" xml:space="preserve">
+    <value>تنزيل قالب</value>
+  </data>
+  <data name="Prod_ImportCheck" xml:space="preserve">
+    <value>فحص الملف</value>
+  </data>
+  <data name="Prod_ImportClose" xml:space="preserve">
+    <value>إغلاق</value>
+  </data>
+  <data name="Prod_ImportPreviewNote" xml:space="preserve">
+    <value>لم يتم حفظ أي شيء بعد. راجع الأرقام ثم اضغط استيراد.</value>
+  </data>
+  <data name="Prod_ImportSkipNote" xml:space="preserve">
+    <value>الصفوف التي فيها أخطاء يتم تخطيها، ويتم استيراد الباقي.</value>
+  </data>
+  <data name="Prod_ImportDone" xml:space="preserve">
+    <value>اكتمل الاستيراد.</value>
+  </data>
+  <data name="Prod_ImportFailed" xml:space="preserve">
+    <value>فشل الاستيراد.</value>
+  </data>
+  <data name="Prod_ImportNothing" xml:space="preserve">
+    <value>لا يوجد ما يُستورد في هذا الملف.</value>
+  </data>
+  <data name="Prod_ImportCreated" xml:space="preserve">
+    <value>منتجات جديدة</value>
+  </data>
+  <data name="Prod_ImportUpdated" xml:space="preserve">
+    <value>محدّثة</value>
+  </data>
+  <data name="Prod_ImportUnchanged" xml:space="preserve">
+    <value>بدون تغيير</value>
+  </data>
+  <data name="Prod_ImportSkipped" xml:space="preserve">
+    <value>متخطاة (أخطاء)</value>
+  </data>
+  <data name="Prod_ImportNewCategories" xml:space="preserve">
+    <value>فئات جديدة</value>
+  </data>
+  <data name="Prod_ImportRow" xml:space="preserve">
+    <value>الصف</value>
+  </data>
 </root>
 

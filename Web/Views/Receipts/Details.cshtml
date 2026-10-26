@@ -52,7 +52,7 @@
                     @if (Model.VoidDate.HasValue)
                     {
                         <br />
-                        <span>@Localizer["VoidedOnLabel"] @Model.VoidDate.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                        <span>@Localizer["VoidedOnLabel"] @Model.VoidDate.Value.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</span>
                     }
                 </div>
             </div>
@@ -79,7 +79,7 @@
                                 </tr>
                                 <tr>
                                     <td class="text-muted">@Localizer["ReceiptDate"]</td>
-                                    <td>@Model.ReceiptDate.ToString("MMMM dd, yyyy HH:mm")</td>
+                                    <td>@Model.ReceiptDate.UtcToLocal().ToString("MMMM dd, yyyy HH:mm")</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted">@Localizer["OrderID"]</td>
@@ -237,7 +237,7 @@
                                         <td>@payment.PaymentMethod.Name</td>
                                         <td>@(payment.ReferenceNumber ?? "-")</td>
                                         <td class="text-end fw-bold">@Model.Currency.Notation@payment.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                        <td>@payment.PaymentDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@payment.PaymentDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</td>
                                     </tr>
                                 }
                             </tbody>
@@ -303,7 +303,7 @@
                             <div class="timeline-marker bg-primary"></div>
                             <div class="timeline-content">
                                 <div class="text-muted small">@Localizer["ReceiptCreated"]</div>
-                                <div class="fw-bold">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div class="fw-bold">@Model.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</div>
                             </div>
                         </div>
                         @if (Model.PrintedAt.HasValue)
@@ -312,7 +312,7 @@
                                 <div class="timeline-marker bg-info"></div>
                                 <div class="timeline-content">
                                     <div class="text-muted small">@Localizer["Printed"]</div>
-                                    <div class="fw-bold">@Model.PrintedAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+                                    <div class="fw-bold">@Model.PrintedAt.Value.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</div>
                                     @if (!string.IsNullOrEmpty(Model.PrintedBy))
                                     {
                                         <div class="small">@Localizer["By"] @Model.PrintedBy</div>
@@ -326,7 +326,7 @@
                                 <div class="timeline-marker bg-success"></div>
                                 <div class="timeline-content">
                                     <div class="text-muted small">@Localizer["Emailed"]</div>
-                                    <div class="fw-bold">@Model.EmailSentAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+                                    <div class="fw-bold">@Model.EmailSentAt.Value.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</div>
                                     @if (!string.IsNullOrEmpty(Model.EmailSentTo))
                                     {
                                         <div class="small">@Localizer["To"] @Model.EmailSentTo</div>
@@ -340,7 +340,7 @@
                                 <div class="timeline-marker bg-danger"></div>
                                 <div class="timeline-content">
                                     <div class="text-muted small">@Localizer["Voided"]</div>
-                                    <div class="fw-bold">@Model.VoidDate.Value.ToString("yyyy-MM-dd HH:mm")</div>
+                                    <div class="fw-bold">@Model.VoidDate.Value.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</div>
                                     @if (Model.VoidedByUser != null)
                                     {
                                         <div class="small">@Localizer["By"] @Model.VoidedByUser.FirstName @Model.VoidedByUser.LastName</div>

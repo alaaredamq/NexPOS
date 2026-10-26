@@ -33,6 +33,36 @@ window.appAlert = function(message, icon) {
     });
 };
 
+/**
+ * Date input value ("yyyy-MM-dd") for a Date, in LOCAL time. `d.toISOString().split('T')[0]` is the UTC date,
+ * which between local midnight and the UTC offset is yesterday - so "today" filters started a day early.
+ */
+window.localDateString = function(d) {
+    d = d || new Date();
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+};
+
+/**
+ * Result message for list-page actions (delete etc.): showAlert('success' | 'danger' | 'warning', message).
+ * Success is a toast; anything else is a dialog the user has to dismiss, so a refused action
+ * ("this category is still used by products") can't be missed. The list pages used to inject an
+ * element after a `.products-header` that no page has, so every message was silently dropped.
+ */
+window.showAlert = function(type, message) {
+    var text = String(message == null ? '' : message);
+    if (type === 'success') {
+        if (typeof toastr !== 'undefined') {
+            // toastr renders HTML; messages come from the server, so escape them.
+            toastr.success($('<div>').text(text).html());
+        } else {
+            window.appAlert(text, 'success');
+        }
+        return;
+    }
+    window.appAlert(text, type === 'warning' ? 'warning' : 'error');
+};
+
 // Safety net: any stray alert() becomes a non-blocking dialog instead of a native one.
 window.alert = function(message) { window.appAlert(message); };
 
@@ -108,14 +138,33 @@ function initializeEventHandlers() {
     });
 
     // Form validation feedback
-    $('form').on('submit', function() {
+    $('form').on('submit', function(e) {
         var $form = $(this);
         var $submitBtn = $form.find('button[type="submit"]');
-        
+
         if ($form[0].checkValidity()) {
-            $submitBtn.prop('disabled', true);
-            $submitBtn.html('<span class="spinner"></span> Processing...');
+            // Defer so page-level validation handlers (registered later) can cancel the submit
+            // first; otherwise the button stays stuck on "Processing..." after a rejected submit.
+            setTimeout(function() {
+                if (e.isDefaultPrevented()) return;
+                $submitBtn.each(function() {
+                    $(this).data('original-html', $(this).html());
+                });
+                $submitBtn.prop('disabled', true);
+                $submitBtn.html('<span class="spinner"></span> ' + window.i18n.t('common.processing', 'Processing...'));
+            }, 0);
         }
+    });
+
+    // Coming back to a page from the back/forward cache restores the DOM as it was left,
+    // i.e. with the submit button still disabled on "Processing..."; put it back.
+    $(window).on('pageshow', function(e) {
+        if (!e.originalEvent || !e.originalEvent.persisted) return;
+        $('form button[type="submit"]').each(function() {
+            var original = $(this).data('original-html');
+            if (original === undefined) return;
+            $(this).prop('disabled', false).html(original);
+        });
     });
 
     // Auto-hide erp-alerts (custom alerts that should fade out)

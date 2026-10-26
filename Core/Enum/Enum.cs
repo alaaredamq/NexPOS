@@ -38,7 +38,9 @@ public enum CustomerDebtTransactionType
     /// <summary>A payment settling part of the balance (negative amount).</summary>
     Payment = 1,
     /// <summary>A manual correction entered by staff (either sign).</summary>
-    ManualAdjustment = 2
+    ManualAdjustment = 2,
+    /// <summary>A sale that was voided/cancelled: cancels out its Sale entry (negative amount).</summary>
+    SaleReversal = 3
 }
 
 /// <summary>

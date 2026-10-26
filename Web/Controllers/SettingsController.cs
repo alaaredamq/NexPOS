@@ -5,11 +5,12 @@ using Core.Entities.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Attributes;
+using Web.Helpers;
 
 namespace Web.Controllers
 {
     [Authorize]
-    [RequirePermission("Settings.Manage")]
+    [RequirePermission(PermissionHelper.Permissions.Settings_Manage)]
     public class SettingsController : BaseController
     {
         private readonly ISystemSettingsService _settingsService;

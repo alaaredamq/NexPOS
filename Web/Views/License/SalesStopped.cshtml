@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = SharedLocalizer["License_Title"].Value;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="products-table-card text-center">
+            <div class="products-card-body py-5">
+                <div class="mb-4">
+                    <i class="fas fa-key fa-4x text-warning"></i>
+                </div>
+                <h2 class="mb-3">@SharedLocalizer["License_Title"]</h2>
+                <p class="mb-4">@SharedLocalizer["License_SalesStoppedAskAdmin"]</p>
+                <a href="@Url.Action("Index", "Dashboard", new { lang = ViewBag.CurrentLanguage ?? "en" })" class="btn btn-teal">
+                    <i class="fas fa-home me-2"></i>@SharedLocalizer["Dashboard"]
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

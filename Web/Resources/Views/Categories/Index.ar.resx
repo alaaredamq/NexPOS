@@ -119,7 +119,7 @@
     <value>لا يوجد وصف</value>
   </data>
   <data name="AreYouSureYouWantToDeleteThisCategory" xml:space="preserve">
-    <value>هل أنت متأكد أنك تريد حذف هذه الفئة؟ سيتم نقل المنتجات في هذه الفئة إلى "غير مصنف".</value>
+    <value>هل أنت متأكد أنك تريد حذف هذه الفئة؟ لا يمكن حذف فئة ما زالت تحتوي على منتجات، يمكنك تعطيلها بدلاً من ذلك.</value>
   </data>
   <data name="AnErrorOccurredWhileDeletingTheCategory" xml:space="preserve">
     <value>حدث خطأ أثناء حذف الفئة.</value>

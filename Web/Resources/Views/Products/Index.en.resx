@@ -127,5 +127,59 @@
   <data name="AnErrorOccurredWhileDeletingTheProduct" xml:space="preserve">
     <value>An error occurred while deleting the product.</value>
   </data>
+  <data name="Prod_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="Prod_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Prod_ImportTitle" xml:space="preserve">
+    <value>Import products</value>
+  </data>
+  <data name="Prod_ImportHelp" xml:space="preserve">
+    <value>Upload a CSV file. A row whose barcode already exists updates that product (blank cells are left unchanged); any other row adds a new product. Only the Barcode column is required in the header.</value>
+  </data>
+  <data name="Prod_ImportTemplate" xml:space="preserve">
+    <value>Download a template</value>
+  </data>
+  <data name="Prod_ImportCheck" xml:space="preserve">
+    <value>Check file</value>
+  </data>
+  <data name="Prod_ImportClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Prod_ImportPreviewNote" xml:space="preserve">
+    <value>Nothing has been saved yet. Review the numbers, then click Import.</value>
+  </data>
+  <data name="Prod_ImportSkipNote" xml:space="preserve">
+    <value>Rows with errors are skipped; the rest are imported.</value>
+  </data>
+  <data name="Prod_ImportDone" xml:space="preserve">
+    <value>Import finished.</value>
+  </data>
+  <data name="Prod_ImportFailed" xml:space="preserve">
+    <value>The import failed.</value>
+  </data>
+  <data name="Prod_ImportNothing" xml:space="preserve">
+    <value>There is nothing to import in this file.</value>
+  </data>
+  <data name="Prod_ImportCreated" xml:space="preserve">
+    <value>New products</value>
+  </data>
+  <data name="Prod_ImportUpdated" xml:space="preserve">
+    <value>Updated</value>
+  </data>
+  <data name="Prod_ImportUnchanged" xml:space="preserve">
+    <value>Unchanged</value>
+  </data>
+  <data name="Prod_ImportSkipped" xml:space="preserve">
+    <value>Skipped (errors)</value>
+  </data>
+  <data name="Prod_ImportNewCategories" xml:space="preserve">
+    <value>New categories</value>
+  </data>
+  <data name="Prod_ImportRow" xml:space="preserve">
+    <value>Row</value>
+  </data>
 </root>
 

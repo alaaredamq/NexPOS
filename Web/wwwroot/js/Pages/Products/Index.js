@@ -96,7 +96,116 @@
             }, 2000);
         });
 
+        initImport(urls, localizedStrings);
+
         // Note: Auto-hide removed - using toastr for notifications instead
+    }
+
+    // Import dialog: the first click checks the file (nothing is saved), the second one imports it.
+    function initImport(urls, strings) {
+        var $modal = $('#importProductsModal');
+        if (!$modal.length) return;
+
+        var $file = $('#importProductsFile');
+        var $run = $('#importProductsRun');
+        var $out = $('#importProductsResult');
+        var stage = 'check'; // check -> import -> done
+
+        function setStage(next, label, enabled) {
+            stage = next;
+            $run.text(label).prop('disabled', !enabled);
+        }
+
+        function note(kind, text) {
+            return $('<div class="alert alert-' + kind + ' py-2 mb-2"></div>').text(text);
+        }
+
+        function stat(label, value, cls) {
+            return $('<div class="col-6 col-md-4 col-lg"></div>').append(
+                $('<div class="border rounded p-2 text-center h-100"></div>')
+                    .append($('<div class="fs-4 fw-bold"></div>').addClass(cls || '').text(value))
+                    .append($('<div class="small text-muted"></div>').text(label)));
+        }
+
+        function render(res, applied) {
+            $out.empty();
+
+            if (res.success === false || res.fileError) {
+                $out.append(note('danger', res.fileError || strings.importFailed));
+                setStage('check', strings.importCheck, true);
+                return;
+            }
+
+            $out.append($('<div class="row g-2 mb-3"></div>')
+                .append(stat(strings.importCreated, res.created, 'text-success'))
+                .append(stat(strings.importUpdated, res.updated, 'text-primary'))
+                .append(stat(strings.importUnchanged, res.unchanged))
+                .append(stat(strings.importSkipped, res.failed, res.failed ? 'text-danger' : ''))
+                .append(res.newCategories ? stat(strings.importNewCategories, res.newCategories) : ''));
+
+            var changes = res.created + res.updated;
+            if (applied) {
+                $out.append(note('success', strings.importDone));
+            } else if (changes === 0) {
+                $out.append(note('warning', strings.importNothing));
+            } else {
+                $out.append(note('info', strings.importPreviewNote + (res.failed ? ' ' + strings.importSkipNote : '')));
+            }
+
+            if (res.issues && res.issues.length) {
+                var $list = $('<ul class="list-unstyled small mb-0"></ul>');
+                res.issues.forEach(function(issue) {
+                    $list.append($('<li class="text-danger mb-1"></li>')
+                        .append($('<strong></strong>').text(strings.importRow + ' ' + issue.row + ': '))
+                        .append(document.createTextNode(issue.message)));
+                });
+                $out.append($('<div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;"></div>').append($list));
+            }
+
+            if (applied) {
+                setStage('done', strings.importRun, false);
+                if (window.dataTable_productsTable) window.dataTable_productsTable.ajax.reload();
+                if (typeof window.updateProductStats === 'function') setTimeout(window.updateProductStats, 500);
+            } else if (changes > 0) {
+                setStage('import', strings.importRun + ' (' + changes + ')', true);
+            } else {
+                setStage('check', strings.importCheck, true);
+            }
+        }
+
+        function send(apply) {
+            var file = $file[0].files[0];
+            if (!file) return;
+
+            var data = new FormData();
+            data.append('file', file);
+            data.append('apply', apply ? 'true' : 'false');
+            data.append('__RequestVerificationToken', $modal.find('input[name="__RequestVerificationToken"]').val());
+
+            $run.prop('disabled', true).prepend('<i class="fas fa-spinner fa-spin me-1"></i>');
+            $.ajax({ url: urls.importUrl, type: 'POST', data: data, processData: false, contentType: false })
+                .done(function(res) { render(res, apply); })
+                .fail(function(xhr) {
+                    $out.empty().append(note('danger', (xhr.responseJSON && xhr.responseJSON.message) || strings.importFailed));
+                    setStage(apply ? 'import' : 'check', apply ? strings.importRun : strings.importCheck, true);
+                });
+        }
+
+        $file.on('change', function() {
+            $out.empty();
+            setStage('check', strings.importCheck, this.files.length > 0);
+        });
+
+        $run.on('click', function() {
+            if (stage === 'check') send(false);
+            else if (stage === 'import') send(true);
+        });
+
+        $modal.on('hidden.bs.modal', function() {
+            $file.val('');
+            $out.empty();
+            setStage('check', strings.importCheck, false);
+        });
     }
 
     // Product action functions
@@ -283,18 +392,7 @@
         });
     };
 
-    function showAlert(type, message) {
-        var alertHtml = `
-            <div class="erp-alert erp-alert-${type} alert-dismissible fade show" role="alert">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        $('.products-header').after(alertHtml);
-    }
-
-    window.showAlert = showAlert;
+    // showAlert(type, message) is the shared helper in site.js.
 
     // Initialize when document is ready
     $(document).ready(function() {

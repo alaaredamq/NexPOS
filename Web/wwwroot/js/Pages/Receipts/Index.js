@@ -18,8 +18,8 @@
         voidReceiptsTable = window.dataTable_voidReceiptsTable;
 
         // Set default dates
-        const today = new Date().toISOString().split('T')[0];
-        const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const today = localDateString(new Date());
+        const lastWeek = localDateString(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
         $('#startDate').val(lastWeek);
         $('#endDate').val(today);
 

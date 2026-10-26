@@ -6,4 +6,7 @@ namespace Core.IRepositories.Users;
 public interface ICustomerDebtTransactionRepository : IBaseRepository<CustomerDebtTransaction, int>
 {
     Task<List<CustomerDebtTransaction>> GetByCustomerIdAsync(int customerId);
+
+    /// <summary>Every ledger entry that references the given order (its Sale entry and any reversal).</summary>
+    Task<List<CustomerDebtTransaction>> GetByOrderIdAsync(int orderId);
 }

@@ -22,7 +22,7 @@ public class StoreSettingsRepository : Repository<StoreSettings>, IStoreSettings
     /// </summary>
     public async Task<StoreSettings> GetStoreSettingsAsync()
     {
-        var settings = await _Entities.FirstOrDefaultAsync();
+        var settings = await _Entities.OrderBy(s => s.Id).FirstOrDefaultAsync();
         
         if (settings == null)
         {

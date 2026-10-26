@@ -121,7 +121,10 @@ public class ProductRepository : Repository<Product>, IProductRepository {
 
     public async Task<List<Product>> GetActiveProductsAsync()
     {
+        // Read-only (feeds the POS cache / JSON). Untracked so EF's relationship fix-up doesn't fill
+        // Category.Products / Supplier.Products, which made the serialized catalogue ~100x larger.
         return await GetAllQueryable()
+            .AsNoTracking()
             .Where(p => p.IsActive && !p.IsDeleted) // Filter out soft-deleted products
             .Include(p => p.Category)
             .Include(p => p.Supplier)
@@ -149,6 +152,23 @@ public class ProductRepository : Repository<Product>, IProductRepository {
                 .SetProperty(p => p.UpdatedAt, DateTime.UtcNow));
 
         return rowsAffected > 0;
+    }
+
+    public async Task<bool> RestoreStockAsync(int productId, decimal quantity)
+    {
+        var rowsAffected = await _Entities
+            .Where(p => p.Id == productId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(p => p.StockQuantity, p => p.StockQuantity + quantity)
+                .SetProperty(p => p.UpdatedAt, DateTime.UtcNow));
+
+        return rowsAffected > 0;
+    }
+
+    public async Task SaveRangeAsync(IEnumerable<Product> added)
+    {
+        _Entities.AddRange(added);
+        await SaveChangesAsync();
     }
 
 }

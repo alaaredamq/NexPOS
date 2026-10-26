@@ -15,7 +15,7 @@
                 </a>
                 <div>
                     <h4 class="mb-0 fw-semibold" style="color: var(--text-primary);">@Localizer["CloseCashDrawer"]</h4>
-                    <small style="font-size: 12px; color: var(--text-muted);">@Localizer["SessionId"]: #@Model.Id · @Model.OpenedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                    <small style="font-size: 12px; color: var(--text-muted);">@Localizer["SessionId"]: #@Model.Id · @Model.OpenedAt.UtcToLocal().ToString("MMM dd, yyyy HH:mm")</small>
                 </div>
             </div>
 
@@ -317,7 +317,7 @@
 <script>
     (function() {
         var CONFIG = {
-            expectedCash: @summary.ExpectedCash,
+            expectedCash: @summary.ExpectedCash.ToString(System.Globalization.CultureInfo.InvariantCulture),
             sessionId: @Model.Id,
             closeUrl: '@Url.Action("CloseDrawer")',
             zReportUrl: '@Url.Action("ZReport", new { id = Model.Id })',

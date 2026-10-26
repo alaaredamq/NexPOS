@@ -26,6 +26,7 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
                 .ThenInclude(ri => ri.Product)
             .Include(r => r.ReceiptPayments)
                 .ThenInclude(rp => rp.PaymentMethod)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
 
         if (receipt == null)
@@ -45,6 +46,7 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
             .Include(r => r.ReceiptItems)
                 .ThenInclude(ri => ri.Product)
             .Include(r => r.ReceiptPayments)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(r => r.ReceiptNumber == receiptNumber && !r.IsDeleted);
     }
 
@@ -103,6 +105,7 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
             .Include(r => r.ReceiptItems)
                 .ThenInclude(ri => ri.Product)
             .Include(r => r.ReceiptPayments)
+            .AsSplitQuery()
             .Where(r => r.OrderId == orderId && !r.IsDeleted)
             .OrderByDescending(r => r.ReceiptDate)
             .ToListAsync();

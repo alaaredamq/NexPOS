@@ -71,7 +71,7 @@
                     <div class="col-md-6 mb-3">
                         <label class="detail-label">Created Date</label>
                         <p class="detail-value">
-                            <i class="fas fa-calendar me-2"></i>@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")
+                            <i class="fas fa-calendar me-2"></i>@Model.CreatedAt.UtcToLocal().ToString("MMMM dd, yyyy HH:mm")
                         </p>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -280,7 +280,7 @@
         function deleteCategory(id) {
             Swal.fire({
                 title: 'Are you sure?',
-                text: "This action cannot be undone! All products in this category will need to be reassigned.",
+                text: "This action cannot be undone! A category that still has products can't be deleted. Deactivate it instead.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',

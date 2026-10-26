@@ -48,7 +48,7 @@ public static class DemoDataSeeder
 
     private static async Task SeedStoreSettingsAsync(ErpDbContext db)
     {
-        var settings = await db.StoreSettings.FirstOrDefaultAsync();
+        var settings = await db.StoreSettings.OrderBy(s => s.Id).FirstOrDefaultAsync();
         if (settings == null)
         {
             settings = StoreSettings.CreateDefault();

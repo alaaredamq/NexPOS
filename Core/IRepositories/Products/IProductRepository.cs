@@ -31,4 +31,17 @@ public interface IProductRepository : IRepository<Product>
     /// physically there anyway).
     /// </summary>
     Task<bool> ForceDeductStockAsync(int productId, decimal quantity);
+
+    /// <summary>
+    /// Atomically adds stock back (single UPDATE) - the reverse of a sale's deduction, used when a
+    /// sale is voided or its order cancelled. Applies to soft-deleted products too, so the count is
+    /// right if the product is ever brought back.
+    /// </summary>
+    Task<bool> RestoreStockAsync(int productId, decimal quantity);
+
+    /// <summary>
+    /// Inserts <paramref name="added"/> and saves every other change already made to tracked products,
+    /// all in one SaveChanges (one transaction), so a bulk import is all-or-nothing.
+    /// </summary>
+    Task SaveRangeAsync(IEnumerable<Product> added);
 }

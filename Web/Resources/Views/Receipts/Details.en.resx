@@ -209,7 +209,7 @@
     <value>Enter reason for voiding this receipt...</value>
   </data>
   <data name="VoidWarning" xml:space="preserve">
-    <value>This action cannot be undone. The receipt will be marked as void.</value>
+    <value>This action cannot be undone. The receipt will be marked as void, its order will be cancelled and the items will be returned to stock.</value>
   </data>
   <data name="PleaseEnterEmailAddress" xml:space="preserve">
     <value>Please enter an email address</value>
@@ -224,7 +224,7 @@
     <value>Please enter a reason for voiding</value>
   </data>
   <data name="ReceiptVoidedSuccessfully" xml:space="preserve">
-    <value>Receipt voided successfully</value>
+    <value>Receipt voided, order cancelled and items returned to stock</value>
   </data>
   <data name="FailedToVoidReceipt" xml:space="preserve">
     <value>Failed to void receipt</value>

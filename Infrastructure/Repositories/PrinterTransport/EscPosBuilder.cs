@@ -1,3 +1,4 @@
+using Core.Time;
 using System.Globalization;
 using System.Text;
 using Core.Entities.Configuration;
@@ -203,7 +204,7 @@ public class EscPosBuilder : IEscPosBuilder
         // Receipt meta
         Separator();
         Row("Receipt #:", receipt.ReceiptNumber);
-        Row("Date:", receipt.ReceiptDate.ToString("yyyy-MM-dd HH:mm", Inv));
+        Row("Date:", receipt.ReceiptDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm", Inv));
 
         var customerName = !string.IsNullOrWhiteSpace(receipt.CustomerName)
             ? receipt.CustomerName.Trim()

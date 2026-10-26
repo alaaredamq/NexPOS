@@ -21,4 +21,11 @@ public class CustomerDebtTransactionRepository : BaseRepository<CustomerDebtTran
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<List<CustomerDebtTransaction>> GetByOrderIdAsync(int orderId)
+    {
+        return await _Entities
+            .Where(t => t.OrderId == orderId)
+            .ToListAsync();
+    }
 }

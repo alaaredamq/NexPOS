@@ -167,7 +167,7 @@ class CartItem {
                     ${unitDisplay ? `<small class="text-muted d-block mt-1">${unitDisplay}</small>` : ''}
                 </td>
                 <td class="align-middle text-end">
-                    <div class="price-display">${this.CurrencyNotation} ${this.Total.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})}</div>
+                    <div class="price-display">${this.CurrencyNotation} ${this.Total.toLocaleString('en-US', {minimumFractionDigits: Math.abs(this.Total) >= 1000 ? 0 : 2, maximumFractionDigits: 2})}</div>
                 </td>
                 <td class="align-middle text-center">
                     <button class="cart-action-btn btn-remove remove-item" type="button" title="Remove">

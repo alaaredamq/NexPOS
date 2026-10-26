@@ -217,7 +217,7 @@
                                 @foreach (var tx in debtTransactions.Take(20))
                                 {
                                     <tr>
-                                        <td>@tx.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>@tx.CreatedAt.UtcToLocal().ToString("MMM dd, yyyy HH:mm")</td>
                                         <td>
                                             @if (tx.Type == SupplierDebtTransactionType.Purchase)
                                             {

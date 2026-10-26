@@ -10,7 +10,11 @@ public interface IUserService : IBaseService
     Task<List<User>> GetAllAsync();
     Task<List<User>> GetByRoleIdAsync(int roleId);
     Task<User> GetByIdAsync(int id);
-    Task<User> CreateAsync(User user, string password);
+    /// <summary>
+    /// Creates an account whose only credential is a PIN (login is PIN-based). The PIN is the one an
+    /// admin chose, so the user must change it at first sign-in.
+    /// </summary>
+    Task<User> CreateWithPinAsync(User user, string pin);
     Task UpdateAsync(int id, User user);
     Task UpdatePasswordAsync(int userId, string currentPassword, string newPassword);
     Task<bool> ValidatePasswordAsync(User user, string password);

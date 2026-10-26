@@ -449,7 +449,7 @@
             </div>
             <div class="row">
                 <span>@Localizer["Date"]:</span>
-                <span>@Model.OrderDate.ToString("yyyy-MM-dd HH:mm")</span>
+                <span>@Model.OrderDate.UtcToLocal().ToString("yyyy-MM-dd HH:mm")</span>
             </div>
             <div class="row">
                 <span>@Localizer["Customer"]:</span>
@@ -586,7 +586,7 @@
 
         <!-- Receipt ID for Reference -->
         <div style="text-align: center; margin-top: 15px; font-size: 9px; color: #999;">
-            @Localizer["OrderID"]: @Model.Id | @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+            @Localizer["OrderID"]: @Model.Id | @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
         </div>
     </div>
 

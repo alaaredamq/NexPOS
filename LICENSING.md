@@ -64,8 +64,9 @@ Every key you issue is appended to `issued.csv` next to the private key, so you 
 
 ## Do these now
 
-- **Back up the signing key.** It is at `C:\Users\Alaar\.nexpos-license\private.pem` (outside the repo, git-ignored). Copy it to two offline places. If you lose it you cannot issue licenses; if it leaks anyone can. Never commit it.
-- **License your own PC for Release builds.** Your Machine ID is `KRV52-6VOSC-BDDXQ-3OK2A`. Debug runs do not need a key.
+- **Back up the signing key.** It is at `%USERPROFILE%\.nexpos-license\private.pem` (outside the repo, git-ignored). Copy it to two offline places. If you lose it you cannot issue licenses; if it leaks anyone can. Never commit it.
+- **Issuing from several PCs: use the same `private.pem` on all of them.** Copy the file (USB stick or password manager, never git) to the same place on each PC. Then check that `dotnet run --project tools/LicenseIssuer -- pubkey` prints the same text as `SpkiBase64` in `Common/Licensing/LicensePublicKey.cs`. A PC with a different key pair signs keys that every existing build rejects. `issued.csv` is per PC, so merge them now and then.
+- **License your own PC for Release builds.** Run the License page on your PC to get its Machine ID. Debug runs do not need a key.
 
 ## Limits
 

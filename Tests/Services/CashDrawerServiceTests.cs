@@ -46,6 +46,32 @@ public class CashDrawerServiceTests
     }
 
     [Fact]
+    public async Task CalculateExpectedCashAsync_IgnoresCancelledAndReturnedOrders()
+    {
+        // A voided receipt cancels its order: that money was handed back, so the drawer must not expect it.
+        var session = NewOpenSession(openingCash: 100m, 25m, 40m, 30m, 10m);
+        session.Orders.ElementAt(1).Status = (int)Core.Enum.OrderStatus.Cancelled; // 40
+        session.Orders.ElementAt(3).Status = (int)Core.Enum.OrderStatus.Returned;  // 10
+
+        var sessionRepo = new Mock<ICashDrawerSessionRepository>();
+        sessionRepo.Setup(r => r.GetSessionWithDetailsAsync(1)).ReturnsAsync(session);
+
+        var cashDropRepo = new Mock<ICashDropRepository>();
+        cashDropRepo.Setup(r => r.GetTotalDropsBySessionIdAsync(1)).ReturnsAsync(0m);
+
+        var sut = new CashDrawerService(
+            sessionRepo.Object,
+            cashDropRepo.Object,
+            Mock.Of<IOrderRepository>(),
+            Mock.Of<Microsoft.Extensions.Logging.ILogger<CashDrawerService>>());
+
+        var expected = await sut.CalculateExpectedCashAsync(1);
+
+        // 100 (opening) + 25 + 30 (the two orders still standing) = 155
+        Assert.Equal(155m, expected);
+    }
+
+    [Fact]
     public async Task CalculateExpectedCashAsync_NoSalesOrDrops_EqualsOpeningCash()
     {
         var session = NewOpenSession(openingCash: 50m);

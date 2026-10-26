@@ -483,8 +483,12 @@
             font-weight: 600;
             color: #212529;
             font-size: 0.95rem;
+            white-space: nowrap;
+            direction: ltr;
+            unicode-bidi: isolate;
+            font-variant-numeric: tabular-nums;
         }
-        
+
         /* Action Buttons */
         .cart-action-btn {
             width: 28px;
@@ -566,7 +570,88 @@
             letter-spacing: 0.5px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
-        
+
+        /* USD is the headline total, LBP is the quieter line under a hairline */
+        .totals-section {
+            padding: 0.5rem 0.85rem;
+        }
+
+        .totals-section .total-row {
+            gap: 0.75rem;
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+
+        /* rtl.css reverses rows on top of dir="rtl", which swaps them twice */
+        html[dir="rtl"] .totals-section .total-row {
+            flex-direction: row;
+        }
+
+        .totals-section .total-row .total-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            opacity: 0.8;
+            white-space: nowrap;
+        }
+
+        .totals-section .total-row .total-figure {
+            color: #fff !important; /* beats pos.css ".total-row span:last-child" brand-color rule */
+            direction: ltr;
+            unicode-bidi: isolate;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            text-align: end;
+        }
+
+        .totals-section .total-row .total-figure-primary {
+            font-size: 1.45rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .totals-section .total-row-secondary {
+            margin-top: 0.3rem;
+            padding-top: 0.3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .totals-section .total-row .total-figure-secondary {
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .totals-section .total-discount {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.1rem;
+            font-size: 0.78rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .totals-section .total-discount[hidden] {
+            display: none;
+        }
+
+        .totals-section .total-discount s {
+            opacity: 0.75;
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+
+        .totals-section .total-discount .discount-chip {
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            font-weight: 700;
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+
         /* Action Buttons Enhancement */
         .btn-checkout {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
@@ -1507,7 +1592,7 @@
 <div class="pos-container">
     <div class="row pos-row">
         <!-- Cart Section -->
-        <div class="col-3 col-lg-3 cart-column">
+        <div class="col-12 col-md-3 cart-column">
             <div class="pos-card">
                 <!-- Cart Header -->
                 <div class="pos-card-header">
@@ -1568,13 +1653,14 @@
                 <div class="pos-card-footer">
                     <!-- Totals -->
                     <div class="totals-section">
-                        <div class="total-row">
-                            <small class="text-muted">@Localizer["TotalUSD"]:</small>
-                            <small class="text-muted" id="total-usd">USD 0.00</small>
+                        <div class="total-row total-row-primary">
+                            <span class="total-label">@Localizer["TotalUSD"]:</span>
+                            <span class="total-figure total-figure-primary" id="total-usd">USD 0.00</span>
                         </div>
-                        <div class="total-row">
-                            <span>@Localizer["TotalLBP"]:</span>
-                            <span class="total-amount" id="total-lbp">LBP 0</span>
+                        <div class="total-discount" id="total-discount" hidden></div>
+                        <div class="total-row total-row-secondary">
+                            <span class="total-label">@Localizer["TotalLBP"]:</span>
+                            <span class="total-figure total-figure-secondary" id="total-lbp">LBP 0</span>
                         </div>
                     </div>
 
@@ -1601,7 +1687,7 @@
         </div>
 
         <!-- Products Section -->
-        <div class="col-9 col-lg-9 products-column d-flex flex-column">
+        <div class="col-12 col-md-9 products-column d-flex flex-column">
             <div class="pos-card products-main-card flex-grow-1 d-flex flex-column">
                 <!-- Products Header -->
                 <div class="pos-card-header">
@@ -1688,6 +1774,10 @@
     <script src="~/js/localization.js" asp-append-version="true"></script>
     
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Lets the checkout/hold dialogs offer "+ New customer" only to users who may create one
+        window.__canCreateCustomer = @(Web.Helpers.PermissionHelper.HasPermission(User, Web.Helpers.PermissionHelper.Permissions.Customers_Create) ? "true" : "false");
+    </script>
     <!-- POS Custom JS -->
     <script src="~/js/Pages/POS/UnitConverter.js" asp-append-version="true"></script>
     <script src="~/js/Pages/POS/CartItem.js" asp-append-version="true"></script>

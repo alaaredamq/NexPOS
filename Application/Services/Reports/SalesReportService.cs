@@ -1,5 +1,7 @@
+using Core.Time;
 using Application.DTOs.Reports;
 using Application.IServices.Reports;
+using Core.Enum;
 using Core.IRepositories.Sales;
 using Core.IRepositories.Inventory;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +21,13 @@ namespace Application.Services.Reports
 
         public async Task<SalesReportDTO> GetSalesReportAsync(SalesReportRequest request)
         {
+            // The request dates are local calendar days (as picked on screen); orders are stored in UTC.
+            var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(request.StartDate, request.EndDate);
             var orders = await _orderRepository.GetAllAsync(o => 
-                o.OrderDate >= request.StartDate && 
-                o.OrderDate <= request.EndDate &&
-                !o.IsDeleted);
+                o.OrderDate >= fromUtc && 
+                o.OrderDate <= toUtc &&
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var totalSales = orders.Sum(o => o.TotalAmount);
             var totalOrders = orders.Count();
@@ -35,8 +40,10 @@ namespace Application.Services.Reports
 
             var report = new SalesReportDTO
             {
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
+                // Echo the picked LOCAL days back marked as Local, so they serialize with an offset and the
+                // page shows the same day (an Unspecified end-of-day would be read as UTC and roll into tomorrow).
+                StartDate = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Local),
+                EndDate = DateTime.SpecifyKind(request.EndDate, DateTimeKind.Local),
                 TotalSales = totalSales,
                 TotalOrders = totalOrders,
                 AverageOrderValue = averageOrderValue,
@@ -100,7 +107,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             return await GetDailySalesDataAsync(orders);
         }
@@ -110,7 +118,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var orderCartIds = orders.Select(o => o.CartId).ToList();
             var cartItems = await _cartRepository.GetAllAsync(c => orderCartIds.Contains(c.Id));
@@ -124,7 +133,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var orderCartIds = orders.Select(o => o.CartId).ToList();
             var cartItems = await _cartRepository.GetAllAsync(c => orderCartIds.Contains(c.Id));
@@ -138,7 +148,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             return orders.Sum(o => o.TotalAmount);
         }
@@ -148,7 +159,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             return orders.Count();
         }
@@ -158,7 +170,8 @@ namespace Application.Services.Reports
             var orders = await _orderRepository.GetAllAsync(o => 
                 o.OrderDate >= startDate && 
                 o.OrderDate <= endDate &&
-                !o.IsDeleted);
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var totalOrders = orders.Count();
             return totalOrders > 0 ? orders.Sum(o => o.TotalAmount) / totalOrders : 0;
@@ -167,7 +180,7 @@ namespace Application.Services.Reports
         private async Task<List<DailySalesDTO>> GetDailySalesDataAsync(IEnumerable<Core.Entities.Sales.Order> orders)
         {
             var dailySales = orders
-                .GroupBy(o => o.OrderDate.Date)
+                .GroupBy(o => o.OrderDate.UtcToLocal().Date) // local day, not UTC day
                 .Select(g => new DailySalesDTO
                 {
                     Date = g.Key,

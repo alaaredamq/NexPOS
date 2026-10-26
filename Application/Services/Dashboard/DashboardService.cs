@@ -1,3 +1,4 @@
+using Core.Time;
 using Application.IServices.Dashboard;
 using Application.DTOs.Dashboard;
 using Application.IServices.Products;
@@ -50,12 +51,19 @@ public class DashboardService : IDashboardService
     {
         try
         {
-            var today = DateTime.Today;
-            var todayEnd = today.AddDays(1).AddTicks(-1);
-            var thisMonthStart = new DateTime(today.Year, today.Month, 1);
+            // "Today" and "this month" are local calendar periods, but order dates are stored in UTC,
+            // so build the windows in local time and convert the boundaries (otherwise between local
+            // midnight and the UTC offset, today's sales land in yesterday's window).
+            var todayLocal = DateTime.Today;
+            var thisMonthStartLocal = new DateTime(todayLocal.Year, todayLocal.Month, 1);
+            var lastMonthStartLocal = thisMonthStartLocal.AddMonths(-1);
+
+            var today = LocalToUtc(todayLocal);
+            var todayEnd = LocalToUtc(todayLocal.AddDays(1)).AddTicks(-1);
+            var thisMonthStart = LocalToUtc(thisMonthStartLocal);
             // Prior-month window covering the same number of days, so "change" compares like-for-like
-            var lastMonthStart = thisMonthStart.AddMonths(-1);
-            var lastMonthComparableEnd = lastMonthStart.AddDays(today.Day - 1).AddDays(1).AddTicks(-1);
+            var lastMonthStart = LocalToUtc(lastMonthStartLocal);
+            var lastMonthComparableEnd = LocalToUtc(lastMonthStartLocal.AddDays(todayLocal.Day)).AddTicks(-1);
 
             // Get basic counts
             var products = await _productService.GetAllAsync();
@@ -113,6 +121,9 @@ public class DashboardService : IDashboardService
         }
     }
 
+    private static DateTime LocalToUtc(DateTime local) =>
+        DateTime.SpecifyKind(local, DateTimeKind.Local).ToUniversalTime();
+
     private static decimal CalculateProfit(IEnumerable<Core.Entities.Sales.Order> orders)
     {
         return orders
@@ -138,13 +149,15 @@ public class DashboardService : IDashboardService
     // charts expect: week/month → daily points, quarter/year → monthly points.
     private static (DateTime Start, DateTime End) ResolvePeriodWindow(string period)
     {
+        // Month / quarter / year start on the LOCAL calendar; orders are stored in UTC, so convert the edges.
         var now = DateTime.UtcNow;
+        var local = DateTime.Now;
         DateTime start = (period ?? "month").ToLowerInvariant() switch
         {
             "week" => now.AddDays(-7),
-            "quarter" => new DateTime(now.Year, ((now.Month - 1) / 3) * 3 + 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            "year" => new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            _ => new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc),
+            "quarter" => new DateTime(local.Year, ((local.Month - 1) / 3) * 3 + 1, 1).LocalToUtc(),
+            "year" => new DateTime(local.Year, 1, 1).LocalToUtc(),
+            _ => new DateTime(local.Year, local.Month, 1).LocalToUtc(),
         };
         return (start, now);
     }
@@ -162,7 +175,7 @@ public class DashboardService : IDashboardService
         if (UsesMonthlyBuckets(period))
         {
             return completed
-                .GroupBy(o => new DateTime(o.OrderDate.Year, o.OrderDate.Month, 1))
+                .GroupBy(o => { var d = o.OrderDate.UtcToLocal(); return new DateTime(d.Year, d.Month, 1); }) // local month
                 .OrderBy(g => g.Key)
                 .Select(g => (
                     g.Key.ToString("MMM"),
@@ -172,7 +185,7 @@ public class DashboardService : IDashboardService
         }
 
         return completed
-            .GroupBy(o => o.OrderDate.Date)
+            .GroupBy(o => o.OrderDate.UtcToLocal().Date) // local day, not UTC day
             .OrderBy(g => g.Key)
             .Select(g => (
                 g.Key.ToString("MMM dd"),
@@ -209,9 +222,9 @@ public class DashboardService : IDashboardService
     {
         try
         {
-            var utcNow = DateTime.UtcNow;
-            var startDate = new DateTime(utcNow.Year, utcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var endDate = utcNow;
+            var localNow = DateTime.Now;
+            var startDate = new DateTime(localNow.Year, localNow.Month, 1).LocalToUtc(); // start of the LOCAL month
+            var endDate = DateTime.UtcNow;
 
             // Get real category sales data from SalesReportService
             var categorySalesData = await _salesReportService.GetCategorySalesAsync(startDate, endDate);

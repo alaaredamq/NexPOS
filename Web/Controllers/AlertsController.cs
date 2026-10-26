@@ -55,7 +55,7 @@ public class AlertsController : ControllerBase
     }
 
     [HttpPost]
-    [RequirePermission("Alerts.Create")]
+    [RequirePermission(PermissionHelper.Permissions.Alerts_Create)]
     public async Task<IActionResult> Create([FromBody] CreateAlertRequest request)
     {
         var alert = await _service.CreateAlertAsync(request.Title, request.Message, request.Type, request.Metadata);
@@ -64,23 +64,29 @@ public class AlertsController : ControllerBase
     }
 
     [HttpPut("{id:int}/acknowledge")]
-    [RequirePermission("Alerts.Update")]
-    public async Task<IActionResult> Acknowledge(int id, [FromBody] AcknowledgeAlertRequest request)
+    [RequirePermission(PermissionHelper.Permissions.Alerts_Update)]
+    public async Task<IActionResult> Acknowledge(int id, [FromBody] AcknowledgeAlertRequest? request = null)
     {
-        await _service.AcknowledgeAsync(id, request.UserId);
+        // Always the signed-in user; a client-supplied UserId would let anyone act as someone else.
+        if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+        await _service.AcknowledgeAsync(id, userId);
         return Ok(new { message = "Alert acknowledged" });
     }
 
     [HttpPut("{id:int}/resolve")]
-    [RequirePermission("Alerts.Update")]
-    public async Task<IActionResult> Resolve(int id, [FromBody] ResolveAlertRequest request)
+    [RequirePermission(PermissionHelper.Permissions.Alerts_Update)]
+    public async Task<IActionResult> Resolve(int id, [FromBody] ResolveAlertRequest? request = null)
     {
-        await _service.ResolveAsync(id, request.UserId);
+        if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+        await _service.ResolveAsync(id, userId);
         return Ok(new { message = "Alert resolved" });
     }
 
+    private bool TryGetCurrentUserId(out int userId) =>
+        int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out userId);
+
     [HttpPut("{id:int}")]
-    [RequirePermission("Alerts.Update")]
+    [RequirePermission(PermissionHelper.Permissions.Alerts_Update)]
     public async Task<IActionResult> Update(int id, [FromBody] Alert alert)
     {
         alert.Id = id;
@@ -89,7 +95,7 @@ public class AlertsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [RequirePermission("Alerts.Delete")]
+    [RequirePermission(PermissionHelper.Permissions.Alerts_Delete)]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);

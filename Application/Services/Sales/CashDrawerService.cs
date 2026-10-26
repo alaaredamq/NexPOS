@@ -1,5 +1,6 @@
 using Application.IServices.Sales;
 using Core.Entities.Sales;
+using Core.Enum;
 using Core.IRepositories.Sales;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +24,15 @@ public class CashDrawerService : ICashDrawerService
         _orderRepository = orderRepository;
         _logger = logger;
     }
+
+    /// <summary>
+    /// The session's orders that still count as sales. A cancelled/returned order (e.g. from a voided
+    /// receipt) was handed back, so the drawer must not expect its money.
+    /// </summary>
+    private static List<Order> SoldOrders(CashDrawerSession session) =>
+        session.Orders
+            .Where(o => o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned)
+            .ToList();
 
     public async Task<CashDrawerSession> OpenDrawerAsync(int userId, decimal openingCash, string? notes = null)
     {
@@ -57,7 +67,7 @@ public class CashDrawerService : ICashDrawerService
         var expectedCash = await CalculateExpectedCashAsync(sessionId);
         
         // Calculate totals from orders
-        var orders = session.Orders.ToList();
+        var orders = SoldOrders(session);
         var totalSales = orders.Sum(o => o.TotalAmount);
         var totalTransactions = orders.Count;
         
@@ -171,7 +181,7 @@ public class CashDrawerService : ICashDrawerService
         var expectedCash = session.OpeningCash;
         
         // Add cash sales (TODO: filter by payment method when implemented)
-        var cashSales = session.Orders.Sum(o => o.TotalAmount);
+        var cashSales = SoldOrders(session).Sum(o => o.TotalAmount);
         expectedCash += cashSales;
         
         // Subtract cash drops
@@ -191,8 +201,8 @@ public class CashDrawerService : ICashDrawerService
 
         var totalCashDrops = await _cashDropRepository.GetTotalDropsBySessionIdAsync(sessionId);
         var expectedCash = await CalculateExpectedCashAsync(sessionId);
-        
-        var orders = session.Orders.ToList();
+
+        var orders = SoldOrders(session);
         var totalSales = orders.Sum(o => o.TotalAmount);
         
         // Calculate discounts and adjustments

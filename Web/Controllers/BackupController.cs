@@ -32,49 +32,6 @@ namespace Web.Controllers
             }
         }
 
-        [HttpGet("test-db")]
-        public async Task<IActionResult> TestDatabase()
-        {
-            try
-            {
-                // Test 1: Can we access the service?
-                var serviceType = _backupService.GetType().Name;
-                
-                // Test 2: Can we query all backups directly?
-                var allBackups = await _backupService.GetAllAsync();
-                var backupCount = allBackups?.Count() ?? 0;
-                
-                // Test 3: Get first few backups to inspect
-                var sampleBackups = allBackups?.Take(3).Select(b => new {
-                    b.Id,
-                    b.Name,
-                    b.Status,
-                    b.IsDeleted,
-                    b.CreatedAt
-                }).ToList();
-                
-                // Test 4: Can we get stats?
-                var stats = await _backupService.GetBackupStatsAsync();
-                
-                return Json(new { 
-                    success = true, 
-                    serviceType,
-                    backupCount,
-                    sampleBackups,
-                    statsTotal = stats.TotalBackups,
-                    message = $"Service OK. Found {backupCount} backups in database."
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { 
-                    success = false, 
-                    message = ex.Message,
-                    stackTrace = ex.StackTrace
-                });
-            }
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetBackups([FromQuery] BackupFilterRequest request)
         {

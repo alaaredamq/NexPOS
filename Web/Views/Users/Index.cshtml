@@ -349,22 +349,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Login PIN (4-6 digits)</label>
-                                <input type="text" inputmode="numeric" pattern="\d{4,6}" maxlength="6" class="form-control" id="pin" placeholder="Initial PIN" required>
+                                <label class="form-label">Login PIN (4 digits)</label>
+                                <input type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" class="form-control" id="pin" placeholder="Initial PIN" autocomplete="off" required>
                                 <small class="text-muted">The user must change this on first login.</small>
                             </div>
                         </div>
@@ -530,8 +516,8 @@
                 <input type="hidden" id="resetPinUserId">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">New PIN (4-6 digits)</label>
-                        <input type="text" inputmode="numeric" pattern="\d{4,6}" maxlength="6" class="form-control" id="newPin" required>
+                        <label class="form-label">New PIN (4 digits)</label>
+                        <input type="text" inputmode="numeric" pattern="\d{4}" maxlength="4" class="form-control" id="newPin" autocomplete="off" required>
                         <small class="text-muted">The user will be prompted to change this on next login.</small>
                     </div>
                 </div>

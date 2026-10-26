@@ -112,7 +112,7 @@
             const adjustmentType = document.getElementById('adjustmentType').value;
             const quantityInput = document.querySelector('input[name="Quantity"]');
             const quantity = parseInt(quantityInput.value) || 0;
-            const currentStock = @Model.CurrentStock;
+            const currentStock = @Model.CurrentStock.ToString(System.Globalization.CultureInfo.InvariantCulture);
             
             const actionText = document.getElementById('actionText');
             const quantityText = document.getElementById('quantityText');

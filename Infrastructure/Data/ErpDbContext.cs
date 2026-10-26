@@ -152,6 +152,13 @@ public class ErpDbContext : DbContext
         // hit above. ClientSetNull also matches the actual semantics better - CustomerId is
         // nullable specifically to represent "walk-in, no customer," and deleting a customer
         // shouldn't delete their order history, just anonymize it.
+        modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
+        // Rows that require a Customer get the matching filter. Without it, EF warns at every start
+        // and a soft-deleted customer's carts / debt ledger would still be returned, with the
+        // Customer navigation silently filtered out from under them.
+        modelBuilder.Entity<CustomerCart>().HasQueryFilter(cc => !cc.Customer.IsDeleted);
+        modelBuilder.Entity<CustomerDebtTransaction>().HasQueryFilter(t => !t.Customer.IsDeleted);
+
         modelBuilder.Entity<Customer>()
             .HasMany(c => c.Orders)
             .WithOne(o => o.Customer)

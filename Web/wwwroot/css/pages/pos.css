@@ -206,6 +206,109 @@ select,
     color: var(--white) !important;
 }
 
+/* Customer picker in the checkout / hold dialogs: select + "New" button, with an
+   inline quick-create panel so the cashier never leaves the POS (and loses the cart). */
+.pos-customer-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.pos-customer-row .form-select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pos-newcust-toggle {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 38px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.pos-newcust-toggle[aria-expanded="true"] {
+    background: var(--primary-lighter) !important;
+    color: var(--primary-dark) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Height animates via grid rows (no layout-thrashing max-height hacks) */
+.pos-newcust {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.2s ease-out;
+}
+
+.pos-newcust.open {
+    grid-template-rows: 1fr;
+}
+
+.pos-newcust-clip {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.pos-newcust-body {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: var(--primary-lighter);
+    border: 1px solid var(--primary-light);
+    border-inline-start: 3px solid var(--primary-color);
+    border-radius: 0.4rem;
+}
+
+.pos-newcust-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary-darker);
+    margin-bottom: 0.5rem;
+}
+
+.pos-newcust-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.pos-newcust-fields .form-label {
+    font-size: 0.75rem;
+    color: var(--neutral-600);
+}
+
+.pos-newcust-error {
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--danger-strong);
+}
+
+.pos-newcust-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+
+.pos-newcust-actions .btn {
+    min-height: 36px;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .pos-newcust-fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pos-newcust {
+        transition: none;
+    }
+}
+
 .btn-outline-primary:hover,
 .btn-outline-success:hover,
 .btn-outline-info:hover,
@@ -1550,25 +1653,48 @@ select,
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     .pos-container {
         padding: 0.5rem;
     }
     
+    /* Phones: cart stacked over catalog and the PAGE scrolls. The desktop layout pins everything
+       to the viewport height with nested scroll areas, which leaves a phone no room for the cart
+       lines or the catalog. (`body` in the selectors beats the view's inline .pos-container rule.) */
+    body .pos-container {
+        height: auto;
+        min-height: calc(100vh - 76px);
+        overflow: visible;
+    }
+
     .pos-row {
         flex-direction: column;
+        flex-wrap: nowrap;
+        height: auto;
     }
-    
-    .cart-column {
-        height: 40vh;
+
+    .pos-row > .cart-column {
+        height: auto;
+        max-width: 100%;
         padding-right: 0;
         padding-bottom: 0.75rem;
     }
-    
-    .products-column {
-        height: 60vh;
+
+    .pos-row > .products-column {
+        height: auto;
+        min-height: 80vh;
         padding-left: 0;
         padding-top: 0.75rem;
+    }
+
+    .pos-row > .cart-column .pos-card,
+    .pos-row > .products-column .pos-card {
+        height: auto;
+    }
+
+    .pos-row > .cart-column .cart-items-area {
+        min-height: 140px;
+        max-height: 40vh;
     }
     
     .products-grid {

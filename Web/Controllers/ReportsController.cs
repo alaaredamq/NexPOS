@@ -1,13 +1,15 @@
 using Application.DTOs.Reports;
 using Application.IServices.Reports;
+using Core.Time;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Attributes;
+using Web.Helpers;
 
 namespace Web.Controllers
 {
     [Authorize]
-    [RequirePermission("Reports.View")]
+    [RequirePermission(PermissionHelper.Permissions.Reports_View)]
     public class ReportsController : BaseController
     {
         private readonly ISalesReportService _salesReportService;
@@ -97,7 +99,9 @@ namespace Web.Controllers
         {
             try
             {
-                var trend = await _salesReportService.GetSalesTrendAsync(startDate, endDate);
+                // Picked dates are local days; orders are stored in UTC.
+                var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(startDate, endDate);
+                var trend = await _salesReportService.GetSalesTrendAsync(fromUtc, toUtc);
                 return Json(new { success = true, data = trend });
             }
             catch (Exception ex)
@@ -111,7 +115,8 @@ namespace Web.Controllers
         {
             try
             {
-                var products = await _salesReportService.GetTopProductsAsync(startDate, endDate, limit);
+                var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(startDate, endDate);
+                var products = await _salesReportService.GetTopProductsAsync(fromUtc, toUtc, limit);
                 return Json(new { success = true, data = products });
             }
             catch (Exception ex)
@@ -125,7 +130,8 @@ namespace Web.Controllers
         {
             try
             {
-                var categorySales = await _salesReportService.GetCategorySalesAsync(startDate, endDate);
+                var (fromUtc, toUtc) = AppTime.LocalDayRangeToUtc(startDate, endDate);
+                var categorySales = await _salesReportService.GetCategorySalesAsync(fromUtc, toUtc);
                 return Json(new { success = true, data = categorySales });
             }
             catch (Exception ex)
@@ -139,18 +145,26 @@ namespace Web.Controllers
         {
             try
             {
-                var utcNow = DateTime.UtcNow;
-                var today = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, 0, 0, 0, DateTimeKind.Utc);
-                var thisMonth = new DateTime(utcNow.Year, utcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-                var thisYear = new DateTime(utcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                // Today / this month / this year are LOCAL calendar periods; convert their edges to UTC for the query.
+                var nowLocal = DateTime.Now;
+                var todayLocal = nowLocal.Date;
+                var monthLocal = new DateTime(nowLocal.Year, nowLocal.Month, 1);
+                var yearLocal = new DateTime(nowLocal.Year, 1, 1);
 
-                var todaySales = await _salesReportService.GetTotalSalesAsync(today, today.AddDays(1));
-                var thisMonthSales = await _salesReportService.GetTotalSalesAsync(thisMonth, thisMonth.AddMonths(1));
-                var thisYearSales = await _salesReportService.GetTotalSalesAsync(thisYear, thisYear.AddYears(1));
+                var today = todayLocal.LocalToUtc();
+                var tomorrow = todayLocal.AddDays(1).LocalToUtc();
+                var thisMonth = monthLocal.LocalToUtc();
+                var nextMonth = monthLocal.AddMonths(1).LocalToUtc();
+                var thisYear = yearLocal.LocalToUtc();
+                var nextYear = yearLocal.AddYears(1).LocalToUtc();
 
-                var todayOrders = await _salesReportService.GetTotalOrdersAsync(today, today.AddDays(1));
-                var thisMonthOrders = await _salesReportService.GetTotalOrdersAsync(thisMonth, thisMonth.AddMonths(1));
-                var thisYearOrders = await _salesReportService.GetTotalOrdersAsync(thisYear, thisYear.AddYears(1));
+                var todaySales = await _salesReportService.GetTotalSalesAsync(today, tomorrow);
+                var thisMonthSales = await _salesReportService.GetTotalSalesAsync(thisMonth, nextMonth);
+                var thisYearSales = await _salesReportService.GetTotalSalesAsync(thisYear, nextYear);
+
+                var todayOrders = await _salesReportService.GetTotalOrdersAsync(today, tomorrow);
+                var thisMonthOrders = await _salesReportService.GetTotalOrdersAsync(thisMonth, nextMonth);
+                var thisYearOrders = await _salesReportService.GetTotalOrdersAsync(thisYear, nextYear);
 
                 var stats = new
                 {

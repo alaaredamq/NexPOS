@@ -60,10 +60,21 @@ public class CartService : ICartService
         // Never trust a caller-supplied price (S2) — reprice from the product's authoritative
         // SellingPrice. The unitPrice parameter is intentionally ignored; it stays on the
         // signature only because it's part of the public ICartService contract.
+        EnsurePositiveAmounts(quantity, weightOrVolume);
+
         var product = await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == productId && !p.IsDeleted);
         if (product == null) throw new ArgumentException($"Product {productId} not found");
 
         return await AddItemToCartWithTrustedPriceAsync(cartId, productId, quantity, product.SellingPrice, weightOrVolume);
+    }
+
+    // A zero or negative amount would otherwise produce a negative-total "sale" that adds stock and subtracts cash.
+    private static void EnsurePositiveAmounts(int quantity, decimal? weightOrVolume)
+    {
+        if (quantity <= 0)
+            throw new ArgumentException("Quantity must be greater than zero.");
+        if (weightOrVolume.HasValue && weightOrVolume.Value <= 0)
+            throw new ArgumentException("Weight or volume must be greater than zero.");
     }
 
     private async Task<Cart> AddItemToCartWithTrustedPriceAsync(int cartId, int productId, int quantity, decimal trustedUnitPrice, decimal? weightOrVolume = null)
@@ -94,6 +105,9 @@ public class CartService : ICartService
     {
         if (items == null || items.Count == 0)
             return await _cartRepo.GetByIdAsync(cartId);
+
+        foreach (var item in items)
+            EnsurePositiveAmounts(item.Quantity, item.WeightOrVolume);
 
         var productIds = items.Select(i => i.ProductId).Distinct().ToList();
 

@@ -2,6 +2,7 @@ using Application.IServices.Backup;
 using Application.DTOs.Backup;
 using Core.Entities.Backup;
 using Core.IRepositories.Backup;
+using Core.Time;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -86,9 +87,10 @@ public class BackupSchedulingService : BackgroundService
             var backupScheduleRepo = scope.ServiceProvider.GetRequiredService<IBackupScheduleRepository>();
             var backupService = scope.ServiceProvider.GetRequiredService<IBackupService>();
 
-            // Use local time for comparison since schedules are set in local time
-            var now = DateTime.Now;
-            _logger.LogDebug("Checking for scheduled backups at {Time} (Local)", now);
+            // Schedules are CHOSEN in local time ("02:00") but NextRun/LastRun are stored as UTC like every
+            // other timestamp, so the due check compares UTC with UTC.
+            var now = DateTime.UtcNow;
+            _logger.LogDebug("Checking for scheduled backups at {Time} (UTC)", now);
 
             var activeSchedules = await backupScheduleRepo.GetActiveSchedulesAsync();
 
@@ -120,7 +122,7 @@ public class BackupSchedulingService : BackgroundService
                         
                         var backup = await backupService.CreateBackupAsync(backupRequest);
 
-                        // Update schedule with new next run time (use local time)
+                        // Update schedule with new next run time (stored as UTC)
                         schedule.LastRun = now;
                         schedule.NextRun = CalculateNextRun(schedule);
                         await backupScheduleRepo.SaveAsync(schedule);
@@ -171,21 +173,23 @@ public class BackupSchedulingService : BackgroundService
     }
 
     /// <summary>
-    /// Calculates the next run time based on the schedule's frequency, time, and day settings
-    /// Uses local time since schedules are set in local time by users
+    /// Calculates the next run time based on the schedule's frequency, time, and day settings.
+    /// The day/time rules are evaluated on the LOCAL clock (users pick "02:00" local); the result is
+    /// returned as UTC, which is how NextRun is stored.
     /// </summary>
     private DateTime? CalculateNextRun(BackupSchedule schedule)
     {
-        var now = DateTime.Now; // Use local time
+        var now = DateTime.Now; // local wall clock, to apply the user's local day/time
         var time = schedule.ScheduleTime;
 
-        return schedule.ScheduleFrequency?.ToLower() switch
+        var nextLocal = schedule.ScheduleFrequency?.ToLower() switch
         {
             "daily" => CalculateDailyNextRun(now, time),
             "weekly" => CalculateWeeklyNextRun(now, time, schedule.ScheduleDayOfWeek),
             "monthly" => CalculateMonthlyNextRun(now, time, schedule.ScheduleDayOfMonth),
             _ => CalculateDailyNextRun(now, time)
         };
+        return nextLocal.LocalToUtc();
     }
 
     /// <summary>

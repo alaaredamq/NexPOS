@@ -1,7 +1,9 @@
+using System.Security.Cryptography;
 using Application.IServices.Users;
 using Core.Auditing;
 using Core.Entities.Users;
 using Core.IRepositories.Users;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Users;
 
@@ -45,10 +47,20 @@ public class UserService : IUserService
         return await _repo.GetByIdAsync(id);
     }
 
-    public async Task<User> CreateAsync(User user, string password)
+    public async Task<User> CreateWithPinAsync(User user, string pin)
     {
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
-        return await _repo.SaveAsync(user);
+        // Sign-in is PIN-only. PasswordHash is still a required column (and the legacy password
+        // endpoint reads it), so new accounts get a random password nobody knows rather than a usable one.
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Convert.ToHexString(RandomNumberGenerator.GetBytes(32)));
+        user.PinHash = BCrypt.Net.BCrypt.HashPassword(pin);
+        user.MustChangePin = true;
+        var created = await _repo.SaveAsync(user);
+
+        _auditTrail.LogSecurity(AuditActions.PinChanged,
+            $"Initial PIN set for '{created.Username}' (must be changed at next sign-in)",
+            entityId: created.Id, entityLabel: created.Username,
+            details: new { mustChangeAtNextSignIn = true });
+        return created;
     }
 
     public async Task UpdateAsync(int id, User user)
@@ -118,7 +130,16 @@ public class UserService : IUserService
     public async Task DeleteAsync(int id)
     {
         var existing = await _repo.GetByIdAsync(id);
-        await _repo.DeleteAsync(existing);
+        try
+        {
+            await _repo.DeleteAsync(existing);
+        }
+        catch (Exception ex) when (ex is DbUpdateException or InvalidOperationException)
+        {
+            // Sales, receipts, sessions or backups made by this user still reference them.
+            throw new InvalidOperationException(
+                "This user has activity on record (sales, receipts or sessions), so they can't be removed. Deactivate them instead.", ex);
+        }
     }
 
     public async Task<List<Role>> GetRolesAsync()
