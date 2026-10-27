@@ -80,7 +80,7 @@ namespace Application.Services.Products
             return null;
         }
 
-        public async Task<IEnumerable<ProductDTO>> SearchByNameAsync(string searchTerm, int limit = 10)
+        public async Task<IEnumerable<ProductDTO>> SearchByNameAsync(string searchTerm, int limit = 10, int skip = 0)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return Enumerable.Empty<ProductDTO>();
@@ -89,24 +89,17 @@ namespace Application.Services.Products
 
             try
             {
-                var results = new List<ProductDTO>();
                 var searchLower = searchTerm.ToLowerInvariant();
 
                 var products = await _cacheService.GetPOSProductsAsync();
-                if (products != null)
-                {
-                    foreach (var product in products)
-                    {
-                        if (product.Name.ToLowerInvariant().Contains(searchLower))
-                        {
-                            results.Add(product);
-                            if (results.Count >= limit)
-                                break;
-                        }
-                    }
-                }
+                if (products == null)
+                    return new List<ProductDTO>();
 
-                return results;
+                return products
+                    .Where(p => p.Name.ToLowerInvariant().Contains(searchLower))
+                    .Skip(Math.Max(skip, 0))
+                    .Take(limit)
+                    .ToList();
             }
             catch (Exception ex)
             {

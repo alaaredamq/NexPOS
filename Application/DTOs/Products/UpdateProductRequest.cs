@@ -51,4 +51,7 @@ public class UpdateProductRequest
 
     [StringLength(50)]
     public string? Brand { get; set; }
+
+    /// <summary>Extra prices the cashier can pick at the till (Wholesale, ...). The selling price stays the default.</summary>
+    public List<ProductPriceInput> PriceTiers { get; set; } = new();
 }

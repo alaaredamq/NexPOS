@@ -28,6 +28,7 @@ public class ErpDbContext : DbContext
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<MainScreenProduct> MainScreenProducts { get; set; }
         public DbSet<ProductDisplayOrder> ProductDisplayOrders { get; set; }
+    public DbSet<ProductPrice> ProductPrices { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<SystemSettings> SystemSettings { get; set; }
         public DbSet<StoreSettings> StoreSettings { get; set; }
@@ -341,6 +342,20 @@ public class ErpDbContext : DbContext
                 entity.HasIndex(e => new { e.ProductId }).IsUnique();
                 entity.HasIndex(e => e.DisplayOrder);
             });
+
+        modelBuilder.Entity<ProductPrice>(entity =>
+        {
+            entity.ToTable("ProductPrices");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(50).IsRequired();
+
+            entity.HasOne<Product>()
+                .WithMany(p => p.PriceTiers)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.ProductId, e.SortOrder });
+        });
 
         modelBuilder.Entity<SystemSettings>(entity =>
         {

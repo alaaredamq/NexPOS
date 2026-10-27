@@ -1,0 +1,108 @@
+@using Application.DTOs.Products
+@model List<ProductPriceInput>
+@{
+    var tiers = Model ?? new List<ProductPriceInput>();
+}
+
+<div class="price-tiers mb-3" id="priceTiers"
+     data-msg-name="@SharedLocalizer["Price name required"]"
+     data-msg-amount="@SharedLocalizer["Price amount required"]"
+     data-msg-below="@SharedLocalizer["Price below purchase"]">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+        <label class="form-label mb-0">@SharedLocalizer["Extra prices"]</label>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="addPriceTier">
+            <i class="fas fa-plus me-1"></i>@SharedLocalizer["Add price"]
+        </button>
+    </div>
+    <div class="form-text mb-2">@SharedLocalizer["Extra prices help"]</div>
+
+    <div id="priceTierRows">
+        @for (var i = 0; i < tiers.Count; i++)
+        {
+            <div class="price-tier-row" data-row>
+                <input type="text" name="PriceTiers[@i].Name" value="@tiers[i].Name" class="form-control" maxlength="50"
+                       placeholder="@SharedLocalizer["Price name example"]" aria-label="@SharedLocalizer["Price name"]" />
+                <input type="number" name="PriceTiers[@i].Price" value="@(tiers[i].Price > 0 ? tiers[i].Price.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" class="form-control" step="0.01" min="0"
+                       placeholder="0.00" aria-label="@SharedLocalizer["Price"]" />
+                <button type="button" class="btn btn-outline-danger price-tier-remove" aria-label="@SharedLocalizer["Remove price"]">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        }
+    </div>
+    @{
+        var tierError = ViewData.ModelState
+            .Where(kv => kv.Key.StartsWith("PriceTiers"))
+            .SelectMany(kv => kv.Value!.Errors)
+            .Select(e => e.ErrorMessage)
+            .FirstOrDefault();
+    }
+    <span class="text-danger d-block mt-1" id="priceTierError" role="alert">@tierError</span>
+</div>
+
+<template id="priceTierTemplate">
+    <div class="price-tier-row" data-row>
+        <input type="text" name="PriceTiers[__i__].Name" class="form-control" maxlength="50"
+               placeholder="@SharedLocalizer["Price name example"]" aria-label="@SharedLocalizer["Price name"]" />
+        <input type="number" name="PriceTiers[__i__].Price" class="form-control" step="0.01" min="0"
+               placeholder="0.00" aria-label="@SharedLocalizer["Price"]" />
+        <button type="button" class="btn btn-outline-danger price-tier-remove" aria-label="@SharedLocalizer["Remove price"]">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</template>
+
+<style>
+    .price-tier-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 160px) 42px; gap: .5rem; margin-bottom: .5rem; }
+    @@media (max-width: 575px) { .price-tier-row { grid-template-columns: minmax(0, 1fr) 42px; } .price-tier-row input[type=number] { grid-column: 1; } .price-tier-row .price-tier-remove { grid-row: 1 / span 2; grid-column: 2; } }
+</style>
+
+<script>
+    // Extra prices: rows are plain inputs named PriceTiers[i].Name / .Price so MVC binds them as a list.
+    // Rows are re-indexed on every change so removing one in the middle never leaves a gap in the list.
+    (function () {
+        var rows = document.getElementById('priceTierRows');
+        var tpl = document.getElementById('priceTierTemplate');
+
+        function reindex() {
+            rows.querySelectorAll('[data-row]').forEach(function (row, i) {
+                row.querySelectorAll('input').forEach(function (input) {
+                    input.name = input.name.replace(/PriceTiers\[[^\]]*\]/, 'PriceTiers[' + i + ']');
+                });
+            });
+        }
+
+        document.getElementById('addPriceTier').addEventListener('click', function () {
+            rows.insertAdjacentHTML('beforeend', tpl.innerHTML);
+            reindex();
+            var last = rows.querySelector('[data-row]:last-child input');
+            if (last) last.focus();
+        });
+
+        rows.addEventListener('click', function (e) {
+            var btn = e.target.closest('.price-tier-remove');
+            if (!btn) return;
+            btn.closest('[data-row]').remove();
+            reindex();
+        });
+
+        // Block the save when an extra price is below the purchase price, and say which one.
+        document.addEventListener('submit', function (e) {
+            var error = document.getElementById('priceTierError');
+            error.textContent = '';
+            var purchase = parseFloat((document.getElementById('PurchasePrice') || {}).value) || 0;
+            var problem = null;
+            rows.querySelectorAll('[data-row]').forEach(function (row) {
+                if (problem) return;
+                var inputs = row.querySelectorAll('input');
+                var name = inputs[0].value.trim(), price = parseFloat(inputs[1].value);
+                if (!name && !inputs[1].value) return;                 // an untouched row is ignored
+                var msg = document.getElementById('priceTiers').dataset;
+                if (!name) problem = msg.msgName;
+                else if (!(price > 0)) problem = msg.msgAmount;
+                else if (price < purchase) problem = msg.msgBelow;
+            });
+            if (problem) { e.preventDefault(); e.stopImmediatePropagation(); error.textContent = problem; error.scrollIntoView({ block: 'center' }); }
+        }, true);
+    })();
+</script>

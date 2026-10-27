@@ -71,4 +71,7 @@ public class CreateProductRequest
     
     [Display(Name = "Single Product")]
     public int? SingleProductId { get; set; }
+
+    /// <summary>Extra prices the cashier can pick at the till (Wholesale, ...). The selling price stays the default.</summary>
+    public List<ProductPriceInput> PriceTiers { get; set; } = new();
 }

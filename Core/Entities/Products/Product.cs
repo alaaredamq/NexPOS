@@ -43,6 +43,9 @@ public class Product : ISSoftDeletable, IEntityBase<int>
     public string? Image { get; set; }
     public Product? SingleProduct { get; set; } // Navigation property to the single product
 
+    /// <summary>Extra selling prices the cashier can pick at the till (the default price is <see cref="SellingPrice"/>).</summary>
+    public ICollection<ProductPrice> PriceTiers { get; set; } = new List<ProductPrice>();
+
     #endregion
 
     #region Constructors

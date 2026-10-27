@@ -1275,6 +1275,39 @@ namespace Infrastructure.Migrations
                     b.ToTable("ProductDisplayOrders", (string)null);
                 });
 
+            modelBuilder.Entity("Core.Entities.Products.ProductPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "SortOrder");
+
+                    b.ToTable("ProductPrices", (string)null);
+                });
+
             modelBuilder.Entity("Core.Entities.Products.Supplier", b =>
                 {
                     b.Property<int>("Id")
@@ -3012,6 +3045,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Core.Entities.Products.ProductPrice", b =>
+                {
+                    b.HasOne("Core.Entities.Products.Product", null)
+                        .WithMany("PriceTiers")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Core.Entities.Products.Supplier", b =>
                 {
                     b.HasOne("Core.Entities.Sales.Currency", "Currency")
@@ -3355,6 +3397,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.Inventory.CartSession", b =>
                 {
                     b.Navigation("CartItems");
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.Product", b =>
+                {
+                    b.Navigation("PriceTiers");
                 });
 
             modelBuilder.Entity("Core.Entities.Products.ProductCategory", b =>

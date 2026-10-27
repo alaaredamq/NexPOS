@@ -13,9 +13,9 @@ namespace Application.IServices.Products
         Task<ProductDTO?> SearchByBarcodeAsync(string barcode);
 
         /// <summary>
-        /// Search products by name or partial name
+        /// Search products by name or partial name; <paramref name="skip"/> matches are passed over first, so callers can page
         /// </summary>
-        Task<IEnumerable<ProductDTO>> SearchByNameAsync(string searchTerm, int limit = 10);
+        Task<IEnumerable<ProductDTO>> SearchByNameAsync(string searchTerm, int limit = 10, int skip = 0);
 
 
         /// <summary>

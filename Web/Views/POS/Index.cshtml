@@ -1368,8 +1368,51 @@
             }
 
             .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 0.6rem;
+                grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+                gap: 0.5rem;
+            }
+
+            /* Smaller tiles so more of the catalog fits; the stock pill stays on one line
+               (it wrapped to two at this width and made every card taller). */
+            .product-card {
+                padding: 0.45rem 0.4rem;
+                border-radius: 10px;
+            }
+
+            .product-card .product-image {
+                height: 38px;
+                min-height: 0;
+                margin-bottom: 0.3rem;
+            }
+
+            .product-image img {
+                width: 34px;
+                height: 34px;
+            }
+
+            .product-info .product-name {
+                font-size: 0.75rem;
+                line-height: 1.25;
+                min-height: 1.9rem;
+                margin-bottom: 0.15rem;
+            }
+
+            .product-info .product-price {
+                font-size: 0.9rem;
+                margin: 0.1rem 0;
+            }
+
+            .product-info .product-stock {
+                font-size: 0.62rem;
+                padding: 0.15rem 0.35rem;
+                margin: 0.2rem 0 0;
+                gap: 0.2rem;
+                border-radius: 8px;
+                white-space: nowrap;
+            }
+
+            .product-info .product-stock i {
+                font-size: 0.6rem;
             }
 
             .navbar-nav .nav-link {
@@ -1632,19 +1675,14 @@
                         </div>
                         
                         <!-- Cart Items Table -->
-                        <div class="table-responsive d-none" id="cart-table-container">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">@Localizer["Product"]</th>
-                                        <th scope="col" class="text-center">@Localizer["Qty"]</th>
-                                        <th scope="col" class="text-end">@Localizer["Price"]</th>
-                                        <th scope="col" class="text-center">@Localizer["Del"]</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cart-table-body">
-                                </tbody>
-                            </table>
+                        <div class="cart-grid d-none" id="cart-table-container">
+                            <div class="cart-cols" aria-hidden="true">
+                                <span>@Localizer["Product"]</span>
+                                <span class="cc-qty">@Localizer["Qty"]</span>
+                                <span class="cc-price">@Localizer["Price"]</span>
+                                <span class="cc-del">@Localizer["Del"]</span>
+                            </div>
+                            <div class="cart-rows" id="cart-table-body"></div>
                         </div>
                     </div>
                 </div>
@@ -1655,12 +1693,12 @@
                     <div class="totals-section">
                         <div class="total-row total-row-primary">
                             <span class="total-label">@Localizer["TotalUSD"]:</span>
-                            <span class="total-figure total-figure-primary" id="total-usd">USD 0.00</span>
+                            <span class="total-figure total-figure-primary fit" id="total-usd">USD 0.00</span>
                         </div>
                         <div class="total-discount" id="total-discount" hidden></div>
                         <div class="total-row total-row-secondary">
                             <span class="total-label">@Localizer["TotalLBP"]:</span>
-                            <span class="total-figure total-figure-secondary" id="total-lbp">LBP 0</span>
+                            <span class="total-figure total-figure-secondary fit" id="total-lbp">LBP 0</span>
                         </div>
                     </div>
 
@@ -1781,6 +1819,7 @@
     <!-- POS Custom JS -->
     <script src="~/js/Pages/POS/UnitConverter.js" asp-append-version="true"></script>
     <script src="~/js/Pages/POS/CartItem.js" asp-append-version="true"></script>
+    <script src="~/js/Pages/POS/PricePicker.js" asp-append-version="true"></script>
     <script src="~/js/Pages/POS/POS.js" asp-append-version="true"></script>
 
     <!-- POS Navigation Scripts -->

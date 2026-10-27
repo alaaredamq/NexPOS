@@ -128,18 +128,21 @@ public class CartService : ICartService
             if (!products.TryGetValue(input.ProductId, out var product))
                 throw new ArgumentException($"Product {input.ProductId} not found");
 
-            // Never trust a caller-supplied price (S2) - reprice from SellingPrice.
+            // Never trust a caller-supplied price (S2). The price comes from the product's own stored
+            // prices, or from a custom price that UnitPriceResolver refuses if it is below the purchase price.
+            var unitPrice = await UnitPriceResolver.ResolveAsync(_dbContext, product, input);
+
             if (existingItems.TryGetValue(input.ProductId, out var existing))
             {
                 existing.Quantity += input.Quantity;
-                existing.UnitPrice = product.SellingPrice;
+                existing.UnitPrice = unitPrice;
                 if (input.WeightOrVolume.HasValue)
                     existing.WeightOrVolume = (existing.WeightOrVolume ?? 0) + input.WeightOrVolume.Value;
                 cartItems.Update(existing);
             }
             else
             {
-                var newItem = new CartItem(cartId, input.ProductId, input.Quantity, product.SellingPrice, input.WeightOrVolume);
+                var newItem = new CartItem(cartId, input.ProductId, input.Quantity, unitPrice, input.WeightOrVolume);
                 await cartItems.AddAsync(newItem);
                 existingItems[input.ProductId] = newItem;
             }

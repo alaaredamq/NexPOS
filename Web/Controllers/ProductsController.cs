@@ -29,9 +29,11 @@ public class ProductsController : BaseController
     private readonly ILogger<ProductsController> _logger;
     private readonly ILabelPdfBuilder _labelPdfBuilder;
     private readonly IAuditTrail _auditTrail;
+    private readonly IProductPriceService _priceService;
 
-    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IProductImportExportService importExportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger, ILabelPdfBuilder labelPdfBuilder, IAuditTrail auditTrail)
+    public ProductsController(IProductService productService, IProductCategoryService categoryService, ISupplierService supplierService, ICurrencyService currencyService, IViewLocalizer localizer, IProductImportExportService importExportService, ISystemSettingsService settingsService, ILogger<ProductsController> logger, ILabelPdfBuilder labelPdfBuilder, IAuditTrail auditTrail, IProductPriceService priceService)
     {
+        _priceService = priceService;
         _productService = productService;
         _categoryService = categoryService;
         _supplierService = supplierService;
@@ -289,6 +291,8 @@ public class ProductsController : BaseController
             ModelState.AddModelError(nameof(model.Barcode), "A product with this barcode already exists.");
         }
 
+        ValidatePriceTiers(model.PriceTiers, model.PurchasePrice);
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("ModelState is invalid");
@@ -296,13 +300,13 @@ public class ProductsController : BaseController
             {
                 _logger.LogWarning($"Validation error: {error.ErrorMessage}");
             }
-            
+
             // Re-populate categories, suppliers, and currencies for validation errors
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = categories.Where(c => c.IsActive).ToList();
             var suppliers = await _supplierService.GetAllAsync();
             var activeSuppliers = suppliers.Where(s => s.IsActive).ToList();
-            var noSupplier = activeSuppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase)) 
+            var noSupplier = activeSuppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase))
                 ?? suppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase));
             if (noSupplier != null)
             {
@@ -347,7 +351,8 @@ public class ProductsController : BaseController
             };
 
             _logger.LogInformation($"Creating product with CategoryId: {product.CategoryId}");
-            await _productService.CreateAsync(product);
+            var created = await _productService.CreateAsync(product);
+            await _priceService.ReplaceTiersAsync(created.Id, model.PriceTiers);
             TempData["SuccessMessage"] = "Product created successfully!";
             
             // Check if this was opened in a new window (noSidebar mode)
@@ -454,7 +459,10 @@ public class ProductsController : BaseController
                 StockQuantity = product.StockQuantity,
                 MinStockLevel = product.MinimumStock ?? 0,
                 IsActive = product.IsActive,
-                Unit = product.Unit
+                Unit = product.Unit,
+                PriceTiers = (await _priceService.GetTiersAsync(product.Id))
+                    .Select(t => new ProductPriceInput { Name = t.Name, Price = t.Price })
+                    .ToList()
             };
 
             return View(model);
@@ -482,6 +490,8 @@ public class ProductsController : BaseController
             }
         }
 
+        ValidatePriceTiers(model.PriceTiers, model.PurchasePrice);
+
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("ModelState is invalid");
@@ -489,13 +499,13 @@ public class ProductsController : BaseController
             {
                 _logger.LogWarning($"Validation error: {error.ErrorMessage}");
             }
-            
+
             // Re-populate categories, suppliers, and currencies for validation errors
             var categories = await _categoryService.GetAllAsync();
             ViewBag.Categories = categories.Where(c => c.IsActive).ToList();
             var suppliers = await _supplierService.GetAllAsync();
             var activeSuppliers = suppliers.Where(s => s.IsActive).ToList();
-            var noSupplier = activeSuppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase)) 
+            var noSupplier = activeSuppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase))
                 ?? suppliers.FirstOrDefault(s => s.Name.Equals("No Supplier", StringComparison.OrdinalIgnoreCase));
             if (noSupplier != null)
             {
@@ -560,6 +570,7 @@ public class ProductsController : BaseController
             product.Unit = model.Unit;
 
             await _productService.UpdateAsync(model.Id, product);
+            await _priceService.ReplaceTiersAsync(model.Id, model.PriceTiers);
             _logger.LogInformation($"Product updated successfully with CategoryId: {product.CategoryId}");
             TempData["SuccessMessage"] = "Product updated successfully!";
             return RedirectToAction("Index");
@@ -587,6 +598,28 @@ public class ProductsController : BaseController
         ViewBag.Currencies = currenciesOnError;
         ViewBag.DefaultCurrency = await _currencyService.GetDefaultAsync();
         return View(model);
+    }
+
+    /// <summary>
+    /// Extra prices must have a name and an amount, and may never be below the purchase price
+    /// (the same floor the till enforces on a custom price). A fully blank row is just ignored.
+    /// </summary>
+    private void ValidatePriceTiers(List<ProductPriceInput>? tiers, decimal purchasePrice)
+    {
+        if (tiers == null) return;
+        for (var i = 0; i < tiers.Count; i++)
+        {
+            var tier = tiers[i];
+            var blank = string.IsNullOrWhiteSpace(tier.Name) && tier.Price == 0;
+            if (blank) continue;
+
+            if (string.IsNullOrWhiteSpace(tier.Name))
+                ModelState.AddModelError($"PriceTiers[{i}].Name", "Every extra price needs a name.");
+            else if (tier.Price <= 0)
+                ModelState.AddModelError($"PriceTiers[{i}].Price", "Every extra price needs an amount above 0.");
+            else if (tier.Price < purchasePrice)
+                ModelState.AddModelError($"PriceTiers[{i}].Price", "An extra price cannot be below the purchase price.");
+        }
     }
 
     [HttpPost]

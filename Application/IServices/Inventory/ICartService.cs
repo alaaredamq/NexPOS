@@ -30,5 +30,16 @@ public interface ICartService : IBaseService
     Task<Cart> UpdateCartItemQuantityWithCurrencyAsync(int cartId, int productId, int quantity, int targetCurrencyId);
 }
 
-/// <summary>One line item to add via <see cref="ICartService.AddItemsToCartAsync"/>.</summary>
-public record CartItemInput(int ProductId, int Quantity, decimal? WeightOrVolume = null);
+/// <summary>
+/// One line item to add via <see cref="ICartService.AddItemsToCartAsync"/>.
+/// The caller never sets a price directly. <paramref name="PriceTierId"/> picks one of the product's stored
+/// extra prices; <paramref name="CustomUnitPrice"/> (typed in <paramref name="CustomPriceCurrencyId"/>) asks for a
+/// custom price, which is refused if it is below the purchase price. With neither, the selling price applies.
+/// </summary>
+public record CartItemInput(
+    int ProductId,
+    int Quantity,
+    decimal? WeightOrVolume = null,
+    int? PriceTierId = null,
+    decimal? CustomUnitPrice = null,
+    int? CustomPriceCurrencyId = null);

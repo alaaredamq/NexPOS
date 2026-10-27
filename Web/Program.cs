@@ -222,6 +222,7 @@ builder.Services.AddScoped<Core.IRepositories.Products.IMainScreenProductReposit
 builder.Services.AddScoped<Core.ICache.ICacheService, Infrastructure.Cache.CacheService>();
 builder.Services.AddScoped<ICurrencyConversionService, CurrencyConversionService>();
 builder.Services.AddScoped<IProductPricingService, ProductPricingService>();
+builder.Services.AddScoped<Application.IServices.Products.IProductPriceService, Application.Services.Products.ProductPriceService>();
 builder.Services.AddScoped<Core.IRepositories.Sales.ICurrencyRepository, Infrastructure.Repositories.Sales.CurrencyRepository>();
 builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<Core.IRepositories.Sales.IExchangeRateRepository, Infrastructure.Repositories.Sales.ExchangeRateRepository>();

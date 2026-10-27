@@ -2368,4 +2368,13 @@
   <data name="Print_Menu" xml:space="preserve"><value>Print</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>Print on receipt paper</value></data>
   <data name="Print_DownloadPdf" xml:space="preserve"><value>Download PDF</value></data>
+  <data name="Extra prices" xml:space="preserve"><value>Extra prices</value></data>
+  <data name="Extra prices help" xml:space="preserve"><value>Other prices the cashier can pick at the till, such as Wholesale. None can be below the purchase price.</value></data>
+  <data name="Add price" xml:space="preserve"><value>Add price</value></data>
+  <data name="Remove price" xml:space="preserve"><value>Remove price</value></data>
+  <data name="Price name" xml:space="preserve"><value>Price name</value></data>
+  <data name="Price name example" xml:space="preserve"><value>e.g. Wholesale</value></data>
+  <data name="Price name required" xml:space="preserve"><value>Every extra price needs a name.</value></data>
+  <data name="Price amount required" xml:space="preserve"><value>Every extra price needs an amount above 0.</value></data>
+  <data name="Price below purchase" xml:space="preserve"><value>An extra price cannot be below the purchase price.</value></data>
 </root>

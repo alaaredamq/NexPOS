@@ -31,6 +31,7 @@ namespace Web.Controllers
         private readonly ICartRepository _cartRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly ISystemSettingsService _settingsService;
+        private readonly IProductPriceService _productPriceService;
         private readonly ILogger<POSController> _logger;
 
         public POSController(
@@ -42,8 +43,10 @@ namespace Web.Controllers
             ICartRepository cartRepository,
             IOrderRepository orderRepository,
             ISystemSettingsService settingsService,
+            IProductPriceService productPriceService,
             ILogger<POSController> logger)
         {
+            _productPriceService = productPriceService;
             _fastProductSearch = fastProductSearch;
             _checkoutService = checkoutService;
             _cartService = cartService;
@@ -74,10 +77,17 @@ namespace Web.Controllers
         }
 
         /// <summary>
-        /// Fast product search by barcode - optimized for POS
+        /// Name matches returned per request by <see cref="SearchProduct"/>; the search box asks for the next page as it scrolls
+        /// </summary>
+        private const int SearchPageSize = 20;
+
+        /// <summary>
+        /// Fast product search by barcode - optimized for POS.
+        /// Name matches come back one page at a time: pass <paramref name="skip"/> = how many were already received,
+        /// and <c>hasMore</c> in the response says whether another page exists.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> SearchProduct(string searchTerm, bool barcodeOnly = false)
+        public async Task<IActionResult> SearchProduct(string searchTerm, bool barcodeOnly = false, int skip = 0)
         {
             try
             {
@@ -86,12 +96,16 @@ namespace Web.Controllers
 
                 // Trim search term to handle whitespace issues
                 searchTerm = searchTerm.Trim();
+                skip = Math.Max(skip, 0);
 
-                // Try barcode search first (fastest)
-                var product = await _fastProductSearch.SearchByBarcodeAsync(searchTerm);
-                if (product != null)
+                // Try barcode search first (fastest) - an exact barcode is a single hit, never a later page
+                if (skip == 0)
                 {
-                    return Ok(new { success = true, data = product, searchType = "barcode" });
+                    var product = await _fastProductSearch.SearchByBarcodeAsync(searchTerm);
+                    if (product != null)
+                    {
+                        return Ok(new { success = true, data = product, searchType = "barcode", hasMore = false });
+                    }
                 }
 
                 // If barcodeOnly is true, don't fall back to name search
@@ -100,11 +114,18 @@ namespace Web.Controllers
                     return BadRequest(new { success = false, message = "Product not found" });
                 }
 
-                // Try name search (limited results) - only if barcodeOnly is false
-                var products = await _fastProductSearch.SearchByNameAsync(searchTerm, 5);
-                if (products.Any())
+                // Try name search - only if barcodeOnly is false. Ask for one extra row to know if there is a next page.
+                var products = (await _fastProductSearch.SearchByNameAsync(searchTerm, SearchPageSize + 1, skip)).ToList();
+                var hasMore = products.Count > SearchPageSize;
+                if (hasMore)
                 {
-                    return Ok(new { success = true, data = products, searchType = "name" });
+                    products.RemoveAt(SearchPageSize);
+                }
+
+                // Running off the end of the list on a later page is not an error, just an empty page
+                if (products.Any() || skip > 0)
+                {
+                    return Ok(new { success = true, data = products, searchType = "name", hasMore });
                 }
 
                 return BadRequest(new { success = false, message = "Product not found" });
@@ -349,7 +370,7 @@ namespace Web.Controllers
                 // Add items to the cart in a single unit of work (one round trip, not one per item)
                 _logger.LogInformation($"Adding {request.Items.Count} items to cart {cart.Id}");
                 await _cartService.AddItemsToCartAsync(cart.Id, request.Items
-                    .Select(i => new CartItemInput(i.ProductId, i.Quantity, i.WeightOrVolume))
+                    .Select(i => new CartItemInput(i.ProductId, i.Quantity, i.WeightOrVolume, i.PriceTierId, i.CustomPrice, i.CustomPriceCurrencyId))
                     .ToList());
 
                 // Apply discount if provided
@@ -473,7 +494,7 @@ namespace Web.Controllers
                     unitPrice = ci.UnitPrice,
                     totalPrice = ci.TotalPrice
                 }).ToList();
-                
+
                 return Json(new { success = true, data = new { items = items } });
             }
             catch (Exception ex)
@@ -668,18 +689,38 @@ namespace Web.Controllers
                     return Json(new { success = false, message = "Cart not found" });
                 }
                 
-                var items = cart.CartItems.Select(ci => new
+                // Tell the till which price each line was sold at, so a resumed cart shows "Wholesale" or
+                // "Custom" on the price button instead of guessing from the amount.
+                var items = new List<object>();
+                foreach (var ci in cart.CartItems)
                 {
-                    id = ci.ProductId,
-                    name = ci.Product?.Name ?? "Unknown Product",
-                    barcode = ci.Product?.Barcode ?? "",
-                    price = ci.UnitPrice,
-                    quantity = ci.Quantity,
-                    categoryId = ci.Product?.CategoryId ?? 0,
-                    currencyId = ci.Product?.CurrencyId ?? 0,
-                    currencyNotation = ci.Product?.Currency?.Notation ?? "LBP"
-                }).ToList();
-                
+                    var priceKind = "default";
+                    int? priceTierId = null;
+                    string? priceLabel = null;
+                    if (ci.Product != null && ci.UnitPrice != ci.Product.SellingPrice)
+                    {
+                        var tier = (await _productPriceService.GetTiersAsync(ci.ProductId))
+                            .FirstOrDefault(t => t.Price == ci.UnitPrice);
+                        if (tier != null) { priceKind = "tier"; priceTierId = tier.Id; priceLabel = tier.Name; }
+                        else priceKind = "custom";
+                    }
+
+                    items.Add(new
+                    {
+                        id = ci.ProductId,
+                        name = ci.Product?.Name ?? "Unknown Product",
+                        barcode = ci.Product?.Barcode ?? "",
+                        price = ci.UnitPrice,
+                        quantity = ci.Quantity,
+                        categoryId = ci.Product?.CategoryId ?? 0,
+                        currencyId = ci.Product?.CurrencyId ?? 0,
+                        currencyNotation = ci.Product?.Currency?.Notation ?? "LBP",
+                        priceKind,
+                        priceTierId,
+                        priceLabel
+                    });
+                }
+
                 return Json(new
                 {
                     success = true,
@@ -726,6 +767,28 @@ namespace Web.Controllers
             {
                 _logger.LogError(ex, "Error getting available discounts");
                 return Json(new { success = false, message = "Failed to get discounts" });
+            }
+        }
+
+        /// <summary>
+        /// The prices a cashier can choose for one product (its default price plus any extra prices),
+        /// converted into the currency the cart is showing, with the lowest custom price allowed.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetPriceOptions(int productId, int currencyId)
+        {
+            try
+            {
+                var options = await _productPriceService.GetOptionsAsync(productId, currencyId);
+                if (options == null)
+                    return Json(new { success = false, message = "Product not found" });
+
+                return Json(new { success = true, data = options });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting price options for product {ProductId}", productId);
+                return Json(new { success = false, message = "Error retrieving prices" });
             }
         }
 
@@ -1163,8 +1226,19 @@ namespace Web.Controllers
     {
         public int ProductId { get; set; }
         public int Quantity { get; set; }
+
+        /// <summary>Ignored by the server (S2). The price is chosen with <see cref="PriceTierId"/> or <see cref="CustomPrice"/>.</summary>
         public decimal Price { get; set; }
-        
+
+        /// <summary>One of the product's stored extra prices. Null means the product's default selling price.</summary>
+        public int? PriceTierId { get; set; }
+
+        /// <summary>A custom unit price typed by the cashier, in <see cref="CustomPriceCurrencyId"/>. Refused if below the purchase price.</summary>
+        public decimal? CustomPrice { get; set; }
+
+        /// <summary>The currency <see cref="CustomPrice"/> was typed in (the currency the cart shows).</summary>
+        public int? CustomPriceCurrencyId { get; set; }
+
         /// <summary>
         /// Weight or volume amount for products sold by weight/volume (e.g., 0.5 for 500g or 0.5L).
         /// Null for products sold by piece.

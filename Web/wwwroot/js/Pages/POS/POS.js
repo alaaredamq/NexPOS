@@ -45,8 +45,11 @@ class POS {
         // Refresh cache on init to ensure currency data is loaded
         await this.ensureCacheHasCurrency();
         
+        this.setupPricePicker();
         this.bindEvents();
         this.updateCartDisplay();
+        window.addEventListener('resize', () => this.layoutCartPrices());
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.layoutCartPrices());
         this.barcodeInputHandler();
         this.setupBarcodeAutoFocus();
     }
@@ -103,6 +106,7 @@ class POS {
                 '[data-bs-toggle="modal"], ' +
                 '[data-bs-toggle="dropdown"], ' +
                 '.add-to-cart-btn, ' +
+                '.price-picker, ' +
                 '.product-card'
             ).length === 0;
             
@@ -268,9 +272,10 @@ class POS {
             activeElement.isContentEditable ||
             activeElement.closest('.select2-container') ||
             activeElement.closest('.dropdown-menu') ||
-            activeElement.closest('.swal2-container')
+            activeElement.closest('.swal2-container') ||
+            activeElement.closest('.price-picker')
         );
-        
+
         // Don't refocus if another input is focused
         if (isInputFocused) {
             return;
@@ -521,8 +526,10 @@ class POS {
                 unit,
                 weightOrVolume,
                 displayValue,
-                displayUnit
+                displayUnit,
+                true // catalogue product: the cashier can pick another price for it
             );
+            newItem.PriceCurrencyId = this.defaultCurrency?.id || currencyId;
             this.addToCart(newItem);
 
             // Show confirmation if multiple items were added (via quantity prefix)
@@ -538,6 +545,69 @@ class POS {
     }
 
     // ===== PRODUCT SEARCH AUTocomplete =====
+
+    /**
+     * Fetch one page of search matches. `skip` is how many matches the caller already has.
+     * Resolves { products, hasMore }; a search with no matches resolves an empty page, any other failure rejects.
+     */
+    fetchProductSearchPage(term, skip) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: `/POS/SearchProduct?searchTerm=${encodeURIComponent(term)}&skip=${skip}`,
+                method: 'GET',
+                success: function(result) {
+                    const data = result && result.success && result.data ? result.data : [];
+                    resolve({
+                        // An exact barcode hit comes back as a single product, name matches as an array
+                        products: Array.isArray(data) ? data : [data],
+                        hasMore: !!(result && result.hasMore)
+                    });
+                },
+                error: function(xhr) {
+                    // The server answers 400 when nothing matches
+                    if (xhr.status === 400) {
+                        resolve({ products: [], hasMore: false });
+                    } else {
+                        reject(xhr);
+                    }
+                }
+            });
+        });
+    }
+
+    /** Turn a product from the search endpoint into a jQuery UI autocomplete item */
+    toSearchSuggestion(p) {
+        return {
+            label: `${p.name || p.Name} (${p.barcode || p.Barcode || 'No barcode'})`,
+            value: p.name || p.Name,
+            product: p
+        };
+    }
+
+    /** Append the next page of matches to the open search dropdown once it is scrolled near the bottom */
+    loadMoreSearchResults($input) {
+        const state = $input.data('searchState');
+        if (!state || !state.hasMore || state.loading) return;
+
+        const instance = $input.autocomplete('instance');
+        const list = instance.menu.element;
+        if (list[0].scrollTop + list[0].clientHeight < list[0].scrollHeight - 80) return;
+
+        state.loading = true;
+        this.fetchProductSearchPage(state.term, state.skip)
+            .then(page => {
+                // The user typed something else meanwhile, so these rows belong to a dead search
+                if ($input.data('searchState') !== state) return;
+
+                state.skip += page.products.length;
+                state.hasMore = page.hasMore;
+                page.products.forEach(p => instance._renderItemData(list, this.toSearchSuggestion(p)));
+                instance.menu.refresh();
+            })
+            .catch(xhr => console.error('❌ Loading more search results failed:', xhr))
+            .finally(() => { state.loading = false; });
+    }
+
     setupProductAutocomplete() {
         const self = this;
         
@@ -566,52 +636,32 @@ class POS {
             // Don't append to body, let it position naturally
             source: function(request, response) {
                 console.log('🔍 Searching for:', request.term);
-                
-                $.ajax({
-                    url: `/POS/SearchProduct?searchTerm=${encodeURIComponent(request.term)}`,
-                    method: 'GET',
-                    success: function(result) {
-                        console.log('📦 Search result:', result);
-                        
-                        if (result.success && result.data) {
-                            const products = Array.isArray(result.data) ? result.data : [result.data];
-                            console.log('📦 Products found:', products.length);
-                            
-                            if (products.length === 0) {
-                                response([{
-                                    label: 'No products found for "' + request.term + '"',
-                                    value: request.term, // Keep the search term
-                                    noResult: true
-                                }]);
-                                return;
-                            }
-                            
-                            const suggestions = products.map(p => ({
-                                label: `${p.name || p.Name} (${p.barcode || p.Barcode || 'No barcode'})`,
-                                value: p.name || p.Name,
-                                product: p
-                            }));
-                            
-                            console.log('📋 Suggestions:', suggestions);
-                            response(suggestions);
-                        } else {
-                            console.log('❌ No data or not successful');
-                            response([{
-                                label: 'No products found for "' + request.term + '"',
-                                value: request.term, // Keep the search term
-                                noResult: true
-                            }]);
+
+                const noResult = [{
+                    label: 'No products found for "' + request.term + '"',
+                    value: request.term, // Keep the search term
+                    noResult: true
+                }];
+
+                // Paging state for this search; the scroll handler below keeps loading pages into it
+                const state = { term: request.term, skip: 0, hasMore: false, loading: false };
+                $(this.element).data('searchState', state);
+
+                self.fetchProductSearchPage(request.term, 0)
+                    .then(page => {
+                        console.log('📦 Products found:', page.products.length);
+                        if (page.products.length === 0) {
+                            response(noResult);
+                            return;
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('❌ Search error:', status, error);
-                        response([{
-                            label: 'No products found for "' + request.term + '"',
-                            value: request.term, // Keep the search term
-                            noResult: true
-                        }]);
-                    }
-                });
+                        state.skip = page.products.length;
+                        state.hasMore = page.hasMore;
+                        response(page.products.map(self.toSearchSuggestion));
+                    })
+                    .catch(xhr => {
+                        console.error('❌ Search error:', xhr);
+                        response(noResult);
+                    });
             },
             select: async function(event, ui) {
                 event.preventDefault();
@@ -726,6 +776,10 @@ class POS {
                         .append(`<div class="ui-menu-item-wrapper">${item.label}</div>`)
                         .appendTo(ul);
                 };
+
+                // Infinite scroll: fetch the next page of matches when the list is scrolled near its bottom
+                const $input = $(this);
+                autocompleteInstance.menu.element.on('scroll', () => self.loadMoreSearchResults($input));
             }
         });
         
@@ -1175,7 +1229,8 @@ class POS {
                             productId: item.Id,
                             quantity: item.Quantity,
                             price: item.Price,
-                            weightOrVolume: item.WeightOrVolume // Weight/volume for non-piece products
+                            weightOrVolume: item.WeightOrVolume, // Weight/volume for non-piece products
+                            ...item.priceSelection(this.defaultCurrency?.id) // chosen price: the server prices the line itself
                         })),
                         // currentDiscount is always { type: 'percentage'|'amount', value, name? } -
                         // it has no .amount/.code/.percentage properties, so those always read as
@@ -1189,7 +1244,8 @@ class POS {
                 });
 
                 if (!cartResponse.success) {
-                    throw new Error('Failed to create cart');
+                    // The server says why, e.g. a custom price below the purchase price.
+                    throw new Error(cartResponse.message || 'Failed to create cart');
                 }
 
                 const cartId = cartResponse.data.cartId;
@@ -1552,8 +1608,11 @@ class POS {
                     convertedPrice,
                     this.defaultCurrency?.notation || 'LBP',  // Cart always displays in default currency
                     productUnit,  // Product's base unit
-                    unit          // Selected unit
+                    unit,         // Selected unit
+                    null, null, null,
+                    true          // catalogue product: the cashier can pick another price for it
                 );
+                newItem.PriceCurrencyId = this.defaultCurrency?.id || currencyId;
                 this.addToCart(newItem);
                 this.elements.barcodeInput.val('');
                 
@@ -1677,7 +1736,8 @@ class POS {
                 productId: item.Id,
                 quantity: item.Quantity,
                 price: item.Price,
-                weightOrVolume: item.WeightOrVolume // Weight/volume for non-piece products
+                weightOrVolume: item.WeightOrVolume, // Weight/volume for non-piece products
+                ...item.priceSelection(this.defaultCurrency?.id)
             }));
 
             // Prepare hold request with discount information
@@ -1919,7 +1979,8 @@ class POS {
                         productId: item.Id,
                         quantity: item.Quantity,
                         price: item.Price,
-                        weightOrVolume: item.WeightOrVolume // Weight/volume for non-piece products
+                        weightOrVolume: item.WeightOrVolume, // Weight/volume for non-piece products
+                        ...item.priceSelection(this.defaultCurrency?.id)
                     }));
 
                     const holdRequest = {
@@ -1986,8 +2047,17 @@ class POS {
                             item.currencyId,
                             item.price,
                             item.price,
-                            item.currencyNotation
+                            item.currencyNotation,
+                            null, null, null, null, null,
+                            true // a resumed line can still have its price changed
                         );
+                        // The price is in the product's own currency here, so say so.
+                        cartItem.PriceCurrencyId = item.currencyId;
+                        if (item.priceKind === 'tier') {
+                            cartItem.setPrice({ price: item.price, currencyId: item.currencyId, tierId: item.priceTierId, label: item.priceLabel });
+                        } else if (item.priceKind === 'custom') {
+                            cartItem.setPrice({ price: item.price, currencyId: item.currencyId, isCustom: true });
+                        }
                         this.cart.push(cartItem);
                         console.log('Added to cart:', cartItem);
                     }
@@ -2448,21 +2518,113 @@ class POS {
         return Math.max(0, subtotal - discountAmount);
     }
 
+    // ===== PRICE PICKER =====
+    setupPricePicker() {
+        this.pricePicker = new PricePicker({
+            loadOptions: (item) => this.loadPriceOptions(item),
+            getDisplay: () => ({
+                currencyId: this.defaultCurrency?.id,
+                notation: this.defaultCurrency?.notation || 'LBP'
+            }),
+            onApply: (item, choice) => this.applyPriceChoice(item, choice)
+        });
+    }
+
+    /** The prices a cashier can choose for this product, already converted into the currency the cart shows. */
+    async loadPriceOptions(item) {
+        const response = await $.ajax({
+            url: '/POS/GetPriceOptions',
+            method: 'GET',
+            data: { productId: item.Id, currencyId: this.defaultCurrency?.id }
+        });
+        if (!response.success) throw new Error(response.message || 'Could not load prices');
+        return response.data; // { options: [{ id, name, price }], minPrice, hasCost }
+    }
+
+    openPricePicker(item, anchor) {
+        if (this.pricePicker.isOpenFor(item)) {
+            this.pricePicker.close();
+            return;
+        }
+        this.pricePicker.open(item, anchor);
+    }
+
+    applyPriceChoice(item, choice) {
+        item.setPrice(choice);
+        // The price is now in the currency the cart shows, whichever currency the line was resumed in.
+        item.CurrencyNotation = this.defaultCurrency?.notation || item.CurrencyNotation;
+        this.updateCartDisplay();
+
+        const label = choice.isCustom
+            ? window.i18n.t('pos.priceCustom', 'Custom')
+            : (choice.label || window.i18n.t('pos.priceRetail', 'Retail'));
+        toastr.success(window.i18n.tf('pos.priceSet', {
+            price: `${item.CurrencyNotation} ${CartItem.formatMoney(choice.price)}`,
+            label
+        }, 'Price set to {price} ({label})'));
+        this.focusBarcodeInput();
+    }
+
+    /**
+     * Sizes the price column to the longest amount in the cart and shrinks any figure that still doesn't fit,
+     * so long LBP amounts are never cut off, wrapped, or pushed over the quantity controls.
+     */
+    layoutCartPrices() {
+        const container = this.elements.cartTableContainer[0];
+        if (!container || container.classList.contains('d-none')) return;
+
+        const measureCtx = this._measureCtx || (this._measureCtx = document.createElement('canvas').getContext('2d'));
+        const measure = (text, weight, px) => {
+            measureCtx.font = `${weight} ${px}px Inter, "Segoe UI", system-ui, sans-serif`;
+            return measureCtx.measureText(text).width;
+        };
+
+        let widest = 0;
+        this.cart.forEach(item => {
+            const money = CartItem.formatMoney(item.Total);
+            const width = item.CanChangePrice
+                ? measure(money, 700, 13.1) + measure(item.CurrencyNotation || '', 600, 9.2) + 4 // number + small currency tag
+                : measure(`${item.CurrencyNotation} ${money}`, 600, 15.2);
+            widest = Math.max(widest, width);
+        });
+
+        const rows = this.elements.cartTableBody[0];
+        const narrow = window.matchMedia('(max-width: 480px)').matches;     // phones use a two-line row
+        const available = rows.clientWidth;
+        const room = narrow
+            ? available - 24 - 8 - 88 - 8                                    // padding, gap, quantity, breathing space
+            : available - 24 - 24 - 88 - 26 - 88;                            // padding, 3 gaps, quantity, delete, minimum name
+        const floor = 92;
+        const width = Math.min(Math.max(floor, room), Math.max(floor, Math.ceil(widest) + 22));
+        container.style.setProperty('--price-w', `${width}px`);
+
+        document.querySelectorAll('.cart-column .fit').forEach(el => {
+            el.style.fontSize = '';
+            let size = parseFloat(getComputedStyle(el).fontSize);
+            while (el.scrollWidth > el.clientWidth + 0.5 && size > 9) {
+                size -= 0.5;
+                el.style.fontSize = `${size}px`;
+            }
+        });
+    }
+
     updateCartDisplay() {
+        if (this.pricePicker) this.pricePicker.close(true);
         this.elements.cartTableBody.empty();
         let subtotal = 0;
         let itemQty = 0;
-        
+
         // Render cart items
         this.cart.forEach((item, index) => {
             subtotal += item.Total;
             const itemHtml = $(item.createHtmlElement(index));
-            
+
             // Bind event handlers for this specific item
             itemHtml.find(".qty-increase").on("click", () => this.updateQuantity(index, 1));
             itemHtml.find(".qty-decrease").on("click", () => this.updateQuantity(index, -1));
             itemHtml.find(".remove-item").on("click", () => this.removeFromCart(index));
-            
+            itemHtml.find(".price-btn").on("click", (e) => this.openPricePicker(item, e.currentTarget));
+
             this.elements.cartTableBody.append(itemHtml);
             itemQty++;
         });
@@ -2523,6 +2685,8 @@ class POS {
         
         // Enable/disable checkout button
         this.elements.checkoutButton.prop("disabled", itemQty === 0);
+
+        this.layoutCartPrices();
     }
 
     // ===== PRODUCT FILTERING =====
@@ -2591,8 +2755,11 @@ class POS {
                     product.currencyId,
                     originalPrice, // OriginalPrice
                     convertedPrice, // ConvertedPrice
-                    displayNotation // CurrencyNotation (always show in default currency)
+                    displayNotation, // CurrencyNotation (always show in default currency)
+                    null, null, null, null, null,
+                    true // catalogue product: the cashier can pick another price for it
                 );
+                item.PriceCurrencyId = this.defaultCurrency?.id || product.currencyId;
 
                 this.addToCart(item);
                 toastr.success(`${product.name} added to cart`);
