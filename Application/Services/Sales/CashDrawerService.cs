@@ -1,4 +1,5 @@
 using Application.IServices.Sales;
+using Core.Discounts;
 using Core.Entities.Sales;
 using Core.Enum;
 using Core.IRepositories.Sales;
@@ -33,6 +34,26 @@ public class CashDrawerService : ICashDrawerService
         session.Orders
             .Where(o => o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned)
             .ToList();
+
+    /// <summary>
+    /// Discounts given and cash-rounding adjustments across the orders, worked out from each order's cart.
+    /// A percentage discount has no DiscountAmount on its cart, so it goes through <see cref="DiscountBreakdown"/>;
+    /// reading DiscountAmount alone left those sales out of the discount total and counted their discount as
+    /// an adjustment.
+    /// </summary>
+    private static (decimal Discounts, decimal Adjustments) DiscountsAndAdjustments(IEnumerable<Order> orders)
+    {
+        decimal discounts = 0, adjustments = 0;
+        foreach (var order in orders.Where(o => o.Cart != null))
+        {
+            var subtotal = order.Cart.CartItems?.Sum(ci => ci.TotalPrice) ?? 0;
+            var discount = DiscountBreakdown.From(subtotal, order.Cart.DiscountAmount, order.Cart.DiscountPercentage);
+            discounts += discount.Amount;
+            adjustments += order.TotalAmount - (subtotal - discount.Amount);
+        }
+
+        return (discounts, adjustments);
+    }
 
     public async Task<CashDrawerSession> OpenDrawerAsync(int userId, decimal openingCash, string? notes = null)
     {
@@ -79,18 +100,8 @@ public class CashDrawerService : ICashDrawerService
         var totalCashDrops = await _cashDropRepository.GetTotalDropsBySessionIdAsync(sessionId);
         
         // Calculate totals (discounts and adjustments from cart data)
-        var totalDiscounts = orders
-            .Where(o => o.Cart != null && o.Cart.DiscountAmount.HasValue)
-            .Sum(o => o.Cart.DiscountAmount!.Value);
-        
-        var totalAdjustments = orders
-            .Where(o => o.Cart != null)
-            .Sum(o => {
-                var cartSubtotal = o.Cart.CartItems?.Sum(ci => ci.TotalPrice) ?? 0;
-                var cartTotal = cartSubtotal - (o.Cart.DiscountAmount ?? 0);
-                return o.TotalAmount - cartTotal;
-            });
-        
+        var (totalDiscounts, totalAdjustments) = DiscountsAndAdjustments(orders);
+
         // Update session
         session.ClosedAt = DateTime.UtcNow;
         session.IsOpen = false;
@@ -206,18 +217,8 @@ public class CashDrawerService : ICashDrawerService
         var totalSales = orders.Sum(o => o.TotalAmount);
         
         // Calculate discounts and adjustments
-        var totalDiscounts = orders
-            .Where(o => o.Cart != null && o.Cart.DiscountAmount.HasValue)
-            .Sum(o => o.Cart.DiscountAmount!.Value);
-        
-        var totalAdjustments = orders
-            .Where(o => o.Cart != null)
-            .Sum(o => {
-                var cartSubtotal = o.Cart.CartItems?.Sum(ci => ci.TotalPrice) ?? 0;
-                var cartTotal = cartSubtotal - (o.Cart.DiscountAmount ?? 0);
-                return o.TotalAmount - cartTotal;
-            });
-        
+        var (totalDiscounts, totalAdjustments) = DiscountsAndAdjustments(orders);
+
         return new SessionSummary
         {
             SessionId = session.Id,

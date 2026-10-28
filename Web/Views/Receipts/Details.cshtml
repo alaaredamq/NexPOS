@@ -181,8 +181,9 @@
                                 </tr>
                                 @if (Model.DiscountAmount > 0)
                                 {
+                                    @* Both forms, whichever way the cashier entered the discount: "Discount (10%)   -$5.00" *@
                                     <tr>
-                                        <td class="text-muted">@Localizer["DiscountLabel"]</td>
+                                        <td class="text-muted">@Localizer["DiscountWithPercent", Model.GetDiscount().PercentageText]</td>
                                         <td class="text-end text-danger">-@Model.Currency.Notation@Model.DiscountAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     </tr>
                                 }
@@ -190,6 +191,14 @@
                                     <td class="text-muted">@Localizer["TaxLabel"]</td>
                                     <td class="text-end">@Model.Currency.Notation@Model.TaxAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 </tr>
+                                @{ var adjustment = Model.GetAdjustment(); }
+                                @if (adjustment != 0)
+                                {
+                                    <tr>
+                                        <td class="text-muted">@Localizer[adjustment > 0 ? "SurchargeLabel" : "AdjustmentLabel"]</td>
+                                        <td class="text-end @(adjustment > 0 ? "text-danger" : "text-success")">@(adjustment > 0 ? "+" : "-")@Model.Currency.Notation@Math.Abs(adjustment).ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    </tr>
+                                }
                                 <tr class="table-active">
                                     <td class="fw-bold">@Localizer["TotalAmount"]</td>
                                     <td class="text-end fw-bold fs-5">@Model.Currency.Notation@Model.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>

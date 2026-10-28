@@ -1,4 +1,5 @@
 @using System.Globalization
+@using Core.Discounts
 @model Core.Entities.Sales.Order
 @inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
 @using Core.Entities.Configuration
@@ -504,7 +505,9 @@
         <div class="totals">
             @{
                 var subtotal = Model.Cart.CartItems.Sum(i => i.TotalPrice);
-                var discountAmount = Model.Cart.DiscountAmount ?? 0;
+                // A percentage discount has no DiscountAmount on the cart - the breakdown gives both forms.
+                var discount = DiscountBreakdown.From(subtotal, Model.Cart.DiscountAmount, Model.Cart.DiscountPercentage);
+                var discountAmount = discount.Amount;
                 var cartTotal = subtotal - discountAmount;
                 var adjustment = Model.TotalAmount - cartTotal;
             }
@@ -515,7 +518,7 @@
             @if (discountAmount > 0)
             {
                 <div class="row">
-                    <span>@Localizer["Discount"]:</span>
+                    <span>@Localizer["DiscountWithPercent", discount.PercentageText]:</span>
                     <span>-$@discountAmount.ToString("F2", CultureInfo.InvariantCulture)</span>
                 </div>
             }

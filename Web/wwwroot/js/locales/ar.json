@@ -172,6 +172,8 @@
     "presetDiscount": "خصم مسبق",
     "selectDiscount": "اختر خصم",
     "currentTotal": "المجموع الحالي",
+    "subtotal": "المجموع الفرعي",
+    "discountEquivalent": "ما يعادله",
     "pleaseEnterValidDiscount": "يرجى إدخال قيمة خصم صحيحة",
     "percentageCannotExceed100": "النسبة المئوية لا يمكن أن تتجاوز 100%",
     "discountCannotExceedTotal": "الخصم لا يمكن أن يتجاوز المبلغ الإجمالي",

@@ -1,3 +1,4 @@
+using Core.Discounts;
 using Core.Entities.Sales;
 using Core.Enum;
 
@@ -25,13 +26,16 @@ public class OrderResponse
     
     // Cart details for adjustment calculation
     public decimal CartSubtotal { get; set; }
+    /// <summary>The discount as money off, whether it was entered as an amount or as a percentage.</summary>
     public decimal CartDiscountAmount { get; set; }
+    /// <summary>The discount as a percentage of <see cref="CartSubtotal"/>, whether it was entered as an amount or as a percentage.</summary>
+    public decimal CartDiscountPercentage { get; set; }
 
     public static OrderResponse FromEntity(Order order)
     {
         var cartSubtotal = order.Cart?.CartItems?.Sum(ci => ci.TotalPrice) ?? 0;
-        var discountAmount = order.Cart?.DiscountAmount ?? 0;
-        
+        var discount = DiscountBreakdown.From(cartSubtotal, order.Cart?.DiscountAmount, order.Cart?.DiscountPercentage);
+
         return new OrderResponse
         {
             Id = order.Id,
@@ -50,7 +54,8 @@ public class OrderResponse
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,
             CartSubtotal = cartSubtotal,
-            CartDiscountAmount = discountAmount
+            CartDiscountAmount = discount.Amount,
+            CartDiscountPercentage = discount.Percentage
         };
     }
 }

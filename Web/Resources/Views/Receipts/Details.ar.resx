@@ -115,6 +115,15 @@
   <data name="DiscountLabel" xml:space="preserve">
     <value>الخصم:</value>
   </data>
+  <data name="DiscountWithPercent" xml:space="preserve">
+    <value>الخصم ({0}):</value>
+  </data>
+  <data name="SurchargeLabel" xml:space="preserve">
+    <value>رسوم إضافية:</value>
+  </data>
+  <data name="AdjustmentLabel" xml:space="preserve">
+    <value>تعديل:</value>
+  </data>
   <data name="TaxLabel" xml:space="preserve">
     <value>الضريبة:</value>
   </data>

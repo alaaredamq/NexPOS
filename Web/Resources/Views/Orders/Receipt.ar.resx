@@ -91,6 +91,9 @@
   <data name="Discount" xml:space="preserve">
     <value>الخصم</value>
   </data>
+  <data name="DiscountWithPercent" xml:space="preserve">
+    <value>الخصم ({0})</value>
+  </data>
   <data name="Surcharge" xml:space="preserve">
     <value>رسوم إضافية</value>
   </data>

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Application.IServices.Sales;
 using Application.IServices.Settings;
+using Core.Discounts;
 using Core.Entities.Configuration;
 using Core.Entities.Sales;
 using Core.IRepositories.PrinterTransport;
@@ -248,10 +249,14 @@ public class ThermalPrinterService : IThermalPrinterService
         var cartItems = order.Cart?.CartItems?.Where(ci => ci != null).ToList()
             ?? new List<Core.Entities.Inventory.CartItem>();
 
+        var subTotal = cartItems.Sum(ci => ci.TotalPrice);
+        // A percentage discount has no DiscountAmount on the cart - work out its money value.
+        var discount = DiscountBreakdown.From(subTotal, order.Cart?.DiscountAmount, order.Cart?.DiscountPercentage);
+
         var receipt = new Receipt(
             $"ORD-{order.Id:D6}", order.Id, order.CustomerId, cashierId: 0,
-            subTotal: cartItems.Sum(ci => ci.TotalPrice), taxAmount: 0,
-            discountAmount: order.Cart?.DiscountAmount ?? 0, totalAmount: order.TotalAmount,
+            subTotal: subTotal, taxAmount: 0,
+            discountAmount: discount.Amount, totalAmount: order.TotalAmount,
             paymentMethodId: 0, currencyId: order.CurrencyId)
         {
             ReceiptDate = order.OrderDate,

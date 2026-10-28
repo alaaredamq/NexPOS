@@ -1,4 +1,5 @@
 using Common.Helpers;
+using Core.Discounts;
 using Core.Entities.Base;
 using Core.Entities.Users;
 using Core.Entities.Products;
@@ -114,6 +115,22 @@ public class Receipt : ISSoftDeletable, IEntityBase<int>
     {
         var notation = Currency?.Notation ?? "$";
         return $"{notation}{TotalAmount:N2}";
+    }
+
+    /// <summary>
+    /// The discount as money off and as a percentage of the subtotal. Only the amount is stored, so the
+    /// percentage is derived - the same for a discount typed as a percentage or as a fixed amount.
+    /// </summary>
+    public DiscountBreakdown GetDiscount() => DiscountBreakdown.From(SubTotal, DiscountAmount, null);
+
+    /// <summary>
+    /// What the cashier added or took off the calculated total at checkout (cash rounding): positive is a
+    /// surcharge, negative a reduction. Sub-cent differences are not an adjustment.
+    /// </summary>
+    public decimal GetAdjustment()
+    {
+        var adjustment = TotalAmount - (SubTotal - DiscountAmount + TaxAmount);
+        return Math.Round(adjustment, 2) == 0 ? 0 : adjustment;
     }
 
     #endregion

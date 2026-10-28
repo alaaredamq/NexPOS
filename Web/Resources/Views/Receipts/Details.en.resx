@@ -115,6 +115,15 @@
   <data name="DiscountLabel" xml:space="preserve">
     <value>Discount:</value>
   </data>
+  <data name="DiscountWithPercent" xml:space="preserve">
+    <value>Discount ({0}):</value>
+  </data>
+  <data name="SurchargeLabel" xml:space="preserve">
+    <value>Surcharge:</value>
+  </data>
+  <data name="AdjustmentLabel" xml:space="preserve">
+    <value>Adjustment:</value>
+  </data>
   <data name="TaxLabel" xml:space="preserve">
     <value>Tax:</value>
   </data>

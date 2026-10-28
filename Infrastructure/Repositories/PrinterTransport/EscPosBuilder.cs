@@ -237,9 +237,15 @@ public class EscPosBuilder : IEscPosBuilder
         Separator();
         Row("Subtotal:", Money(receipt.SubTotal));
         if (receipt.DiscountAmount > 0)
-            Row("Discount:", $"-{Money(receipt.DiscountAmount)}");
+        {
+            // Both forms, whichever way the cashier entered it: "Discount (10%):  -$5.00"
+            Row($"Discount ({receipt.GetDiscount().PercentageText}):", $"-{Money(receipt.DiscountAmount)}");
+        }
         if (receipt.TaxAmount > 0)
             Row("Tax:", Money(receipt.TaxAmount));
+        var adjustment = receipt.GetAdjustment();
+        if (adjustment != 0)
+            Row(adjustment > 0 ? "Surcharge:" : "Adjustment:", $"{(adjustment > 0 ? "+" : "-")}{Money(Math.Abs(adjustment))}");
         Row("TOTAL:", Money(receipt.TotalAmount), PrintLineKind.Bold);
 
         // Payment

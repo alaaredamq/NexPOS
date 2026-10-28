@@ -172,6 +172,8 @@
     "presetDiscount": "Preset Discount",
     "selectDiscount": "Select Discount",
     "currentTotal": "Current Total",
+    "subtotal": "Subtotal",
+    "discountEquivalent": "Equivalent",
     "pleaseEnterValidDiscount": "Please enter a valid discount value",
     "percentageCannotExceed100": "Percentage cannot exceed 100%",
     "discountCannotExceedTotal": "Discount cannot exceed total amount",

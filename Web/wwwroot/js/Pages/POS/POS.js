@@ -2217,8 +2217,9 @@ class POS {
                             <label class="form-label" id="discount-value-label">${window.i18n.t('pos.percentage', 'Percentage')} (%)</label>
                             <input type="number" id="discount-value" class="form-control" step="0.01" placeholder="0">
                         </div>
+                        <div class="mb-3 fw-semibold text-success" id="discount-equivalent" style="min-height: 1.5rem"></div>
                         <div class="alert alert-info">
-                            <small><strong>${window.i18n.t('pos.currentTotal', 'Current Total')}:</strong> ${this.defaultCurrency?.notation || 'LBP'} ${this.total.toFixed(2)}</small>
+                            <small><strong>${window.i18n.t('pos.subtotal', 'Subtotal')}:</strong> ${this.defaultCurrency?.notation || 'LBP'} ${CartItem.formatMoney(this.getSubtotal())}</small>
                         </div>
                     </div>
                 `,
@@ -2235,6 +2236,24 @@ class POS {
                     const valueLabel = $('#discount-value-label');
                     const valueSection = $('#discount-value-section');
                     const presetSection = $('#preset-discount-section');
+                    const equivalent = $('#discount-equivalent');
+
+                    // The discount worked out the other way as the cashier types:
+                    // a percentage shows the money it takes off, a fixed amount shows its percentage.
+                    const updateEquivalent = () => {
+                        const type = typeSelect.val();
+                        const discount = type === 'preset'
+                            ? { type: 'percentage', value: parseFloat($('#preset-discount option:selected').data('rate')) }
+                            : { type, value: parseFloat(valueInput.val()) };
+                        const text = this.discountEquivalent(discount);
+
+                        equivalent.empty();
+                        if (text) {
+                            equivalent
+                                .append(document.createTextNode(`${window.i18n.t('pos.discountEquivalent', 'Equivalent')}: `))
+                                .append($('<bdi dir="ltr">').text(text));
+                        }
+                    };
 
                     typeSelect.on('change', function() {
                         const type = $(this).val();
@@ -2250,11 +2269,15 @@ class POS {
                             valueSection.hide();
                             presetSection.show();
                         }
+                        updateEquivalent();
                     });
+                    valueInput.on('input', updateEquivalent);
+                    $('#preset-discount').on('change', updateEquivalent);
+                    updateEquivalent();
                 },
                 preConfirm: () => {
                     const type = $('#discount-type').val();
-                    
+
                     if (type === 'preset') {
                         const selectedOption = $('#preset-discount option:selected');
                         return {
@@ -2264,7 +2287,7 @@ class POS {
                         };
                     } else {
                         const value = parseFloat($('#discount-value').val());
-                        
+
                         if (!value || value <= 0) {
                             Swal.showValidationMessage(window.i18n.t('pos.pleaseEnterValidDiscount', 'Please enter a valid discount value'));
                             return false;
@@ -2275,7 +2298,9 @@ class POS {
                             return false;
                         }
 
-                        if (type === 'amount' && value > window.pos.total) {
+                        // A new discount replaces the current one, so it is measured against the
+                        // subtotal - the same base the percentage shown above is worked out from.
+                        if (type === 'amount' && value > this.getSubtotal()) {
                             Swal.showValidationMessage(window.i18n.t('pos.discountCannotExceedTotal', 'Discount cannot exceed total amount'));
                             return false;
                         }
@@ -2287,15 +2312,15 @@ class POS {
 
             if (result.isConfirmed) {
                 const { type, value, name } = result.value;
-                
+
                 // Store discount information
                 this.currentDiscount = { type, value, name };
-                
+
                 // Update display to show discount
                 this.updateCartDisplay();
-                
-                const discountText = name || (type === 'percentage' ? `${value}%` : `${this.defaultCurrency?.notation || 'LBP'} ${value}`);
-                toastr.success(`${window.i18n.t('pos.discountApplied', 'Discount applied')}: ${discountText}`);
+
+                const discountText = name || (type === 'percentage' ? this.formatPercent(value) : `${this.defaultCurrency?.notation || 'LBP'} ${CartItem.formatMoney(value)}`);
+                toastr.success(`${window.i18n.t('pos.discountApplied', 'Discount applied')}: ${discountText} (= ${this.discountEquivalent(this.currentDiscount)})`);
             }
         } catch (error) {
             console.error('Error applying discount:', error);
@@ -2502,20 +2527,40 @@ class POS {
 
     // ===== UI UPDATES =====
     calculateTotal() {
-        // Calculate subtotal from all items in cart
-        let subtotal = this.cart.reduce((sum, item) => sum + item.Total, 0);
-        
-        // Apply discount if present
-        let discountAmount = 0;
-        if (this.currentDiscount) {
-            if (this.currentDiscount.type === 'percentage') {
-                discountAmount = subtotal * (this.currentDiscount.value / 100);
-            } else if (this.currentDiscount.type === 'amount') {
-                discountAmount = this.currentDiscount.value;
-            }
-        }
-        
-        return Math.max(0, subtotal - discountAmount);
+        return Math.max(0, this.getSubtotal() - this.discountBreakdown().amount);
+    }
+
+    /** Cart total before any discount, in the default currency. */
+    getSubtotal() {
+        return this.cart.reduce((sum, item) => sum + item.Total, 0);
+    }
+
+    /**
+     * A discount as money off AND as a percentage of the subtotal, whichever way the cashier entered it.
+     * currentDiscount only holds the value that was typed: { type: 'percentage'|'amount', value, name? }.
+     */
+    discountBreakdown(subtotal = this.getSubtotal(), discount = this.currentDiscount) {
+        const value = Number(discount?.value);
+        if (!(value > 0) || !(subtotal > 0)) return { amount: 0, percentage: 0 };
+
+        return discount.type === 'percentage'
+            ? { amount: subtotal * value / 100, percentage: value }
+            : { amount: value, percentage: value / subtotal * 100 };
+    }
+
+    /** 10 -> "10%", 12.5 -> "12.5%", 15.1515 -> "15.15%". */
+    formatPercent(percentage) {
+        return `${Number(percentage).toLocaleString('en-US', { maximumFractionDigits: 2 })}%`;
+    }
+
+    /** A discount worked out the other way: "LBP 15,000" for a percentage, "12.5%" for a fixed amount. */
+    discountEquivalent(discount, subtotal = this.getSubtotal()) {
+        const { amount, percentage } = this.discountBreakdown(subtotal, discount);
+        if (!(amount > 0)) return '';
+
+        return discount.type === 'percentage'
+            ? `${this.defaultCurrency?.notation || 'LBP'} ${CartItem.formatMoney(amount)}`
+            : this.formatPercent(percentage);
     }
 
     // ===== PRICE PICKER =====
@@ -2630,15 +2675,8 @@ class POS {
         });
         
         // Calculate total with discount
-        let discountAmount = 0;
-        if (this.currentDiscount) {
-            if (this.currentDiscount.type === 'percentage') {
-                discountAmount = subtotal * (this.currentDiscount.value / 100);
-            } else if (this.currentDiscount.type === 'amount') {
-                discountAmount = this.currentDiscount.value;
-            }
-        }
-        
+        const { amount: discountAmount, percentage: discountPercentage } = this.discountBreakdown(subtotal);
+
         this.total = Math.max(0, subtotal - discountAmount);
         
         // Show/hide table vs empty state
@@ -2675,9 +2713,10 @@ class POS {
 
         const $discountLine = $('#total-discount');
         if (this.currentDiscount && discountAmount > 0) {
+            // Both forms, whichever way it was entered: "-USD 1.50 (10%)"
             $discountLine.empty()
                 .append($('<s>').text(fmtUsd(subtotalInUSD)))
-                .append($('<span class="discount-chip">').text(`-${fmtUsd(discountInUSD)}`))
+                .append($('<span class="discount-chip">').text(`-${fmtUsd(discountInUSD)} (${this.formatPercent(discountPercentage)})`))
                 .prop('hidden', false);
         } else {
             $discountLine.prop('hidden', true).empty();

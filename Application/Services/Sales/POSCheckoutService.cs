@@ -5,6 +5,7 @@ using Application.IServices.Inventory;
 using Application.IServices.Licensing;
 using Application.IServices.Users;
 using Core.Auditing;
+using Core.Discounts;
 using Core.Entities.Logging;
 using Core.Entities.Sales;
 using Core.Entities.Inventory;
@@ -235,9 +236,8 @@ namespace Application.Services.Sales
                     // set, matching CartSessionService's existing convention (A6) - this used to only
                     // ever subtract DiscountAmount, so a percentage discount was silently ignored here
                     // even when correctly persisted on the cart.
-                    var cartTotal = cart.DiscountPercentage.HasValue && cart.DiscountPercentage.Value > 0
-                        ? cartSubtotal * (1 - cart.DiscountPercentage.Value / 100m)
-                        : cartSubtotal - (cart.DiscountAmount ?? 0);
+                    var cartDiscount = DiscountBreakdown.From(cartSubtotal, cart.DiscountAmount, cart.DiscountPercentage);
+                    var cartTotal = cartSubtotal - cartDiscount.Amount;
 
                     // The client-supplied total may differ slightly for cash rounding, but it must
                     // never be trusted as the sale amount outright. Bound how far it can move the
@@ -329,17 +329,17 @@ namespace Application.Services.Sales
                     {
                         _logger.LogInformation("Creating receipt for order {OrderId}", order.Id);
                     
-                        // Calculate tax and discount amounts
-                        // For weight/volume products, backend CartItem.TotalPrice is wrong because Quantity is stored as int
-                        // (e.g., 300 * $2.20 = $660 instead of 0.3 * $2.20 = $0.66)
-                        // So we recalculate subtotal from receipt items using the correct converted quantities
-                        var discountAmount = cart.DiscountAmount ?? 0;
+                        // The receipt shows the discount as money AND as a percentage, so it needs the real money
+                        // value: a percentage discount has no DiscountAmount on the cart (the cashier typed one or
+                        // the other), and reading that field alone printed such sales with no discount at all.
+                        var discountAmount = cartDiscount.Amount;
                         var taxAmount = 0m; // Calculate if you have tax logic
-                    
-                        // Calculate subtotal from frontend's finalTotal (which is correct for weight/volume products)
-                        // Backend CartItem.TotalPrice is wrong (e.g., 300 * $2.20 = $660 instead of 0.3 * $2.20 = $0.66)
-                        var subTotal = finalTotal + discountAmount; // frontend total + discount = subtotal
-                    
+
+                        // The subtotal is what the lines add up to, so the receipt reads items -> discount -> total.
+                        // Any cash-rounding edit the cashier made to the total shows as its own adjustment line
+                        // (Receipt.GetAdjustment) instead of being folded into the subtotal.
+                        var subTotal = cartSubtotal;
+
                         // Create receipt request
                         var receiptRequest = new CreateReceiptRequest
                         {

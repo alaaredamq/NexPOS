@@ -121,7 +121,7 @@
                         @if (discountAmount > 0)
                         {
                             <div class="d-flex justify-content-between mb-2 text-success">
-                                <span>@Localizer["Discount"]:</span>
+                                <span>@Localizer["DiscountWithPercent", Core.Discounts.DiscountBreakdown.FormatPercentage(Model.CartDiscountPercentage)]:</span>
                                 <span>-$@discountAmount.ToString("F2")</span>
                             </div>
                         }
