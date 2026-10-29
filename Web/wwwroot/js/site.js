@@ -579,3 +579,47 @@ window.NexPos = {
 
 // Backward-compatible alias
 window.ERP = window.NexPos;
+
+/**
+ * Sidebar drawer (below the 992px desktop breakpoint the sidebar is off-canvas).
+ * Everything is delegated from `document`, so it keeps working after lang-switch.js swaps the whole
+ * shell. The state lives on <body class="sidebar-open"> - see .sidebar in css/site.css.
+ */
+(function () {
+    function setOpen(open) {
+        document.body.classList.toggle('sidebar-open', open);
+        document.querySelectorAll('[data-sidebar-toggle]').forEach(function (btn) {
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        // The sidebar comes before the page in the DOM, so Tab from the menu button would never reach it:
+        // move focus in when it opens (Escape hands it back to the button).
+        if (open) {
+            var first = document.querySelector('#sidebar a.nav-link.active, #sidebar a.nav-link');
+            if (first) first.focus({ preventScroll: true });
+        }
+    }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('[data-sidebar-toggle]')) {
+            setOpen(!document.body.classList.contains('sidebar-open'));
+        } else if (e.target.closest('[data-sidebar-close]') || e.target.closest('#sidebar a.nav-link')) {
+            setOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
+            setOpen(false);
+            var toggle = document.querySelector('[data-sidebar-toggle]');
+            if (toggle) toggle.focus();
+        }
+    });
+
+    // Back on a desktop-sized window the drawer state means nothing - clear it.
+    window.matchMedia('(min-width: 992px)').addEventListener('change', function (e) {
+        if (e.matches) setOpen(false);
+    });
+
+    // The shell was replaced (language switch): the new markup starts closed.
+    document.addEventListener('shell:loaded', function () { setOpen(false); });
+})();

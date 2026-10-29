@@ -13,7 +13,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - @Brand.AppName</title>
     <link rel="icon" href="~/branding/favicon?v=@Brand.Version" />
-    
+
+    <!-- local Font (Inter) - same face as the management screens -->
+    <link href="/css/Fonts.css" rel="stylesheet" />
+
     <!-- Bootstrap CSS -->
     <link href="/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="/lib/select2/css/select2.min.css" rel="stylesheet">
@@ -27,1601 +30,114 @@
     <link href="/lib/sweetalert2/sweetalert2.min.css" rel="stylesheet">
     <!-- jQuery UI -->
     <link rel="stylesheet" href="/lib/jquery-ui/themes/ui-lightness/jquery-ui.min.css">
-    <!-- POS Custom CSS -->
+    <!-- POS Custom CSS: tokens first, then the one POS stylesheet (all POS styling lives there, not inline) -->
     <link href="~/css/colors.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/pages/pos.css" rel="stylesheet" asp-append-version="true" />
-    
+
     <!-- RTL CSS for Arabic -->
     @if (isRtl)
     {
         <link href="~/css/rtl.css" rel="stylesheet" asp-append-version="true" />
     }
-    
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--surface-body);
-            overflow: hidden;
-        }
-        
-        .pos-container {
-            height: calc(100vh - 76px); /* Subtract navbar height */
-            width: 100%;
-            overflow: hidden;
-            margin-top: 76px; /* Push content below fixed navbar */
-            padding: 1rem;
-        }
-        
-        .pos-row {
-            height: 100%;
-            margin: 0;
-        }
-        
-        .cart-column, .products-column {
-            padding: 0 0.5rem;
-        }
-        
-        .cart-column {
-            max-width: 400px;
-        }
-        
-        /* Enhanced Navbar Styles */
-        .navbar.bg-teal {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
-            box-shadow: var(--shadow-teal-lg);
-            border-bottom: 3px solid var(--primary-darker);
-        }
-        
-        .navbar-brand {
-            color: var(--white) !important;
-            font-weight: 700;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .navbar-brand:hover {
-            color: var(--status-mint) !important;
-            transform: translateY(-1px);
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-nav .nav-link {
-            color: var(--white) !important;
-            font-weight: 500;
-            padding: 0.75rem 1rem !important;
-            border-radius: 8px;
-            margin: 0 2px;
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-nav .nav-link:hover {
-            background-color: var(--overlay-white-20);
-            color: var(--status-mint) !important;
-            transform: translateY(-2px);
-        }
-        
-        .navbar-nav .nav-link.active {
-            background-color: var(--overlay-white-25);
-            color: var(--white) !important;
-            font-weight: 600;
-        }
-        
-        .navbar-toggler {
-            border-color: var(--overlay-white-30);
-        }
-        
-        .navbar-toggler-icon {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-        }
-        
-        .dropdown-menu {
-            background-color: var(--white);
-            border: 1px solid var(--primary-color);
-            box-shadow: 0 8px 25px var(--overlay-teal-20);
-            border-radius: 12px;
-        }
-        
-        .dropdown-item {
-            color: var(--neutral-750);
-            padding: 0.75rem 1.25rem;
-            transition: all 0.3s ease;
-        }
-        
-        .dropdown-item:hover {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-        
-        .dropdown-item.active {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.4em 0.6em;
-        }
-        
-        /* Status indicators */
-        .status-indicator {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .status-indicator i {
-            color: var(--status-online);
-            animation: pulse 2s infinite;
-        }
-        
-        @@keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        /* User info styling */
-        .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Clock styling */
-        .clock-display {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-        }
-        
-        /* Notification badge */
-        .notification-badge {
-            background: var(--pos-notification-gradient);
-            animation: notificationPulse 2s infinite;
-        }
-        
-        @@keyframes notificationPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        /* Enhanced Shopping Cart Styles */
-        .cart-column {
-            padding: 0;
-        }
-        
-        .pos-card {
-            background: white;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            margin: 0;
-            height: 100%;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .cart-column .pos-card {
-            background: var(--white);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--neutral-200);
-        }
-        
-        .products-column .pos-card {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--neutral-200);
-        }
-        
-        .pos-card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-bright) 100%);
-            color: var(--white);
-            border-radius: 16px 16px 0 0;
-            padding: 0.75rem 1rem;
-            border-bottom: none;
-        }
-        
-        .pos-card-header h4 {
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-            text-shadow: none;
-            margin-bottom: 0.15rem;
-            letter-spacing: 0.3px;
-        }
-        
-        .pos-card-header small {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.75rem;
-            font-weight: 400;
-        }
-        
-        .pos-card-body {
-            background: white;
-            padding: 0.75rem;
-            border-radius: 0;
-            /* Fill whatever the card has left instead of a fixed "100vh - N" cap, which
-               squeezed the cart and product grid on short screens (e.g. 1366x768). */
-            min-height: 0;
-            overflow-y: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .pos-card-footer {
-            background: var(--white);
-            border-radius: 0 0 16px 16px;
-            padding: 0.75rem;
-            border-top: 1px solid var(--neutral-200);
-            margin-top: auto;
-            flex-shrink: 0;
-        }
-        
-        /* Barcode Scanner Enhancement */
-        .input-group {
-            background: var(--white);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            border: 2px solid var(--neutral-200);
-            margin-top: 0.5rem;
-        }
-        
-        .input-group-text {
-            background: white;
-            border: none;
-            color: #0aa2a2;
-            font-size: 1rem;
-            padding: 0.5rem 0.75rem;
-        }
-        
-        .input-group .form-control {
-            border: none;
-            background: white;
-            color: #333;
-            font-weight: 500;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.9rem;
-        }
-        
-        .input-group .form-control:focus {
-            background: white;
-            box-shadow: none;
-            outline: none;
-        }
-        
-        .input-group .btn {
-            background: #0aa2a2;
-            border: none;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            padding: 0.5rem 1rem;
-            border-radius: 0;
-        }
-        
-        .input-group .btn:hover {
-            background: #00706f;
-            transform: scale(1.05);
-        }
-        
-        /* Cart Items Styling */
-        .cart-items-area {
-            min-height: 0;
-            max-height: none;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: #6c757d;
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @@keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .empty-state i {
-            font-size: 4.5rem;
-            color: #e9ecef;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @@keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .empty-state h5 {
-            color: #495057;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-        
-        .empty-state p {
-            color: #6c757d;
-            margin-bottom: 0;
-            font-size: 0.9rem;
-        }
-        
-        /* Cart Table Enhancement */
-        .table {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        }
-        
-        .table thead th {
-            background: linear-gradient(135deg, #0aa2a2 0%, #00706f 100%);
-            color: white;
-            border: none;
-            font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .table tbody tr {
-            border-bottom: 1px solid #f1f3f4;
-        }
-        
-        .table tbody td {
-            border: none;
-            vertical-align: middle;
-            padding: 0.5rem 0.5rem;
-            font-size: 0.85rem;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .table-sm tbody td,
-        .table-sm thead th {
-            padding: 0.5rem 0.5rem;
-        }
-        
-        .table tbody tr {
-            background: white;
-        }
-        
-        .table thead th {
-            background: transparent;
-            color: #6c757d;
-            font-weight: 600;
-            padding: 0.4rem 0.5rem;
-            border: none;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Product Info in Cart */
-        .cart-product-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        /* Hide images in cart for compactness */
-        .cart-product-info .product-image {
-            display: none;
-        }
-        
-        .cart-product-name {
-            font-weight: 500;
-            color: #212529;
-            margin: 0;
-            padding: 0;
-            font-size: 0.9rem;
-        }
-        
-        .cart-product-sku {
-            font-size: 0.55rem;
-            color: #6c757d;
-            font-weight: 500;
-        }
-        
-        /* Quantity Controls */
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
-        }
-        
-        .quantity-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            border: 1px solid #dee2e6;
-            background: white;
-            color: #495057;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            cursor: pointer;
-        }
-        
-        .quantity-btn:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
-        }
-        
-        .quantity-btn:active {
-            background: #e9ecef;
-        }
-        
-        .quantity-input {
-            width: 40px;
-            height: 24px;
-            text-align: center;
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #212529;
-        }
-        
-        .quantity-input:focus {
-            outline: none;
-        }
-        
-        /* Price Display */
-        .price-display {
-            font-weight: 600;
-            color: #212529;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            direction: ltr;
-            unicode-bidi: isolate;
-            font-variant-numeric: tabular-nums;
-        }
 
-        /* Action Buttons */
-        .cart-action-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
-            border: none;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            padding: 0;
-            cursor: pointer;
-        }
-        
-        .cart-action-btn:hover {
-            background: #ffe5e5;
-        }
-        
-        .cart-action-btn:active {
-            background: #ffd0d0;
-        }
-        
-        .btn-remove {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-remove:hover {
-            background: #c82333;
-        }
-        
-        /* Totals Section */
-        .totals-section {
-            background: linear-gradient(135deg, #0aa2a2 0%, #2fc2c2 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 4px 12px rgba(10, 162, 162, 0.25);
-        }
-        
-        .totals-section * {
-            color: white !important;
-        }
-        
-        .totals-section .text-muted {
-            color: rgba(255, 255, 255, 0.95) !important;
-            font-weight: 600;
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.35rem;
-            font-size: 0.9rem;
-            color: white !important;
-        }
-        
-        .total-row:last-child {
-            margin-bottom: 0;
-            padding-top: 0.5rem;
-            border-top: 2px solid rgba(255, 255, 255, 0.3);
-            margin-top: 0.35rem;
-            font-size: 1rem;
-        }
-        
-        .total-row span,
-        .total-row small {
-            color: white !important;
-            font-weight: 600;
-        }
-        
-        .total-amount {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: white !important;
-            letter-spacing: 0.5px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-        }
-
-        /* USD is the headline total, LBP is the quieter line under a hairline */
-        .totals-section {
-            padding: 0.5rem 0.85rem;
-        }
-
-        .totals-section .total-row {
-            gap: 0.75rem;
-            margin: 0;
-            padding: 0;
-            border: 0;
-        }
-
-        /* rtl.css reverses rows on top of dir="rtl", which swaps them twice */
-        html[dir="rtl"] .totals-section .total-row {
-            flex-direction: row;
-        }
-
-        .totals-section .total-row .total-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            opacity: 0.8;
-            white-space: nowrap;
-        }
-
-        .totals-section .total-row .total-figure {
-            color: #fff !important; /* beats pos.css ".total-row span:last-child" brand-color rule */
-            direction: ltr;
-            unicode-bidi: isolate;
-            white-space: nowrap;
-            font-variant-numeric: tabular-nums;
-            text-align: end;
-        }
-
-        .totals-section .total-row .total-figure-primary {
-            font-size: 1.45rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .totals-section .total-row-secondary {
-            margin-top: 0.3rem;
-            padding-top: 0.3rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.25);
-        }
-
-        .totals-section .total-row .total-figure-secondary {
-            font-size: 0.9rem;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-
-        .totals-section .total-discount {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.1rem;
-            font-size: 0.78rem;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .totals-section .total-discount[hidden] {
-            display: none;
-        }
-
-        .totals-section .total-discount s {
-            opacity: 0.75;
-            direction: ltr;
-            unicode-bidi: isolate;
-        }
-
-        .totals-section .total-discount .discount-chip {
-            padding: 0.1rem 0.5rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.22);
-            font-weight: 700;
-            direction: ltr;
-            unicode-bidi: isolate;
-        }
-
-        /* Action Buttons Enhancement */
-        .btn-checkout {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border: none;
-            color: white !important;
-            font-weight: 700;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        #checkoutButton {
-            color: white !important;
-        }
-        
-        #checkoutButton * {
-            color: white !important;
-        }
-        
-        .btn-checkout::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-checkout:hover:not(:disabled)::before {
-            left: 100%;
-        }
-        
-        .btn-checkout:hover:not(:disabled) {
-            background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
-        }
-        
-        .btn-checkout:disabled {
-            background: #dee2e6;
-            color: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .btn-custom {
-            padding: 0.6rem 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            border: 2px solid currentColor;
-        }
-        
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Badge Enhancement */
-        #cart-count {
-            background: linear-gradient(135deg, #0aa2a2, #2fc2c2);
-            color: white;
-            font-weight: 800;
-            font-size: 0.85rem;
-            padding: 0.35em 0.65em;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(10, 162, 162, 0.3);
-            min-width: 24px;
-            text-align: center;
-            animation: badgePulse 2s ease-in-out infinite;
-        }
-        
-        @@keyframes badgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        /* Scrollbar Styling */
-        .pos-card-body::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .pos-card-body::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .pos-card-body::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #0aa2a2, #00706f);
-            border-radius: 10px;
-        }
-        
-        .pos-card-body::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #00706f, #005453);
-        }
-        
-        /* Enhanced Product Grid Styling */
-        .products-column .pos-card-header {
-            background: linear-gradient(135deg, #20c997 0%, #0fb88a 100%);
-            color: white;
-            padding: 0.75rem 1rem;
-        }
-        
-        .products-column .pos-card-header h4 {
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-            text-shadow: none;
-            margin-bottom: 0.15rem;
-            letter-spacing: 0.3px;
-        }
-        
-        .products-column .pos-card-header small {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.75rem;
-            font-weight: 400;
-        }
-        
-        /* Search Input Enhancement */
-        .search-input {
-            position: relative;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus-within {
-            border-color: #20c997;
-            box-shadow: 0 4px 12px rgba(32, 201, 151, 0.15);
-        }
-        
-        .search-input i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #20c997;
-            z-index: 2;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus-within i {
-            color: #0fb88a;
-            transform: translateY(-50%) scale(1.1);
-        }
-        
-        .search-input .form-control {
-            padding: 0.6rem 0.75rem 0.6rem 45px;
-            border: none;
-            background: white;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-        
-        .search-input .form-control:focus {
-            background: white;
-            box-shadow: none;
-            outline: none;
-        }
-        
-        .search-input .form-control::placeholder {
-            color: #adb5bd;
-        }
-        
-        .form-control::placeholder {
-            color: rgba(0, 0, 0, 0.6);
-            font-weight: 500;
-        }
-        
-        /* Select2 Custom Styling for POS */
-        .select2-container--default .select2-selection--single {
-            background-color: white;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            height: auto;
-            padding: 0.6rem 0.75rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        }
-        
-        .select2-container--default .select2-selection--single:focus,
-        .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #20c997;
-            box-shadow: 0 4px 12px rgba(32, 201, 151, 0.15);
-            outline: none;
-        }
-        
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            color: #2d3748;
-            line-height: 1.5;
-            padding: 0;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-        
-        .select2-container--default .select2-selection--single .select2-selection__placeholder {
-            color: #adb5bd;
-            font-weight: 400;
-        }
-        
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 100%;
-            right: 10px;
-        }
-        
-        .select2-container--default .select2-selection--single .select2-selection__arrow b {
-            border-color: #20c997 transparent transparent transparent;
-            border-width: 6px 5px 0 5px;
-        }
-        
-        .select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
-            border-color: transparent transparent #20c997 transparent;
-            border-width: 0 5px 6px 5px;
-        }
-        
-        .select2-dropdown {
-            border: 2px solid #20c997;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(32, 201, 151, 0.15);
-            overflow: hidden;
-        }
-        
-        .select2-container--default .select2-results__option {
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #20c997;
-            color: white;
-        }
-        
-        .select2-container--default .select2-results__option[aria-selected=true] {
-            background-color: #e8f9f4;
-            color: #0aa2a2;
-        }
-        
-        .select2-container--default .select2-search--dropdown .select2-search__field {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.9rem;
-        }
-        
-        .select2-container--default .select2-search--dropdown .select2-search__field:focus {
-            border-color: #20c997;
-            outline: none;
-        }
-        
-        .select2-container {
-            width: 100% !important;
-        }
-        
-        /* Category Filter Enhancement */
-        .form-select {
-            border: 2px solid #e9ecef;
-            background: white;
-            border-radius: 12px;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            padding: 0.6rem 2.5rem 0.6rem 0.75rem;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-select:focus {
-            background: white;
-            border-color: #20c997;
-            box-shadow: 0 4px 12px rgba(32, 201, 151, 0.15);
-        }
-        
-        /* Category Filter Buttons Enhancement */
-        .category-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-        }
-        
-        .category-btn {
-            background: white;
-            border: 1px solid #dee2e6;
-            color: #495057;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-        }
-        
-        .category-btn.active {
-            background: linear-gradient(135deg, #20c997 0%, #0fb88a 100%);
-            color: white;
-            border-color: #20c997;
-            font-weight: 700;
-            box-shadow: 0 3px 10px rgba(32, 201, 151, 0.25);
-        }
-        
-        .category-btn i {
-            margin-right: 0.35rem;
-            font-size: 0.9rem;
-        }
-        
-        /* Products Grid Enhancement */
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 0.85rem;
-            padding: 0;
-        }
-        
-        .product-card {
-            background: white;
-            border-radius: 12px;
-            padding: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e9ecef;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        
-        /* Product SKU/Barcode */
-        .product-sku {
-            font-size: 0.65rem;
-            color: #adb5bd;
-            margin-top: 0.25rem;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .product-image {
-            text-align: center;
-            margin-bottom: 0.6rem;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 60px;
-        }
-        
-        .product-image img {
-            width: 55px;
-            height: 55px;
-            border-radius: 10px;
-            object-fit: cover;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.2s ease;
-            border: 2px solid #f8f9fa;
-        }
-        
-        .product-card:hover .product-image img {
-            transform: scale(1.08);
-            box-shadow: 0 4px 12px rgba(32, 201, 151, 0.15);
-            border-color: #20c997;
-        }
-        
-        .product-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 0.2rem 0.4rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
-            z-index: 1;
-        }
-        
-        .product-badge.new {
-            background: linear-gradient(135deg, #28a745, #218838);
-        }
-        
-        .product-badge.sale {
-            background: linear-gradient(135deg, #ffc107, #e0a800);
-            color: #212529;
-        }
-        
-        .product-info {
-            text-align: center;
-            margin-bottom: auto;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .product-info .product-name {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 0.35rem;
-            font-size: 0.85rem;
-            line-height: 1.3;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            white-space: normal;
-            min-height: 2.2rem;
-        }
-
-        .product-card:hover .product-info .product-name {
-            color: #20c997;
-        }
-        
-        .product-price {
-            font-weight: 800;
-            color: #20c997;
-            font-size: 1rem;
-            margin-bottom: 0.15rem;
-        }
-        
-        .product-stock {
-            font-size: 0.7rem;
-            color: #6c757d;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.25rem;
-        }
-        
-        .product-stock i {
-            font-size: 0.65rem;
-        }
-        
-        .product-stock.low-stock {
-            color: #ffc107;
-            font-weight: 600;
-        }
-        
-        .product-stock.out-of-stock {
-            color: #dc3545;
-            font-weight: 600;
-        }
-        
-        .product-card .btn,
-        .add-to-cart-btn {
-            width: 100%;
-            background: white;
-            border: 1px solid #e9ecef;
-            color: #2d3748;
-            font-weight: 700;
-            border-radius: 8px;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.8rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.08);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        
-        .product-card .btn i,
-        .add-to-cart-btn i {
-            font-size: 0.85rem;
-            color: #20c997;
-            transition: all 0.2s ease;
-        }
-        
-        .product-card .btn:hover,
-        .add-to-cart-btn:hover {
-            background: white;
-            border-color: #20c997;
-            color: #20c997;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(32, 201, 151, 0.15);
-        }
-        
-        .product-card .btn:hover i,
-        .add-to-cart-btn:hover i {
-            transform: scale(1.1);
-        }
-        
-        .product-card .btn:active,
-        .add-to-cart-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-        }
-        
-        .product-card .btn:disabled,
-        .add-to-cart-btn:disabled {
-            background: #f8f9fa;
-            color: #adb5bd;
-            border-color: #e9ecef;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .product-card .btn:disabled i,
-        .add-to-cart-btn:disabled i {
-            color: #adb5bd;
-        }
-        
-        /* Quick Action Buttons Enhancement */
-        .quick-action-btn {
-            background: white;
-            border: 1px solid #dee2e6;
-            color: #495057;
-            border-radius: 10px;
-            padding: 0.75rem 0.5rem;
-            text-align: center;
-            height: 100%;
-            min-height: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .quick-action-btn i {
-            font-size: 1.5rem;
-            margin-bottom: 0.4rem;
-            color: #20c997;
-        }
-        
-        .quick-action-btn .fw-semibold {
-            font-size: 0.85rem;
-            margin-bottom: 0.1rem;
-            font-weight: 700;
-            color: #2d3748;
-            line-height: 1.2;
-        }
-        
-        .quick-action-btn small {
-            font-size: 0.7rem;
-            color: #6c757d;
-        }
-        
-        /* Specific button icon colors */
-        .quick-action-btn.btn-outline-info i { color: #17a2b8; }
-        .quick-action-btn.btn-outline-success i { color: #28a745; }
-        .quick-action-btn.btn-outline-warning i { color: #ffc107; }
-        .quick-action-btn.btn-outline-secondary i { color: #6c757d; }
-        
-        /* Quick Action Button Hover States - Each button gets its matching color */
-        .quick-action-btn.btn-outline-info:hover {
-            background: #17a2b8 !important;
-            border-color: #17a2b8 !important;
-        }
-        .quick-action-btn.btn-outline-info:hover i,
-        .quick-action-btn.btn-outline-info:hover .fw-semibold,
-        .quick-action-btn.btn-outline-info:hover small {
-            color: white !important;
-        }
-        
-        .quick-action-btn.btn-outline-success:hover {
-            background: #28a745 !important;
-            border-color: #28a745 !important;
-        }
-        .quick-action-btn.btn-outline-success:hover i,
-        .quick-action-btn.btn-outline-success:hover .fw-semibold,
-        .quick-action-btn.btn-outline-success:hover small {
-            color: white !important;
-        }
-        
-        .quick-action-btn.btn-outline-warning:hover {
-            background: #ffc107 !important;
-            border-color: #ffc107 !important;
-        }
-        .quick-action-btn.btn-outline-warning:hover i,
-        .quick-action-btn.btn-outline-warning:hover .fw-semibold,
-        .quick-action-btn.btn-outline-warning:hover small {
-            color: #212529 !important;
-        }
-        
-        .quick-action-btn.btn-outline-secondary:hover {
-            background: #6c757d !important;
-            border-color: #6c757d !important;
-        }
-        .quick-action-btn.btn-outline-secondary:hover i,
-        .quick-action-btn.btn-outline-secondary:hover .fw-semibold,
-        .quick-action-btn.btn-outline-secondary:hover small {
-            color: white !important;
-        }
-        
-        /* Footer Enhancement */
-        .pos-card-footer {
-            background: white;
-            border-radius: 0 0 16px 16px;
-            padding: 0.5rem;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .products-column .pos-card-footer {
-            padding: 0.75rem;
-        }
-        
-        .products-column .pos-card-body {
-            padding: 1rem;
-        }
-        
-        /* Loading Animation */
-        @@keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .product-card {
-            opacity: 1;
-        }
-        
-        
-        /* Shine effect on buttons */
-        .btn-checkout::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 30%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn-checkout:hover::after {
-            left: 120%;
-        }
-        
-        .product-card .btn::after,
-        .add-to-cart-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 30%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(32, 201, 151, 0.1), transparent);
-            transition: left 0.5s;
-        }
-        
-        .product-card .btn:hover::after,
-        .add-to-cart-btn:hover::after {
-            left: 120%;
-        }
-        
-        /* Loading state */
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        @@keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Success feedback */
-        @@keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .success-feedback {
-            animation: successPulse 0.3s ease;
-        }
-        
-        /* Compact desktop: 1366x768 screens and Windows scaling (125-150%) give a
-           ~1093x614 or ~910x512 viewport. Give the cart a usable width and tighten
-           vertical spacing so checkout stays on screen. */
-        @@media (min-width: 768px) and (max-width: 1399.98px) {
-            .pos-row > .cart-column {
-                flex: 0 0 auto;
-                width: clamp(300px, 32%, 380px);
-            }
-
-            .pos-row > .products-column {
-                flex: 1 1 0;
-                width: auto;
-                max-width: none;
-                min-width: 0;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-                gap: 0.5rem;
-            }
-
-            /* Smaller tiles so more of the catalog fits; the stock pill stays on one line
-               (it wrapped to two at this width and made every card taller). */
-            .product-card {
-                padding: 0.45rem 0.4rem;
-                border-radius: 10px;
-            }
-
-            .product-card .product-image {
-                height: 38px;
-                min-height: 0;
-                margin-bottom: 0.3rem;
-            }
-
-            .product-image img {
-                width: 34px;
-                height: 34px;
-            }
-
-            .product-info .product-name {
-                font-size: 0.75rem;
-                line-height: 1.25;
-                min-height: 1.9rem;
-                margin-bottom: 0.15rem;
-            }
-
-            .product-info .product-price {
-                font-size: 0.9rem;
-                margin: 0.1rem 0;
-            }
-
-            .product-info .product-stock {
-                font-size: 0.62rem;
-                padding: 0.15rem 0.35rem;
-                margin: 0.2rem 0 0;
-                gap: 0.2rem;
-                border-radius: 8px;
-                white-space: nowrap;
-            }
-
-            .product-info .product-stock i {
-                font-size: 0.6rem;
-            }
-
-            .navbar-nav .nav-link {
-                padding: 0.5rem 0.6rem !important;
-            }
-        }
-
-        @@media (max-height: 800px) {
-            .pos-container {
-                padding: 0.5rem;
-            }
-
-            .pos-card-header {
-                padding: 0.5rem 0.75rem;
-            }
-
-            .pos-card-header .mb-3 {
-                margin-bottom: 0.5rem !important;
-            }
-
-            .empty-state {
-                padding: 1rem;
-            }
-
-            .empty-state i {
-                font-size: 2.5rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .totals-section {
-                padding: 0.5rem 0.75rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .btn-checkout {
-                padding: 0.55rem 1rem;
-            }
-
-            .quick-action-btn {
-                min-height: 56px;
-                padding: 0.35rem;
-            }
-
-            .quick-action-btn small {
-                display: none;
-            }
-
-            .product-card {
-                padding: 0.5rem;
-            }
-        }
-
-        /* Responsive Enhancements */
-        @@media (max-width: 768px) {
-            .pos-container {
-                padding: 0.5rem;
-            }
-            
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 0.5rem;
-            }
-            
-            .product-card {
-                padding: 0.5rem;
-            }
-            
-            .product-image img {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .product-info .product-name {
-                font-size: 0.75rem;
-            }
-            
-            .product-price {
-                font-size: 0.85rem;
-            }
-            
-            .product-card .btn {
-                font-size: 0.7rem;
-                padding: 0.3rem 0.4rem;
-            }
-            
-            .category-filters {
-                justify-content: center;
-            }
-            
-            .category-btn {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
-            
-            .quick-action-btn {
-                min-height: 70px;
-                padding: 0.5rem;
-            }
-            
-            .quick-action-btn i {
-                font-size: 1.25rem;
-            }
-            
-            .quick-action-btn .fw-semibold {
-                font-size: 0.75rem;
-            }
-        }
-    </style>
-    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="/js/Plugins/JqueryUI.min.js"></script>
 </head>
-<body>
-    @{ ViewData["LicenseBannerFloating"] = true; }
-    @await Html.PartialAsync("_LicenseBanner")
-
-    <!-- Top Navigation Bar for POS -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-teal shadow-sm fixed-top">
+<body class="pos-page">
+    <!-- Top Navigation Bar for POS (in the page flow, so the layout below never needs to know its height) -->
+    <nav class="navbar navbar-expand-md navbar-dark pos-nav">
         <div class="container-fluid">
             <!-- Brand/Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
-                <img src="~/branding/logo?variant=light&v=@Brand.Version" alt="@Brand.AppName" height="32" />
+            <a class="navbar-brand" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
+                <img src="~/branding/logo?variant=light&v=@Brand.Version" alt="@Brand.AppName" />
             </a>
 
             <!-- Mobile Toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#posNavbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#posNavbarNav"
+                    aria-controls="posNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <!-- Navigation Menu -->
             <div class="collapse navbar-collapse" id="posNavbarNav">
                 <!-- Main Navigation Items -->
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav pos-nav-start">
                     <!-- Management Link -->
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")" title="@Localizer["GoToManagement"]">
-                            <i class="fas fa-cog me-1"></i>@Localizer["Management"]
+                            <i class="fas fa-cog" aria-hidden="true"></i>@Localizer["Management"]
                         </a>
                     </li>
                 </ul>
 
                 <!-- Right Side Actions -->
                 <ul class="navbar-nav">
-                    <!-- Cart Summary (Mobile) -->
-                    <li class="nav-item d-lg-none">
-                        <a class="nav-link position-relative" href="#" onclick="scrollToCart()">
-                            <i class="fas fa-shopping-cart me-1"></i>
-                            <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle" id="nav-cart-count">0</span>
+                    <!-- Cart Summary (stacked layout only) -->
+                    <li class="nav-item d-md-none">
+                        <a class="nav-link" href="#" onclick="scrollToCart()">
+                            <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                            <span class="badge bg-danger rounded-pill" id="nav-cart-count">0</span>
                         </a>
                     </li>
 
                     <!-- Cash Drawer -->
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Index", "CashDrawer")" title="@SharedLocalizer["CashDrawer"]">
-                            <i class="fas fa-cash-register me-1"></i>
+                            <i class="fas fa-cash-register" aria-hidden="true"></i>
                             <span class="d-none d-lg-inline">@SharedLocalizer["CashDrawer"]</span>
-                            <span class="badge bg-success ms-1" id="drawerStatusBadge" style="display: none;">@SharedLocalizer["Open"]</span>
+                            <span class="badge bg-success" id="drawerStatusBadge" style="display: none;">@SharedLocalizer["Open"]</span>
                         </a>
                     </li>
 
                     <!-- Clock -->
                     <li class="nav-item">
                         <div class="clock-display">
-                            <i class="fas fa-clock me-2"></i>
-                            <span class="text-light fw-semibold" id="current-time"></span>
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <span id="current-time"></span>
                         </div>
                     </li>
 
                     <!-- Language Switcher -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe me-1"></i>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe" aria-hidden="true"></i>
                             @((ViewBag.CurrentLanguage ?? "en").ToUpper())
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item @((ViewBag.CurrentLanguage ?? "en") == "en" ? "active" : "")" 
+                            <li><a class="dropdown-item @((ViewBag.CurrentLanguage ?? "en") == "en" ? "active" : "")"
                                    href="@(ViewBag.EnglishUrl ?? $"/en/{ViewContext.RouteData.Values["Controller"]}/{ViewContext.RouteData.Values["Action"]}")">
-                                <i class="fas fa-flag-usa me-2"></i>English
+                                <i class="fas fa-flag-usa" aria-hidden="true"></i>English
                             </a></li>
-                            <li><a class="dropdown-item @((ViewBag.CurrentLanguage ?? "en") == "ar" ? "active" : "")" 
+                            <li><a class="dropdown-item @((ViewBag.CurrentLanguage ?? "en") == "ar" ? "active" : "")"
                                    href="@(ViewBag.ArabicUrl ?? $"/ar/{ViewContext.RouteData.Values["Controller"]}/{ViewContext.RouteData.Values["Action"]}")">
-                                <i class="fas fa-flag me-2"></i>العربية
+                                <i class="fas fa-flag" aria-hidden="true"></i>العربية
                             </a></li>
                         </ul>
                     </li>
 
                     <!-- User Menu -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>
-                            @User.Identity?.Name
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle" aria-hidden="true"></i>
+                            <span class="nav-user">@User.Identity?.Name</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><h6 class="dropdown-header">@SharedLocalizer["Account"]</h6></li>
                             <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Profile", "Account")">
-                                <i class="fas fa-user me-2"></i>@SharedLocalizer["Profile"]
+                                <i class="fas fa-user" aria-hidden="true"></i>@SharedLocalizer["Profile"]
                             </a></li>
                             <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("ChangePassword", "Account")">
-                                <i class="fas fa-key me-2"></i>@SharedLocalizer["ChangePin"]
+                                <i class="fas fa-key" aria-hidden="true"></i>@SharedLocalizer["ChangePin"]
                             </a></li>
                             @if (User.HasClaim("Permission", "Settings.Manage"))
                             {
-                                <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Index", "Settings")"><i class="fas fa-cog me-2"></i>@SharedLocalizer["Settings"]</a></li>
+                                <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Index", "Settings")"><i class="fas fa-cog" aria-hidden="true"></i>@SharedLocalizer["Settings"]</a></li>
                             }
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
                                     <button type="submit" class="dropdown-item">
-                                        <i class="fas fa-sign-out-alt me-2"></i>@SharedLocalizer["Logout"]
+                                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>@SharedLocalizer["Logout"]
                                     </button>
                                 </form>
                             </li>
@@ -1632,173 +148,158 @@
         </div>
     </nav>
 
-<div class="pos-container">
-    <div class="row pos-row">
-        <!-- Cart Section -->
-        <div class="col-12 col-md-3 cart-column">
-            <div class="pos-card">
-                <!-- Cart Header -->
-                <div class="pos-card-header">
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <div class="d-flex align-items-center">
-                            <div class="me-2">
-                                <i class="fas fa-shopping-cart" style="font-size: 20px;"></i>
+    @* Licence notice: a strip under the top bar (it used to float over the cart's Hold / Clear / Checkout buttons). *@
+    @{ ViewData["LicenseBannerFloating"] = true; }
+    @await Html.PartialAsync("_LicenseBanner")
+
+    <main class="pos-container">
+        <div class="pos-row">
+            <!-- Cart Section -->
+            <section class="cart-column" aria-label="@Localizer["ShoppingCart"]">
+                <div class="pos-card">
+                    <!-- Cart Header -->
+                    <header class="pos-card-header">
+                        <div class="pos-head">
+                            <div class="pos-head-main">
+                                <span class="pos-head-icon"><i class="fas fa-shopping-cart" aria-hidden="true"></i></span>
+                                <div class="pos-head-text">
+                                    <h2 class="pos-head-title">@Localizer["ShoppingCart"]</h2>
+                                    <small class="pos-head-sub">@Localizer["ScanProductsToAdd"]</small>
+                                </div>
                             </div>
-                            <div>
-                                <h4 class="mb-0 fw-bold">@Localizer["ShoppingCart"]</h4>
-                                <small class="text-muted">@Localizer["ScanProductsToAdd"]</small>
+                            <span class="cart-count" id="cart-count">0</span>
+                        </div>
+
+                        <!-- Barcode Scanner -->
+                        <div class="input-group pos-scan">
+                            <span class="input-group-text">
+                                <i class="fas fa-barcode" aria-hidden="true"></i>
+                            </span>
+                            <input type="text" id="barcode-input" placeholder="@Localizer["ScanBarcode"]..." class="form-control"
+                                   aria-label="@Localizer["ScanBarcode"]" autofocus autocomplete="off">
+                            <button type="button" id="add-product-btn" class="btn" aria-label="@Localizer["AddItem"]">
+                                <i class="fas fa-plus" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- Cart Items -->
+                    <div class="pos-card-body">
+                        <div class="cart-items-area" id="cart-items">
+                            <!-- Empty State -->
+                            <div class="empty-state" id="empty-cart">
+                                <i class="fas fa-basket-shopping" aria-hidden="true"></i>
+                                <h5>@Localizer["CartIsEmpty"]</h5>
+                                <p>@Localizer["StartAddingProductsToBegin"]</p>
+                            </div>
+
+                            <!-- Cart Items Table -->
+                            <div class="cart-grid d-none" id="cart-table-container">
+                                <div class="cart-cols" aria-hidden="true">
+                                    <span>@Localizer["Product"]</span>
+                                    <span class="cc-qty">@Localizer["Qty"]</span>
+                                    <span class="cc-price">@Localizer["Price"]</span>
+                                    <span class="cc-del">@Localizer["Del"]</span>
+                                </div>
+                                <div class="cart-rows" id="cart-table-body"></div>
                             </div>
                         </div>
-                        <span class="badge bg-primary" id="cart-count">0</span>
                     </div>
 
-                    <!-- Barcode Scanner -->
-                    <div class="input-group">
-                        <span class="input-group-text">
-                            <i class="fas fa-barcode"></i>
-                        </span>
-                        <input type="text" id="barcode-input" placeholder="@Localizer["ScanBarcode"]..." class="form-control" autofocus autocomplete="false">
-                        <button type="button" id="add-product-btn" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Cart Items -->
-                <div class="pos-card-body">
-                    <div class="cart-items-area" id="cart-items">
-                        <!-- Empty State -->
-                        <div class="empty-state" id="empty-cart">
-                            <i class="ki-filled ki-basket"></i>
-                            <h5>@Localizer["CartIsEmpty"]</h5>
-                            <p class="mb-0">@Localizer["StartAddingProductsToBegin"]</p>
-                        </div>
-                        
-                        <!-- Cart Items Table -->
-                        <div class="cart-grid d-none" id="cart-table-container">
-                            <div class="cart-cols" aria-hidden="true">
-                                <span>@Localizer["Product"]</span>
-                                <span class="cc-qty">@Localizer["Qty"]</span>
-                                <span class="cc-price">@Localizer["Price"]</span>
-                                <span class="cc-del">@Localizer["Del"]</span>
+                    <!-- Cart Footer -->
+                    <footer class="pos-card-footer">
+                        <!-- Totals -->
+                        <div class="totals-section">
+                            <div class="total-row total-row-primary">
+                                <span class="total-label">@Localizer["TotalUSD"]:</span>
+                                <span class="total-figure total-figure-primary fit" id="total-usd">USD 0.00</span>
                             </div>
-                            <div class="cart-rows" id="cart-table-body"></div>
+                            <div class="total-discount" id="total-discount" hidden></div>
+                            <div class="total-row total-row-secondary">
+                                <span class="total-label">@Localizer["TotalLBP"]:</span>
+                                <span class="total-figure total-figure-secondary fit" id="total-lbp">LBP 0</span>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Cart Footer -->
-                <div class="pos-card-footer">
-                    <!-- Totals -->
-                    <div class="totals-section">
-                        <div class="total-row total-row-primary">
-                            <span class="total-label">@Localizer["TotalUSD"]:</span>
-                            <span class="total-figure total-figure-primary fit" id="total-usd">USD 0.00</span>
-                        </div>
-                        <div class="total-discount" id="total-discount" hidden></div>
-                        <div class="total-row total-row-secondary">
-                            <span class="total-label">@Localizer["TotalLBP"]:</span>
-                            <span class="total-figure total-figure-secondary fit" id="total-lbp">LBP 0</span>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-grid gap-2">
-                        <button type="button" id="checkoutButton" class="btn btn-checkout" disabled>
-                            <i class="fas fa-cash-register me-1"></i>@Localizer["Checkout"]
-                        </button>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="button" id="holdButton" class="btn btn-outline-secondary btn-light-secondary btn-custom w-100">
-                                    <i class="fas fa-pause me-1"></i>@Localizer["Hold"]
+                        <!-- Action Buttons -->
+                        <div class="cart-actions">
+                            <button type="button" id="checkoutButton" class="btn btn-checkout" disabled>
+                                <i class="fas fa-cash-register" aria-hidden="true"></i><span>@Localizer["Checkout"]</span>
+                            </button>
+                            <div class="cart-actions-row">
+                                <button type="button" id="holdButton" class="btn btn-custom">
+                                    <i class="fas fa-pause" aria-hidden="true"></i><span>@Localizer["Hold"]</span>
+                                </button>
+                                <button type="button" id="clearCartButton" class="btn btn-custom">
+                                    <i class="fas fa-trash" aria-hidden="true"></i><span>@Localizer["Clear"]</span>
                                 </button>
                             </div>
-                            <div class="col-6">
-                                <button type="button" id="clearCartButton" class="btn btn-outline-danger btn-light-danger btn-custom w-100">
-                                    <i class="fas fa-trash me-1"></i>@Localizer["Clear"]
-                                </button>
+                        </div>
+                    </footer>
+                </div>
+            </section>
+
+            <!-- Products Section -->
+            <section class="products-column" aria-label="@Localizer["ProductCatalog"]">
+                <div class="pos-card products-main-card">
+                    <!-- Products Header: title and search share one row, so the grid gets the height -->
+                    <header class="pos-card-header catalog-head">
+                        <div class="pos-head">
+                            <span class="pos-head-icon"><i class="fas fa-table-cells-large" aria-hidden="true"></i></span>
+                            <div class="pos-head-text">
+                                <h2 class="pos-head-title">@Localizer["ProductCatalog"]</h2>
+                                <small class="pos-head-sub">@Localizer["BrowseAndAddProducts"]</small>
                             </div>
                         </div>
+
+                        <!-- Search with Autocomplete -->
+                        <div class="search-input d-md-none">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="text" id="product-search-mobile" placeholder="@Localizer["Search"]..." class="form-control"
+                                   aria-label="@Localizer["Search"]" autocomplete="off">
+                        </div>
+
+                        <div class="search-input d-none d-md-block">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input type="text" id="product-search" placeholder="@Localizer["Search"]..." class="form-control"
+                                   aria-label="@Localizer["Search"]" autocomplete="off">
+                        </div>
+                    </header>
+
+                    <!-- Products Grid -->
+                    <div class="pos-card-body">
+                        <div class="products-grid" id="products-grid">
+                            @(await Component.InvokeAsync("MainProductsItemComponent"))
+                        </div>
                     </div>
+
+                    <!-- Quick Actions Footer -->
+                    <footer class="pos-card-footer quick-actions">
+                        <button type="button" id="retrieve-held-cart-btn" class="quick-action-btn qa-info" title="@Localizer["RetrieveHeldCart"]">
+                            <i class="fas fa-folder-open" aria-hidden="true"></i>
+                            <span class="fw-semibold">@Localizer["Retrieve"]</span>
+                            <small>@Localizer["HeldCart"]</small>
+                        </button>
+                        <button type="button" id="add-manual-item-btn" class="quick-action-btn qa-success" title="@Localizer["AddItemManual"]">
+                            <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                            <span class="fw-semibold">@Localizer["AddItem"]</span>
+                            <small>@Localizer["Manual"]</small>
+                        </button>
+                        <button type="button" id="discount-btn" class="quick-action-btn qa-warning" title="@Localizer["ApplyDiscount"]">
+                            <i class="fas fa-percentage" aria-hidden="true"></i>
+                            <span class="fw-semibold">@Localizer["Discount"]</span>
+                            <small>@Localizer["Apply"]</small>
+                        </button>
+                        <button type="button" id="price-check-btn" class="quick-action-btn qa-secondary" title="@Localizer["PriceCheck"]">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <span class="fw-semibold">@Localizer["PriceCheck"]</span>
+                            <small>@Localizer["Check"]</small>
+                        </button>
+                    </footer>
                 </div>
-            </div>
+            </section>
         </div>
-
-        <!-- Products Section -->
-        <div class="col-12 col-md-9 products-column d-flex flex-column">
-            <div class="pos-card products-main-card flex-grow-1 d-flex flex-column">
-                <!-- Products Header -->
-                <div class="pos-card-header">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="d-flex align-items-center">
-                            <div class="me-3">
-                                <i class="ki-filled ki-category text-success" style="font-size: 24px;"></i>
-                            </div>
-                            <div>
-                                <h4 class="mb-0 fw-bold">@Localizer["ProductCatalog"]</h4>
-                                <small class="text-muted">@Localizer["BrowseAndAddProducts"]</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Search with Autocomplete -->
-                    <div class="search-input d-md-none mb-3">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="product-search-mobile" placeholder="@Localizer["Search"]..." class="form-control" autocomplete="off">
-                    </div>
-
-                    <div class="d-none d-md-flex mb-3">
-                        <div class="search-input w-100">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="product-search" placeholder="@Localizer["Search"]..." class="form-control" autocomplete="off">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
-                <div class="pos-card-body flex-grow-1">
-                    <div class="products-grid" id="products-grid">
-                        @(await Component.InvokeAsync("MainProductsItemComponent"))
-                    </div>
-                </div>
-
-                <!-- Quick Actions Footer -->
-                <div class="pos-card-footer">
-                    <div class="row g-2">
-                        <div class="col-6 col-md-3">
-                            <button type="button" id="retrieve-held-cart-btn" class="btn btn-outline-info btn-light-info w-100 quick-action-btn" title="@Localizer["RetrieveHeldCart"]">
-                                <i class="fas fa-folder-open"></i>
-                                <div class="fw-semibold">@Localizer["Retrieve"]</div>
-                                <small class="text-muted">@Localizer["HeldCart"]</small>
-                            </button>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <button type="button" id="add-manual-item-btn" class="btn btn-outline-success btn-light-success w-100 quick-action-btn" title="@Localizer["AddItemManual"]">
-                                <i class="fas fa-plus-circle"></i>
-                                <div class="fw-semibold">@Localizer["AddItem"]</div>
-                                <small class="text-muted">@Localizer["Manual"]</small>
-                            </button>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <button type="button" id="discount-btn" class="btn btn-outline-warning btn-light-warning w-100 quick-action-btn" title="@Localizer["ApplyDiscount"]">
-                                <i class="fas fa-percentage"></i>
-                                <div class="fw-semibold">@Localizer["Discount"]</div>
-                                <small class="text-muted">@Localizer["Apply"]</small>
-                            </button>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <button type="button" id="price-check-btn" class="btn btn-outline-secondary btn-light-secondary w-100 quick-action-btn" title="@Localizer["PriceCheck"]">
-                                <i class="fas fa-search"></i>
-                                <div class="fw-semibold">@Localizer["PriceCheck"]</div>
-                                <small class="text-muted">@Localizer["Check"]</small>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    </main>
 
     <!-- jQuery -->
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -1807,10 +308,10 @@
     <script src="~/lib/select2/js/select2.min.js"></script>
     <script src="~/lib/sweetalert2/sweetalert2.min.js"></script>
     <script src="~/lib/toastr/toastr.min.js"></script>
-    
+
     <!-- Localization must load before other scripts that use it -->
     <script src="~/js/localization.js" asp-append-version="true"></script>
-    
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         // Lets the checkout/hold dialogs offer "+ New customer" only to users who may create one
@@ -1827,9 +328,9 @@
         // Real-time clock
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { 
-                hour12: true, 
-                hour: '2-digit', 
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour12: true,
+                hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
             });
@@ -1859,7 +360,7 @@
 
         // Scroll to cart function for mobile
         function scrollToCart() {
-            document.querySelector('.cart-column').scrollIntoView({ 
+            document.querySelector('.cart-column').scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });

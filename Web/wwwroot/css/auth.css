@@ -377,6 +377,48 @@ body::before {
 }
 
 /* =====================================================
+   Short windows (a 1366x768 laptop's browser leaves ~650px)
+   The sign-in card was ~790px tall, so "Sign In" sat below the fold and the page had to scroll just to
+   log in. Tighten the card so the whole form (and the PIN pad) fits. The key sizes live in the PIN pad's
+   own inline <style>, hence the extra specificity (.pin-keypad .pin-key).
+   ===================================================== */
+@media (max-height: 760px) {
+    .card.p-4 {
+        padding: 1.1rem !important;
+    }
+
+    .card .fa-user-lock {
+        font-size: 1.4rem;
+    }
+
+    .card .rounded-circle.p-3 {
+        padding: 0.6rem !important;
+    }
+
+    .card h3 {
+        font-size: 1.25rem;
+    }
+
+    .card .form-control {
+        padding-block: 8px;
+    }
+
+    .pin-keypad .pin-key {
+        padding-block: 7px;
+        font-size: 1.1rem;
+    }
+
+    .pin-keypad {
+        gap: 6px;
+    }
+
+    .card .btn-lg {
+        padding-block: 9px;
+        font-size: 1rem;
+    }
+}
+
+/* =====================================================
    Responsive Design
    ===================================================== */
 

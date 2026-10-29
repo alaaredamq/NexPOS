@@ -46,7 +46,7 @@
             @await Html.PartialAsync("_Sidebar")
 
             <!-- Main Content -->
-            <main class="@(noSidebar ? "col-12" : "col-md-9 ms-sm-auto col-lg-10") @(noSidebar ? "px-3" : "px-0")">
+            <main class="@(noSidebar ? "col-12 px-3" : "app-main")">
                 @await Html.PartialAsync("_TopBar")
 
                 @await Html.PartialAsync("_LicenseBanner")

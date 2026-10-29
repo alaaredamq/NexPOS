@@ -6,11 +6,8 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0 text-dark fw-bold">@ViewData["Title"]</h1>
-                    <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
-                </div>
+            @* the top bar already shows the title and subtitle *@
+            <div class="d-flex justify-content-end align-items-center">
                 <div>
                     @await Html.PartialAsync("_PrintMenu", new PrintMenuModel(
                         Url.Action("PrintLowStockReport", "Inventory")!,

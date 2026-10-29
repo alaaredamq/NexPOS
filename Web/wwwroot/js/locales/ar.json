@@ -119,6 +119,7 @@
     "selectPaymentMethod": "اختر طريقة الدفع...",
     "totalAmountEditable": "المبلغ الإجمالي (قابل للتعديل)",
     "original": "الأصلي",
+    "discountWithPercent": "خصم ({percent})",
     "notes": "ملاحظات",
     "notesOptional": "ملاحظات (اختياري)",
     "addNotes": "إضافة ملاحظات...",

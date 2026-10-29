@@ -252,15 +252,23 @@ const isAppUrl = (url) => {
 // UI zoom shared by every app window; chosen from the screen size on first use.
 let uiZoom = null;
 
+// The page is laid out for roughly this many CSS px of width: a smaller screen gets zoomed out toward it
+// so more fits, but never below MIN_ZOOM (below that the text stops being readable at arm's length).
+// It was 1800 / 0.65, which put a 1366x768 laptop at 76% - 11px body text and 9px captions. At 1500 / 0.8 the
+// same laptop runs at 91%, text is ~20% larger, and the till and tables still fit (see css/pages/pos.css
+// and css/site.css, which adapt to widths down to ~900 CSS px). Raise TARGET_CSS_WIDTH for denser, smaller UI.
+const TARGET_CSS_WIDTH = 1500;
+const MIN_ZOOM = 0.8;
+
 // Shared setup for the main window and any popup windows the app opens (e.g. Add Product).
 function setupWebContents(contents) {
   // Scale the UI down on smaller screens so more fits (cart rows, product tiles, table columns).
   // Re-applied after every load because navigation can reset it.
   if (uiZoom === null) {
     // workAreaSize is in DIPs, so Windows display scaling is already accounted for.
-    // Aim for roughly 1800 CSS px of width; never enlarge, never go below 65% (text gets unreadable).
+    // Aim for TARGET_CSS_WIDTH of width; never enlarge, never go below MIN_ZOOM.
     const { width } = screen.getPrimaryDisplay().workAreaSize;
-    uiZoom = Math.min(1, Math.max(0.65, Math.round((width / 1800) * 100) / 100));
+    uiZoom = Math.min(1, Math.max(MIN_ZOOM, Math.round((width / TARGET_CSS_WIDTH) * 100) / 100));
   }
   contents.on('did-finish-load', () => contents.setZoomFactor(uiZoom));
 

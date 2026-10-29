@@ -1,5 +1,8 @@
 @using Microsoft.EntityFrameworkCore
+@using System.Globalization
 @model List<Core.DTOs.ProductDTO>
+@* Amounts and quantities use the invariant format so they read the same ("$ 3.50", "14.5") as the cart and
+   totals, which JS formats as en-US, instead of "3,50" under the Arabic culture. *@
 @foreach (var product in Model) {
     var currencyNotation = product.Currency?.Notation ?? "LBP";
     var currencyCode = product.Currency?.Code ?? "LBP";
@@ -37,12 +40,12 @@
             </div>
             @if (hasDiscount)
             {
-                <div class="product-price">@currencyNotation @effectivePrice.ToString("N2")</div>
-                <div class="product-original-price" style="text-decoration: line-through; color: #6c757d; font-size: 0.75rem;">@currencyNotation @product.SellingPrice.ToString("N2")</div>
+                <div class="product-price">@currencyNotation @effectivePrice.ToString("N2", CultureInfo.InvariantCulture)</div>
+                <div class="product-original-price">@currencyNotation @product.SellingPrice.ToString("N2", CultureInfo.InvariantCulture)</div>
             }
             else
             {
-                <div class="product-price">@currencyNotation @product.SellingPrice.ToString("N2")</div>
+                <div class="product-price">@currencyNotation @product.SellingPrice.ToString("N2", CultureInfo.InvariantCulture)</div>
             }
             <div class="product-stock @(product.StockQuantity <= 0 ? "out-of-stock" : product.StockQuantity <= (product.MinimumStock ?? 5) ? "low-stock" : "")">
                 @if (product.StockQuantity <= 0)
@@ -55,7 +58,7 @@
                 }
                 else
                 {
-                    @:<i class="fas fa-check-circle"></i> @product.StockQuantity @SharedLocalizer["Units"]
+                    @:<i class="fas fa-check-circle"></i> @product.StockQuantity.ToString("0.##", CultureInfo.InvariantCulture) @SharedLocalizer["Units"]
                 }
             </div>
         </div>

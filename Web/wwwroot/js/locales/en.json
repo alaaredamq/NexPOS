@@ -119,6 +119,7 @@
     "selectPaymentMethod": "Select payment method...",
     "totalAmountEditable": "Total Amount (Editable)",
     "original": "Original",
+    "discountWithPercent": "Discount ({percent})",
     "notes": "Notes",
     "notesOptional": "Notes (Optional)",
     "addNotes": "Add notes...",

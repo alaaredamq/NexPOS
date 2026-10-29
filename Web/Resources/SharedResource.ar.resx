@@ -2377,4 +2377,6 @@
   <data name="Price name required" xml:space="preserve"><value>كل سعر إضافي يحتاج إلى اسم.</value></data>
   <data name="Price amount required" xml:space="preserve"><value>كل سعر إضافي يحتاج إلى مبلغ أكبر من 0.</value></data>
   <data name="Price below purchase" xml:space="preserve"><value>لا يجوز أن يقل السعر الإضافي عن سعر الشراء.</value></data>
+  <data name="Navigation" xml:space="preserve"><value>التنقل</value></data>
+  <data name="Menu" xml:space="preserve"><value>القائمة</value></data>
 </root>

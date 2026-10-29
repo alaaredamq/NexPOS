@@ -3,7 +3,10 @@
    ===================================================== */
 
 :root {
-    --sidebar-width: 280px;
+    /* The rail scales with the window instead of being 16.7% of it (which made it 427px wide at 2560 and
+       cramped at 1280); below 992px it becomes an off-canvas drawer opened from the top bar. */
+    --sidebar-w: clamp(220px, 15vw, 280px);
+    --sidebar-width: var(--sidebar-w);
     --header-height: 70px;
 }
 
@@ -62,22 +65,27 @@ body.no-sidebar main {
     position: fixed;
     top: 0;
     bottom: 0;
-    left: 0;
-    z-index: 100;
+    inset-inline-start: 0;
+    z-index: 1045;
+    width: var(--sidebar-w);
     padding: 0;
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     background: linear-gradient(180deg, var(--white) 0%, var(--gray-100) 100%);
-    border-right: 1px solid var(--gray-200);
-    min-height: 100vh;
+    border-inline-end: 1px solid var(--gray-200);
 }
 
 .sidebar-sticky {
-    position: relative;
-    top: 0;
-    height: calc(100vh - 48px);
+    height: 100%;
     padding-top: .5rem;
+    padding-bottom: 1rem;
     overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+/* dims the page behind the drawer; only exists below the desktop breakpoint */
+.sidebar-scrim {
+    display: none;
 }
 
 /* Sidebar Navigation */
@@ -106,9 +114,10 @@ body.no-sidebar main {
 }
 
 .sidebar .nav-link i {
+    flex: none;
     width: 20px;
     text-align: center;
-    margin-right: 12px;
+    margin-inline-end: 12px;
 }
 
 .sidebar .nav-text {
@@ -116,11 +125,11 @@ body.no-sidebar main {
 }
 
 .sidebar .nav-section-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    color: var(--neutral-425);
+    color: var(--neutral-550);
     padding: 16px 20px 6px;
     margin: 0;
 }
@@ -141,9 +150,19 @@ body.no-sidebar main {
    ===================================================== */
 
 main {
-    margin-left: var(--sidebar-width);
     min-height: 100vh;
     background-color: var(--gray-100);
+}
+
+/* Page area beside the sidebar. margin-inline-start keeps it correct in Arabic without the old
+   per-direction overrides, and flex lets it take exactly what the (variable-width) rail leaves. */
+main.app-main {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    margin-inline-start: var(--sidebar-w);
+    padding-inline: 0;
 }
 
 /* Top Navigation Bar */
@@ -263,6 +282,13 @@ main {
     font-weight: 600;
     color: var(--gray-700);
     margin-bottom: 6px;
+}
+
+/* A product's barcode sits in an input group with Generate / Print beside it. Bootstrap gives the input
+   width:1% / min-width:0, so in a narrow column (the Add Product popup, tablets) it shrank to a sliver
+   ("Er") instead of letting the buttons wrap. With a floor, they wrap under it. */
+#Barcode.form-control {
+    min-width: 9rem;
 }
 
 /* =====================================================
@@ -1357,6 +1383,13 @@ main {
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
+/* DataTables wraps its controls in Bootstrap `.row`s whose -12px gutter margins poke out of the card, so
+   every table sat inside a scroll box 12px wider than itself and showed a pointless sideways scrollbar. */
+.dataTables_wrapper > .row {
+    --bs-gutter-x: 0;
+    margin-inline: 0;
+}
+
 .dataTables_wrapper .dataTables_length,
 .dataTables_wrapper .dataTables_filter,
 .dataTables_wrapper .dataTables_info,
@@ -1470,6 +1503,27 @@ main {
     margin-bottom: 0;
 }
 
+/* On tablet-sized windows a table squeezed its columns until "ORD-000432" broke over two lines and a date
+   over three. There, data cells keep their text on one line and the table scrolls sideways inside its box
+   instead (headers may still wrap). Desktop widths are untouched - tables fit there. A very long cell is
+   capped with an ellipsis so one description can't make the whole table huge; a column that should wrap
+   opts in with Bootstrap's .text-wrap. */
+@media (max-width: 1199.98px) {
+    .table-responsive > .dataTables_wrapper table td,
+    .table-responsive > .table td {
+        max-width: 26rem;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .table-responsive > .dataTables_wrapper table td.text-wrap,
+    .table-responsive > .table td.text-wrap {
+        min-width: 12rem;
+        white-space: normal;
+    }
+}
+
 .modern-table thead {
     background: var(--teal-lighter);
 }
@@ -1551,7 +1605,7 @@ table.dataTable.modern-table tbody tr.even:hover {
     margin: 0 2px;
     border-radius: 6px;
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 /* DataTable Action Buttons - Remove Borders */
@@ -1666,9 +1720,9 @@ table.dataTable .btn-outline-danger:hover {
     color: var(--danger-color) !important;
 }
 
-/* Badge Styling */
+/* Badge Styling (12px floor: the desktop shell zooms small screens out, so 11px lands near 8px) */
 .badge {
-    font-size: 11px;
+    font-size: 12px;
     padding: 4px 8px;
     border-radius: 6px;
 }
@@ -1779,6 +1833,35 @@ table.dataTable .btn-outline-danger:hover {
     font-size: 16px;
 }
 
+/* Top bar: page title on the start side, actions on the end side. The title scales with the window
+   (a 32px heading was the same on a 1280px screen and a phone) and the menu button only exists where
+   the sidebar is a drawer. */
+.min-w-0 {
+    min-width: 0;
+}
+
+.topbar-title h1.h2 {
+    margin-bottom: 0;
+    font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.75rem);
+    line-height: 1.2;
+}
+
+.topbar-title p {
+    font-size: 0.875rem;
+}
+
+.topbar-actions {
+    margin-inline-start: auto;
+}
+
+.sidebar-toggle {
+    flex: none;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+}
+
 /* Dropdown Menu Improvements */
 .dropdown-menu {
     border: 1px solid var(--gray-200);
@@ -1827,7 +1910,7 @@ table.dataTable .btn-outline-danger:hover {
 
 /* Notification Badge Positioning */
 .btn-header-action.position-relative .badge {
-    font-size: 10px;
+    font-size: 11px;
     padding: 2px 6px;
     min-width: 18px;
     height: 18px;
@@ -1921,7 +2004,7 @@ table.dataTable .btn-outline-danger:hover {
     
     .btn-group .btn {
         padding: 4px 6px;
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
@@ -1929,26 +2012,86 @@ table.dataTable .btn-outline-danger:hover {
    Responsive Design
    ===================================================== */
 
-@media (max-width: 768px) {
+/* Below the desktop breakpoint the sidebar is a drawer: closed it sits off-screen (and out of the tab
+   order), the top bar's menu button opens it (site.js toggles body.sidebar-open), the scrim closes it.
+   The old rule hid it at max-width:768px - exactly where Bootstrap's md layout also applies - and
+   nothing could open it again. */
+@media (max-width: 991.98px) {
     .sidebar {
+        width: min(300px, 86vw);
+        visibility: hidden;
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: transform .25s ease, visibility 0s linear .25s;
     }
-    
-    .sidebar.show {
-        transform: translateX(0);
+
+    html[dir="rtl"] .sidebar {
+        transform: translateX(100%);
     }
-    
-    main {
-        margin-left: 0;
+
+    body.sidebar-open .sidebar {
+        visibility: visible;
+        transform: none;
+        box-shadow: 0 0 40px rgba(15, 23, 42, .3);
+        transition: transform .25s ease, visibility 0s;
     }
-    
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    .sidebar-scrim {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1040;
+        background: rgba(15, 23, 42, .45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+    }
+
+    body.sidebar-open .sidebar-scrim {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    main.app-main {
+        margin-inline-start: 0;
+    }
+
     .content-wrapper {
         padding: 15px;
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    body.sidebar-open .sidebar,
+    .sidebar-scrim {
+        transition: none;
+    }
+}
+
 @media (max-width: 576px) {
+    /* the welcome card's greeting and clock side by side left the clock three lines tall on a phone */
+    .welcome-card {
+        padding: 20px;
+    }
+
+    .welcome-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .welcome-card .time-display {
+        text-align: start;
+    }
+
+    .welcome-card .time-text {
+        font-size: 20px;
+    }
+
     .content-wrapper {
         padding: 10px;
     }
@@ -1980,16 +2123,6 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 @media (min-width: 769px) and (max-width: 1399.98px) {
-    .sidebar {
-        width: 220px;
-    }
-
-    main.col-md-9 {
-        flex: 0 0 auto;
-        width: calc(100% - 220px);
-        max-width: none;
-    }
-
     .sidebar .nav-link {
         padding: 9px 12px;
         margin: 1px 6px;
@@ -2076,6 +2209,17 @@ table.dataTable .btn-outline-danger:hover {
 
 .border-primary {
     border-color: var(--primary-color) !important;
+}
+
+/* Used by views (Adjust Stock's card header: "bg-teal text-white") but never defined, so that header
+   rendered white text on a white card and its title was invisible. */
+.bg-teal {
+    background: var(--gradient-primary) !important;
+    color: var(--white);
+}
+
+.text-teal {
+    color: var(--primary-dark) !important;
 }
 
 .shadow-sm {

@@ -222,5 +222,74 @@
     --border-color: var(--neutral-300);
     --border-soft: var(--neutral-200);
     --border-strong-static: var(--neutral-350);
+
+    /* Bootstrap 5.3 "primary" is the brand teal everywhere, so .text-primary / .bg-primary /
+       .border-primary / links stop falling back to Bootstrap blue on pages that don't load site.css
+       (the POS screen and its dialogs showed blue amounts and links). */
+    --bs-primary: var(--primary-color);
+    --bs-primary-rgb: 10, 162, 162;
+    --bs-link-color: var(--primary-dark);
+    --bs-link-color-rgb: 0, 112, 111;
+    --bs-link-hover-color: var(--primary-darker);
+    --bs-link-hover-color-rgb: 0, 84, 83;
+    --bs-focus-ring-color: rgba(10, 162, 162, 0.25);
+}
+
+/* =====================================================
+   SweetAlert2 in the brand palette
+   The dialogs ask for Bootstrap button classes (btn-primary, btn-secondary, ...) but SweetAlert's own
+   stylesheet wins the cascade, so Apply / Hold / Close all came out in SweetAlert's default purple.
+   Map the Bootstrap variants back onto the palette. A confirmButtonColor passed from JS is an inline
+   style and still wins, so red "delete" confirmations stay red.
+   ===================================================== */
+.swal2-container .swal2-styled {
+    font-weight: 600;
+    border-radius: 10px;
+    box-shadow: none;
+    min-height: 40px;
+}
+
+.swal2-container .swal2-styled:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.swal2-container .swal2-styled.swal2-confirm,
+.swal2-container .swal2-styled.btn-primary {
+    background-color: var(--primary-dark);
+    color: var(--white);
+}
+
+.swal2-container .swal2-styled.swal2-confirm:hover,
+.swal2-container .swal2-styled.btn-primary:hover {
+    background-color: var(--primary-darker);
+}
+
+.swal2-container .swal2-styled.swal2-cancel,
+.swal2-container .swal2-styled.btn-secondary {
+    background-color: var(--neutral-200);
+    color: var(--neutral-700);
+}
+
+.swal2-container .swal2-styled.swal2-cancel:hover,
+.swal2-container .swal2-styled.btn-secondary:hover {
+    background-color: var(--neutral-300);
+}
+
+.swal2-container .swal2-styled.btn-success {
+    background-color: var(--success-dark);
+    color: var(--white);
+}
+
+.swal2-container .swal2-styled.btn-danger,
+.swal2-container .swal2-styled.swal2-deny {
+    background-color: var(--danger-strong);
+    color: var(--white);
+}
+
+.swal2-container .swal2-styled.btn-warning {
+    background-color: var(--warning-dark);
+    color: var(--white);
 }
 

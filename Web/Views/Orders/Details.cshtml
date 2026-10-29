@@ -5,12 +5,8 @@
 }
 
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
-            <p class="text-muted">@ViewData["Subtitle"]</p>
-        </div>
+    <!-- Actions (the top bar already shows the title and subtitle) -->
+    <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
         <div class="btn-group">
             <a href="@Url.Action("Index", "Orders")" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i>@Localizer["BackToOrders"]

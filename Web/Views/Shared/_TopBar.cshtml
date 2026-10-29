@@ -10,13 +10,21 @@
 }
 @if (!noSidebar)
 {
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom px-3 px-md-4">
-        <div>
-            <h1 class="h2">@(ViewData["Title"] ?? "")</h1>
-            <p class="text-muted mb-0">@(ViewData["Subtitle"] ?? "")</p>
+    <div class="topbar d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center gap-2 pt-3 pb-2 mb-3 border-bottom px-3 px-md-4">
+        <div class="topbar-title d-flex align-items-center gap-3">
+            @* Below 992px the sidebar is a drawer; this opens it (site.js). *@
+            <button class="btn btn-header-action sidebar-toggle d-lg-none" type="button"
+                    data-sidebar-toggle aria-controls="sidebar" aria-expanded="false"
+                    aria-label="@SharedLocalizer["Menu"]" title="@SharedLocalizer["Menu"]">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="min-w-0">
+                <h1 class="h2">@(ViewData["Title"] ?? "")</h1>
+                <p class="text-muted mb-0">@(ViewData["Subtitle"] ?? "")</p>
+            </div>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="topbar-actions d-flex align-items-center gap-2">
             <a href="@Url.ActionWithCurrentLanguage("Index", "POS")"
                class="btn btn-pos-action"
                title="@SharedLocalizer["GoToPointOfSale"]">

@@ -239,10 +239,35 @@ namespace Application.Services.Sales
                     var cartDiscount = DiscountBreakdown.From(cartSubtotal, cart.DiscountAmount, cart.DiscountPercentage);
                     var cartTotal = cartSubtotal - cartDiscount.Amount;
 
-                    // The client-supplied total may differ slightly for cash rounding, but it must
-                    // never be trusted as the sale amount outright. Bound how far it can move the
-                    // server-calculated total (greater of $1 or 2%) and reject anything past that -
-                    // a bigger discrepancy means either a bug or a tampered request, not rounding.
+                    if (request.TotalAmount < 0)
+                    {
+                        throw new InvalidOperationException("The total cannot be negative.");
+                    }
+
+                    // The cashier can edit the total in the checkout dialog. Lowering it is a discount they
+                    // are giving, so it is folded into the cart's discount (as money; the percentage is
+                    // derived from the subtotal) and the receipt, order page and Z-report show it exactly like
+                    // one applied with the Discount button: "Discount (8.33%): -$2.00". Sub-cent edits are
+                    // left to the adjustment path below.
+                    var reduction = cartTotal - request.TotalAmount;
+                    if (reduction >= 0.01m)
+                    {
+                        var editNote = $"Total edited at checkout: -${reduction:F2}";
+                        cart.DiscountAmount = cartDiscount.Amount + reduction;
+                        cart.DiscountPercentage = null;
+                        cart.DiscountCode = string.IsNullOrEmpty(cart.DiscountCode)
+                            ? editNote
+                            : $"{cart.DiscountCode} | {editNote}";
+                        await _cartRepository.SaveAsync(cart);
+
+                        cartDiscount = DiscountBreakdown.From(cartSubtotal, cart.DiscountAmount, null);
+                        cartTotal = cartSubtotal - cartDiscount.Amount;
+                    }
+
+                    // What is left is a raise (cash rounding up): it may differ slightly, but it must never be
+                    // trusted as the sale amount outright. Bound how far it can move the server-calculated
+                    // total (greater of $1 or 2%) and reject anything past that - a bigger rise means either
+                    // a bug or a tampered request, not rounding.
                     var adjustment = request.TotalAmount - cartTotal;
                     var maxAllowedAdjustment = Math.Max(1.00m, cartTotal * 0.02m);
                     if (Math.Abs(adjustment) > maxAllowedAdjustment)

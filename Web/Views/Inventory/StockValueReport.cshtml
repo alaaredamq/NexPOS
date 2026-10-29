@@ -6,11 +6,8 @@
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0 text-dark fw-bold">@ViewData["Title"]</h1>
-                    <p class="text-muted mb-0">@ViewData["Subtitle"]</p>
-                </div>
+            @* the top bar already shows the title and subtitle *@
+            <div class="d-flex justify-content-end align-items-center">
                 <div>
                     @await Html.PartialAsync("_PrintMenu", new PrintMenuModel(
                         Url.Action("PrintStockValueReport", "Inventory")!,
@@ -176,14 +173,16 @@
                                             <span class="fw-bold text-primary">@item.StockValueFormatted</span>
                                         </td>
                                         <td>
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar bg-primary" role="progressbar" 
-                                                     style="width: @(valuePercentage)%" 
-                                                     aria-valuenow="@valuePercentage" 
-                                                     aria-valuemin="0" 
-                                                     aria-valuemax="100">
-                                                    @valuePercentage.ToString("F1")%
+                                            @* The figure sits beside the bar: inside a 4px-wide bar it was clipped away. *@
+                                            <div class="d-flex align-items-center gap-2" style="min-width: 150px;">
+                                                <div class="progress flex-grow-1" style="height: 10px;">
+                                                    <div class="progress-bar bg-primary" role="progressbar"
+                                                         style="width: @(valuePercentage)%"
+                                                         aria-valuenow="@valuePercentage"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100"></div>
                                                 </div>
+                                                <span class="small fw-semibold text-nowrap text-end" style="min-width: 3.4em;">@valuePercentage.ToString("F1")%</span>
                                             </div>
                                         </td>
                                         <td>

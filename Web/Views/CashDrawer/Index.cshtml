@@ -1,16 +1,14 @@
 @{
     ViewData["Title"] = Localizer["CashDrawerManagement"];
+    // The top bar already prints the title and subtitle; repeating them here showed the heading twice.
+    ViewData["Subtitle"] = Localizer["ManageYourCashDrawerSessionsAndEndOfDayReports"];
     var hasOpenSession = (bool)(ViewData["HasOpenSession"] ?? false);
     var openSessionId = (int?)(ViewData["OpenSessionId"]);
 }
 
 <div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
-            <p class="text-muted">@Localizer["ManageYourCashDrawerSessionsAndEndOfDayReports"]</p>
-        </div>
+    <!-- Actions -->
+    <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
         <div class="btn-group">
             @if (!hasOpenSession)
             {

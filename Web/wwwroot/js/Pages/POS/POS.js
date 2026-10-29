@@ -888,8 +888,9 @@ class POS {
             showCancelButton: true,
             confirmButtonText: window.i18n.t('pos.yesClearIt', 'Yes, clear it!'),
             customClass: {
-                confirmButton: 'btn btn-primary',
-                cancelButton: 'btn btn-danger'
+                // the destructive choice is the red one (these were swapped: confirm teal, cancel red)
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-secondary'
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -1115,6 +1116,7 @@ class POS {
                                 <input type="number" id="checkout-total-amount" class="form-control fw-bold" value="${this.calculateTotal().toFixed(2)}" step="0.01" min="0">
                             </div>
                             <small class="text-muted">${window.i18n.t('pos.original', 'Original')}: ${this.defaultCurrency?.notation || 'LBP'} ${this.calculateTotal().toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</small>
+                            <small id="checkout-edit-discount" class="checkout-edit-discount" hidden></small>
                         </div>
                         <div>
                             <label class="form-label mb-1">${window.i18n.t('pos.notesOptional', 'Notes (Optional)')}</label>
@@ -1140,6 +1142,23 @@ class POS {
                     // walk-in sale has no account to put on debt.
                     const denyButton = Swal.getDenyButton();
                     if (denyButton) denyButton.disabled = true;
+
+                    // Typing a lower total is a discount: say so up front, with the percentage the receipt will
+                    // print (of the subtotal, together with any discount already on the cart).
+                    const notation = this.defaultCurrency?.notation || 'LBP';
+                    const subtotal = this.getSubtotal();
+                    const calculated = this.calculateTotal();
+                    $('#checkout-total-amount').on('input', () => {
+                        const typed = parseFloat($('#checkout-total-amount').val());
+                        const off = calculated - typed;
+                        const hint = document.getElementById('checkout-edit-discount');
+                        if (!hint) return;
+                        if (isNaN(typed) || !(off >= 0.01) || !(subtotal > 0)) { hint.hidden = true; return; }
+                        const totalOff = subtotal - typed;
+                        hint.textContent = window.i18n.tf('pos.discountWithPercent', { percent: this.formatPercent(totalOff / subtotal * 100) }, 'Discount ({percent})')
+                            + ': -' + notation + ' ' + totalOff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        hint.hidden = false;
+                    });
 
                     // Load customers (+ wire the inline "New customer" form)
                     await this.initCustomerField('checkout-customer-select');
@@ -2618,27 +2637,43 @@ class POS {
         const container = this.elements.cartTableContainer[0];
         if (!container || container.classList.contains('d-none')) return;
 
+        // Measure with the fonts the cart really renders (they live in pos.css), so a CSS size change
+        // can never leave this maths out of step.
         const measureCtx = this._measureCtx || (this._measureCtx = document.createElement('canvas').getContext('2d'));
-        const measure = (text, weight, px) => {
-            measureCtx.font = `${weight} ${px}px Inter, "Segoe UI", system-ui, sans-serif`;
+        const fontOf = (el, fallbackWeight) => {
+            if (!el) return { weight: fallbackWeight, px: 15, family: 'Inter, "Segoe UI", system-ui, sans-serif' };
+            const cs = getComputedStyle(el);
+            return { weight: cs.fontWeight, px: parseFloat(cs.fontSize) || 15, family: cs.fontFamily };
+        };
+        const measure = (text, font, scale = 1) => {
+            measureCtx.font = `${font.weight} ${font.px * scale}px ${font.family}`;
             return measureCtx.measureText(text).width;
         };
+        const buttonFont = fontOf(container.querySelector('.pb-total'), 700);
+        const plainFont = fontOf(container.querySelector('.cr-price-text'), 600);
 
         let widest = 0;
         this.cart.forEach(item => {
             const money = CartItem.formatMoney(item.Total);
             const width = item.CanChangePrice
-                ? measure(money, 700, 13.1) + measure(item.CurrencyNotation || '', 600, 9.2) + 4 // number + small currency tag
-                : measure(`${item.CurrencyNotation} ${money}`, 600, 15.2);
+                ? measure(money, buttonFont) + measure(item.CurrencyNotation || '', buttonFont, 0.75) + 4 // number + small currency tag (.cur is .75em)
+                : measure(`${item.CurrencyNotation} ${money}`, plainFont);
             widest = Math.max(widest, width);
         });
 
+        // How much of the row the price may take depends on which arrangement the cart's container query chose.
         const rows = this.elements.cartTableBody[0];
-        const narrow = window.matchMedia('(max-width: 480px)').matches;     // phones use a two-line row
+        const row = rows.querySelector('.cart-row');
+        const rowStyle = row ? getComputedStyle(row) : null;
+        const pad = rowStyle ? parseFloat(rowStyle.paddingInlineStart) + parseFloat(rowStyle.paddingInlineEnd) : 24;
+        const gap = rowStyle ? (parseFloat(rowStyle.columnGap) || 8) : 8;
+        const headings = container.querySelector('.cart-cols');
+        const oneLine = !!headings && getComputedStyle(headings).display !== 'none';
+        const qtyWidth = 104, deleteWidth = 32, minName = 110;
         const available = rows.clientWidth;
-        const room = narrow
-            ? available - 24 - 8 - 88 - 8                                    // padding, gap, quantity, breathing space
-            : available - 24 - 24 - 88 - 26 - 88;                            // padding, 3 gaps, quantity, delete, minimum name
+        const room = oneLine
+            ? available - pad - gap * 3 - qtyWidth - deleteWidth - minName   // name | quantity | price | delete
+            : available - pad - gap - qtyWidth;                              // name over (quantity + price)
         const floor = 92;
         const width = Math.min(Math.max(floor, room), Math.max(floor, Math.ceil(widest) + 22));
         container.style.setProperty('--price-w', `${width}px`);
@@ -2646,7 +2681,7 @@ class POS {
         document.querySelectorAll('.cart-column .fit').forEach(el => {
             el.style.fontSize = '';
             let size = parseFloat(getComputedStyle(el).fontSize);
-            while (el.scrollWidth > el.clientWidth + 0.5 && size > 9) {
+            while (el.scrollWidth > el.clientWidth + 0.5 && size > 11) {
                 size -= 0.5;
                 el.style.fontSize = `${size}px`;
             }

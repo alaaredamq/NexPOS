@@ -224,14 +224,44 @@ public class DiscountDisplayTests
     }
 
     [Fact]
-    public async Task Checkout_CashierRoundedTotal_KeepsTheSubtotalAndDiscountTrue()
+    public async Task Checkout_CashierLowersTheTotal_IsRecordedAsADiscountOnTopOfTheCartDiscount()
     {
-        // The edited total is its own adjustment line; it must not be folded into the subtotal.
+        // Lowering the total at the till is a discount: it joins the cart's 10% (20.00) as money, so the
+        // receipt prints one discount line with its percentage and no separate "Adjustment" line.
         var receipt = await CheckoutAsync(discountAmount: null, discountPercentage: 10m, requestedTotal: 179.75m);
 
         Assert.Equal(200m, receipt.SubTotal);
-        Assert.Equal(20m, receipt.DiscountAmount);
+        Assert.Equal(20.25m, receipt.DiscountAmount);
         Assert.Equal(179.75m, receipt.TotalAmount);
+    }
+
+    [Fact]
+    public async Task Checkout_CashierLowersTheTotalByMoreThanRounding_IsAcceptedAndShowsItsPercentage()
+    {
+        // Used to fail with "differs from the calculated total by more than the allowed rounding adjustment".
+        var receipt = await CheckoutAsync(discountAmount: null, discountPercentage: null, requestedTotal: 184m);
+
+        Assert.Equal(200m, receipt.SubTotal);
+        Assert.Equal(16m, receipt.DiscountAmount);
+        Assert.Equal(184m, receipt.TotalAmount);
+        Assert.Equal("8%", NewReceipt(receipt.SubTotal, receipt.DiscountAmount, receipt.TotalAmount)
+            .GetDiscount().PercentageText);
+    }
+
+    [Fact]
+    public async Task Checkout_CashierRaisesTheTotalSlightly_StaysAnAdjustmentNotADiscount()
+    {
+        var receipt = await CheckoutAsync(discountAmount: null, discountPercentage: null, requestedTotal: 200.50m);
+
+        Assert.Equal(0m, receipt.DiscountAmount);
+        Assert.Equal(200.50m, receipt.TotalAmount);
+    }
+
+    [Fact]
+    public async Task Checkout_CashierRaisesTheTotalFarPastRounding_IsRejected()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => CheckoutAsync(discountAmount: null, discountPercentage: null, requestedTotal: 210m));
     }
 
     [Fact]
