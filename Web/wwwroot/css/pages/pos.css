@@ -1716,6 +1716,98 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     min-width: 0;
 }
 
+/* The select is a button that opens the searchable list below it */
+.pos-custpick-trigger {
+    text-align: start;
+    cursor: pointer;
+}
+
+.pos-custpick-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Lazy customer list: opens inline (no popover to get clipped by the dialog), animated like .pos-newcust */
+.pos-custpick {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .2s ease-out;
+}
+
+.pos-custpick.open {
+    grid-template-rows: 1fr;
+}
+
+.pos-custpick-clip {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.pos-custpick-body {
+    margin-top: .5rem;
+    padding: .5rem;
+    border: 1px solid var(--neutral-350);
+    border-radius: 10px;
+    background: #fff;
+}
+
+/* Just under 5 rows tall, so a first page of 5 (+ Walk-in) always scrolls and triggers the next page */
+.pos-custpick-list {
+    max-height: 184px;
+    margin: .5rem 0 0;
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+}
+
+.pos-custpick-option,
+.pos-custpick-status {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: .4rem .65rem;
+    border-radius: 8px;
+    font-size: .9375rem;
+}
+
+.pos-custpick-option {
+    color: var(--cart-ink);
+    cursor: pointer;
+}
+
+.pos-custpick-option.walkin {
+    color: var(--cart-ink-2);
+    font-style: italic;
+}
+
+.pos-custpick-option.active {
+    background: var(--primary-lighter);
+}
+
+.pos-custpick-option[aria-selected="true"] {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+.pos-custpick-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pos-custpick-status {
+    justify-content: center;
+    color: var(--cart-ink-3);
+    font-size: .875rem;
+}
+
+.pos-custpick-status.error {
+    color: var(--danger-strong);
+}
+
 .pos-newcust-toggle {
     flex: 0 0 auto;
     display: inline-flex;

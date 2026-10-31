@@ -530,6 +530,35 @@ namespace Web.Controllers
         }
 
         /// <summary>
+        /// One page of customers for the checkout/hold pickers (lazy-loaded as the cashier scrolls),
+        /// optionally filtered by <paramref name="search"/>. Page is 1-based; size is capped at 50.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetCustomersPage(string? search, int page = 1, int pageSize = 5)
+        {
+            try
+            {
+                pageSize = Math.Clamp(pageSize, 1, 50);
+                page = Math.Max(page, 1);
+
+                var (items, hasMore) = await _customerService.SearchPagedAsync(search, (page - 1) * pageSize, pageSize);
+                var data = items.Select(c => new
+                {
+                    id = c.Id,
+                    name = $"{c.FirstName} {c.LastName}".Trim(),
+                    email = c.Email
+                });
+
+                return Json(new { success = true, data, hasMore });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting customers page");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Quick-create a customer from inside the POS checkout/hold dialogs so the cashier
         /// never has to leave the page (and lose the cart). Takes first and last name only,
         /// with the same 2-100 character rule as the Customers page; email is left empty.

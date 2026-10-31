@@ -955,39 +955,209 @@ class POS {
                 </div>
             </div>` : '';
 
+        // The value lives in a hidden input (same id the dialogs read with .val() / listen to for
+        // "change"); the visible control is a button that opens a searchable, lazy-loaded list.
         return `
             <div class="pos-customer-field text-start" data-select="${selectId}">
-                <label class="form-label ${labelClass}" for="${selectId}">${t('pos.customerOptional', 'Customer (Optional)')}</label>
+                <label class="form-label ${labelClass}" for="${selectId}-trigger">${t('pos.customerOptional', 'Customer (Optional)')}</label>
                 <div class="pos-customer-row">
-                    <select id="${selectId}" class="form-select ${sizeClass}">
-                        <option value="">${t('pos.loadingCustomers', 'Loading customers...')}</option>
-                    </select>
+                    <input type="hidden" id="${selectId}" value="0">
+                    <button type="button" id="${selectId}-trigger" class="form-select ${sizeClass} pos-custpick-trigger"
+                            aria-haspopup="listbox" aria-expanded="false" aria-controls="${selectId}-list">
+                        <span class="pos-custpick-label">${t('pos.walkInCustomer', 'Walk-in Customer')}</span>
+                    </button>
                     ${newButton}
+                </div>
+                <div class="pos-custpick" inert>
+                    <div class="pos-custpick-clip">
+                        <div class="pos-custpick-body">
+                            <input type="search" class="form-control ${btnSize ? 'form-control-sm' : ''} pos-custpick-search"
+                                   placeholder="${t('pos.searchCustomers', 'Search customers...')}"
+                                   aria-label="${t('pos.searchCustomers', 'Search customers...')}"
+                                   role="combobox" aria-expanded="true" aria-controls="${selectId}-list"
+                                   autocomplete="off" maxlength="100">
+                            <ul class="pos-custpick-list" id="${selectId}-list" role="listbox" tabindex="-1"></ul>
+                        </div>
+                    </div>
                 </div>
                 ${panel}
             </div>`;
     }
 
-    /** Fills the select with Walk-in + all customers, then wires the quick-create panel. */
+    /**
+     * Wires the customer picker (lazy 5-at-a-time list with search and infinite scroll)
+     * and the quick-create panel. Nothing is fetched until the cashier opens the list.
+     */
     async initCustomerField(selectId) {
         const t = (key, fallback) => window.i18n.t(key, fallback);
-        const $select = $('#' + selectId);
-        const walkIn = () => $('<option>').val('0').prop('selected', true).text(t('pos.walkInCustomer', 'Walk-in Customer'));
+        const PAGE_SIZE = 5;
+        const $value = $('#' + selectId);
+        const $field = $value.closest('.pos-customer-field');
+        const $trigger = $('#' + selectId + '-trigger');
+        const $label = $trigger.find('.pos-custpick-label');
+        const $pick = $field.find('.pos-custpick');
+        const $search = $field.find('.pos-custpick-search');
+        const $list = $field.find('.pos-custpick-list');
+        const list = $list[0];
 
-        try {
-            const response = await $.ajax({ url: '/POS/GetCustomers', method: 'GET' });
-            $select.empty().append(walkIn());
-            if (response.success && response.data.length > 0) {
-                response.data.forEach((customer) => {
-                    $('<option>').val(customer.id).text(customer.name).appendTo($select);
+        const walkInName = t('pos.walkInCustomer', 'Walk-in Customer');
+        const state = { term: '', page: 0, hasMore: true, loading: false, seq: 0, stale: true, active: -1 };
+        let searchTimer = null;
+
+        const optionEl = (id, name, extra = '') => {
+            const $li = $('<li role="option" class="pos-custpick-option">').attr('data-id', id).addClass(extra);
+            $('<span class="pos-custpick-name">').text(name).appendTo($li);
+            $li.attr('aria-selected', String($value.val() === String(id)));
+            return $li;
+        };
+        const setStatus = (text, cls) => {
+            $list.children('.pos-custpick-status').remove();
+            if (text) $('<li class="pos-custpick-status" role="presentation">').addClass(cls || '').text(text).appendTo($list);
+        };
+        const options = () => $list.children('.pos-custpick-option');
+        const setActive = (index) => {
+            const $opts = options();
+            if (!$opts.length) { state.active = -1; return; }
+            state.active = Math.max(0, Math.min(index, $opts.length - 1));
+            $opts.removeClass('active');
+            const el = $opts.eq(state.active).addClass('active')[0];
+            $search.attr('aria-activedescendant', el.id || '');
+            el.scrollIntoView({ block: 'nearest' });
+        };
+
+        const select = (id, name) => {
+            $value.val(String(id));
+            $label.text(name);
+            $value.trigger('change');
+            setPickerOpen(false);
+            $trigger.trigger('focus');
+        };
+
+        // Loads the next page (or the first one after a reset) and appends it.
+        const loadMore = async () => {
+            if (state.loading || !state.hasMore) return;
+            state.loading = true;
+            const seq = state.seq;
+            const nextPage = state.page + 1;
+            setStatus(t('pos.loadingCustomers', 'Loading customers...'), 'loading');
+            try {
+                const res = await $.ajax({
+                    url: '/POS/GetCustomersPage',
+                    method: 'GET',
+                    data: { search: state.term, page: nextPage, pageSize: PAGE_SIZE }
                 });
+                if (seq !== state.seq) return; // a newer search/reset superseded this request
+                if (!res || !res.success) throw new Error(res && res.message);
+
+                setStatus('');
+                res.data.forEach((c) => {
+                    const $li = optionEl(c.id, c.name);
+                    $li.attr('id', `${selectId}-opt-${c.id}`);
+                    $list.append($li);
+                });
+                if (!res.data.length && nextPage === 1) {
+                    setStatus(t('pos.noCustomersFound', 'No customers found'), 'empty');
+                }
+                state.page = nextPage;
+                state.hasMore = !!res.hasMore;
+                if (nextPage === 1 && state.active < 0) setActive(0);
+            } catch (error) {
+                if (seq !== state.seq) return;
+                console.error('Error loading customers:', error);
+                setStatus(t('pos.failedToLoadCustomers', 'Could not load customers'), 'error');
+                state.hasMore = false;
+            } finally {
+                if (seq === state.seq) {
+                    state.loading = false;
+                    // Short page that does not fill the viewport can't be scrolled - keep going
+                    if (state.hasMore && list.scrollHeight <= list.clientHeight + 8) loadMore();
+                }
             }
-        } catch (error) {
-            console.error('Error loading customers:', error);
-            $select.empty().append(walkIn());
+        };
+
+        // Restarts the list from page 1 for the current search term.
+        const reset = () => {
+            state.seq++;
+            state.page = 0;
+            state.hasMore = true;
+            state.loading = false;
+            state.stale = false;
+            state.active = -1;
+            $list.empty();
+            list.scrollTop = 0;
+            // Walk-in is a fixed entry on top; hidden while searching so results are only matches
+            if (!state.term) {
+                $list.append(optionEl('0', walkInName, 'walkin').attr('id', `${selectId}-opt-0`));
+                setActive(0);
+            }
+            loadMore();
+        };
+
+        function setPickerOpen(open) {
+            $pick.toggleClass('open', open).prop('inert', !open);
+            $trigger.attr('aria-expanded', String(open));
+            if (open) {
+                if (state.stale) reset();
+                options().each((_, el) => el.setAttribute('aria-selected', String($value.val() === el.dataset.id)));
+                $search.trigger('focus');
+            }
         }
 
-        const $field = $select.closest('.pos-customer-field');
+        $trigger.on('click', () => setPickerOpen(!$pick.hasClass('open')));
+
+        $list.on('scroll', () => {
+            if (list.scrollTop + list.clientHeight >= list.scrollHeight - 24) loadMore();
+        });
+        // mousedown keeps focus in the search box instead of dropping it onto the <ul>
+        $list.on('mousedown', (e) => e.preventDefault());
+        $list.on('click', '.pos-custpick-option', function () {
+            select($(this).attr('data-id'), $(this).find('.pos-custpick-name').text());
+        });
+        $list.on('mousemove', '.pos-custpick-option', function () {
+            const idx = options().index(this);
+            if (idx !== state.active) setActive(idx);
+        });
+
+        $search.on('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                const term = ($search.val() || '').trim();
+                if (term === state.term && !state.stale) return;
+                state.term = term;
+                reset();
+            }, 250);
+        });
+
+        // Keep Enter/Escape/arrows inside the picker: SweetAlert2 would otherwise confirm or
+        // close the whole dialog (checkout / hold) from a keypress meant for this list.
+        $search.on('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActive(state.active + 1);
+                if (state.active === options().length - 1) loadMore();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setActive(state.active - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                const $opt = options().eq(state.active);
+                if ($opt.length) select($opt.attr('data-id'), $opt.find('.pos-custpick-name').text());
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setPickerOpen(false);
+                $trigger.trigger('focus');
+            }
+        });
+        $trigger.on('keydown', (e) => {
+            if (e.key === 'Escape' && $pick.hasClass('open')) {
+                e.preventDefault();
+                e.stopPropagation();
+                setPickerOpen(false);
+            }
+        });
+
         const $toggle = $field.find('.pos-newcust-toggle');
         if (!$toggle.length) return;
 
@@ -1044,18 +1214,19 @@ class POS {
                     throw new Error((res && res.message) || t('pos.failedToCreateCustomer', 'Could not create the customer'));
                 }
 
-                let $option = $select.find('option').filter((_, o) => o.value === String(res.data.id));
-                if (!$option.length) {
-                    $option = $('<option>').val(res.data.id).text(res.data.name).appendTo($select);
-                }
-                $select.val(String(res.data.id)).trigger('change');
+                // The new customer may not be in the pages loaded so far: show the name on the
+                // picker and refetch the list from page 1 the next time it opens.
+                $value.val(String(res.data.id));
+                $label.text(res.data.name);
+                state.stale = true;
+                $value.trigger('change');
 
                 toastr.success(t('pos.customerAdded', 'Customer added and selected'));
 
                 $first.val('');
                 $last.val('');
                 setOpen(false);
-                $select.trigger('focus');
+                $trigger.trigger('focus');
             } catch (error) {
                 showError(error.message || t('pos.failedToCreateCustomer', 'Could not create the customer'));
             } finally {

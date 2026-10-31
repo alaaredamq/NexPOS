@@ -7,6 +7,7 @@ public interface ICustomerService : IBaseService
 {
     Task<List<Customer>> GetAllAsync();
     Task<List<Customer>> GetAllWithOrdersAsync();
+    Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take);
     Task<Customer> GetByIdAsync(int id);
     Task<Customer> CreateAsync(Customer customer);
     Task UpdateAsync(int id, Customer customer);

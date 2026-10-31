@@ -16,6 +16,30 @@ public class CustomerRepository : Repository<Customer>, ICustomerRepository
     public async Task<List<Customer>> GetAllWithOrdersAsync() =>
         await GetAllQueryable().Include(c => c.Orders).AsSplitQuery().ToListAsync();
 
+    public async Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take)
+    {
+        var query = GetAllQueryable();
+
+        var term = search?.Trim();
+        if (!string.IsNullOrEmpty(term))
+        {
+            query = query.Where(c =>
+                (c.FirstName + " " + c.LastName).Contains(term) ||
+                c.Email.Contains(term) ||
+                (c.PhoneNumber != null && c.PhoneNumber.Contains(term)));
+        }
+
+        var rows = await query
+            .OrderBy(c => c.FirstName).ThenBy(c => c.LastName).ThenBy(c => c.Id)
+            .Skip(skip)
+            .Take(take + 1)
+            .ToListAsync();
+
+        var hasMore = rows.Count > take;
+        if (hasMore) rows.RemoveAt(take);
+        return (rows, hasMore);
+    }
+
     public new async Task<Customer> GetByIdAsync(int id)
     {
         var customer = await GetAllQueryable()
