@@ -6,6 +6,35 @@ Write-Host "  NexPos Desktop App Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Step 0: Build the React client (client/ -> Web/wwwroot/app) so the publish below ships it
+$clientPath = Join-Path $PSScriptRoot "client"
+$hasClient = Test-Path (Join-Path $clientPath "package.json")
+
+if ($hasClient) {
+    Write-Host "Step 0: Building React client..." -ForegroundColor Yellow
+    Write-Host ""
+
+    Push-Location $clientPath
+    try {
+        npm ci
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to install client dependencies!" -ForegroundColor Red
+            exit 1
+        }
+        # Also runs the bundle-budget check, so an over-budget bundle stops the installer build.
+        npm run build
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Failed to build the React client!" -ForegroundColor Red
+            exit 1
+        }
+    } finally {
+        Pop-Location
+    }
+
+    Write-Host "✓ React client built" -ForegroundColor Green
+    Write-Host ""
+}
+
 # Step 1: Publish .NET Application
 Write-Host "Step 1: Publishing .NET Application..." -ForegroundColor Yellow
 Write-Host ""
@@ -19,7 +48,7 @@ if (Test-Path $publishPath) {
 
 Write-Host "Publishing to: $publishPath" -ForegroundColor Gray
 dotnet publish "Web\Web.csproj" -c Release -r win-x64 --self-contained true `
-    -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=false -o $publishPath
+    -p:PublishReadyToRun=true -p:PublishReadyToRunComposite=false -p:SkipClientBuild=true -o $publishPath
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Failed to publish .NET application!" -ForegroundColor Red
@@ -28,6 +57,17 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "✓ .NET application published successfully" -ForegroundColor Green
 Write-Host ""
+
+# The installer is built from publish\app, so fail here (not on a customer's PC) if the SPA is missing from it.
+if ($hasClient) {
+    $spaIndex = Join-Path $publishPath "wwwroot\app\index.html"
+    if (-not (Test-Path $spaIndex)) {
+        Write-Host "ERROR: $spaIndex is missing - the React client was not included in the publish output!" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "✓ React client present in publish output" -ForegroundColor Green
+    Write-Host ""
+}
 
 # Step 2: Install npm dependencies (if needed)
 Write-Host "Step 2: Checking npm dependencies..." -ForegroundColor Yellow

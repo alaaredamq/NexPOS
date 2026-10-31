@@ -65,6 +65,32 @@
       <None Include="wwwroot\Metronics\html\**" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
     </ItemGroup>
 
+    <!-- React client (../client): Release builds compile it into wwwroot/app (Vite outDir) so publish ships the SPA.
+         Debug builds never touch npm (use `npm run dev` in client/). Skip it for a fast C# build with
+         -p:SkipClientBuild=true; build-electron.ps1 builds the client itself and passes that. -->
+    <PropertyGroup>
+      <ClientDir>$(MSBuildProjectDirectory)\..\client\</ClientDir>
+      <BuildClient Condition="'$(BuildClient)' == '' And '$(Configuration)' == 'Release' And '$(SkipClientBuild)' != 'true' And Exists('$(ClientDir)package.json')">true</BuildClient>
+    </PropertyGroup>
+
+    <Target Name="BuildClient" BeforeTargets="BeforeBuild" Condition="'$(BuildClient)' == 'true'">
+      <Message Importance="high" Text="Building React client in $(ClientDir) (skip with -p:SkipClientBuild=true)..." />
+      <Exec Command="npm ci" WorkingDirectory="$(ClientDir)" Condition="!Exists('$(ClientDir)node_modules')" />
+      <Exec Command="npm run build" WorkingDirectory="$(ClientDir)" />
+    </Target>
+
+    <!-- wwwroot is globbed when the project is evaluated, i.e. before BuildClient has written wwwroot/app on a clean
+         checkout, so add whatever it produced to the publish list explicitly. No-op when the files were already there. -->
+    <Target Name="PublishClientOutput" AfterTargets="ComputeFilesToPublish" Condition="Exists('$(MSBuildProjectDirectory)\wwwroot\app\index.html')">
+      <ItemGroup>
+        <_SpaFile Include="$(MSBuildProjectDirectory)\wwwroot\app\**" />
+        <ResolvedFileToPublish Include="@(_SpaFile->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+          <RelativePath>wwwroot\app\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </ResolvedFileToPublish>
+      </ItemGroup>
+    </Target>
+
     <ItemGroup>
       <ProjectReference Include="..\Application\Application.csproj" />
       <ProjectReference Include="..\Core\Core.csproj" />

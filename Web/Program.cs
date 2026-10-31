@@ -540,7 +540,18 @@ app.UseStaticFiles(new StaticFileOptions
         // Fingerprinted assets (asp-append-version adds ?v=hash) never change for a given
         // hash → cache hard. Other bucketed static files get a modest TTL with revalidation.
         var headers = ctx.Context.Response.Headers;
-        if (isVersioned)
+        if (path.StartsWith("/app/assets/", StringComparison.OrdinalIgnoreCase))
+        {
+            // React SPA bundle (Vite): file names carry a content hash, so they never change.
+            headers.CacheControl = "public,max-age=31536000,immutable";
+        }
+        else if (path.StartsWith("/app/", StringComparison.OrdinalIgnoreCase))
+        {
+            // index.html (and anything else unhashed under /app) names the current hashed assets,
+            // so it must be revalidated or an update would keep loading the old bundle.
+            headers.CacheControl = "no-cache";
+        }
+        else if (isVersioned)
         {
             headers.CacheControl = "public,max-age=31536000,immutable";
         }
@@ -594,6 +605,12 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}",
     defaults: new { lang = "en" });
+
+// ✅ React SPA (client/, built into wwwroot/app): any client-side route under /app gets index.html so a reload or a
+// deep link works. "nonfile" leaves paths with an extension (a missing /app/assets/x.js) to 404 instead of returning
+// HTML, and /api, /swagger and the MVC routes are outside /app so they are never swallowed. Lowest priority, so it
+// only applies when no controller route matched.
+app.MapFallbackToFile("/app/{*path:nonfile}", "app/index.html");
 
 // Visual Studio "Electron" launch profile: open the desktop shell against this (debuggable) run.
 if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("ELECTRON_MODE") == "true")

@@ -32,7 +32,11 @@ function getJwtSecretKey() {
 
 let mainWindow = null;
 let dotnetProcess = null;
-const APP_URL = 'http://localhost:5000';
+// NEXPOS_APP_URL lets a test run point the shell at a server on another port (e.g. an isolated demo DB).
+const APP_URL = process.env.NEXPOS_APP_URL || 'http://localhost:5000';
+// Page the main window opens. '/' is the Razor app; NEXPOS_START_PATH=/app opens the React client while it is
+// being migrated (at Cutover the server's home redirect points to /app and this stays '/').
+const START_PATH = process.env.NEXPOS_START_PATH || '/';
 // Set by the Visual Studio "Electron" profile: the web app is already running under the debugger
 // (the value is its process id), so connect to it instead of starting Web.exe.
 const EXTERNAL_SERVER_PID = Number(process.env.NEXPOS_EXTERNAL_SERVER) || 0;
@@ -225,7 +229,7 @@ function createWindow() {
   setupWebContents(mainWindow.webContents);
 
   // Load the application
-  mainWindow.loadURL(APP_URL);
+  mainWindow.loadURL(APP_URL + START_PATH);
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {

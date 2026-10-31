@@ -58,9 +58,12 @@ From the repo root, in PowerShell:
 ```
 
 This will:
-1. Publish the .NET app (self-contained, so the customer PC doesn't need .NET installed) to `publish\app`
+0. Build the React client (`client\`, `npm ci` + `npm run build`) into `Web\wwwroot\app`. The build fails if the bundle is over its size budget.
+1. Publish the .NET app (self-contained, so the customer PC doesn't need .NET installed) to `publish\app`, and check that `publish\app\wwwroot\app\index.html` is in it
 2. Install npm packages if they're missing
 3. Package everything into an installer
+
+> **React client and C# builds.** A plain `dotnet build -c Release` / `dotnet publish -c Release` also builds `client\` (needs Node.js; `npm ci` only runs when `client\node_modules` is missing). Debug builds never touch npm. Add `-p:SkipClientBuild=true` to skip it for a fast C#-only build (the script does this itself after building the client in step 0). While working on the UI, run `npm run dev` in `client\` instead (http://localhost:5173/app/, `/api` proxied to the running web app on port 5000).
 
 It takes a few minutes. If PowerShell refuses to run the script, use:
 

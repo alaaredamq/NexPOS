@@ -314,7 +314,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | 0A | API foundation | 0B | L | ☐ todo | | |
 | 0C | Design system | 0B | L | ☐ todo | | |
 | 0E | i18n pipeline | 0B | M | ☐ todo | | |
-| 0F | Serving + build + Electron | 0B | M | ☐ todo | | |
+| 0F | Serving + build + Electron | 0B | M | ◑ in review | Claude · `react/0F` | [0F.md](docs/react-migration/notes/0F.md) |
 | 0D | App shell | 0A, 0C | L | ☐ todo | | |
 | **G0** | **Gate: foundation done** | 0A–0F | | ☐ | | |
 | P1 | POS API + contract | G0 | L | ☐ todo | | |
