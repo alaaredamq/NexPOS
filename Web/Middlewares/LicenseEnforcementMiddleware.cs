@@ -14,6 +14,10 @@ namespace Web.Middlewares;
 /// Matching is by path so it works for both URL shapes, /POS and /{lang}/POS, and sits before
 /// routing and authentication. <c>POSCheckoutService</c> and <c>OrderService</c> repeat the check
 /// as a backstop.
+///
+/// This middleware is for the legacy URLs. The versioned API (<c>api/v1</c>) is deliberately not matched here: its
+/// sale endpoints carry <c>[RequireSalesLicense]</c> (Web/Api/Infrastructure), which answers 403 <c>license_sales_stopped</c>
+/// as problem JSON, and the licence screens stay reachable because nothing blocks reads.
 /// </summary>
 public class LicenseEnforcementMiddleware
 {

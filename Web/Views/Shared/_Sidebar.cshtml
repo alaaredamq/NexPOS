@@ -39,7 +39,7 @@
                     {
                         <li class="nav-item">
                             <a class="nav-link @(entry.IsActiveFor(currentController) ? "active" : "")"
-                               href="@Url.ActionWithCurrentLanguage(entry.Action, entry.Controller)">
+                               href="@(SpaMigration.IsMigrated(entry.Controller) ? SpaMigration.PlannedPath(entry.Controller) : Url.ActionWithCurrentLanguage(entry.Action, entry.Controller))">
                                 <i class="fas @entry.Icon"></i>
                                 <span class="nav-text">@SharedLocalizer[entry.LabelKey]</span>
                             </a>

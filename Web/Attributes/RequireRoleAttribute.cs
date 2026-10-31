@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
+using Web.Api.Infrastructure;
 
 namespace Web.Attributes;
 
@@ -22,9 +23,7 @@ public class RequireRoleAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -34,7 +33,7 @@ public class RequireRoleAttribute : Attribute, IAuthorizationFilter
         if (!roles.Contains(_role))
         {
             AccessDeniedAudit.Record(context, $"role {_role}");
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }
@@ -58,9 +57,7 @@ public class RequireAnyRoleAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -70,7 +67,7 @@ public class RequireAnyRoleAttribute : Attribute, IAuthorizationFilter
         if (!_roles.Any(role => userRoles.Contains(role)))
         {
             AccessDeniedAudit.Record(context, $"any role of [{string.Join(", ", _roles)}]");
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }
@@ -94,9 +91,7 @@ public class RequireAllRolesAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new { 
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString 
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -106,7 +101,7 @@ public class RequireAllRolesAttribute : Attribute, IAuthorizationFilter
         if (!_roles.All(role => userRoles.Contains(role)))
         {
             AccessDeniedAudit.Record(context, $"all roles of [{string.Join(", ", _roles)}]");
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }

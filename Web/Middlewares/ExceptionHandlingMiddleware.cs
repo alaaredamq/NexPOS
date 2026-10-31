@@ -1,4 +1,5 @@
 using System.Net;
+using Web.Api.Infrastructure;
 
 namespace Web.Middlewares;
 
@@ -28,6 +29,10 @@ public class ExceptionHandlingMiddleware
         try
         {
             await _next(context);
+        }
+        catch (Exception ex) when (ApiPaths.IsV1(context.Request))
+        {
+            await WriteApiProblemAsync(context, ex);
         }
         catch (Exception ex)
         {
@@ -63,5 +68,31 @@ public class ExceptionHandlingMiddleware
 
             await context.Response.WriteAsJsonAsync(new { success = false, message });
         }
+    }
+
+    /// <summary>The versioned API answers RFC 7807 problems with a stable <c>code</c> - never the legacy <c>{success,message}</c>.</summary>
+    private async Task WriteApiProblemAsync(HttpContext context, Exception ex)
+    {
+        // The browser gave up (navigated away, aborted the fetch). Nothing is listening, and it is not an error.
+        if (ex is OperationCanceledException && context.RequestAborted.IsCancellationRequested)
+        {
+            context.Response.StatusCode = 499;
+            return;
+        }
+
+        var mapped = ApiExceptionMapper.Map(ex, _environment.IsDevelopment());
+        if (mapped.Unexpected)
+        {
+            _logger.LogError(ex, "Unhandled exception in {Method} {Path}", context.Request.Method, context.Request.Path);
+        }
+        else
+        {
+            _logger.LogWarning("{Method} {Path} refused: {Code} ({Reason})", context.Request.Method, context.Request.Path, mapped.Code, ex.GetType().Name);
+        }
+
+        if (context.Response.HasStarted) return; // body partly written; nothing safe left to do
+
+        context.Response.Clear();
+        await ApiProblem.WriteAsync(context, mapped.Status, mapped.Code, mapped.Detail);
     }
 }

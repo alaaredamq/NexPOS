@@ -10,7 +10,7 @@
     "lint": "oxlint && node scripts/check-logical-css.mjs && node scripts/check-i18n-keys.mjs",
     "test": "vitest run",
     "e2e": "playwright test",
-    "api:types": "echo \"api:types is wired up in 0A (needs swagger.json)\" && exit 1",
+    "api:types": "node scripts/api-types.mjs",
     "i18n:export": "node scripts/export-locales.mjs",
     "i18n:lint": "node scripts/check-i18n-keys.mjs"
   },
@@ -34,9 +34,15 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
     "jsdom": "^27",
+    "openapi-typescript": "^7.13.0",
     "oxlint": "^1",
     "typescript": "~6.0.2",
     "vite": "^8",
     "vitest": "^4"
+  },
+  "overrides": {
+    "openapi-typescript": {
+      "typescript": "$typescript"
+    }
   }
 }

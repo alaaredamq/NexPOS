@@ -2386,4 +2386,17 @@
   <data name="ExpandMenu" xml:space="preserve"><value>توسيع القائمة</value></data>
   <data name="DrawerOpenWithAmount" xml:space="preserve"><value>الدرج مفتوح · {0}</value></data>
   <data name="DrawerNotOpened" xml:space="preserve"><value>الدرج غير مفتوح</value></data>
+  <!-- api/v1 error messages (Web/Api/Infrastructure/ApiCodes.cs) -->
+  <data name="Api_Unauthenticated" xml:space="preserve"><value>انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.</value></data>
+  <data name="Api_Forbidden" xml:space="preserve"><value>ليس لديك صلاحية للقيام بذلك.</value></data>
+  <data name="Api_ClientHeaderRequired" xml:space="preserve"><value>هذا الطلب لم يصدر من تطبيق NexPOS.</value></data>
+  <data name="Api_NotFound" xml:space="preserve"><value>لم يتم العثور على العنصر المطلوب.</value></data>
+  <data name="Api_MethodNotAllowed" xml:space="preserve"><value>هذا الإجراء غير مدعوم.</value></data>
+  <data name="Api_ValidationFailed" xml:space="preserve"><value>يرجى تصحيح الحقول المحددة.</value></data>
+  <data name="Api_Conflict" xml:space="preserve"><value>تعذّر تنفيذ ذلك بسبب الحالة الحالية. حدّث الصفحة وحاول مرة أخرى.</value></data>
+  <data name="Api_PayloadTooLarge" xml:space="preserve"><value>حجم الطلب كبير جدًا.</value></data>
+  <data name="Api_RateLimited" xml:space="preserve"><value>محاولات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.</value></data>
+  <data name="Api_InternalError" xml:space="preserve"><value>حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.</value></data>
+  <data name="Api_BadRequest" xml:space="preserve"><value>تعذّر فهم الطلب.</value></data>
+  <data name="Api_InvalidValue" xml:space="preserve"><value>هذه القيمة غير صالحة.</value></data>
 </root>

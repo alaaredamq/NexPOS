@@ -23,6 +23,7 @@ using Infrastructure.Repositories;
 using Infrastructure.Repositories.PrinterTransport;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Options;
+using Web.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,7 +75,12 @@ builder.Services
         // Stored timestamps are UTC but come back Unspecified; write them with a "Z" so the browser shows local time.
         options.JsonSerializerOptions.Converters.Add(new Core.Time.UtcDateTimeJsonConverter());
         options.JsonSerializerOptions.Converters.Add(new Core.Time.UtcNullableDateTimeJsonConverter());
-    });
+    })
+    // REST conventions of the SPA's api/v1 (problem JSON with codes, filters, naming) - see Web/Api/README.md.
+    .AddNexPosApi();
+
+// OpenAPI for api/v1 only; `npm run api:types` turns it into the UI's generated types.
+builder.Services.AddNexPosSwagger();
 
 // ✅ Configure supported cultures
 var supportedCultures = new[]
@@ -191,6 +197,12 @@ builder.Services.AddAuthentication("Cookies")
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
+
+        // /api/* answers 401 / 403 JSON instead of redirecting to the login or access-denied page (a fetch cannot use a redirect to HTML).
+        options.Events.OnRedirectToLogin = Web.Api.Infrastructure.ApiAuthorizationFailure.CookieChallenge(
+            options.Events.OnRedirectToLogin, StatusCodes.Status401Unauthorized, Web.Api.Infrastructure.ApiCodes.Unauthenticated);
+        options.Events.OnRedirectToAccessDenied = Web.Api.Infrastructure.ApiAuthorizationFailure.CookieChallenge(
+            options.Events.OnRedirectToAccessDenied, StatusCodes.Status403Forbidden, Web.Api.Infrastructure.ApiCodes.Forbidden);
 
         // The cookie carries a snapshot of the user's role and permissions from sign-in. Re-read it each
         // request (from a short-lived cache) so editing a role, moving a user to another role, or disabling
@@ -405,6 +417,14 @@ builder.Services.AddSingleton<Application.IServices.Licensing.ILicenseService, A
 // Build the app
 var app = builder.Build();
 
+// `Web.exe --dump-api-contract <folder>` (client/scripts/api-types.mjs): write swagger.json + permissions.ts and exit,
+// before the database, the audit writer or a port is touched.
+if (Web.Api.Infrastructure.ApiContractDump.TryGetTarget(args, out var contractFolder))
+{
+    await Web.Api.Infrastructure.ApiContractDump.WriteAsync(app.Services, contractFolder);
+    return;
+}
+
 var auditContext = app.Services.GetRequiredService<Core.Auditing.IAuditContext>();
 var auditTrail = app.Services.GetRequiredService<Core.Auditing.IAuditTrail>();
 
@@ -509,6 +529,9 @@ if (args.Contains("--seed-test") || Environment.GetEnvironmentVariable("NEXPOS_S
 // exception handling configured further down.
 app.UseMiddleware<Web.Middlewares.ExceptionHandlingMiddleware>();
 
+// ✅ api/v1 requests that match nothing (404 / 405) answer problem JSON, not an empty body.
+app.UseNexPosApiStatusPages();
+
 // ✅ Compress text responses before anything writes to the body.
 app.UseResponseCompression();
 
@@ -571,25 +594,36 @@ app.UseStaticFiles(new StaticFileOptions
 // and crashed requests are recorded as faithfully as successful ones.
 app.UseMiddleware<Web.Middlewares.AuditRequestMiddleware>();
 
+// ✅ CSRF gate of the versioned API: every non-GET /api/v1 call must carry `X-NexPOS-Client: web`. After the audit row so refusals are recorded.
+app.UseMiddleware<Web.Api.Infrastructure.ApiClientHeaderMiddleware>();
+
 // ✅ License: close the POS screen and refuse new sales when the license does not allow selling.
 // After static files (assets are never blocked) and before routing/auth; reads and everything else pass.
 app.UseMiddleware<Web.Middlewares.LicenseEnforcementMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// The page-oriented error handlers (HTML dev page / re-execute /Home/Error) are for pages only. They would swallow an
+// api/v1 exception before ExceptionHandlingMiddleware could answer it as problem JSON with a code.
+app.UseWhen(context => !Web.Api.Infrastructure.ApiPaths.IsV1(context.Request), pages =>
 {
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+    if (app.Environment.IsDevelopment())
+    {
+        pages.UseDeveloperExceptionPage();
+    }
+    else
+    {
+        pages.UseExceptionHandler("/Home/Error");
+        pages.UseHsts();
+    }
+});
 
 app.UseRouting();
 
 // ✅ Rate limiting (needs endpoint info from routing, must be before auth so it also
 // throttles unauthenticated requests like login)
 app.UseIpRateLimiting();
+
+// ✅ swagger.json + UI (Development only)
+app.UseNexPosSwagger();
 
 // ✅ Auth (must be after UseRouting)
 app.UseAuthentication();
@@ -683,3 +717,6 @@ static void LaunchElectron(WebApplication app)
     // Closing the Electron window ends the debug session.
     electron.Exited += (_, _) => app.Lifetime.StopApplication();
 }
+
+// Lets the API integration tests host the app in-process (WebApplicationFactory<Program>).
+public partial class Program;

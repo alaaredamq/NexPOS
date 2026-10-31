@@ -16,7 +16,7 @@
         <div class="cmdk-results" id="cmdkResults" role="listbox">
             @foreach (var entry in entries)
             {
-                <a class="cmdk-item" role="option" href="@Url.ActionWithCurrentLanguage(entry.Action, entry.Controller)"
+                <a class="cmdk-item" role="option" href="@(SpaMigration.IsMigrated(entry.Controller) ? SpaMigration.PlannedPath(entry.Controller) : Url.ActionWithCurrentLanguage(entry.Action, entry.Controller))"
                    data-keywords="@entry.Controller">
                     <i class="fas @entry.Icon cmdk-icon" aria-hidden="true"></i>
                     <span class="cmdk-label">@SharedLocalizer[entry.LabelKey]</span>

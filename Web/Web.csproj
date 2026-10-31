@@ -10,6 +10,9 @@
       <!-- The UI ships in English and Arabic only; skip the other satellite resource folders
            (cs, de, ja, zh-Hans, ...) that NuGet packages would otherwise copy into publish. -->
       <SatelliteResourceLanguages>en;ar</SatelliteResourceLanguages>
+      <!-- XML comments feed the OpenAPI document (Web/Api/Infrastructure/ApiSwagger.cs); the rest of the app is not documented, so CS1591 stays quiet. -->
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <!-- Release builds: let tiered PGO optimise hot paths. ReadyToRun (needs a RID) is passed

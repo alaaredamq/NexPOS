@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Web.Api.Infrastructure;
 
 namespace Web.Middlewares;
 
@@ -49,6 +50,16 @@ public class LanguageMiddleware
                 lang = routeLangStr;
                 languageFromRoute = true;
             }
+        }
+
+        // The SPA keeps its language in the browser and sends it as Accept-Language (REACT_MIGRATION.md D8), so for
+        // /api/v1 that header outranks the cookie the Razor pages left behind. The legacy /api/* controllers are called by the
+        // Razor pages, whose Chromium always sends an Accept-Language of its own, so they keep the old order below. Without the header (curl) the old
+        // order below applies too.
+        var isApi = ApiPaths.IsV1(context.Request);
+        if (string.IsNullOrEmpty(lang) && isApi)
+        {
+            lang = ApiLanguage.FromAcceptLanguage(context.Request);
         }
 
         // Priority 3: Check query parameter as fallback
@@ -106,19 +117,23 @@ public class LanguageMiddleware
         // SET CULTURE IMMEDIATELY - This must happen before any view rendering
         SetCulture(context, lang, languageFromRoute);
 
-        // Persist in session & cookie for future requests
-        context.Session.SetString("SelectedLanguage", lang);
-        context.Response.Cookies.Append(
-            CookieRequestCultureProvider.DefaultCookieName,
-            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(lang)),
-            new CookieOptions 
-            { 
-                Expires = DateTimeOffset.UtcNow.AddYears(1),
-                HttpOnly = true,
-                SameSite = SameSiteMode.Lax,
-                Secure = context.Request.IsHttps
-            });
-        
+        // Persist in session & cookie for future requests. Not for /api/v1: an API call is not a language choice, and
+        // the SPA must not flip the language of the Razor pages (or start a session) by merely loading data.
+        if (!isApi)
+        {
+            context.Session.SetString("SelectedLanguage", lang);
+            context.Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(lang)),
+                new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax,
+                    Secure = context.Request.IsHttps
+                });
+        }
+
         // Prevent caching for language-specific pages to ensure fresh content
         if (context.Request.Path.HasValue && !context.Request.Path.Value.StartsWith("/lib") && 
             !context.Request.Path.Value.StartsWith("/css") && !context.Request.Path.Value.StartsWith("/js") &&
@@ -154,6 +169,23 @@ public class LanguageMiddleware
         // those are process-wide and would leak one request's language into others.
         CultureInfo.CurrentCulture = culture;
         CultureInfo.CurrentUICulture = culture;
+    }
+}
+
+public static class ApiLanguage
+{
+    /// <summary>
+    /// The supported language ("en" / "ar") the request prefers, by <c>Accept-Language</c> quality, or "" when it names
+    /// none of them. "ar-LB" counts as "ar".
+    /// </summary>
+    public static string FromAcceptLanguage(HttpRequest request)
+    {
+        var preferred = request.GetTypedHeaders().AcceptLanguage
+            .Where(l => l.Quality is null or > 0)
+            .OrderByDescending(l => l.Quality ?? 1.0)
+            .Select(l => l.Value.Value?.Split('-')[0].ToLowerInvariant());
+
+        return preferred.FirstOrDefault(l => l is "ar" or "en") ?? string.Empty;
     }
 }
 

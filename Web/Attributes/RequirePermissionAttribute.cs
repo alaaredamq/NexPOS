@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Security.Claims;
+using Web.Api.Infrastructure;
 
 namespace Web.Attributes;
 
@@ -58,9 +59,7 @@ public class RequirePermissionAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new {
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -70,7 +69,7 @@ public class RequirePermissionAttribute : Attribute, IAuthorizationFilter
         if (!permissions.Contains(_permission))
         {
             AccessDeniedAudit.Record(context, _permission);
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }
@@ -94,9 +93,7 @@ public class RequireAnyPermissionAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new {
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -106,7 +103,7 @@ public class RequireAnyPermissionAttribute : Attribute, IAuthorizationFilter
         if (!_permissions.Any(permission => userPermissions.Contains(permission)))
         {
             AccessDeniedAudit.Record(context, $"any of [{string.Join(", ", _permissions)}]");
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }
@@ -130,9 +127,7 @@ public class RequireAllPermissionsAttribute : Attribute, IAuthorizationFilter
         // Skip authorization if user is not authenticated
         if (context.HttpContext.User.Identity?.IsAuthenticated != true)
         {
-            context.Result = new RedirectToActionResult("Login", "Account", new {
-                returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString
-            });
+            context.Result = ApiAuthorizationFailure.Unauthenticated(context);
             return;
         }
 
@@ -142,7 +137,7 @@ public class RequireAllPermissionsAttribute : Attribute, IAuthorizationFilter
         if (!_permissions.All(permission => userPermissions.Contains(permission)))
         {
             AccessDeniedAudit.Record(context, $"all of [{string.Join(", ", _permissions)}]");
-            context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
+            context.Result = ApiAuthorizationFailure.Denied(context);
         }
     }
 }

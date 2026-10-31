@@ -311,7 +311,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | ID | Section | Depends on | Size | Status | Owner / branch | Notes file |
 |----|---------|-----------|------|--------|----------------|-----------|
 | 0B | Client scaffold + baseline | – | M | ☑ done | Claude · `react/0B` | [0B.md](docs/react-migration/notes/0B.md) |
-| 0A | API foundation | 0B | L | ☐ todo | | |
+| 0A | API foundation | 0B | L | ◑ in review | Claude · `react/0A` | [0A.md](docs/react-migration/notes/0A.md) |
 | 0C | Design system | 0B | L | ☑ done | Claude · `react/0C` | [0C.md](docs/react-migration/notes/0C.md) |
 | 0E | i18n pipeline | 0B | M | ☑ done | Claude · `react/0E` | [0E.md](docs/react-migration/notes/0E.md) |
 | 0F | Serving + build + Electron | 0B | M | ☑ done | Claude · `react/0F` | [0F.md](docs/react-migration/notes/0F.md) |
@@ -356,7 +356,7 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 
 ## 13. Known unknowns to resolve early (cheap to check, expensive to discover late)
 
-1. Does `ViewRenderService` render Razor to HTML for print/PDF? (Blocks deleting views in Z.) → check in 0A.
+1. Does `ViewRenderService` render Razor to HTML for print/PDF? (Blocks deleting views in Z.) → check in 0A. **Resolved (0A): no - registered but never injected; safe to delete.**
 2. What do `electron-preload.js` / `nexprint.js` expose (silent print, zoom)? → 0F.
 3. ~~How does `localization.js` format numbers/dates for Arabic (Eastern digits?)~~ → **answered by 0E**: Western digits everywhere (`en-US` in the old JS; .NET never substitutes digits); no pluralisation. See `docs/react-migration/notes/0E.md`.
 4. Two `TaxService`/`Tax` entities exist (`Core/Entities/Products/Tax.cs` and `Sales/Tax.cs`; `ITaxService` in both Products and Sales) — which is live? → A3, but P1 needs the answer on day one for pricing.
