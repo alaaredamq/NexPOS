@@ -1,79 +1,158 @@
 :root {
-    /* Primary Teal Palette — matches the shipped NexPOS mark (wwwroot/images/logo.svg) */
-    --primary-color: #0aa2a2;
-    --primary-dark: #00706f;
-    --primary-darker: #005453;
-    --primary-light: #3dbdbd;
-    --primary-bright: #2fc2c2;
-    --primary-lighter: #e3f4f3;
+    /* =====================================================
+       Design tokens ported from Boussi Cell
+       (client/packages/shared/src/styles/tokens.css + apps/boussicell/src/theme.css).
+       These --color-* / --radius-* / --space-* names are the source of truth; every older ERP name
+       further down (--primary-color, --gray-*, --neutral-*, --surface-*, ...) is an alias onto them,
+       so changing the brand is a matter of editing this block.
+       ===================================================== */
+
+    /* Brand — a teal dark enough to carry white label text (5:1 on white) */
+    --color-primary: #0a7b85;
+    --color-primary-hover: #08636b;
+    /* Same hue lifted to LCD brightness for the dark readouts (POS total, rail accents) */
+    --color-readout: #5ad7e2;
+    --color-readout-settled: #74e8ab;
+
+    --color-ink: #171b26;
+    --color-muted: #5c6472;
+    --color-faint: #8b93a3;
+    --color-border: #e3e7ee;
+    --color-canvas: #f2f7f7;
+    --color-card: #ffffff;
+
+    --color-success: #178a50;
+    --color-success-bg: #e7f6ee;
+    --color-warning: #9a6700;
+    --color-warning-bg: #fdf3d9;
+    --color-danger: #d23b4e;
+    --color-danger-hover: #b32f40;
+    --color-danger-bg: #fdeaed;
+    --color-info: var(--color-primary);
+    --color-info-bg: color-mix(in srgb, var(--color-primary) 10%, #fff);
+    --color-neutral: #5c6472;
+    --color-neutral-bg: #eef1f5;
+
+    /* Navigation rail: near-black with the brand hue, plus the surfaces layered on it */
+    --color-nav-bg: #101e20;
+    --color-nav-ink: #ffffff;
+    --color-nav-faint: #8fa3a6;
+    --color-nav-hover: rgba(255, 255, 255, 0.07);
+    --color-nav-divider: rgba(255, 255, 255, 0.08);
+
+    /* One definition of "focused" for every control */
+    --ring: 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent);
+
+    /* Type */
+    --font-sans: 'Public Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+    --font-display: 'Archivo', var(--font-sans);
+
+    /* Radius */
+    --radius-control: 8px;
+    --radius-control-lg: 10px;
+    --radius-card: 12px;
+    --radius-pill: 999px;
+
+    /* Spacing (4px base scale) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* Elevation */
+    --shadow-hover: 0 2px 10px rgba(10, 123, 133, 0.12);
+    --shadow-card: 0 1px 2px rgba(16, 20, 28, 0.05), 0 1px 3px rgba(16, 20, 28, 0.04);
+    --shadow-pop: 0 12px 32px rgba(16, 20, 28, 0.16), 0 2px 6px rgba(16, 20, 28, 0.08);
+    --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.25);
+
+    /* Control heights; the register-sized set applies on tablet-width windows (see media query below) */
+    --control-h-sm: 30px;
+    --control-h-md: 40px;
+    --control-h-lg: 52px;
+
+    /* =====================================================
+       ERP aliases (the names the stylesheets and views already use)
+       ===================================================== */
+
+    /* Primary teal palette */
+    --primary-color: var(--color-primary);
+    --primary-dark: var(--color-primary-hover);
+    --primary-darker: #054a51;
+    --primary-light: color-mix(in srgb, var(--color-primary) 72%, #fff);
+    --primary-bright: color-mix(in srgb, var(--color-primary) 84%, #fff);
+    --primary-lighter: color-mix(in srgb, var(--color-primary) 10%, #fff);
     --primary-contrast: #ffffff;
-    --primary-glow: #8ce8e4;
-    --ink: #0f172a;
+    --primary-glow: var(--color-readout);
+    --ink: var(--color-ink);
 
     /* Semantic Aliases */
     --primary: var(--primary-color);
     --primary-dark-alt: var(--primary-dark);
-    --success: #20c997;
-    --danger: #dc3545;
-    --warning: #ffc107;
-    --info: #17a2b8;
-    --secondary: #6c757d;
+    --success: var(--color-success);
+    --danger: var(--color-danger);
+    --warning: #e0a100;
+    --info: var(--color-info);
+    --secondary: var(--color-muted);
 
     /* Supporting Accent Colors */
-    --success-color: #20c997;
-    --success-strong: #28a745;
-    --success-dark: #218838;
-    --success-muted: #d4edda;
-    --success-muted-strong: #c3e6cb;
-    --success-text: #155724;
+    --success-color: var(--color-success);
+    --success-strong: #1c9a59;
+    --success-dark: #126f40;
+    --success-muted: var(--color-success-bg);
+    --success-muted-strong: #cdebdb;
+    --success-text: #0f6a3b;
 
-    --danger-color: #dc3545;
-    --danger-strong: #c82333;
-    --danger-bright: #ff4757;
-    --danger-accent: #ff3838;
-    --danger-muted: #f8d7da;
-    --danger-muted-strong: #f5c6cb;
-    --danger-text: #721c24;
+    --danger-color: var(--color-danger);
+    --danger-strong: var(--color-danger-hover);
+    --danger-bright: #e5566a;
+    --danger-accent: #d23b4e;
+    --danger-muted: var(--color-danger-bg);
+    --danger-muted-strong: #f7d0d6;
+    --danger-text: #8f2433;
 
-    --warning-color: #b9791a;
-    --warning-dark: #8f5f14;
-    --warning-muted: #fff3cd;
-    --warning-text: #856404;
+    --warning-color: var(--color-warning);
+    --warning-dark: #7d5400;
+    --warning-muted: var(--color-warning-bg);
+    --warning-text: #7d5400;
 
-    --info-color: #17a2b8;
-    --info-accent: #4facfe;
-    --info-bright: #00f2fe;
-    --info-muted: #d1ecf1;
-    --info-dark: #138496;
+    --info-color: var(--color-info);
+    --info-accent: #2361d8;
+    --info-bright: #5ad7e2;
+    --info-muted: var(--color-info-bg);
+    --info-dark: var(--color-primary-hover);
 
-    --secondary-color: #6c757d;
-    --secondary-accent: #2c3e50;
+    --secondary-color: var(--color-muted);
+    --secondary-accent: #232a37;
 
     /* Neutral Palette */
     --white: #ffffff;
     --neutral-25: #fdfefe;
-    --neutral-50: #fafbfc;
-    --neutral-75: #f5f7fa;
-    --neutral-100: #f8f9fa;
-    --neutral-150: #f1f3f4;
-    --neutral-175: #f1f1f1;
-    --neutral-200: #e9ecef;
-    --neutral-250: #e6f7f7;
-    --neutral-300: #dee2e6;
-    --neutral-350: #ced4da;
-    --neutral-375: #adb5bd;
-    --neutral-400: #adb5bd;
-    --neutral-425: #95a5a6;
-    --neutral-450: #90a4ae;
-    --neutral-500: #6c757d;
-    --neutral-550: #5c6770;
-    --neutral-600: #495057;
-    --neutral-650: #3a3f44;
-    --neutral-700: #343a40;
-    --neutral-750: #333333;
-    --neutral-775: #2d3748;
-    --neutral-800: #2c3e50;
-    --neutral-850: #212529;
+    --neutral-50: #f8fafa;
+    --neutral-75: var(--color-canvas);
+    --neutral-100: #f6f9f9;
+    --neutral-150: var(--color-neutral-bg);
+    --neutral-175: #eceff3;
+    --neutral-200: #e8ecf1;
+    --neutral-250: #e3f1f2;
+    --neutral-300: var(--color-border);
+    --neutral-350: #d3d9e2;
+    --neutral-375: #aab2c0;
+    --neutral-400: #aab2c0;
+    --neutral-425: #9aa3b2;
+    --neutral-450: var(--color-faint);
+    --neutral-500: var(--color-muted);
+    --neutral-550: #525b69;
+    --neutral-600: #454c5a;
+    --neutral-650: #373e4b;
+    --neutral-700: #2a303d;
+    --neutral-750: #252b37;
+    --neutral-775: #21293a;
+    --neutral-800: #1f2533;
+    --neutral-850: var(--color-ink);
 
     /* Legacy Gray Aliases */
     --gray-50: var(--neutral-50);
@@ -93,23 +172,23 @@
     --secondary-surface: var(--surface-secondary);
 
     /* Surface Colors */
-    --surface-body: var(--neutral-75);
+    --surface-body: var(--color-canvas);
     --surface-secondary: var(--neutral-100);
-    --surface-elevated: var(--white);
+    --surface-elevated: var(--color-card);
     --surface-muted: var(--neutral-150);
 
     /* Text Colors */
-    --text-primary: var(--neutral-850);
+    --text-primary: var(--color-ink);
     --text-secondary: var(--neutral-600);
-    --text-muted: var(--neutral-500);
+    --text-muted: var(--color-muted);
     --text-inverse: var(--white);
     --text-inverse-soft: rgba(255, 255, 255, 0.9);
 
     /* Status Colors */
-    --status-online: #90ee90;
-    --status-mint: #e0ffff;
-    --accent-indigo: #667eea;
-    --accent-purple: #764ba2;
+    --status-online: #74e8ab;
+    --status-mint: #e3f6f7;
+    --accent-indigo: #2361d8;
+    --accent-purple: #5a4ad1;
     --status-warning: var(--warning-color);
     --status-danger: var(--danger-color);
 
@@ -117,18 +196,18 @@
     --border-subtle: rgba(255, 255, 255, 0.2);
     --border-strong: rgba(255, 255, 255, 0.3);
     --border-primary: var(--primary-color);
-    --border-muted: var(--neutral-300);
+    --border-muted: var(--color-border);
 
     /* Shadows */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --shadow-sm: var(--shadow-card);
+    --shadow-md: 0 4px 12px rgba(16, 20, 28, 0.08);
+    --shadow-lg: var(--shadow-pop);
     --shadow: var(--shadow-md);
-    --shadow-teal-sm: 0 4px 12px rgba(10, 162, 162, 0.25);
-    --shadow-teal-md: 0 4px 16px rgba(10, 162, 162, 0.25);
-    --shadow-teal-lg: 0 4px 20px rgba(10, 162, 162, 0.3);
-    --shadow-danger: 0 4px 12px rgba(220, 53, 69, 0.3);
-    --shadow-success: 0 4px 16px rgba(40, 167, 69, 0.3);
+    --shadow-teal-sm: 0 4px 12px rgba(10, 123, 133, 0.22);
+    --shadow-teal-md: 0 4px 16px rgba(10, 123, 133, 0.22);
+    --shadow-teal-lg: 0 4px 20px rgba(10, 123, 133, 0.26);
+    --shadow-danger: 0 4px 12px rgba(210, 59, 78, 0.28);
+    --shadow-success: 0 4px 16px rgba(23, 138, 80, 0.28);
 
     /* Overlays & Transparency */
     --overlay-white-05: rgba(255, 255, 255, 0.05);
@@ -138,29 +217,30 @@
     --overlay-white-25: rgba(255, 255, 255, 0.25);
     --overlay-white-30: rgba(255, 255, 255, 0.3);
     --overlay-white-50: rgba(255, 255, 255, 0.5);
-    --overlay-teal-05: rgba(10, 162, 162, 0.05);
-    --overlay-teal-10: rgba(10, 162, 162, 0.1);
-    --overlay-teal-15: rgba(10, 162, 162, 0.15);
-    --overlay-teal-25: rgba(10, 162, 162, 0.25);
-    --overlay-teal-30: rgba(10, 162, 162, 0.3);
-    --overlay-danger-20: rgba(220, 53, 69, 0.2);
-    --overlay-success-10: rgba(40, 167, 69, 0.1);
-    --overlay-danger-10: rgba(220, 53, 69, 0.1);
+    --overlay-teal-05: rgba(10, 123, 133, 0.05);
+    --overlay-teal-10: rgba(10, 123, 133, 0.1);
+    --overlay-teal-15: rgba(10, 123, 133, 0.15);
+    --overlay-teal-25: rgba(10, 123, 133, 0.25);
+    --overlay-teal-30: rgba(10, 123, 133, 0.3);
+    --overlay-danger-20: rgba(210, 59, 78, 0.2);
+    --overlay-success-10: rgba(23, 138, 80, 0.1);
+    --overlay-danger-10: rgba(210, 59, 78, 0.1);
     --overlay-warning-15: rgba(255, 193, 7, 0.15);
     --overlay-coral-25: rgba(255, 107, 107, 0.25);
     --overlay-coral-40: rgba(255, 107, 107, 0.4);
-    --overlay-success-40: rgba(40, 167, 69, 0.4);
+    --overlay-success-40: rgba(23, 138, 80, 0.4);
     --overlay-info-40: rgba(23, 162, 184, 0.4);
-    --overlay-danger-40: rgba(220, 53, 69, 0.4);
+    --overlay-danger-40: rgba(210, 59, 78, 0.4);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    --gradient-primary-strong: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    --gradient-primary-bright: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-bright) 100%);
-    --gradient-success: linear-gradient(135deg, var(--success-strong) 0%, var(--success-color) 100%);
-    --gradient-success-reverse: linear-gradient(135deg, var(--success-color) 0%, var(--success-strong) 100%);
-    --gradient-danger: linear-gradient(45deg, var(--danger-bright), var(--danger-accent));
-    --gradient-info: linear-gradient(135deg, var(--info-accent) 0%, var(--info-bright) 100%);
+    /* Gradients: flattened. Boussi Cell uses solid fills, so each former gradient is now one colour (the
+       tokens stay so existing rules that reference them keep working). Only the login background below is a real gradient. */
+    --gradient-primary: linear-gradient(var(--color-primary), var(--color-primary));
+    --gradient-primary-strong: linear-gradient(var(--color-primary-hover), var(--color-primary-hover));
+    --gradient-primary-bright: linear-gradient(var(--color-primary), var(--color-primary));
+    --gradient-success: linear-gradient(var(--color-success), var(--color-success));
+    --gradient-success-reverse: linear-gradient(var(--color-success), var(--color-success));
+    --gradient-danger: linear-gradient(var(--color-danger), var(--color-danger));
+    --gradient-info: linear-gradient(var(--color-info), var(--color-info));
     
     /* Coral/Orange colors - complement teal */
     --coral-light: #ff7b7b;
@@ -171,44 +251,44 @@
     --orange-dark: #ff8c42;
     
     /* Secondary gradient - coral to orange (complements teal) */
-    --gradient-secondary: linear-gradient(135deg, var(--coral-medium) 0%, var(--orange-medium) 100%);
-    --gradient-secondary-reverse: linear-gradient(135deg, var(--orange-medium) 0%, var(--coral-medium) 100%);
+    --gradient-secondary: linear-gradient(var(--color-warning), var(--color-warning));
+    --gradient-secondary-reverse: linear-gradient(var(--color-warning), var(--color-warning));
     
     /* Other gradients using variables */
-    --gradient-pink: linear-gradient(135deg, var(--coral-light) 0%, var(--coral-dark) 100%);
-    --gradient-green: linear-gradient(135deg, var(--success-color) 0%, var(--primary-bright) 100%);
-    --gradient-warm: linear-gradient(135deg, var(--warning-color) 0%, var(--orange-dark) 100%);
-    --gradient-rose: linear-gradient(135deg, var(--coral-light) 0%, var(--warning-color) 100%);
-    --gradient-cyan-violet: linear-gradient(135deg, var(--info-bright) 0%, var(--primary-dark) 100%);
-    --gradient-success-alt: linear-gradient(135deg, var(--success-strong) 0%, var(--success-color) 100%);
-    --gradient-info-alt: linear-gradient(135deg, var(--info-color) 0%, var(--info-dark) 100%);
-    --gradient-info-alt-reverse: linear-gradient(135deg, var(--info-dark) 0%, var(--info-color) 100%);
-    --gradient-danger-alt: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-strong) 100%);
-    --gradient-danger-alt-reverse: linear-gradient(135deg, var(--danger-strong) 0%, var(--danger-color) 100%);
-    --gradient-warning: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-dark) 100%);
+    --gradient-pink: linear-gradient(var(--color-danger), var(--color-danger));
+    --gradient-green: linear-gradient(var(--color-success), var(--color-success));
+    --gradient-warm: linear-gradient(var(--color-warning), var(--color-warning));
+    --gradient-rose: linear-gradient(var(--color-warning), var(--color-warning));
+    --gradient-cyan-violet: linear-gradient(var(--color-primary), var(--color-primary));
+    --gradient-success-alt: linear-gradient(var(--color-success), var(--color-success));
+    --gradient-info-alt: linear-gradient(var(--color-info), var(--color-info));
+    --gradient-info-alt-reverse: linear-gradient(var(--color-primary-hover), var(--color-primary-hover));
+    --gradient-danger-alt: linear-gradient(var(--color-danger), var(--color-danger));
+    --gradient-danger-alt-reverse: linear-gradient(var(--color-danger-hover), var(--color-danger-hover));
+    --gradient-warning: linear-gradient(var(--color-warning), var(--color-warning));
 
     /* POS Specific */
     --pos-navbar-shadow: var(--shadow-teal-lg);
-    --pos-notification-gradient: linear-gradient(45deg, var(--danger-bright), var(--danger-accent));
+    --pos-notification-gradient: linear-gradient(var(--color-danger), var(--color-danger));
 
     /* Badge & Highlight */
-    --badge-primary: linear-gradient(135deg, var(--primary-color), var(--primary-bright));
-    --badge-danger: linear-gradient(135deg, var(--danger-color), var(--danger-strong));
-    --badge-success: linear-gradient(135deg, var(--success-strong), var(--success-color));
-    --badge-warning: linear-gradient(135deg, var(--warning-color), var(--warning-dark));
+    --badge-primary: linear-gradient(var(--color-primary), var(--color-primary));
+    --badge-danger: linear-gradient(var(--color-danger), var(--color-danger));
+    --badge-success: linear-gradient(var(--color-success), var(--color-success));
+    --badge-warning: linear-gradient(var(--color-warning), var(--color-warning));
 
     /* Legacy Gradient Aliases */
     --primary-gradient: var(--gradient-primary);
 
     /* Additional Theme Tokens */
-    --focus-ring: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
+    --focus-ring: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
     --focus-ring-success: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
     --focus-ring-info: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
 
     /* Auth Background — brand teal into ink, matching the mark instead of a teal/green/blue mix */
     --auth-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 55%, var(--ink) 100%);
     --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(140, 232, 228, 0.15) 0%, transparent 50%);
-    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(10, 162, 162, 0.12) 0%, transparent 50%);
+    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(10, 123, 133, 0.12) 0%, transparent 50%);
     --auth-highlight-3: radial-gradient(circle at 40% 40%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
 
     /* POS Legacy Aliases */
@@ -227,12 +307,40 @@
        .border-primary / links stop falling back to Bootstrap blue on pages that don't load site.css
        (the POS screen and its dialogs showed blue amounts and links). */
     --bs-primary: var(--primary-color);
-    --bs-primary-rgb: 10, 162, 162;
+    --bs-primary-rgb: 10, 123, 133;
     --bs-link-color: var(--primary-dark);
-    --bs-link-color-rgb: 0, 112, 111;
+    --bs-link-color-rgb: 8, 99, 107;
     --bs-link-hover-color: var(--primary-darker);
-    --bs-link-hover-color-rgb: 0, 84, 83;
-    --bs-focus-ring-color: rgba(10, 162, 162, 0.25);
+    --bs-link-hover-color-rgb: 5, 74, 81;
+    --bs-focus-ring-color: rgba(10, 123, 133, 0.25);
+
+    /* The rest of Bootstrap's palette and text defaults, so utility classes (.text-success, .bg-danger,
+       .border, .text-muted, ...) match the tokens above on every page, including those that skip site.css. */
+    --bs-body-font-family: var(--font-sans);
+    --bs-body-color: var(--color-ink);
+    --bs-body-color-rgb: 23, 27, 38;
+    --bs-body-bg: var(--color-canvas);
+    --bs-secondary-color: var(--color-muted);
+    --bs-border-color: var(--color-border);
+    --bs-border-radius: var(--radius-control);
+    --bs-border-radius-lg: var(--radius-card);
+    --bs-success: var(--color-success);
+    --bs-success-rgb: 23, 138, 80;
+    --bs-danger: var(--color-danger);
+    --bs-danger-rgb: 210, 59, 78;
+    --bs-warning: var(--color-warning);
+    --bs-warning-rgb: 154, 103, 0;
+    --bs-info: var(--color-info);
+    --bs-info-rgb: 10, 123, 133;
+}
+
+/* Tablet-width windows are the register: bigger touch targets, same as Boussi Cell's 1280px step */
+@media (max-width: 1280px) {
+    :root {
+        --control-h-sm: 38px;
+        --control-h-md: 46px;
+        --control-h-lg: 60px;
+    }
 }
 
 /* =====================================================
@@ -293,3 +401,136 @@
     color: var(--white);
 }
 
+/* =====================================================
+   Header controls shared by the management top bar and the POS bar
+   (Boussi Cell's LanguageSwitcher and till chip). They live here, with the tokens, because both pages load
+   this file and only the management pages load site.css. Each reads its colours from the custom properties
+   at the top of its rule, so the dark POS bar re-themes them in pos.css instead of redefining them.
+   ===================================================== */
+
+/* English / Arabic toggle */
+.lang-toggle {
+    --lt-bg: var(--color-neutral-bg);
+    --lt-border: var(--color-border);
+    --lt-fg: var(--color-muted);
+    --lt-fg-hover: var(--color-ink);
+    --lt-active-bg: var(--color-card);
+    --lt-active-fg: var(--color-ink);
+    --lt-active-shadow: var(--shadow-card);
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--lt-border);
+    border-radius: var(--radius-pill);
+    background: var(--lt-bg);
+}
+
+.lang-option {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--lt-fg);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.lang-option:hover {
+    color: var(--lt-fg-hover);
+}
+
+.lang-option:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+.lang-option.is-active {
+    background: var(--lt-active-bg);
+    color: var(--lt-active-fg);
+    box-shadow: var(--lt-active-shadow);
+    cursor: default;
+}
+
+/* Cash drawer status chip: red until the drawer is opened, green (with the opening cash) once it is */
+.drawer-chip {
+    --dc-fg: var(--color-danger);
+    --dc-bg: var(--color-danger-bg);
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: var(--radius-control);
+    background: var(--dc-bg);
+    color: var(--dc-fg);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: filter 0.15s ease;
+}
+
+.drawer-chip[data-open='true'] {
+    --dc-fg: var(--color-success);
+    --dc-bg: var(--color-success-bg);
+}
+
+.drawer-chip:hover {
+    color: var(--dc-fg);
+    filter: brightness(0.96);
+}
+
+.drawer-chip:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+.drawer-chip[hidden] {
+    display: none;
+}
+
+.drawer-dot {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Tablet-width windows are the register: bigger touch targets, as everywhere else */
+@media (max-width: 1280px) {
+    .lang-option {
+        height: 34px;
+        font-size: 13.5px;
+    }
+
+    .drawer-chip {
+        min-height: 40px;
+    }
+}
+
+/* On a phone the chip shrinks to its dot (the full text is still its tooltip and the link's name) */
+@media (max-width: 575.98px) {
+    .drawer-chip {
+        padding: 12px;
+    }
+
+    .drawer-chip .drawer-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}

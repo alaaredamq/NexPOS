@@ -24,7 +24,13 @@ public class LoginViewModel
     public bool RememberMe { get; set; }
 
     public string? ReturnUrl { get; set; }
+
+    /// <summary>The active accounts offered on the sign-in screen's name picker.</summary>
+    public List<SignInUserViewModel> Users { get; set; } = new();
 }
+
+/// <summary>What the (unauthenticated) sign-in screen is allowed to know about a user: a name to pick.</summary>
+public record SignInUserViewModel(string Username, string DisplayName, string Initials);
 
 public class LoginResultViewModel
 {

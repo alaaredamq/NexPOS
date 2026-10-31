@@ -32,6 +32,11 @@
             </div>
         </main>
     </div>
+
+    @if (!noSidebar)
+    {
+        <partial name="_CommandPalette" />
+    }
 </div>
 
 <div id="shell-translations">

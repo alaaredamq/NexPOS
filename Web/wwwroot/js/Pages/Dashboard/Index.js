@@ -61,12 +61,12 @@
                     datasets: [{
                         label: localizedStrings.salesRevenue || 'Sales Revenue',
                         data: [],
-                        borderColor: '#0aa2a2',
-                        backgroundColor: 'rgba(10, 162, 162, 0.1)',
+                        borderColor: '#0a7b85',
+                        backgroundColor: 'rgba(10, 123, 133, 0.1)',
                         borderWidth: 3,
                         tension: 0.4,
                         fill: true,
-                        pointBackgroundColor: '#0aa2a2',
+                        pointBackgroundColor: '#0a7b85',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: 6,
@@ -103,7 +103,7 @@
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             titleColor: '#ffffff',
                             bodyColor: '#ffffff',
-                            borderColor: '#0aa2a2',
+                            borderColor: '#0a7b85',
                             borderWidth: 1,
                             cornerRadius: 8,
                             displayColors: false
@@ -133,7 +133,7 @@
                     },
                     elements: {
                         point: {
-                            hoverBackgroundColor: '#0aa2a2'
+                            hoverBackgroundColor: '#0a7b85'
                         }
                     }
                 }
@@ -181,7 +181,7 @@
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
                             titleColor: '#ffffff',
                             bodyColor: '#ffffff',
-                            borderColor: '#0aa2a2',
+                            borderColor: '#0a7b85',
                             borderWidth: 1,
                             cornerRadius: 8,
                             displayColors: false,

@@ -5,6 +5,7 @@ using Web.Attributes;
 using Web.Helpers;
 using Application.IServices.Users;
 using Core.Entities.Users;
+using Web.Services;
 
 namespace Web.Controllers;
 
@@ -13,10 +14,12 @@ namespace Web.Controllers;
 public class UsersController : BaseController
 {
     private readonly IUserService _userService;
+    private readonly IRoleAccessService _roleAccess;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IRoleAccessService roleAccess)
     {
         _userService = userService;
+        _roleAccess = roleAccess;
     }
 
     private const string PinRuleMessage = "PIN must be exactly 4 digits";
@@ -31,6 +34,7 @@ public class UsersController : BaseController
 
         var roles = await _userService.GetRolesAsync();
         ViewBag.Roles = roles.OrderBy(r => r.Name).ToList();
+        ViewBag.RoleSummaries = await _roleAccess.ListAsync();
         ViewBag.Stats = await BuildStatsAsync();
         return View();
     }
@@ -81,11 +85,71 @@ public class UsersController : BaseController
 
     [HttpPost]
     [RequirePermission(PermissionHelper.Permissions.Users_Manage)]
-    public IActionResult CreateRole([FromBody] CreateRoleDto dto)
+    public async Task<IActionResult> CreateRole([FromBody] CreateRoleDto dto)
     {
-        // Roles and their permission sets are defined in code (PermissionHelper.RolePermissions)
-        // and cannot be created at runtime yet.
-        return Json(new { success = false, message = "Roles are managed in configuration and cannot be created here." });
+        try
+        {
+            var result = await _roleAccess.CreateAsync(dto.Name, dto.Description, dto.Permissions);
+            return Json(new { success = result.Success, message = result.Error ?? "Role created successfully", id = result.RoleId });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpGet]
+    [RequirePermission(PermissionHelper.Permissions.Users_Manage)]
+    public async Task<IActionResult> GetRole(int id)
+    {
+        var role = await _roleAccess.GetAsync(id);
+        if (role is null)
+            return Json(new { success = false, message = "Role not found" });
+
+        return Json(new
+        {
+            success = true,
+            role = new
+            {
+                id = role.Id,
+                name = role.Name,
+                description = role.Description,
+                isSuperAdmin = role.IsSuperAdmin,
+                isSystemRole = role.IsSystemRole,
+                userCount = role.UserCount,
+                permissions = role.Permissions
+            }
+        });
+    }
+
+    [HttpPut]
+    [RequirePermission(PermissionHelper.Permissions.Users_Manage)]
+    public async Task<IActionResult> UpdateRole(int id, [FromBody] CreateRoleDto dto)
+    {
+        try
+        {
+            var result = await _roleAccess.UpdateAsync(id, dto.Name, dto.Description, dto.Permissions);
+            return Json(new { success = result.Success, message = result.Error ?? "Role updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpDelete]
+    [RequirePermission(PermissionHelper.Permissions.Users_Manage)]
+    public async Task<IActionResult> DeleteRole(int id)
+    {
+        try
+        {
+            var result = await _roleAccess.DeleteAsync(id);
+            return Json(new { success = result.Success, message = result.Error ?? "Role deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -183,8 +247,7 @@ public class UsersController : BaseController
     {
         try
         {
-            var roles = await _userService.GetRolesAsync();
-            var users = await _userService.GetAllAsync();
+            var roles = await _roleAccess.ListAsync();
 
             if (!string.IsNullOrEmpty(searchValue))
             {
@@ -214,12 +277,10 @@ public class UsersController : BaseController
                             <span class='badge {GetRoleBadgeClass(r.Name)} me-2'>{Enc(r.Name)}</span>
                         </div>",
                     description = Enc(r.Description ?? ""),
-                    userCount = users.Count(u => u.RoleId == r.Id),
-                    permissionCount = PermissionHelper.GetPermissionsForRole(r.Name).Length,
+                    userCount = r.UserCount,
+                    permissionCount = r.Permissions.Length,
                     created = r.CreatedAt.UtcToLocal().ToString("yyyy-MM-dd"),
-                    actions = r.IsSystemRole
-                        ? "<span class='badge bg-light text-muted'><i class='fas fa-lock me-1'></i>System</span>"
-                        : ""
+                    actions = GetRoleActionButtons(r)
                 })
             });
         }
@@ -305,6 +366,7 @@ public class UsersController : BaseController
             user.RoleId = dto.RoleId;
 
             await _userService.UpdateAsync(id, user);
+            _roleAccess.InvalidateAccess(); // role and active flag feed the signed-in user's permissions
             return Json(new { success = true, message = "User updated successfully" });
         }
         catch (Exception ex)
@@ -320,6 +382,7 @@ public class UsersController : BaseController
         try
         {
             await _userService.DeleteAsync(id);
+            _roleAccess.InvalidateAccess();
             return Json(new { success = true, message = "User deleted successfully" });
         }
         catch (Exception ex)
@@ -358,6 +421,7 @@ public class UsersController : BaseController
             var user = await _userService.GetByIdAsync(id);
             user.IsActive = !user.IsActive;
             await _userService.UpdateAsync(id, user);
+            _roleAccess.InvalidateAccess();
             return Json(new { success = true, message = "User status updated successfully", isActive = user.IsActive });
         }
         catch (Exception ex)
@@ -388,9 +452,10 @@ public class UsersController : BaseController
     private async Task<UserStatsDto> BuildStatsAsync()
     {
         var users = await _userService.GetAllAsync();
-        var roles = await _userService.GetRolesAsync();
+        var roles = await _roleAccess.ListAsync();
+        // "Admin" is whoever can manage users and roles - role names are the store's to choose.
         var adminRoleIds = roles
-            .Where(r => r.Name is PermissionHelper.Roles.Admin or PermissionHelper.Roles.SuperAdmin)
+            .Where(r => r.Permissions.Contains(PermissionHelper.Permissions.Users_Manage))
             .Select(r => r.Id)
             .ToHashSet();
 
@@ -461,6 +526,27 @@ public class UsersController : BaseController
         };
     }
 
+    private static string GetRoleActionButtons(RoleSummary role)
+    {
+        // SuperAdmin holds the whole catalog by definition, so there is nothing to edit or remove.
+        if (role.IsSuperAdmin)
+            return "<span class='badge bg-light text-muted'><i class='fas fa-lock me-1'></i>System</span>";
+
+        var delete = role.IsSystemRole
+            ? ""
+            : $@"<button type='button' class='btn btn-sm btn-outline-danger' onclick='deleteRole({role.Id})' title='Delete'>
+                    <i class='fas fa-trash'></i>
+                </button>";
+
+        return $@"
+            <div class='btn-group' role='group'>
+                <button type='button' class='btn btn-sm btn-outline-primary' onclick='editRole({role.Id})' title='Edit'>
+                    <i class='fas fa-edit'></i>
+                </button>
+                {delete}
+            </div>";
+    }
+
     private static string GetUserActionButtons(int userId, bool isActive)
     {
         var toggleIcon = isActive ? "fa-ban" : "fa-check";
@@ -489,7 +575,7 @@ public class UsersController : BaseController
 
 // DTOs
 public record CreateUserDto(string Username, string Email, string FirstName, string LastName, string Role, bool IsActive, string? Pin = null);
-public record CreateRoleDto(string Name, string Description, string[] Permissions);
+public record CreateRoleDto(string Name, string? Description, string[]? Permissions);
 public record UpdateUserDto(string FirstName, string LastName, string Email, int RoleId, bool IsActive);
 public record ResetPinDto(string NewPin);
 public record UserStatsDto(int TotalUsers, int TotalRoles, int ActiveUsers, int AdminUsers);

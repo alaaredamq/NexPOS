@@ -1,0 +1,23 @@
+@* English / Arabic as a two-option toggle (Boussi Cell's LanguageSwitcher) instead of a dropdown: there are only
+   ever two languages, so one click beats open-then-pick. The current language is a plain span; the other is the
+   link. On the management shell the link carries .language-switcher-link, which lang-switch.js intercepts to swap
+   the shell without a reload; the POS page has no such script and follows the link normally. *@
+@{
+    var currentLang = (ViewBag.CurrentLanguage as string) ?? "en";
+    var routeController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var routeAction = ViewContext.RouteData.Values["Action"]?.ToString();
+    var englishUrl = (ViewBag.EnglishUrl as string) ?? $"/en/{routeController}/{routeAction}";
+    var arabicUrl = (ViewBag.ArabicUrl as string) ?? $"/ar/{routeController}/{routeAction}";
+}
+<div class="lang-toggle" role="group" aria-label="@SharedLocalizer["Language"]">
+    @if (currentLang == "en")
+    {
+        <span class="lang-option is-active" lang="en" title="English" aria-current="true">EN</span>
+        <a class="lang-option language-switcher-link" data-lang="ar" lang="ar" hreflang="ar" title="العربية" href="@arabicUrl">AR</a>
+    }
+    else
+    {
+        <a class="lang-option language-switcher-link" data-lang="en" lang="en" hreflang="en" title="English" href="@englishUrl">EN</a>
+        <span class="lang-option is-active" lang="ar" title="العربية" aria-current="true">AR</span>
+    }
+</div>

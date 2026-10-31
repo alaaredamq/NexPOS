@@ -4,6 +4,7 @@ using Core.Entities.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.Attributes;
+using Web.Helpers;
 
 namespace Web.Controllers
 {
@@ -91,12 +92,107 @@ namespace Web.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> MarkAsRead([FromBody] NotificationUpdateRequest request)
+        /// <summary>What the top-bar bell and its toasts poll: the newest alerts + notifications and the unread total.</summary>
+        [HttpGet]
+        public async Task<IActionResult> GetFeed(int take = 5)
         {
             try
             {
-                await _notificationService.MarkAsReadAsync(request.Id);
+                take = Math.Clamp(take, 1, 50);
+                var feed = await _notificationService.GetFeedAsync(take, CanViewAlerts);
+
+                foreach (var item in feed.Items.Where(i => i.ProductId.HasValue))
+                {
+                    item.ActionUrl = Url.ActionWithCurrentLanguage("Details", "Products", new { id = item.ProductId });
+                }
+                foreach (var item in feed.Items.Where(i => string.IsNullOrEmpty(i.ActionUrl)))
+                {
+                    item.ActionUrl = Url.ActionWithCurrentLanguage("Index", "Notifications");
+                }
+
+                return Json(new { success = true, data = feed });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>Marks one bell item read. For an alert that means acknowledging it as the signed-in user.</summary>
+        [HttpPost]
+        public async Task<IActionResult> MarkFeedItemRead(string source, int id)
+        {
+            try
+            {
+                if (source == "alert")
+                {
+                    if (!CanViewAlerts) return Forbid();
+                    if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+                    await _notificationService.MarkAlertReadAsync(id, userId);
+                }
+                else
+                {
+                    await _notificationService.MarkAsReadAsync(id);
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAllRead()
+        {
+            try
+            {
+                if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+                await _notificationService.MarkAllReadAsync(userId, CanViewAlerts);
+                return Json(new { success = true, message = "All notifications marked as read" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DismissAllAlerts()
+        {
+            try
+            {
+                if (!CanViewAlerts) return Forbid();
+                await _notificationService.DismissAllAlertsAsync();
+                return Json(new { success = true, message = "All alerts dismissed" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ClearAll()
+        {
+            try
+            {
+                await _notificationService.ClearAllNotificationsAsync();
+                return Json(new { success = true, message = "All notifications cleared" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // The page posts these as plain form fields ({ id: id }), so bind from the form, not a JSON body.
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            try
+            {
+                await _notificationService.MarkAsReadAsync(id);
                 return Json(new { success = true, message = "Notification marked as read" });
             }
             catch (Exception ex)
@@ -120,11 +216,11 @@ namespace Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DismissAlert([FromBody] AlertUpdateRequest request)
+        public async Task<IActionResult> DismissAlert(int id)
         {
             try
             {
-                await _notificationService.DismissAlertAsync(request.Id);
+                await _notificationService.DismissAlertAsync(id);
                 return Json(new { success = true, message = "Alert dismissed" });
             }
             catch (Exception ex)
@@ -289,7 +385,7 @@ namespace Web.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> DeleteNotification(int id)
         {
             try
@@ -303,7 +399,7 @@ namespace Web.Controllers
             }
         }
 
-        [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> DeleteAlert(int id)
         {
             try
@@ -316,6 +412,12 @@ namespace Web.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
+        // Alerts have their own permission (AlertsController); the bell only shows them to users who hold it.
+        private bool CanViewAlerts => User.HasClaim("Permission", Web.Helpers.PermissionHelper.Permissions.Alerts_View);
+
+        private bool TryGetCurrentUserId(out int userId) =>
+            int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out userId);
 
         private string GetNotificationIcon(Core.Entities.Notifications.NotificationType type)
         {

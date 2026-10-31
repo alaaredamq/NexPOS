@@ -1,0 +1,29 @@
+@* Ctrl/Cmd+K jump-to-page. Lists the same pages as the rail (NavCatalog), already filtered to what this user's role
+   grants, rendered server-side so labels follow the current language. command-palette.js only filters and navigates.
+   It lives inside the shell container, so a language switch replaces it together with the rail. *@
+@{
+    var entries = NavCatalog.VisibleTo(User);
+}
+<div id="commandPalette" class="cmdk" hidden>
+    <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="@SharedLocalizer["JumpTo"]">
+        <div class="cmdk-search">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input type="text" class="cmdk-input" autocomplete="off" spellcheck="false"
+                   role="combobox" aria-expanded="true" aria-controls="cmdkResults" aria-autocomplete="list"
+                   placeholder="@SharedLocalizer["JumpToPlaceholder"]" aria-label="@SharedLocalizer["JumpTo"]" />
+            <kbd>Esc</kbd>
+        </div>
+        <div class="cmdk-results" id="cmdkResults" role="listbox">
+            @foreach (var entry in entries)
+            {
+                <a class="cmdk-item" role="option" href="@Url.ActionWithCurrentLanguage(entry.Action, entry.Controller)"
+                   data-keywords="@entry.Controller">
+                    <i class="fas @entry.Icon cmdk-icon" aria-hidden="true"></i>
+                    <span class="cmdk-label">@SharedLocalizer[entry.LabelKey]</span>
+                    <span class="cmdk-group">@SharedLocalizer[NavCatalog.SectionLabelKey(entry.Section)]</span>
+                </a>
+            }
+        </div>
+        <div class="cmdk-empty" hidden>@SharedLocalizer["JumpToNoResults"]</div>
+    </div>
+</div>

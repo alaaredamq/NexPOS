@@ -24,49 +24,50 @@
    ===================================================== */
 
 /* ===== 1. TOKENS ===== */
+/* The cart/ink names below are POS-local aliases onto the shared design tokens in colors.css (ported from
+   Boussi Cell), so the register follows the brand without carrying a palette of its own. */
 :root {
-    /* the band is the same gradient as the top navbar (--gradient-primary-strong) */
-    --cart-band-a: var(--primary-color, #0aa2a2);
-    --cart-band-b: var(--primary-dark, #00706f);
-    --cart-fill: var(--primary-dark, #00706f);
-    --cart-fill-hover: var(--primary-darker, #005453);
-    --cart-teal: #0aa2a2;
-    --cart-teal-ink: #00595a;
-    --cart-teal-tint: #e0f3f2;
-    --cart-teal-edge: #8fd3d1;
-    --cart-amber-ink: #7a4f00;
-    --cart-amber-tint: #fff1cc;
-    --cart-amber-edge: #e6b94d;
-    --cart-danger-ink: #b3202f;
-    --cart-danger-tint: #fdecee;
-    --cart-danger-edge: #e58b94;
-    --cart-ink: #1b2628;
-    --cart-ink-2: #44565a;
-    --cart-ink-3: #5f7174;
-    --cart-line: #e1e9e9;
-    --cart-line-strong: #c9d6d6;
+    --cart-band-a: var(--color-nav-bg);
+    --cart-band-b: var(--color-nav-bg);
+    --cart-fill: var(--color-primary);
+    --cart-fill-hover: var(--color-primary-hover);
+    --cart-teal: var(--color-primary);
+    --cart-teal-ink: var(--color-primary-hover);
+    --cart-teal-tint: var(--primary-lighter);
+    --cart-teal-edge: color-mix(in srgb, var(--color-primary) 40%, #fff);
+    --cart-amber-ink: var(--color-warning);
+    --cart-amber-tint: var(--color-warning-bg);
+    --cart-amber-edge: #e2c06a;
+    --cart-danger-ink: var(--color-danger-hover);
+    --cart-danger-tint: var(--color-danger-bg);
+    --cart-danger-edge: #eba3ad;
+    --cart-ink: var(--color-ink);
+    --cart-ink-2: var(--neutral-600);
+    --cart-ink-3: var(--color-muted);
+    --cart-line: var(--color-border);
+    --cart-line-strong: var(--neutral-350);
     --cart-surface: #ffffff;
-    --cart-surface-2: #f4f8f8;
-    --cart-focus: #0a8584;
-    --cart-shadow-pop: 0 18px 48px rgba(0, 40, 40, .22), 0 2px 8px rgba(0, 40, 40, .12);
+    --cart-surface-2: var(--color-canvas);
+    --cart-focus: var(--color-primary);
+    --cart-shadow-pop: var(--shadow-pop);
 }
 
 .pos-page {
-    --pos-font: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
+    --pos-font: var(--font-sans);
     --pos-gap: 12px;
     --pos-pad: 12px;
-    --pos-radius: 14px;
+    --pos-radius: var(--radius-card);
     --pos-cart-w: clamp(320px, 28vw, 440px);   /* >= 400px switches the cart to one line per item */
-    --pos-tile-min: clamp(148px, 7vw, 190px);   /* tiles grow on very wide monitors instead of multiplying */
+    --pos-tile-min: clamp(128px, 6.4vw, 156px); /* compact keys; they grow a little on very wide monitors instead of multiplying */
     --pos-ctl: 44px;
 }
 
 @media (max-width: 1399.98px) {
-    .pos-page { --pos-cart-w: clamp(320px, 30vw, 400px); --pos-tile-min: 136px; --pos-gap: 10px; }
+    .pos-page { --pos-cart-w: clamp(320px, 30vw, 400px); --pos-tile-min: 120px; --pos-gap: 10px; }
 }
 
 @media (max-width: 991.98px) {
-    .pos-page { --pos-cart-w: 320px; --pos-tile-min: 118px; }
+    .pos-page { --pos-cart-w: 320px; --pos-tile-min: 108px; }
 }
 
 /* short screens (1366x768 laptops, Windows scaling): trade padding for rows on screen */
@@ -160,11 +161,10 @@ body.pos-page.swal2-height-auto {
     flex: 0 0 auto;
     position: relative;
     z-index: 1030;
-    min-height: 52px;
+    min-height: 54px;
     padding-block: 4px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    border-bottom: 3px solid var(--primary-darker);
-    box-shadow: 0 2px 12px rgba(0, 84, 83, .25);
+    background: var(--color-nav-bg);
+    border-bottom: 1px solid var(--color-nav-divider);
 }
 
 .pos-nav .navbar-brand {
@@ -195,22 +195,22 @@ body.pos-page.swal2-height-auto {
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    border-radius: 8px;
-    color: #fff;
+    border-radius: 10px;
+    color: var(--color-nav-faint);
     font-size: .9375rem;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
 }
 
 .pos-nav .nav-link:hover,
 .pos-nav .nav-link:focus-visible,
 .pos-nav .nav-link.show {
-    background: rgba(255, 255, 255, .18);
-    color: #fff;
+    background: var(--color-nav-hover);
+    color: var(--color-nav-ink);
 }
 
 .pos-nav .nav-link:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--color-readout);
     outline-offset: 1px;
 }
 
@@ -252,11 +252,12 @@ html[dir="rtl"] .pos-nav .dropdown-item i {
     align-items: center;
     gap: 8px;
     padding: 5px 14px;
-    border: 1px solid rgba(255, 255, 255, .22);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .12);
-    color: #fff;
-    font-size: .9375rem;
+    border: 1px solid var(--color-nav-divider);
+    border-radius: var(--radius-control);
+    background: rgba(255, 255, 255, .05);
+    color: var(--color-readout);
+    font-family: var(--font-mono);
+    font-size: .875rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -272,12 +273,38 @@ html[dir="rtl"] .pos-nav .dropdown-item i {
     unicode-bidi: isolate;
 }
 
+/* the shared language toggle and drawer chip (colors.css), re-themed for the dark bar */
+.pos-nav .lang-toggle {
+    --lt-bg: rgba(255, 255, 255, .06);
+    --lt-border: var(--color-nav-divider);
+    --lt-fg: var(--color-nav-faint);
+    --lt-fg-hover: var(--color-nav-ink);
+    --lt-active-bg: rgba(255, 255, 255, .16);
+    --lt-active-fg: var(--color-nav-ink);
+    --lt-active-shadow: none;
+}
+
+.pos-nav .drawer-chip {
+    --dc-fg: #ff8e9b;
+    --dc-bg: rgba(210, 59, 78, .2);
+}
+
+.pos-nav .drawer-chip[data-open="true"] {
+    --dc-fg: var(--color-readout-settled);
+    --dc-bg: rgba(23, 138, 80, .25);
+}
+
+.pos-nav .drawer-chip:focus-visible,
+.pos-nav .lang-option:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-readout);
+}
+
 .pos-nav .dropdown-menu {
     min-width: 200px;
     padding: 6px;
-    border: 1px solid var(--neutral-200);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, .18);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-pop);
     font-size: .9375rem;
 }
 
@@ -293,8 +320,8 @@ html[dir="rtl"] .pos-nav .dropdown-item i {
 
 .pos-nav .dropdown-item:hover,
 .pos-nav .dropdown-item:focus {
-    background: var(--primary-lighter);
-    color: var(--primary-darker);
+    background: var(--color-canvas);
+    color: var(--color-primary);
 }
 
 .pos-nav .dropdown-item.active {
@@ -341,16 +368,16 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     flex-direction: column;
     overflow: hidden;
     background: #fff;
-    border: 1px solid var(--neutral-200);
+    border: 1px solid var(--color-border);
     border-radius: var(--pos-radius);
-    box-shadow: 0 2px 10px rgba(15, 23, 42, .06);
+    box-shadow: var(--shadow-card);
 }
 
 .pos-card-header {
     flex: none;
     padding: 10px var(--pos-pad);
     background: #fff;
-    border-bottom: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .pos-card-body {
@@ -370,7 +397,7 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     flex: none;
     padding: 10px var(--pos-pad);
     background: #fff;
-    border-top: 1px solid var(--neutral-200);
+    border-top: 1px solid var(--color-border);
 }
 
 .pos-head {
@@ -423,9 +450,8 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border: 0;
-    background: linear-gradient(135deg, var(--cart-band-a), var(--cart-band-b));
-    color: #fff;
+    background: var(--color-card);
+    color: var(--color-ink);
 }
 
 .cart-column .pos-head {
@@ -442,17 +468,19 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
 .cart-column .pos-head-icon {
     width: 32px;
     height: 32px;
-    background: rgba(255, 255, 255, .16);
-    color: #fff;
+    background: var(--primary-lighter);
+    color: var(--color-primary);
 }
 
 .cart-column .pos-head-title {
-    color: #fff;
+    color: var(--color-ink);
+    font-family: var(--font-display);
     font-size: 1rem;
+    font-weight: 800;
 }
 
 .cart-column .pos-head-sub {
-    color: rgba(255, 255, 255, .92);
+    color: var(--cart-ink-3);
 }
 
 .cart-count {
@@ -460,8 +488,8 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     min-width: 32px;
     padding: 3px 10px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, .2);
-    color: #fff;
+    background: var(--color-neutral-bg);
+    color: var(--color-muted);
     font-size: .875rem;
     font-weight: 700;
     line-height: 1.4;
@@ -475,14 +503,16 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     height: var(--pos-ctl);
     margin: 0;
     overflow: hidden;
-    border: 0;
-    border-radius: 10px;
-    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control-lg);
+    background: var(--color-canvas);
     box-shadow: none;
+    transition: border-color .15s ease-out, box-shadow .15s ease-out;
 }
 
 .pos-scan.input-group:focus-within {
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, .5);
+    border-color: var(--color-primary);
+    box-shadow: var(--ring);
 }
 
 .pos-scan .input-group-text {
@@ -608,7 +638,7 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     gap: 6px 8px;
     align-items: center;
     padding: 8px var(--pos-pad);
-    border-bottom: 1px solid var(--cart-line);
+    border-bottom: 1.5px dashed var(--cart-line);
 }
 
 .cart-row .cr-name {
@@ -616,7 +646,7 @@ body.pos-page .license-banner.license-banner-floating > .mt-2 {
     min-width: 0;
     color: var(--cart-ink);
     font-size: .9375rem;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.3;
     overflow-wrap: anywhere;
 }
@@ -895,8 +925,8 @@ html[dir="rtl"] .cart-row .cr-each {
 
 .totals-section {
     padding: 8px 14px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--cart-band-a), var(--cart-band-b));
+    border-radius: var(--radius-control-lg);
+    background: var(--color-nav-bg);
     color: #fff;
 }
 
@@ -913,11 +943,12 @@ html[dir="rtl"] .totals-section .total-row {
 }
 
 .totals-section .total-label {
-    color: #fff;
-    font-size: .8125rem;
-    font-weight: 600;
+    color: rgba(255, 255, 255, .7);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
     white-space: nowrap;
-    opacity: .92;
 }
 
 /* long amounts shrink to fit (POS.layoutCartPrices) instead of overflowing */
@@ -928,7 +959,8 @@ html[dir="rtl"] .totals-section .total-row {
 }
 
 .totals-section .total-figure {
-    color: #fff;
+    color: rgba(255, 255, 255, .85);
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     text-align: end;
@@ -937,6 +969,7 @@ html[dir="rtl"] .totals-section .total-row {
 }
 
 .totals-section .total-figure-primary {
+    color: var(--color-readout);
     font-size: 1.625rem;
     font-weight: 700;
     line-height: 1.15;
@@ -945,7 +978,7 @@ html[dir="rtl"] .totals-section .total-row {
 .totals-section .total-row-secondary {
     margin-top: 4px;
     padding-top: 4px;
-    border-top: 1px solid rgba(255, 255, 255, .28);
+    border-top: 1px solid rgba(255, 255, 255, .14);
 }
 
 .totals-section .total-figure-secondary {
@@ -1003,7 +1036,7 @@ html[dir="rtl"] .totals-section .total-row {
     min-height: calc(var(--pos-ctl) + 4px);
     padding: 0 16px;
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--radius-control-lg);
     background: var(--cart-fill);
     color: #fff;
     font-size: 1.0625rem;
@@ -1024,8 +1057,8 @@ html[dir="rtl"] .totals-section .total-row {
 }
 
 .btn-checkout:disabled {
-    background: #d6e0e0;
-    color: #667777;
+    background: var(--color-neutral-bg);
+    color: var(--color-faint);
     opacity: 1;
     cursor: not-allowed;
 }
@@ -1037,8 +1070,8 @@ html[dir="rtl"] .totals-section .total-row {
     gap: 6px;
     min-height: var(--pos-ctl);
     padding: 0 10px;
-    border: 1.5px solid var(--neutral-350);
-    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control-lg);
     background: #fff;
     color: var(--cart-ink-2);
     font-size: .9375rem;
@@ -1084,15 +1117,15 @@ html[dir="rtl"] .totals-section .total-row {
     min-width: 200px;
     max-width: 640px;
     margin-inline-start: auto;
-    border: 1.5px solid var(--neutral-350);
-    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control-lg);
     background: #fff;
     transition: border-color .15s ease-out, box-shadow .15s ease-out;
 }
 
 .search-input:focus-within {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(10, 162, 162, .18);
+    box-shadow: var(--ring);
 }
 
 /* the results list joins the box while it is open */
@@ -1138,33 +1171,45 @@ html[dir="rtl"] .totals-section .total-row {
 }
 
 /* ===== 8. PRODUCT TILES ===== */
+/* Compact "keycap" tiles, ported from Boussi Cell's ProductTile (its dense variant) minus the picture:
+   a name, a dashed tear rule, then price and stock on one line. Each category takes one of seven muted
+   key colours (data-tone, set from the category name in MainProductsItemComponent, same palette as the dashboard charts), the way a real till
+   keypad colours its department keys. */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--pos-tile-min), 1fr));
     align-content: start;
-    gap: var(--pos-gap);
+    gap: 8px;
 }
 
 /* The tile is also marked .add-to-cart-btn (the JS click hook), a leftover from when it held a separate
    button. Nothing here styles that class, so the tile no longer inherits button rules such as
    upper-casing every name and stock label. */
 .product-card {
+    --tile-accent: var(--color-primary);
     position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: 4px;
-    min-height: 96px;
-    padding: 10px 8px;
-    border: 1px solid var(--neutral-200);
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, .06);
+    min-height: 72px;
+    padding: 8px 10px 8px;
+    border: 1px solid color-mix(in srgb, var(--tile-accent) 35%, var(--color-border));
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--tile-accent) 9%, var(--color-card));
     color: var(--cart-ink);
-    text-align: center;
+    text-align: start;
     cursor: pointer;
     touch-action: manipulation;
-    transition: border-color .12s ease-out, box-shadow .12s ease-out, transform .08s ease-out;
+    transition: border-color .12s ease-out, background-color .12s ease-out, transform .08s ease-out;
 }
+
+.product-card[data-tone="1"] { --tile-accent: #2361d8; }
+.product-card[data-tone="2"] { --tile-accent: #b4610f; }
+.product-card[data-tone="3"] { --tile-accent: #178a50; }
+.product-card[data-tone="4"] { --tile-accent: #a8456b; }
+.product-card[data-tone="5"] { --tile-accent: #5a4ad1; }
+.product-card[data-tone="6"] { --tile-accent: #5c6472; }
 
 .product-card:active {
     transform: scale(.98);
@@ -1172,110 +1217,121 @@ html[dir="rtl"] .totals-section .total-row {
 
 @media (hover: hover) {
     .product-card:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 14px rgba(10, 162, 162, .18);
+        border-color: var(--tile-accent);
+        background: color-mix(in srgb, var(--tile-accent) 16%, var(--color-card));
     }
 }
 
-.product-image {
-    display: grid;
-    place-items: center;
-    height: 44px;
-}
-
-.product-image img {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-.product-info {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 4px;
-}
-
-.product-info .product-name {
+.product-card .product-name {
     display: -webkit-box;
-    min-height: 2.5em;
     overflow: hidden;
     color: var(--cart-ink);
-    font-size: .875rem;
+    font-size: .8125rem;
     font-weight: 600;
     line-height: 1.25;
     overflow-wrap: anywhere;
-    text-wrap: balance;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
 }
 
-html[dir="rtl"] .product-info .product-name {
+html[dir="rtl"] .product-card .product-name {
     line-height: 1.4;
 }
 
-.product-info .product-name .badge {
-    margin-inline-start: 4px;
-    padding: 2px 6px;
+.product-card .product-name .badge {
+    margin-inline-start: 2px;
+    padding: 1px 5px;
     font-size: .75rem;
-    font-weight: 600;
+    font-weight: 700;
     vertical-align: baseline;
 }
 
+.product-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0 8px;
+    padding-top: 5px;
+    border-top: 1.5px dashed var(--color-border);
+}
+
+.product-money {
+    min-width: 0;
+}
+
 /* amounts keep their "$ 3.50" order in right-to-left text too */
-.product-info .product-price,
-.product-info .product-original-price {
+.product-card .product-price,
+.product-card .product-original-price {
     direction: ltr;
     unicode-bidi: isolate;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.product-info .product-price {
-    color: var(--primary-dark);
-    font-size: 1rem;
-    font-weight: 700;
+.product-card .product-price {
+    color: var(--cart-ink);
+    font-family: var(--font-display);
+    font-size: .9375rem;
+    font-weight: 800;
+    letter-spacing: -.01em;
     line-height: 1.2;
 }
 
-.product-info .product-original-price {
+.product-card .product-original-price {
     color: var(--cart-ink-3);
-    font-size: .8125rem;
+    font-size: .75rem;
+    line-height: 1.2;
     text-decoration: line-through;
 }
 
-.product-info .product-stock {
+.product-card .product-stock {
     display: inline-flex;
     align-items: center;
-    align-self: center;
-    justify-content: center;
-    gap: 5px;
-    max-width: 100%;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: #e3f6ee;
-    color: #0b6b4f;
+    gap: 4px;
+    min-width: 0;
+    color: var(--cart-ink-3);
     font-size: .75rem;
     font-weight: 600;
     line-height: 1.3;
     white-space: nowrap;
 }
 
-.product-info .product-stock i {
-    font-size: .7rem;
+.product-card .product-stock i {
+    font-size: .45rem;
+    color: var(--color-success);
 }
 
-.product-info .product-stock.low-stock {
-    background: var(--cart-amber-tint);
+.product-card .product-stock.low-stock {
     color: var(--cart-amber-ink);
 }
 
-.product-info .product-stock.out-of-stock {
-    background: var(--cart-danger-tint);
+.product-card .product-stock.low-stock i {
+    font-size: .7rem;
+    color: var(--cart-amber-ink);
+}
+
+.product-card .product-stock.out-of-stock {
     color: var(--cart-danger-ink);
+}
+
+.product-card .product-stock.out-of-stock i {
+    font-size: .7rem;
+    color: var(--cart-danger-ink);
+}
+
+/* A sold-out key stays visible (the cashier may still need to look it up) but reads as unavailable */
+.product-card:has(.out-of-stock) .product-name,
+.product-card:has(.out-of-stock) .product-price {
+    opacity: .6;
+}
+
+/* the unit word is the first thing to go when a key is narrow */
+@container products (max-width: 560px) {
+    .product-card .stock-unit {
+        display: none;
+    }
 }
 
 /* ===== 9. QUICK ACTIONS ===== */
@@ -1293,8 +1349,8 @@ html[dir="rtl"] .product-info .product-name {
     min-width: 0;
     min-height: var(--pos-ctl);
     padding: 6px 10px;
-    border: 1px solid var(--neutral-350);
-    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-control-lg);
     background: #fff;
     color: var(--cart-ink);
     font-size: .875rem;
@@ -1566,7 +1622,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
 .swal2-container .form-control:focus,
 .swal2-container .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(10, 162, 162, .18);
+    box-shadow: 0 0 0 3px rgba(10, 123, 133, .18);
 }
 
 .swal2-container .form-control::placeholder {
@@ -1629,7 +1685,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
 }
 
 .pos-checkout-btn-cancel {
-    background: var(--neutral-200) !important;
+    background: var(--color-border) !important;
     color: var(--neutral-700) !important;
 }
 
@@ -1660,7 +1716,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     --bs-btn-active-border-color: var(--primary-darker);
     --bs-btn-disabled-bg: var(--primary-dark);
     --bs-btn-disabled-border-color: var(--primary-dark);
-    --bs-btn-focus-shadow-rgb: 10, 162, 162;
+    --bs-btn-focus-shadow-rgb: 10, 123, 133;
 }
 
 .pos-page .btn-outline-primary {
@@ -1674,13 +1730,13 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     --bs-btn-active-border-color: var(--primary-dark);
     --bs-btn-disabled-color: var(--neutral-400);
     --bs-btn-disabled-border-color: var(--neutral-300);
-    --bs-btn-focus-shadow-rgb: 10, 162, 162;
+    --bs-btn-focus-shadow-rgb: 10, 123, 133;
 }
 
 .pos-page .btn-light {
     --bs-btn-color: var(--neutral-700);
-    --bs-btn-bg: var(--neutral-200);
-    --bs-btn-border-color: var(--neutral-200);
+    --bs-btn-bg: var(--color-border);
+    --bs-btn-border-color: var(--color-border);
     --bs-btn-hover-color: var(--neutral-700);
     --bs-btn-hover-bg: var(--neutral-300);
     --bs-btn-hover-border-color: var(--neutral-300);
@@ -1941,8 +1997,8 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     }
 
     .product-card {
-        min-height: 88px;
-        padding-block: 8px;
+        min-height: 64px;
+        padding-block: 6px;
     }
 }
 
@@ -1995,7 +2051,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     }
 
     .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
     }
 
     .pos-nav .navbar-collapse {

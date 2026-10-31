@@ -20,6 +20,9 @@
     <link rel="icon" href="~/branding/favicon?v=@Brand.Version" />
     <link rel="apple-touch-icon" href="~/branding/logo?variant=icon&v=@Brand.Version" />
 
+    @* Restore the collapsed navigation rail before first paint so it never flashes open (see site.js). *@
+    <script>try { if (localStorage.getItem('nexpos.rail') === 'collapsed') document.documentElement.setAttribute('data-rail', 'collapsed'); } catch (e) { }</script>
+
     <!-- local Font -->
     <link href="/css/Fonts.css" rel="stylesheet" />
 
@@ -39,7 +42,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
-<body class="d-flex flex-column min-vh-100 bg-light @(noSidebar ? "no-sidebar" : "")">
+<body class="d-flex flex-column min-vh-100 @(noSidebar ? "no-sidebar" : "")">
     <!-- Main Container -->
     <div class="@(noSidebar ? "container-fluid px-0" : "container-fluid")">
         <div class="row @(noSidebar ? "g-0" : "")">
@@ -57,6 +60,11 @@
                 </div>
             </main>
         </div>
+
+        @if (!noSidebar)
+        {
+            <partial name="_CommandPalette" />
+        }
     </div>
 
     <!-- Scripts -->
@@ -76,6 +84,7 @@
     <script src="~/js/lang-switch.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/nexprint.js" asp-append-version="true"></script>
+    <script src="~/js/command-palette.js" asp-append-version="true"></script>
 
     <!-- Pass TempData messages to JavaScript -->
     <script>
@@ -99,32 +108,10 @@
 
     @await RenderSectionAsync("Scripts", required: false)
 
-    <!-- Management Layout Scripts -->
-    <script>
-        // Update notification badge
-        function updateManagementNotificationBadge() {
-            $.get('/Notifications/GetUnreadCount', function(response) {
-                if (response.success && response.count > 0) {
-                    $('#managementNotificationBadge').text(response.count).show();
-                } else {
-                    $('#managementNotificationBadge').hide();
-                }
-            }).fail(function() {
-                // Silently fail if notifications service is not available
-            });
-        }
-
-        @if (!noSidebar)
-        {
-            <text>
-            $(document).ready(function() {
-                updateManagementNotificationBadge();
-                if (!window.__notifBadgeTimer) {
-                    window.__notifBadgeTimer = setInterval(updateManagementNotificationBadge, 30000);
-                }
-            });
-            </text>
-        }
-    </script>
+    @* Bell badge, dropdown and toasts; the top bar (and so the bell) is not rendered when noSidebar is set. *@
+    @if (!noSidebar)
+    {
+        <script src="~/js/notifications.js" asp-append-version="true"></script>
+    }
 </body>
 </html>

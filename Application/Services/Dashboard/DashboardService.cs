@@ -501,19 +501,7 @@ public class DashboardService : IDashboardService
         }
     }
 
-    private string GetCategoryColor(string categoryName)
-    {
-        return categoryName.ToLower() switch
-        {
-            "electronics" => "#008080",
-            "clothing" => "#20c997",
-            "books" => "#17a2b8",
-            "home" => "#ffc107",
-            "sports" => "#dc3545",
-            "food" => "#28a745",
-            "beverages" => "#6f42c1",
-            "health" => "#fd7e14",
-            _ => "#6c757d"
-        };
-    }
+    // Same per-category colour the POS keys use (Common.Helpers.CategoryPalette), so a category looks the
+    // same on the dashboard and at the till. Categories not in the old name list used to fall back to grey.
+    private string GetCategoryColor(string categoryName) => Common.Helpers.CategoryPalette.ColorFor(categoryName);
 }

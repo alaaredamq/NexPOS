@@ -8,6 +8,7 @@ using Core.Auditing;
 using Core.Entities.Logging;
 using Web.Models.Auth;
 using Web.Helpers;
+using Web.Services;
 using System.Security.Claims;
 
 namespace Web.Controllers;
@@ -19,9 +20,11 @@ public class AccountController : BaseController
     private readonly ILogger<AccountController> _logger;
     private readonly IStringLocalizer<SharedResource> _localizer;
     private readonly IAuditTrail _auditTrail;
+    private readonly IRoleAccessService _roleAccess;
 
-    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail)
+    public AccountController(IAuthService authService, IUserService userService, ILogger<AccountController> logger, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail, IRoleAccessService roleAccess)
     {
+        _roleAccess = roleAccess;
         _localizer = localizer;
         _authService = authService;
         _userService = userService;
@@ -35,7 +38,7 @@ public class AccountController : BaseController
     private const string LastUsernameCookie = "erp_last_username";
 
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null)
     {
         // If user is already authenticated, redirect to return URL or dashboard
         if (User.Identity?.IsAuthenticated == true)
@@ -53,7 +56,38 @@ public class AccountController : BaseController
             model.Username = lastUsername;
         }
 
+        await LoadSignInUsersAsync(model);
         return View(model);
+    }
+
+    // Fills the name picker. The remembered user stays selected while they're still active (the page then
+    // opens straight on their PIN pad); otherwise nobody is selected and the page opens on the picker,
+    // unless there's only one active user to choose from.
+    private async Task LoadSignInUsersAsync(LoginViewModel model)
+    {
+        var users = await _userService.GetAllAsync();
+        model.Users = users
+            .Where(u => u.IsActive)
+            .Select(u => new { u.Username, Name = u.GetFullName() })
+            .OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(u => new SignInUserViewModel(u.Username, u.Name, InitialsOf(u.Name)))
+            .ToList();
+
+        if (!model.Users.Any(u => string.Equals(u.Username, model.Username, StringComparison.OrdinalIgnoreCase)))
+        {
+            model.Username = model.Users.Count == 1 ? model.Users[0].Username : string.Empty;
+        }
+    }
+
+    private static string InitialsOf(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length switch
+        {
+            0 => "?",
+            1 => parts[0][..1].ToUpperInvariant(),
+            _ => (parts[0][..1] + parts[^1][..1]).ToUpperInvariant()
+        };
     }
 
     [HttpPost]
@@ -64,6 +98,7 @@ public class AccountController : BaseController
         {
             ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
+            await LoadSignInUsersAsync(model);
             return View(model);
         }
 
@@ -73,11 +108,11 @@ public class AccountController : BaseController
 
             if (result.IsSuccess && !string.IsNullOrEmpty(result.Token))
             {
-                // Get permissions for the user's role. Fall back to the least-privileged role
-                // rather than Admin if the role somehow failed to load.
-                var userRole = result.User?.Role?.Name ?? PermissionHelper.Roles.Viewer;
-                var permissions = PermissionHelper.GetPermissionsForRole(userRole);
-                
+                // The user's grants come from the database (managed on the Users page). A user whose access
+                // can't be resolved gets none, rather than falling back to some default role.
+                var access = result.User is null ? null : await _roleAccess.GetUserAccessAsync(result.User.Id);
+                var permissions = access?.Permissions ?? Array.Empty<string>();
+
                 // Set authentication cookie for web interface
                 var claims = new List<Claim>
                 {
@@ -140,6 +175,7 @@ public class AccountController : BaseController
             ModelState.AddModelError(string.Empty, _localizer[result.ErrorMessage ?? "Invalid username or PIN"].Value);
             ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
+            await LoadSignInUsersAsync(model);
             return View(model);
         }
         catch (Exception ex)
@@ -148,6 +184,7 @@ public class AccountController : BaseController
             ModelState.AddModelError(string.Empty, _localizer["An error occurred during login. Please try again."].Value);
             ModelState.Remove(nameof(model.Pin));
             model.Pin = string.Empty;
+            await LoadSignInUsersAsync(model);
             return View(model);
         }
     }

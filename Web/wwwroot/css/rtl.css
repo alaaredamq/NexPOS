@@ -16,16 +16,8 @@ html[dir="rtl"] {
 /* =====================================================
    Sidebar RTL
    ===================================================== */
-/* Position, border, icon spacing, the page margin beside the rail and the drawer's slide direction all come
-   from logical properties / dir-aware rules in site.css (.sidebar, main.app-main) - nothing to flip here
-   except the text alignment and the hover nudge. */
-html[dir="rtl"] .sidebar .nav-link {
-    text-align: right;
-}
-
-html[dir="rtl"] .sidebar .nav-link:hover {
-    transform: translateX(-4px);
-}
+/* Nothing to flip: the rail, its active marker, the brand row, the collapse chevron, the page margin beside
+   it and the drawer's slide direction all use logical properties / dir-aware rules in site.css. */
 
 /* =====================================================
    Main Content Area RTL

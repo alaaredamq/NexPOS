@@ -2379,4 +2379,11 @@
   <data name="Price below purchase" xml:space="preserve"><value>لا يجوز أن يقل السعر الإضافي عن سعر الشراء.</value></data>
   <data name="Navigation" xml:space="preserve"><value>التنقل</value></data>
   <data name="Menu" xml:space="preserve"><value>القائمة</value></data>
+  <data name="JumpTo" xml:space="preserve"><value>انتقل إلى…</value></data>
+  <data name="JumpToPlaceholder" xml:space="preserve"><value>ابحث في الصفحات…</value></data>
+  <data name="JumpToNoResults" xml:space="preserve"><value>لا توجد صفحات مطابقة</value></data>
+  <data name="CollapseMenu" xml:space="preserve"><value>طي القائمة</value></data>
+  <data name="ExpandMenu" xml:space="preserve"><value>توسيع القائمة</value></data>
+  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>الدرج مفتوح · {0}</value></data>
+  <data name="DrawerNotOpened" xml:space="preserve"><value>الدرج غير مفتوح</value></data>
 </root>

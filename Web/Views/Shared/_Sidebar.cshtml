@@ -5,177 +5,57 @@
         noSidebar = Context.Request.Query["noSidebar"].ToString().Equals("true", StringComparison.OrdinalIgnoreCase);
     }
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+
+    // The links come from NavCatalog (shared with the Ctrl+K palette), filtered to what the signed-in user's role
+    // grants, so a custom role sees exactly the pages it was given instead of links that bounce to "access denied".
+    var visiblePages = NavCatalog.VisibleTo(User);
 }
 @if (!noSidebar)
 {
     <nav id="sidebar" class="sidebar" aria-label="@SharedLocalizer["Navigation"]">
-        <div class="sidebar-sticky pt-3">
-            <!-- Logo/Brand -->
-            <div class="text-center mb-4">
-                <a href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")" class="d-inline-block">
-                    <img src="~/branding/logo?v=@Brand.Version" alt="@Brand.AppName" height="40" />
-                </a>
-            </div>
+        <div class="sidebar-sticky">
+            @* Brand: the square mark always, the name beside it when the rail is open. An uploaded logo is used
+               as-is for every variant (see BrandingController), so it sits on a white tile to stay readable on the
+               dark rail. *@
+            <a class="rail-brand" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")" title="@Brand.AppName">
+                <span class="rail-brand-icon">
+                    <span class="rail-brand-mark @(Brand.HasCustomLogo ? "is-custom" : "")">
+                        <img src="~/branding/logo?variant=mark&v=@Brand.Version" alt="" />
+                    </span>
+                </span>
+                <span class="rail-brand-name">@Brand.AppName</span>
+            </a>
 
             <!-- Navigation Menu -->
+            <div class="rail-scroll">
             <ul class="nav flex-column">
-                <li class="nav-section-label">@SharedLocalizer["NavSectionSales"]</li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "POS" || currentController == "Home" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "POS")">
-                        <i class="fas fa-cash-register"></i>
-                        <span class="nav-text">@SharedLocalizer["PointOfSale"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Dashboard" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span class="nav-text">@SharedLocalizer["Dashboard"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Orders" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Orders")">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="nav-text">@SharedLocalizer["Orders"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "CashDrawer" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "CashDrawer")">
-                        <i class="fas fa-vault"></i>
-                        <span class="nav-text">@SharedLocalizer["CashDrawer"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Receipts" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Receipts")">
-                        <i class="fas fa-receipt"></i>
-                        <span class="nav-text">@SharedLocalizer["Receipts"]</span>
-                    </a>
-                </li>
-
-                <li class="nav-section-label">@SharedLocalizer["NavSectionCatalog"]</li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Products" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Products")">
-                        <i class="fas fa-box"></i>
-                        <span class="nav-text">@SharedLocalizer["Products"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Categories" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Categories")">
-                        <i class="fas fa-tags"></i>
-                        <span class="nav-text">@SharedLocalizer["Categories"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "ProductDisplayOrder" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "ProductDisplayOrder")">
-                        <i class="fas fa-sort-amount-down"></i>
-                        <span class="nav-text">@SharedLocalizer["ProductDisplayOrder"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Inventory" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Inventory")">
-                        <i class="fas fa-warehouse"></i>
-                        <span class="nav-text">@SharedLocalizer["Inventory"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Suppliers" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Suppliers")">
-                        <i class="fas fa-truck"></i>
-                        <span class="nav-text">@SharedLocalizer["Suppliers"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Customers" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Customers")">
-                        <i class="fas fa-users"></i>
-                        <span class="nav-text">@SharedLocalizer["Customers"]</span>
-                    </a>
-                </li>
-
-                <li class="nav-section-label">@SharedLocalizer["NavSectionInsights"]</li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Reports" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Reports")">
-                        <i class="fas fa-chart-bar"></i>
-                        <span class="nav-text">@SharedLocalizer["Reports"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Notifications" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Notifications")">
-                        <i class="fas fa-bell"></i>
-                        <span class="nav-text">@SharedLocalizer["Notifications"]</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link @(currentController == "Backup" ? "active" : "")"
-                       href="@Url.ActionWithCurrentLanguage("Index", "Backup")">
-                        <i class="fas fa-database"></i>
-                        <span class="nav-text">@SharedLocalizer["Backup"]</span>
-                    </a>
-                </li>
-
-                @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                @foreach (var section in NavCatalog.Sections)
                 {
-                    <li class="nav-section-label">@SharedLocalizer["NavSectionAdmin"]</li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Users" ? "active" : "")"
-                           href="@Url.ActionWithCurrentLanguage("Index", "Users")">
-                            <i class="fas fa-user-cog"></i>
-                            <span class="nav-text">@SharedLocalizer["Users"]</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Currency" ? "active" : "")"
-                           href="@Url.ActionWithCurrentLanguage("Index", "Currency")">
-                            <i class="fas fa-coins"></i>
-                            <span class="nav-text">@SharedLocalizer["Currency"]</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Tax" ? "active" : "")"
-                           href="@Url.ActionWithCurrentLanguage("Index", "Tax")">
-                            <i class="fas fa-percentage"></i>
-                            <span class="nav-text">@SharedLocalizer["Tax"]</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Settings" ? "active" : "")"
-                           href="@Url.ActionWithCurrentLanguage("Index", "Settings")">
-                            <i class="fas fa-cog"></i>
-                            <span class="nav-text">@SharedLocalizer["Settings"]</span>
-                        </a>
-                    </li>
-                    @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.License_Manage))
+                    var entries = visiblePages.Where(p => p.Section == section).ToList();
+                    if (entries.Count == 0) { continue; }
+
+                    <li class="nav-section-label">@SharedLocalizer[NavCatalog.SectionLabelKey(section)]</li>
+                    foreach (var entry in entries)
                     {
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "License" ? "active" : "")"
-                               href="@Url.ActionWithCurrentLanguage("Index", "License")">
-                                <i class="fas fa-key"></i>
-                                <span class="nav-text">@SharedLocalizer["License_Title"]</span>
-                            </a>
-                        </li>
-                    }
-                    @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.AuditLogs_View))
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link @(currentController == "AuditLogs" ? "active" : "")"
-                               href="@Url.ActionWithCurrentLanguage("Index", "AuditLogs")">
-                                <i class="fas fa-clipboard-list"></i>
-                                <span class="nav-text">@SharedLocalizer["AuditLog"]</span>
+                            <a class="nav-link @(entry.IsActiveFor(currentController) ? "active" : "")"
+                               href="@Url.ActionWithCurrentLanguage(entry.Action, entry.Controller)">
+                                <i class="fas @entry.Icon"></i>
+                                <span class="nav-text">@SharedLocalizer[entry.LabelKey]</span>
                             </a>
                         </li>
                     }
                 }
             </ul>
+            </div>
+
+            @* Collapse to an icon rail / expand again. State lives on <html data-rail> (site.js); the drawer
+               layout below 992px has its own menu button, so this is hidden there. *@
+            <button type="button" class="rail-toggle" data-rail-toggle aria-expanded="true">
+                <span class="rail-toggle-icon"><i class="fas fa-angles-left"></i></span>
+                <span class="nav-text rail-toggle-collapse">@SharedLocalizer["CollapseMenu"]</span>
+                <span class="nav-text rail-toggle-expand">@SharedLocalizer["ExpandMenu"]</span>
+            </button>
         </div>
     </nav>
     <div class="sidebar-scrim" data-sidebar-close></div>

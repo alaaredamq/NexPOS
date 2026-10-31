@@ -2,6 +2,7 @@ using Application.DTOs.Notifications;
 using Application.IServices.Notifications;
 using Core.Entities.Notifications;
 using Core.IRepositories.Notifications;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Application.Services.Notifications
@@ -198,6 +199,93 @@ namespace Application.Services.Notifications
 
         #endregion
 
+        #region Bell / Toast Feed
+
+        public async Task<NotificationFeedDTO> GetFeedAsync(int take, bool includeAlerts)
+        {
+            var feed = new NotificationFeedDTO();
+            var items = new List<NotificationFeedItemDTO>();
+
+            // Open alerts are the "unread" ones; acknowledging one is how the bell marks it read.
+            if (includeAlerts)
+            {
+                feed.UnreadCount += await _alertRepository.Table.CountAsync(a => a.Status == AlertStatus.Active);
+
+                var alerts = await _alertRepository.Table
+                    .Where(a => a.Status == AlertStatus.Active || a.Status == AlertStatus.Acknowledged)
+                    .OrderByDescending(a => a.CreatedAt)
+                    .Take(take)
+                    .ToListAsync();
+                items.AddRange(alerts.Select(MapAlertToFeedItem));
+            }
+
+            feed.UnreadCount += await _notificationRepository.Table.CountAsync(n => !n.IsRead);
+
+            var notifications = await _notificationRepository.Table
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(take)
+                .ToListAsync();
+            items.AddRange(notifications.Select(MapNotificationToFeedItem));
+
+            feed.Items = items.OrderByDescending(i => i.CreatedAt).Take(take).ToList();
+            return feed;
+        }
+
+        public async Task MarkAlertReadAsync(int alertId, int userId)
+        {
+            await _alertRepository.AcknowledgeAsync(alertId, userId);
+        }
+
+        public async Task MarkAllReadAsync(int userId, bool includeAlerts)
+        {
+            var now = DateTime.UtcNow;
+
+            var unread = await _notificationRepository.Table.Where(n => !n.IsRead).ToListAsync();
+            foreach (var notification in unread)
+            {
+                notification.IsRead = true;
+                notification.ReadAt = now;
+            }
+
+            if (includeAlerts)
+            {
+                var active = await _alertRepository.Table.Where(a => a.Status == AlertStatus.Active).ToListAsync();
+                foreach (var alert in active)
+                {
+                    alert.Status = AlertStatus.Acknowledged;
+                    alert.AcknowledgedAt = now;
+                    alert.AcknowledgedByUserId = userId;
+                }
+            }
+
+            await _notificationRepository.SaveChangesAsync();
+        }
+
+        public async Task DismissAllAlertsAsync()
+        {
+            var now = DateTime.UtcNow;
+            var open = await _alertRepository.Table
+                .Where(a => a.Status == AlertStatus.Active || a.Status == AlertStatus.Acknowledged)
+                .ToListAsync();
+
+            foreach (var alert in open)
+            {
+                alert.Status = AlertStatus.Dismissed;
+                alert.ResolvedAt = now;
+            }
+
+            await _alertRepository.SaveChangesAsync();
+        }
+
+        public async Task ClearAllNotificationsAsync()
+        {
+            var all = await _notificationRepository.Table.ToListAsync();
+            if (all.Count > 0)
+                await _notificationRepository.DeleteRangeAsync(all);
+        }
+
+        #endregion
+
         #region Statistics and Dashboard
 
         public async Task<NotificationStatsDTO> GetNotificationStatsAsync()
@@ -213,7 +301,7 @@ namespace Application.Services.Notifications
                 ActiveAlerts = alerts.Count(a => a.Status == AlertStatus.Active),
                 CriticalAlerts = alerts.Count(a => a.Status == AlertStatus.Active), // All active alerts are considered critical
                 LowStockAlerts = alerts.Count(a => a.Type == AlertType.LowStock && a.Status == AlertStatus.Active),
-                OutOfStockAlerts = alerts.Count(a => a.Type == AlertType.LowStock && a.Status == AlertStatus.Active), // Using LowStock for out of stock
+                OutOfStockAlerts = alerts.Count(a => a.Type == AlertType.OutOfStock && a.Status == AlertStatus.Active),
                 RecentNotifications = (await GetRecentNotificationsAsync(5)).Select(MapToDTO).ToList(),
                 ActiveAlertsList = (await GetActiveAlertsAsync()).Select(MapAlertToDTO).ToList()
             };
@@ -511,6 +599,64 @@ namespace Application.Services.Notifications
             };
         }
 
+        private static NotificationFeedItemDTO MapAlertToFeedItem(Alert alert)
+        {
+            var feedItem = new NotificationFeedItemDTO
+            {
+                Key = $"alert-{alert.Id}",
+                Source = "alert",
+                Id = alert.Id,
+                Kind = char.ToLowerInvariant(alert.Type.ToString()[0]) + alert.Type.ToString()[1..],
+                Title = alert.Title,
+                Message = alert.Message,
+                CreatedAt = alert.CreatedAt,
+                IsRead = alert.Status != AlertStatus.Active
+            };
+
+            // Stock alerts store the product facts as JSON so the client can build localized copy from them.
+            if (!string.IsNullOrEmpty(alert.Metadata))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(alert.Metadata);
+                    foreach (var prop in doc.RootElement.EnumerateObject())
+                    {
+                        var key = char.ToLowerInvariant(prop.Name[0]) + prop.Name[1..];
+                        feedItem.Params[key] = prop.Value.ValueKind switch
+                        {
+                            JsonValueKind.Number => prop.Value.GetDecimal(),
+                            JsonValueKind.String => prop.Value.GetString() ?? string.Empty,
+                            _ => prop.Value.ToString()
+                        };
+                    }
+
+                    if (doc.RootElement.TryGetProperty("ProductId", out var productId) && productId.TryGetInt32(out var id))
+                        feedItem.ProductId = id;
+                }
+                catch (JsonException)
+                {
+                    // Malformed metadata only costs the deep link; the stored title/message still show.
+                }
+            }
+
+            return feedItem;
+        }
+
+        private NotificationFeedItemDTO MapNotificationToFeedItem(Notification notification)
+        {
+            return new NotificationFeedItemDTO
+            {
+                Key = $"notification-{notification.Id}",
+                Source = "notification",
+                Id = notification.Id,
+                Kind = notification.Type.ToString().ToLowerInvariant(),
+                Title = notification.Title,
+                Message = notification.Message,
+                CreatedAt = notification.CreatedAt,
+                IsRead = notification.IsRead
+            };
+        }
+
         private NotificationType ParseNotificationType(string type)
         {
             return type.ToLower() switch
@@ -540,6 +686,7 @@ namespace Application.Services.Notifications
             return type.ToLower() switch
             {
                 "low_stock" => AlertType.LowStock,
+                "out_of_stock" => AlertType.OutOfStock,
                 "expired_product" => AlertType.ExpiredProduct,
                 "payment_failed" => AlertType.PaymentFailed,
                 "system_error" => AlertType.SystemError,

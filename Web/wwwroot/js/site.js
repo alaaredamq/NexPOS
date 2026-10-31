@@ -226,18 +226,18 @@ function initializeDataTables() {
 function initializeCharts() {
     // Chart.js default configuration
     if (typeof Chart !== 'undefined') {
-        Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
+        Chart.defaults.font.family = "'Public Sans', 'Segoe UI', system-ui, sans-serif";
         Chart.defaults.color = '#6c757d';
         Chart.defaults.plugins.legend.labels.usePointStyle = true;
         Chart.defaults.plugins.legend.labels.padding = 20;
         
         // Default colors for charts
-        Chart.defaults.elements.bar.backgroundColor = 'rgba(10, 162, 162, 0.8)';
-        Chart.defaults.elements.bar.borderColor = '#0aa2a2';
+        Chart.defaults.elements.bar.backgroundColor = 'rgba(10, 123, 133, 0.8)';
+        Chart.defaults.elements.bar.borderColor = '#0a7b85';
         Chart.defaults.elements.bar.borderWidth = 1;
         
-        Chart.defaults.elements.line.borderColor = '#0aa2a2';
-        Chart.defaults.elements.line.backgroundColor = 'rgba(10, 162, 162, 0.1)';
+        Chart.defaults.elements.line.borderColor = '#0a7b85';
+        Chart.defaults.elements.line.backgroundColor = 'rgba(10, 123, 133, 0.1)';
         Chart.defaults.elements.line.borderWidth = 3;
         Chart.defaults.elements.line.tension = 0.4;
     }
@@ -622,4 +622,96 @@ window.ERP = window.NexPos;
 
     // The shell was replaced (language switch): the new markup starts closed.
     document.addEventListener('shell:loaded', function () { setOpen(false); });
+})();
+
+/**
+ * Collapsible navigation rail (desktop widths; below 992px the sidebar is the drawer above).
+ * The state is one attribute on <html> - data-rail="collapsed" - so it survives lang-switch.js replacing
+ * the whole shell, and a tiny inline script in _Layout's <head> applies it before first paint so the rail
+ * never flashes open. Delegated from `document` for the same reason as the drawer.
+ */
+(function () {
+    var KEY = 'nexpos.rail';
+    var root = document.documentElement;
+
+    function isCollapsed() {
+        return root.getAttribute('data-rail') === 'collapsed';
+    }
+
+    function sync() {
+        var collapsed = isCollapsed();
+        document.querySelectorAll('[data-rail-toggle]').forEach(function (btn) {
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            btn.title = (btn.querySelector(collapsed ? '.rail-toggle-expand' : '.rail-toggle-collapse') || {}).textContent || '';
+        });
+        // Collapsed rows show only an icon, so give each one its label as a tooltip.
+        document.querySelectorAll('#sidebar a.nav-link').forEach(function (a) {
+            var label = a.querySelector('.nav-text');
+            if (label && !a.title) a.title = label.textContent.trim();
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-rail-toggle]')) return;
+        if (isCollapsed()) root.removeAttribute('data-rail');
+        else root.setAttribute('data-rail', 'collapsed');
+        try { localStorage.setItem(KEY, isCollapsed() ? 'collapsed' : 'open'); } catch (err) { /* private mode: stays per-page */ }
+        sync();
+    });
+
+    document.addEventListener('shell:loaded', sync);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sync);
+    else sync();
+})();
+
+
+/**
+ * Cash drawer status chip (Views/Shared/_DrawerStatus.cshtml). The server renders the right state, so
+ * there is no flash on load; this keeps it true afterwards - once a minute, and whenever the window is
+ * shown again - so a drawer opened or closed in another window (or on the POS page) is picked up.
+ */
+(function () {
+    var REFRESH_MS = 60000;
+    var busy = false;
+
+    function setState(chip, open, openingCash) {
+        var label = chip.querySelector('.drawer-label');
+        if (!label) return;
+        chip.setAttribute('data-open', open ? 'true' : 'false');
+        chip.hidden = false;
+        label.textContent = '';
+        if (open) {
+            // "Drawer open · {0}": the amount sits in its own left-to-right run so Arabic text can't flip "$100.00"
+            var parts = (chip.getAttribute('data-label-open') || '{0}').split('{0}');
+            var amount = document.createElement('bdi');
+            amount.dir = 'ltr';
+            amount.textContent = '$' + Number(openingCash || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            label.appendChild(document.createTextNode(parts[0]));
+            label.appendChild(amount);
+            label.appendChild(document.createTextNode(parts.slice(1).join('{0}')));
+        } else {
+            label.textContent = chip.getAttribute('data-label-closed') || '';
+        }
+        chip.title = label.textContent;
+    }
+
+    function refresh() {
+        var chips = document.querySelectorAll('[data-drawer-status]');
+        if (!chips.length || busy) return;
+        var url = chips[0].getAttribute('data-status-url');
+        if (!url) return;
+        busy = true;
+        fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function (res) {
+                var open = !!(res && res.success && res.data);
+                chips.forEach(function (chip) { setState(chip, open, open ? res.data.openingCash : 0); });
+            })
+            .catch(function () { /* offline or signed out: keep what the page rendered */ })
+            .then(function () { busy = false; });
+    }
+
+    setInterval(function () { if (!document.hidden) refresh(); }, REFRESH_MS);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+    window.addEventListener('focus', refresh);
 })();

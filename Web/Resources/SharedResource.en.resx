@@ -2379,4 +2379,11 @@
   <data name="Price below purchase" xml:space="preserve"><value>An extra price cannot be below the purchase price.</value></data>
   <data name="Navigation" xml:space="preserve"><value>Navigation</value></data>
   <data name="Menu" xml:space="preserve"><value>Menu</value></data>
+  <data name="JumpTo" xml:space="preserve"><value>Jump to…</value></data>
+  <data name="JumpToPlaceholder" xml:space="preserve"><value>Search pages…</value></data>
+  <data name="JumpToNoResults" xml:space="preserve"><value>No matching pages</value></data>
+  <data name="CollapseMenu" xml:space="preserve"><value>Collapse menu</value></data>
+  <data name="ExpandMenu" xml:space="preserve"><value>Expand menu</value></data>
+  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>Drawer open · {0}</value></data>
+  <data name="DrawerNotOpened" xml:space="preserve"><value>Drawer not opened</value></data>
 </root>

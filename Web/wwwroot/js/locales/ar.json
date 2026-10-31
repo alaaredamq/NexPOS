@@ -280,6 +280,27 @@
     "year": "سنة",
     "salesRevenue": "إيرادات المبيعات",
     "profit": "الربح"
+  },
+  "notifications": {
+    "empty": "لا توجد إشعارات جديدة",
+    "markAllRead": "تحديد الكل كمقروء",
+    "dismiss": "إغلاق",
+    "kinds": {
+      "lowStock": {
+        "title": "مخزون منخفض: {productName}",
+        "message": "المتبقي {stockQuantity} (حد إعادة الطلب {minimumStock})."
+      },
+      "outOfStock": {
+        "title": "نفد المخزون: {productName}",
+        "message": "نفدت كمية {productName} وتحتاج إلى إعادة تخزين."
+      }
+    },
+    "time": {
+      "justNow": "الآن",
+      "minutesAgo": "منذ {count} دقيقة",
+      "hoursAgo": "منذ {count} ساعة",
+      "daysAgo": "منذ {count} يوم"
+    }
   }
 }
 

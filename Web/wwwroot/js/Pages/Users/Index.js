@@ -129,45 +129,153 @@
             });
         });
 
-        // Add role form submission
-        $('#addRoleForm').on('submit', function(e) {
+        // Role editor: one modal for both creating and editing (hidden #roleId is empty when creating)
+        $('#roleForm').on('submit', function(e) {
             e.preventDefault();
 
-            const permissions = [];
-            $('.permissions-selection input[type="checkbox"]:checked').each(function() {
-                permissions.push($(this).attr('id').replace('perm_', '').replace('_', '.'));
-            });
+            const id = $('#roleId').val();
+            const isEdit = id !== '';
+            const name = $('#roleName').val().trim();
 
             const formData = {
-                name: $('#roleName').val(),
+                name: name,
                 description: $('#roleDescription').val(),
-                permissions: permissions
+                permissions: checkedPermissions()
             };
 
             $.ajax({
-                url: urls().createRoleUrl || '',
-                type: 'POST',
+                url: isEdit ? (urls().updateRoleUrl || '') + '/' + id : (urls().createRoleUrl || ''),
+                type: isEdit ? 'PUT' : 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(formData),
                 success: function(response) {
                     if (response.success) {
-                        notifySuccess(strings().roleCreatedSuccessfully || 'Role created successfully');
-                        $('#addRoleModal').modal('hide');
-                        $('#addRoleForm')[0].reset();
+                        notifySuccess(isEdit
+                            ? (response.message || 'Role updated successfully')
+                            : (strings().roleCreatedSuccessfully || 'Role created successfully'));
+                        $('#roleModal').modal('hide');
+                        syncRoleOptions(isEdit ? id : String(response.id), name);
                         reloadRoles();
+                        if (typeof window.loadUserStats === 'function') { window.loadUserStats(); }
                     } else {
-                        notifyError(response.message || (strings().failedToCreateRole || 'Failed to create role'));
+                        notifyError(response.message || (strings().failedToCreateRole || 'Failed to save role'));
                     }
                 },
                 error: function() {
-                    notifyError(strings().failedToCreateRole || 'Failed to create role');
+                    notifyError(strings().failedToCreateRole || 'Failed to save role');
                 }
             });
         });
 
+        // Ticking a group ticks all of its permissions; the group box reflects how many are on.
+        $('#roleModal').on('change', '.permission-group-toggle', function() {
+            const group = $(this).data('group');
+            const on = this.checked;
+            $('.permission-checkbox').filter(function() { return $(this).data('group') === group; })
+                .prop('checked', on);
+            refreshRoleSelection();
+        });
+        $('#roleModal').on('change', '.permission-checkbox', refreshRoleSelection);
+
         // Load user statistics
         loadUserStats();
     }
+
+    // ---- Role editor helpers ----
+    function checkedPermissions() {
+        return $('.permission-checkbox:checked').map(function() { return this.value; }).get();
+    }
+
+    // Keeps the "n / total selected" counter and each group's checkbox (checked / partly) in step with the ticks.
+    function refreshRoleSelection() {
+        $('#rolePermissionCount').text($('.permission-checkbox:checked').length);
+        $('.permission-group-toggle').each(function() {
+            const group = $(this).data('group');
+            const boxes = $('.permission-checkbox').filter(function() { return $(this).data('group') === group; });
+            const on = boxes.filter(':checked').length;
+            this.checked = on === boxes.length;
+            this.indeterminate = on > 0 && on < boxes.length;
+        });
+    }
+
+    function setRoleFormLocked(locked) {
+        $('#roleForm').find('input[type="text"], input[type="checkbox"]').prop('disabled', locked);
+        $('#roleSaveButton').toggleClass('d-none', locked);
+        $('#superAdminNote').toggleClass('d-none', !locked);
+    }
+
+    // The role pickers in the add/edit user modals are rendered by the server, so a new, renamed or removed
+    // role has to be reflected there too or the page would need a reload before it could be assigned.
+    function syncRoleOptions(id, name) {
+        const addOption = $('#userRole option').filter(function() { return String($(this).data('id')) === String(id); });
+        if (addOption.length) { addOption.val(name).text(name); }
+        else { $('#userRole').append($('<option>').val(name).attr('data-id', id).text(name)); }
+
+        const editOption = $('#editUserRole option').filter(function() { return String(this.value) === String(id); });
+        if (editOption.length) { editOption.text(name); }
+        else { $('#editUserRole').append($('<option>').val(id).text(name)); }
+    }
+
+    function removeRoleOption(id) {
+        $('#userRole option').filter(function() { return String($(this).data('id')) === String(id); }).remove();
+        $('#editUserRole option').filter(function() { return String(this.value) === String(id); }).remove();
+    }
+
+    window.openRoleModal = function() {
+        $('#roleForm')[0].reset();
+        $('#roleId').val('');
+        $('.permission-checkbox').prop('checked', false);
+        setRoleFormLocked(false);
+        refreshRoleSelection();
+        $('#roleModalTitle').text('Add New Role');
+        $('#roleModal').modal('show');
+    };
+
+    window.editRole = function(id) {
+        $.ajax({
+            url: (urls().getRoleUrl || '') + '/' + id,
+            type: 'GET',
+            success: function(response) {
+                if (!response || !response.success) {
+                    notifyError((response && response.message) || 'Failed to load role');
+                    return;
+                }
+                const r = response.role;
+                $('#roleForm')[0].reset();
+                $('#roleId').val(r.id);
+                $('#roleName').val(r.name);
+                $('#roleDescription').val(r.description || '');
+                const granted = new Set(r.permissions);
+                $('.permission-checkbox').each(function() { this.checked = granted.has(this.value); });
+                setRoleFormLocked(!!r.isSuperAdmin);
+                refreshRoleSelection();
+                $('#roleModalTitle').text(r.isSuperAdmin ? 'View Role' : 'Edit Role');
+                $('#roleModal').modal('show');
+            },
+            error: function() { notifyError('Failed to load role'); }
+        });
+    };
+
+    window.deleteRole = function(id) {
+        appConfirm('Delete this role? This cannot be undone.').then(function(ok) {
+            if (!ok) return;
+            $.ajax({
+                url: (urls().deleteRoleUrl || '') + '/' + id,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        notifySuccess(response.message || 'Role deleted');
+                        removeRoleOption(id);
+                        reloadRoles();
+                        if (typeof window.loadUserStats === 'function') { window.loadUserStats(); }
+                    } else {
+                        notifyError(response.message || 'Failed to delete role');
+                    }
+                },
+                error: function() { notifyError('Failed to delete role'); }
+            });
+        });
+    };
 
     // Row action handlers (referenced from server-rendered onclick attributes)
     window.editUser = function(id) {

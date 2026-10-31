@@ -34,6 +34,31 @@ namespace Application.DTOs.Notifications
         public Dictionary<string, object> Context { get; set; } = new();
     }
 
+    /// <summary>One row of the bell / toast feed: either an Alert or a Notification, in one shape.</summary>
+    public class NotificationFeedItemDTO
+    {
+        /// <summary>Stable across polls ("alert-12" / "notification-5"); the client dedupes toasts on it.</summary>
+        public string Key { get; set; } = string.Empty;
+        public string Source { get; set; } = string.Empty; // alert | notification
+        public int Id { get; set; }
+        /// <summary>lowStock, outOfStock, or the notification type (info, warning, error, success). Drives client-side copy and colour.</summary>
+        public string Kind { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        /// <summary>Values the client plugs into the localized copy for Kind (name, stock, reorder).</summary>
+        public Dictionary<string, object> Params { get; set; } = new();
+        public int? ProductId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsRead { get; set; }
+        public string ActionUrl { get; set; } = string.Empty;
+    }
+
+    public class NotificationFeedDTO
+    {
+        public int UnreadCount { get; set; }
+        public List<NotificationFeedItemDTO> Items { get; set; } = new();
+    }
+
     public class NotificationCreateRequest
     {
         public string Title { get; set; } = string.Empty;

@@ -79,6 +79,24 @@
   <data name="EnterCredentials" xml:space="preserve">
     <value>Enter your credentials to access your account</value>
   </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Welcome back</value>
+  </data>
+  <data name="NotYouSwitchUser" xml:space="preserve">
+    <value>Not you? Switch user</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="WhoIsSigningIn" xml:space="preserve">
+    <value>Who is signing in?</value>
+  </data>
+  <data name="EnterPinFor" xml:space="preserve">
+    <value>Enter your PIN</value>
+  </data>
+  <data name="NoUsersToSignIn" xml:space="preserve">
+    <value>No active users found. Ask an administrator to create an account.</value>
+  </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
   </data>

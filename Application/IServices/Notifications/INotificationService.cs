@@ -35,6 +35,13 @@ namespace Application.IServices.Notifications
         Task<IEnumerable<Alert>> GetAlertsByTypeAsync(string type);
         Task<IEnumerable<Alert>> GetCriticalAlertsAsync();
 
+        // Bell / toast feed. Alerts are only included when includeAlerts is true (caller checks the Alerts permission).
+        Task<NotificationFeedDTO> GetFeedAsync(int take, bool includeAlerts);
+        Task MarkAlertReadAsync(int alertId, int userId);
+        Task MarkAllReadAsync(int userId, bool includeAlerts);
+        Task DismissAllAlertsAsync();
+        Task ClearAllNotificationsAsync();
+
         // Statistics and dashboard
         Task<NotificationStatsDTO> GetNotificationStatsAsync();
         Task<int> GetUnreadCountAsync();

@@ -191,6 +191,40 @@ builder.Services.AddAuthentication("Cookies")
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
+
+        // The cookie carries a snapshot of the user's role and permissions from sign-in. Re-read it each
+        // request (from a short-lived cache) so editing a role, moving a user to another role, or disabling
+        // a user takes effect for people who are already signed in rather than at their next sign-in.
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            if (context.Principal?.Identity is not System.Security.Claims.ClaimsIdentity identity ||
+                !int.TryParse(identity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var userId))
+            {
+                return;
+            }
+
+            var access = await context.HttpContext.RequestServices
+                .GetRequiredService<Web.Services.IRoleAccessService>()
+                .GetUserAccessAsync(userId);
+
+            if (access is null)
+            {
+                context.RejectPrincipal();
+                await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(context.HttpContext, "Cookies");
+                return;
+            }
+
+            foreach (var claim in identity.FindAll(c =>
+                         c.Type is "Permission" or "Role" or "RoleId" or System.Security.Claims.ClaimTypes.Role).ToList())
+            {
+                identity.RemoveClaim(claim);
+            }
+
+            identity.AddClaim(new System.Security.Claims.Claim("Role", access.RoleName));
+            identity.AddClaim(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, access.RoleName));
+            identity.AddClaim(new System.Security.Claims.Claim("RoleId", access.RoleId.ToString()));
+            identity.AddClaims(access.Permissions.Select(p => new System.Security.Claims.Claim("Permission", p)));
+        };
     })
     .AddJwtBearer("Bearer", options =>
     {
@@ -281,6 +315,8 @@ builder.Services.AddScoped<Core.IRepositories.Users.IUserSessionRepository, Infr
 builder.Services.AddScoped<Core.IRepositories.Users.IRoleRepository, Infrastructure.Repositories.Users.RoleRepository>();
 builder.Services.AddScoped<Application.IServices.Users.IUserService, Application.Services.Users.UserService>();
 builder.Services.AddScoped<Application.IServices.Auth.IAuthService, Application.Services.Auth.AuthService>();
+builder.Services.AddSingleton<Web.Services.AccessCache>();
+builder.Services.AddScoped<Web.Services.IRoleAccessService, Web.Services.RoleAccessService>();
 builder.Services.AddScoped<IProductDisplayOrderService, ProductDisplayOrderService>();
 
 // Reports
@@ -397,6 +433,9 @@ using (auditContext.SuppressDataChanges("schema migration"))
     {
         var pendingMigrations = dbContext.Database.GetPendingMigrations().ToList();
         dbContext.Database.Migrate();
+
+        // Permission rows for everything the code can check, plus the one-time default grants for built-in roles.
+        await migrationScope.ServiceProvider.GetRequiredService<Web.Services.IRoleAccessService>().EnsureCatalogAsync();
 
         if (pendingMigrations.Count > 0)
         {

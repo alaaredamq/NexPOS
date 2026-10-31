@@ -79,6 +79,24 @@
   <data name="EnterCredentials" xml:space="preserve">
     <value>أدخل بيانات الاعتماد للوصول إلى حسابك</value>
   </data>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>أهلاً بعودتك</value>
+  </data>
+  <data name="NotYouSwitchUser" xml:space="preserve">
+    <value>لست أنت؟ بدّل المستخدم</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="WhoIsSigningIn" xml:space="preserve">
+    <value>من يسجّل الدخول؟</value>
+  </data>
+  <data name="EnterPinFor" xml:space="preserve">
+    <value>أدخل رمز PIN</value>
+  </data>
+  <data name="NoUsersToSignIn" xml:space="preserve">
+    <value>لا يوجد مستخدمون نشطون. اطلب من المسؤول إنشاء حساب.</value>
+  </data>
   <data name="Username" xml:space="preserve">
     <value>اسم المستخدم</value>
   </data>

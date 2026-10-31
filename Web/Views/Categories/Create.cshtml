@@ -32,7 +32,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="Color" class="form-label">Category Color</label>
-                            <input asp-for="Color" type="color" class="form-control form-control-color" value="#0aa2a2" />
+                            <input asp-for="Color" type="color" class="form-control form-control-color" value="#0a7b85" />
                             <span asp-validation-for="Color" class="text-danger"></span>
                         </div>
                     </div>
@@ -116,7 +116,7 @@
                 <div class="category-preview">
                     <h6 class="text-muted mb-3">Category Preview</h6>
                     <div class="preview-category" id="categoryPreview">
-                        <div class="preview-color" style="background-color: #0aa2a2;"></div>
+                        <div class="preview-color" style="background-color: #0a7b85;"></div>
                         <div class="preview-content">
                             <div class="preview-name" id="previewName">Category Name</div>
                             <div class="preview-description" id="previewDescription">Category description will appear here</div>
@@ -135,7 +135,7 @@
             function updateCategoryPreview() {
                 const name = $('#Name').val() || 'Category Name';
                 const description = $('#Description').val() || 'Category description will appear here';
-                const color = $('#Color').val() || '#0aa2a2';
+                const color = $('#Color').val() || '#0a7b85';
 
                 $('#previewName').text(name);
                 $('#previewDescription').text(description);
@@ -211,7 +211,7 @@
         .form-control:focus,
         .form-select:focus {
             border-color: var(--teal-primary);
-            box-shadow: 0 0 0 0.2rem rgba(10, 162, 162, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
         }
 
         .form-label {

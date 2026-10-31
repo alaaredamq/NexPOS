@@ -61,7 +61,7 @@
             `,
             showCancelButton: true,
             confirmButtonText: 'Save',
-            confirmButtonColor: '#0aa2a2',
+            confirmButtonColor: '#0a7b85',
             cancelButtonText: 'Cancel',
             didOpen: (popup) => {
                 const $popup = $(popup);

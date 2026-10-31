@@ -398,7 +398,7 @@
                 Swal.fire({
                     icon: 'warning',
                     title: CONFIG.messages.enterCash,
-                    confirmButtonColor: '#0aa2a2'
+                    confirmButtonColor: '#0a7b85'
                 });
                 return;
             }
@@ -411,7 +411,7 @@
                     showCancelButton: true,
                     confirmButtonText: CONFIG.messages.confirmClose,
                     cancelButtonText: CONFIG.messages.cancel,
-                    confirmButtonColor: '#0aa2a2',
+                    confirmButtonColor: '#0a7b85',
                     cancelButtonColor: '#6c757d'
                 }).then(function(result) {
                     if (result.isConfirmed) {
@@ -453,7 +453,7 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: response.message || CONFIG.messages.error,
-                                    confirmButtonColor: '#0aa2a2'
+                                    confirmButtonColor: '#0a7b85'
                                 });
                                 submitBtn.disabled = false;
                                 submitBtn.innerHTML = originalHtml;
@@ -462,7 +462,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: CONFIG.messages.error,
-                                confirmButtonColor: '#0aa2a2'
+                                confirmButtonColor: '#0a7b85'
                             });
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = originalHtml;
@@ -471,7 +471,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: CONFIG.messages.error,
-                            confirmButtonColor: '#0aa2a2'
+                            confirmButtonColor: '#0a7b85'
                         });
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalHtml;

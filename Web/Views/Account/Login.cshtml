@@ -3,6 +3,9 @@
     ViewData["Title"] = Localizer["Login"].Value;
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
     var currentCulture = ViewBag.CurrentCulture ?? System.Globalization.CultureInfo.CurrentUICulture.Name;
+    var hasError = !ViewData.ModelState.IsValid;
+    var selected = Model.Users.FirstOrDefault(u => string.Equals(u.Username, Model.Username, StringComparison.OrdinalIgnoreCase));
+    var hasUser = selected != null;
 }
 
 <div class="container-fluid min-vh-100">
@@ -31,7 +34,7 @@
                 <h1 class="display-5 fw-bold mb-3 text-white">@Brand.AppName</h1>
                 <p class="fs-5 mb-3 opacity-90">@Localizer["PointOfSaleSystem"]</p>
                 <p class="lead mb-5 opacity-90">@Localizer["SystemDescription"]</p>
-                
+
                 <!-- Debug Info (Development Only) -->
                 @if (ViewBag.IsDevelopment == true)
                 {
@@ -39,7 +42,7 @@
                         <strong>Debug:</strong> Current Culture: @currentCulture
                     </div>
                 }
-                
+
                 <!-- Feature Cards -->
                 <div class="row g-3 mb-5">
                     <div class="col-4">
@@ -67,7 +70,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Language Switcher -->
                 <div class="language-switcher">
                     <a href="@(ViewBag.EnglishUrl ?? "/en/Account/Login")" class="language-btn @(currentCulture.StartsWith("en") ? "active" : "")">
@@ -80,47 +83,22 @@
             </div>
         </div>
 
-        <!-- Right Side - Login Form -->
+        <!-- Right Side - Pick your name, then enter your PIN -->
         <div class="col-lg-6 d-flex align-items-center justify-content-center p-3 p-lg-4">
             <div class="w-100 fade-in my-3" style="max-width: 420px;">
-                <!-- Login Card -->
                 <div class="card p-4">
-                    <!-- Header -->
-                    <div class="text-center mb-3">
-                        <div class="mb-2">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 p-3">
-                                <i class="fas fa-user-lock fa-2x text-primary"></i>
-                            </div>
-                        </div>
-                        <h3 class="fw-bold text-dark mb-1">@Localizer["Login"]</h3>
-                        <p class="text-muted mb-0">@Localizer["EnterCredentials"]</p>
-                    </div>
-
-                    <!-- Login Form -->
-                    <form asp-action="Login" method="post">
+                    <form asp-action="Login" method="post" id="loginForm">
                         <input asp-for="ReturnUrl" type="hidden" />
+                        <input asp-for="Username" type="hidden" id="usernameInput" />
+                        <input asp-for="Pin" type="hidden" id="pinInput" />
 
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <label asp-for="Username" class="form-label">@Localizer["Username"]</label>
-                                @if (!string.IsNullOrEmpty(Model.Username))
-                                {
-                                    <a href="#" id="switchUser" class="small text-primary text-decoration-none">@Localizer["NotYou"]</a>
-                                }
-                            </div>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user text-primary"></i>
-                                </span>
-                                <input asp-for="Username" class="form-control @(System.Globalization.CultureInfo.CurrentUICulture.Name.StartsWith("ar") ? "text-end" : "")" placeholder="@Localizer["EnterUsername"]" autocomplete="username" required />
-                            </div>
-                            <span asp-validation-for="Username" class="text-danger small"></span>
-                        </div>
+                        @* A remembered user goes straight to their PIN pad; otherwise the page opens on the name picker. *@
+                        <div id="viewPin" class="signin-view @(hasUser ? "" : "d-none")">
+                            <div class="signin-avatar" id="selectedInitials">@selected?.Initials</div>
+                            <div class="signin-welcome">@Localizer["WelcomeBack"]</div>
+                            <div class="signin-uname" id="selectedUserName">@selected?.DisplayName</div>
 
-                        <div class="mb-3">
-                            <label asp-for="Pin" class="form-label">@Localizer["PIN"]</label>
-                            <input asp-for="Pin" type="hidden" id="pinInput" />
-                            <div class="pin-dots" id="pinDots" tabindex="0" aria-label="@Localizer["PIN"]">
+                            <div class="pin-dots @(hasError ? "pin-shake" : "")" id="pinDots" aria-label="@Localizer["PIN"]">
                                 <span class="pin-dot"></span>
                                 <span class="pin-dot"></span>
                                 <span class="pin-dot"></span>
@@ -133,29 +111,58 @@
                                 }
                                 <button type="button" class="pin-key pin-key-action" id="pinClear">@Localizer["Clear"]</button>
                                 <button type="button" class="pin-key" data-digit="0">0</button>
-                                <button type="button" class="pin-key pin-key-action" id="pinBackspace">
+                                <button type="button" class="pin-key pin-key-action" id="pinBackspace" aria-label="Backspace">
                                     <i class="fas fa-backspace"></i>
                                 </button>
                             </div>
-                            <span asp-validation-for="Pin" class="text-danger small"></span>
-                        </div>
 
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>@Localizer["SignIn"]
-                            </button>
-                        </div>
-
-                        <!-- Error Messages -->
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="erp-alert erp-alert-danger" role="alert">
-                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                {
-                                    <div>@error.ErrorMessage</div>
-                                }
+                            <span asp-validation-for="Pin" class="text-danger small d-block text-center mt-2"></span>
+                            <div class="text-center small text-primary mt-2 d-none" id="signingIn">
+                                <i class="fas fa-spinner fa-spin me-2"></i>@(ViewBag.Language == "ar" ? "جاري تسجيل الدخول..." : "Signing in...")
                             </div>
-                        }
+
+                            <!-- Error Messages -->
+                            @if (hasError)
+                            {
+                                <div class="erp-alert erp-alert-danger mt-3 mb-0" role="alert">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <div>@error.ErrorMessage</div>
+                                    }
+                                </div>
+                            }
+
+                            @if (Model.Users.Count > 1)
+                            {
+                                <div class="text-center mt-2">
+                                    <button type="button" class="signin-link" id="switchUser">@Localizer["NotYouSwitchUser"]</button>
+                                </div>
+                            }
+                        </div>
+
+                        <div id="viewPick" class="signin-view @(hasUser ? "d-none" : "")">
+                            <h3 class="signin-title">@Localizer["WhoIsSigningIn"]</h3>
+                            @if (Model.Users.Count == 0)
+                            {
+                                <div class="signin-empty">@Localizer["NoUsersToSignIn"]</div>
+                            }
+                            else
+                            {
+                                <div class="signin-user-list">
+                                    @foreach (var u in Model.Users)
+                                    {
+                                        var active = string.Equals(u.Username, Model.Username, StringComparison.OrdinalIgnoreCase);
+                                        <button type="button" class="signin-user @(active ? "is-active" : "")" data-username="@u.Username" data-name="@u.DisplayName" data-initials="@u.Initials">
+                                            <span class="signin-initials">@u.Initials</span>
+                                            <span class="signin-name">@u.DisplayName</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            <div class="text-center mt-2 @(hasUser ? "" : "d-none")" id="pickCancelWrap">
+                                <button type="button" class="signin-link" id="pickCancel">@Localizer["Cancel"]</button>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -182,81 +189,112 @@
 
 @section Scripts {
     <script>
-        // Optimized JavaScript for faster loading
         $(document).ready(function() {
-            // Numeric PIN keypad
             var maxPinLength = 4;
+            var $pin = $('#pinInput');
+            var $form = $('#loginForm');
             var pinDots = $('#pinDots .pin-dot');
+            var submitting = false;
+
+            function pinViewVisible() {
+                return !$('#viewPin').hasClass('d-none');
+            }
 
             function renderPin() {
-                var value = $('#pinInput').val();
+                var value = $pin.val();
                 pinDots.each(function(index) {
                     $(this).toggleClass('pin-dot-filled', index < value.length);
                 });
             }
 
-            $('.pin-key[data-digit]').on('click', function() {
-                var value = $('#pinInput').val();
+            // The PIN submits itself on the fourth digit, like the register's sign-in screen.
+            function addDigit(digit) {
+                if (submitting || !pinViewVisible() || !$('#usernameInput').val()) return;
+                var value = $pin.val();
                 if (value.length >= maxPinLength) return;
-                $('#pinInput').val(value + $(this).data('digit').toString());
+                $pin.val(value + digit);
                 renderPin();
+                if ($pin.val().length === maxPinLength) submit();
+            }
+
+            function submit() {
+                if (submitting) return;
+                submitting = true;
+                $('#signingIn').removeClass('d-none');
+                $form.get(0).submit();
+            }
+
+            $('.pin-key[data-digit]').on('click', function() {
+                addDigit($(this).data('digit').toString());
             });
 
             $('#pinBackspace').on('click', function() {
-                var value = $('#pinInput').val();
-                $('#pinInput').val(value.slice(0, -1));
+                if (submitting) return;
+                $pin.val($pin.val().slice(0, -1));
                 renderPin();
             });
 
             $('#pinClear').on('click', function() {
-                $('#pinInput').val('');
+                if (submitting) return;
+                $pin.val('');
                 renderPin();
             });
 
-            // Physical keyboard support for the PIN (faster for daily use)
+            // Physical keyboard works too (faster for daily use)
             $(document).on('keydown', function(e) {
-                if ($(e.target).is('input[type="text"], input[type="email"], textarea')) return;
+                if (e.metaKey || e.ctrlKey || e.altKey || !pinViewVisible()) return;
                 if (e.key >= '0' && e.key <= '9') {
-                    var value = $('#pinInput').val();
-                    if (value.length < maxPinLength) {
-                        $('#pinInput').val(value + e.key);
-                        renderPin();
-                    }
+                    e.preventDefault();
+                    addDigit(e.key);
                 } else if (e.key === 'Backspace') {
                     e.preventDefault();
-                    $('#pinInput').val($('#pinInput').val().slice(0, -1));
-                    renderPin();
+                    $('#pinBackspace').trigger('click');
+                } else if (e.key === 'Delete' || e.key === 'Escape') {
+                    e.preventDefault();
+                    $('#pinClear').trigger('click');
                 } else if (e.key === 'Enter') {
-                    e.preventDefault(); // don't also "click" a focused keypad button
-                    $('form').submit();
+                    // Enter belongs to the PIN pad, not to whichever button last got focus.
+                    e.preventDefault();
+                    if ($pin.val().length === maxPinLength) submit();
                 }
             });
 
-            // Never keep a PIN across a page reload/reset (e.g. after a failed attempt or back navigation)
-            $('#pinInput').val('');
-            renderPin();
-
-            // Remembered username: skip straight to the PIN; "Not you?" clears it.
-            var $username = $('#Username');
-            if ($username.val() && $username.val().trim() !== '') {
-                $('#pinDots').trigger('focus');
-            } else {
-                $username.trigger('focus');
+            function showPinView() {
+                $('#viewPick').addClass('d-none');
+                $('#viewPin').removeClass('d-none');
             }
 
-            $('#switchUser').on('click', function(e) {
-                e.preventDefault();
-                document.cookie = 'erp_last_username=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
-                $username.val('').trigger('focus');
-                $('#switchUser').remove();
+            function showPicker() {
+                $pin.val('');
+                renderPin();
+                $('#viewPin').addClass('d-none');
+                $('#viewPick').removeClass('d-none');
+            }
+
+            $('#switchUser').on('click', showPicker);
+            $('#pickCancel').on('click', showPinView);
+
+            // Choosing a different name starts the PIN over; choosing the same one just goes back to the pad.
+            $('.signin-user').on('click', function() {
+                var $row = $(this);
+                if (!$row.hasClass('is-active')) {
+                    $('.signin-user').removeClass('is-active');
+                    $row.addClass('is-active');
+                    $('#usernameInput').val($row.data('username'));
+                    $('#selectedUserName').text($row.data('name'));
+                    $('#selectedInitials').text($row.data('initials'));
+                    $pin.val('');
+                    renderPin();
+                    $('#pinDots').removeClass('pin-shake');
+                    $('.erp-alert-danger, [data-valmsg-for="Pin"]').addClass('d-none');
+                }
+                $('#pickCancelWrap').removeClass('d-none');
+                showPinView();
             });
 
-            // Form submission with loading state
-            $('form').on('submit', function() {
-                var submitBtn = $(this).find('button[type="submit"]');
-                submitBtn.prop('disabled', true);
-                submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>@(ViewBag.Language == "ar" ? "جاري تسجيل الدخول..." : "Signing in...")');
-            });
+            // Never keep a PIN across a page reload/reset (e.g. after a failed attempt or back navigation)
+            $pin.val('');
+            renderPin();
         });
 
         // Inline RTL/LTR direction handling for immediate effect
@@ -269,44 +307,176 @@
     </script>
 
     <style>
+        .signin-avatar {
+            width: 84px;
+            height: 84px;
+            margin: 4px auto 10px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--teal-primary, #0a7b85);
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .signin-welcome {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .signin-uname {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #212529;
+            margin-bottom: 2px;
+        }
+
+        .signin-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .signin-link {
+            background: none;
+            border: 0;
+            padding: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--teal-primary, #0a7b85);
+            cursor: pointer;
+        }
+
+        .signin-link:hover {
+            text-decoration: underline;
+        }
+
+        .signin-link:focus-visible {
+            outline: 2px solid var(--teal-primary, #0a7b85);
+            outline-offset: 2px;
+        }
+
+        /* Staff lists grow; the picker scrolls rather than pushing the card off screen. */
+        .signin-user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .signin-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #dee2e6;
+            border-radius: 12px;
+            background: #fff;
+            font: inherit;
+            text-align: start;
+            cursor: pointer;
+            transition: border-color 0.14s ease, box-shadow 0.14s ease;
+        }
+
+        .signin-user:hover {
+            border-color: var(--teal-primary, #0a7b85);
+        }
+
+        .signin-user:focus-visible {
+            outline: 2px solid var(--teal-primary, #0a7b85);
+            outline-offset: 1px;
+        }
+
+        .signin-user.is-active {
+            border-color: var(--teal-primary, #0a7b85);
+            box-shadow: 0 0 0 3px rgba(10, 123, 133, 0.15);
+        }
+
+        .signin-initials {
+            width: 40px;
+            height: 40px;
+            flex: none;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #495057;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .signin-user.is-active .signin-initials {
+            background: var(--teal-primary, #0a7b85);
+        }
+
+        .signin-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #212529;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .signin-empty {
+            padding: 16px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6c757d;
+            border: 1px dashed #dee2e6;
+            border-radius: 12px;
+        }
+
         .pin-dots {
             display: flex;
-            gap: 12px;
+            gap: 14px;
             justify-content: center;
-            margin: 8px 0 12px;
+            margin: 10px 0 16px;
+            outline: none;
         }
 
         .pin-dot {
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            border: 2px solid var(--teal-primary, #0aa2a2);
+            border: 2px solid var(--teal-primary, #0a7b85);
             background: transparent;
             transition: background-color 0.15s ease;
         }
 
-        .pin-dots {
-            outline: none;
-        }
-
-        .pin-dots:focus .pin-dot {
-            box-shadow: 0 0 0 3px rgba(10, 162, 162, 0.2);
-        }
-
         .pin-dot-filled {
-            background: var(--teal-primary, #0aa2a2);
+            background: var(--teal-primary, #0a7b85);
+        }
+
+        .pin-shake {
+            animation: pin-shake 0.4s ease;
+        }
+
+        @@keyframes pin-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
         }
 
         .pin-keypad {
             display: grid;
-            direction: ltr; /* keep 1-2-3 order in RTL */ 
+            direction: ltr; /* keep 1-2-3 order in RTL */
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
+            max-width: 280px;
+            margin: 0 auto;
         }
 
         .pin-key {
-            padding: 11px 0;
-            font-size: 1.2rem;
+            padding: 12px 0;
+            font-size: 1.25rem;
             font-weight: 600;
             border: 1px solid #dee2e6;
             border-radius: 8px;
@@ -316,7 +486,7 @@
         }
 
         .pin-key:focus-visible {
-            outline: 2px solid var(--teal-primary, #0aa2a2);
+            outline: 2px solid var(--teal-primary, #0a7b85);
             outline-offset: 1px;
         }
 
@@ -333,19 +503,14 @@
             color: #6c757d;
         }
 
-        /* Keep the card within the viewport on typical laptop screens */
-        .demo-credentials {
-            margin-top: 14px;
-            padding: 14px 16px;
-        }
-
-        .demo-item {
-            padding: 4px 0;
-        }
-
+        /* Short windows (a 1366x768 laptop's browser leaves ~650px): keep the whole pad on screen. */
         @@media (max-height: 820px) {
             .card { padding: 1.25rem !important; }
-            .fade-in > .text-center.mt-4 { margin-top: 1rem !important; }
+            .signin-avatar { width: 64px; height: 64px; font-size: 1.3rem; margin-bottom: 6px; }
+            .signin-uname { font-size: 1.2rem; }
+            .pin-dots { margin: 6px 0 10px; }
+            .pin-key { padding: 8px 0; }
+            .signin-user-list { max-height: 260px; }
         }
     </style>
 }

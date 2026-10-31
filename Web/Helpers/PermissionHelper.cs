@@ -145,34 +145,53 @@ public static class PermissionHelper
         /// Every permission constant declared above. Used to grant SuperAdmin everything
         /// without needing to keep a second list in sync as permissions are added.
         /// </summary>
-        public static string[] All => typeof(Permissions)
+        public static string[] All { get; } = typeof(Permissions)
             .GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(f => f.FieldType == typeof(string))
             .Select(f => (string)f.GetValue(null)!)
+            .Distinct()
             .ToArray();
+
+        private static readonly HashSet<string> AllSet = new(All);
+
+        public static bool IsValid(string? name) => name is not null && AllSet.Contains(name);
+
+        /// <summary>Keeps only known permissions, de-duplicated, in catalog order - so stored grants never drift.</summary>
+        public static List<string> Normalize(IEnumerable<string>? names)
+        {
+            if (names is null) return new List<string>();
+            var wanted = names.Where(IsValid).ToHashSet();
+            return All.Where(wanted.Contains).ToList();
+        }
+
+        /// <summary>
+        /// The catalog grouped by area ("Products", "Users", ...) in declaration order, for the role editor's matrix.
+        /// </summary>
+        public static IReadOnlyList<(string Group, string[] Names)> Groups { get; } = All
+            .GroupBy(p => p.Contains('.') ? p[..p.IndexOf('.')] : p)
+            .Select(g => (g.Key, g.ToArray()))
+            .ToList();
     }
 
     /// <summary>
-    /// Common system roles
+    /// Role names the code itself depends on. Everything else about roles lives in the database.
     /// </summary>
     public static class Roles
     {
+        /// <summary>The one role that implicitly holds the whole catalog; not editable or deletable.</summary>
         public const string SuperAdmin = "SuperAdmin";
         public const string Admin = "Admin";
         public const string Manager = "Manager";
         public const string Cashier = "Cashier";
-        public const string Employee = "Employee";
-        public const string Viewer = "Viewer";
     }
 
     /// <summary>
-    /// Role to permissions mapping
+    /// First-run grants for the roles a fresh database ships with. This is a seed template only: it is
+    /// copied into the database once (see RoleAccessService.EnsureCatalogAsync) and from then on the
+    /// Users page is the source of truth - editing this dictionary does not change an existing install.
     /// </summary>
-    public static readonly Dictionary<string, string[]> RolePermissions = new()
+    public static readonly Dictionary<string, string[]> DefaultRolePermissions = new()
     {
-        // SuperAdmin bypasses the maintained per-role lists below and always gets every
-        // permission that exists, so it can never be locked out by an omission there.
-        [Roles.SuperAdmin] = Permissions.All,
         [Roles.Admin] = new[]
         {
             // All permissions
@@ -296,24 +315,6 @@ public static class PermissionHelper
             Permissions.Orders_View,
             Permissions.Dashboard_View,
             Permissions.POS_Manage
-        },
-        [Roles.Employee] = new[]
-        {
-            // Basic viewing permissions
-            Permissions.Products_View,
-            Permissions.Categories_View,
-            Permissions.Customers_View,
-            Permissions.Dashboard_View,
-            Permissions.POS_View
-        },
-        [Roles.Viewer] = new[]
-        {
-            // Read-only permissions
-            Permissions.Products_View,
-            Permissions.Categories_View,
-            Permissions.Customers_View,
-            Permissions.Dashboard_View,
-            Permissions.Reports_View
         }
     };
 
@@ -387,32 +388,5 @@ public static class PermissionHelper
 
         var userRoles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
         return roles.All(role => userRoles.Contains(role));
-    }
-
-    /// <summary>
-    /// Get all permissions for a role
-    /// </summary>
-    public static string[] GetPermissionsForRole(string role)
-    {
-        return RolePermissions.TryGetValue(role, out var permissions) ? permissions : Array.Empty<string>();
-    }
-
-    /// <summary>
-    /// Get all roles that have a specific permission
-    /// </summary>
-    public static string[] GetRolesWithPermission(string permission)
-    {
-        return RolePermissions
-            .Where(kvp => kvp.Value.Contains(permission))
-            .Select(kvp => kvp.Key)
-            .ToArray();
-    }
-
-    /// <summary>
-    /// Check if a role has a specific permission
-    /// </summary>
-    public static bool RoleHasPermission(string role, string permission)
-    {
-        return RolePermissions.TryGetValue(role, out var permissions) && permissions.Contains(permission);
     }
 }
