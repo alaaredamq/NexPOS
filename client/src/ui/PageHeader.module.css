@@ -1,0 +1,31 @@
+.header {
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--color-ink);
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: var(--space-1) 9px;
+  border-radius: 6px;
+  background: var(--color-neutral-bg);
+  color: var(--color-muted);
+}
+
+.spacer {
+  flex: 1;
+}

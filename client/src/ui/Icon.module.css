@@ -1,0 +1,4 @@
+/* Mirrors direction-implying glyphs (chevrons, arrows) when the document is RTL. */
+:global(html[dir='rtl']) .flip {
+  transform: scaleX(-1);
+}

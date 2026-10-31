@@ -1,0 +1,72 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+/* Touch targets are >= 44px on the tablet breakpoint (POS is a touchscreen); the compact desktop
+   sizes only apply on a precise pointer. */
+.btn[data-size='md'] {
+  width: 34px;
+  height: 34px;
+}
+
+.btn[data-size='sm'] {
+  width: 30px;
+  height: 30px;
+}
+
+@media (max-width: 1280px), (pointer: coarse) {
+  .btn[data-size] {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.btn[data-tone='primary'] {
+  color: var(--color-primary);
+}
+
+.btn[data-tone='danger'] {
+  color: var(--color-danger);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn[data-tone='danger']:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* Armed state for two-step deletes — the button goes solid so the second click is clearly loaded. */
+.btn[data-active='true'],
+.btn[data-tone='danger'][data-active='true']:hover {
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}

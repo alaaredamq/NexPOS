@@ -1,0 +1,133 @@
+.wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+}
+
+.input {
+  inline-size: 100%;
+  block-size: var(--control-h-md);
+  padding-inline: var(--space-3) 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+}
+
+.input::placeholder {
+  color: var(--color-faint);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+.wrap[data-invalid] .input {
+  border-color: var(--color-danger);
+}
+
+.wrap[data-invalid] .input:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
+.wrap[data-disabled] .input {
+  background: var(--color-neutral-bg);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.adornments {
+  position: absolute;
+  inset-inline-end: 6px;
+  inset-block: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  pointer-events: none;
+}
+
+.chevron {
+  display: flex;
+  color: var(--color-faint);
+  padding-inline: var(--space-1);
+}
+
+.clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-faint);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.clear:hover {
+  background: var(--color-neutral-bg);
+  color: var(--color-ink);
+}
+
+.list {
+  position: fixed;
+  z-index: 150;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  box-shadow: var(--shadow-pop);
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 40px;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: var(--radius-control);
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.option[data-active] {
+  background: var(--color-canvas);
+}
+
+.option[data-selected] .optionLabel {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.option[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.optionLabel {
+  display: block;
+  color: var(--color-ink);
+}
+
+.optionHint {
+  display: block;
+  font-size: 11.5px;
+  color: var(--color-faint);
+}
+
+.status {
+  padding: 10px;
+  font-size: 12.5px;
+  color: var(--color-muted);
+  text-align: center;
+}
