@@ -148,6 +148,12 @@ export interface components {
             validUntil?: string | null;
             /** @description A Debug build: nothing is enforced. */
             enforcementDisabled: boolean;
+            /** @description Banner headline, localized for this response (same text as the Razor banner). */
+            title: string;
+            /** @description Banner body with the dates filled in, localized for this response. */
+            message: string;
+            /** @description `success`, `warning` (selling works, renewal due) or `danger` (selling stopped). */
+            severity: string;
         };
         /** @description PIN sign-in, exactly the fields of the Razor login page. */
         LoginRequest: {
@@ -234,6 +240,7 @@ export interface components {
             users: components["schemas"]["SignInUserDto"][];
             /** @description The remembered user, if they are still active; otherwise empty (the screen opens on the picker). */
             lastUsername: string;
+            branding: components["schemas"]["BrandingDto"];
         };
         SignInUserDto: {
             username: string;

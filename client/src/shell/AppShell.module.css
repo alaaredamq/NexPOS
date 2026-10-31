@@ -1,0 +1,29 @@
+.shell {
+  display: flex;
+  height: 100vh;
+  background: var(--color-canvas);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  background: rgba(16, 20, 28, 0.45);
+  border: 0;
+  padding: 0;
+}

@@ -91,7 +91,8 @@ In Development the document is also served at `/swagger/v1/swagger.json` (UI at 
   The **sign-in throttle is the only brute-force protection** - there is no lockout in `AuthService` (the plan assumed one; see notes).
 * `GET /api/v1/session` -> user, role, `permissions[]`, `nav` (sections -> items with `spaPath`, `legacyPath`, `migrated`, `href`), licence, branding,
   language/direction, drawer, unread notifications. Permissions are re-read from the database on every request, so a role edit shows up on the next call.
-* `POST /api/v1/auth/logout` -> 204 (always). `GET /api/v1/auth/sign-in-options` (public) -> the name picker of the login screen.
+  `license` also carries the localized banner `title` / `message` / `severity` (same text as the Razor banner).
+* `POST /api/v1/auth/logout` -> 204 (always). `GET /api/v1/auth/sign-in-options` (public) -> the name picker of the login screen, plus `branding` (app name / logo) for the screen itself.
 
 Nav links: `Web/Helpers/SpaMigration.cs` maps a page to its SPA path. A module flips **one line** in `Migrated` (alphabetical) when its React page is done;
 from then on the Razor rail, the Ctrl+K palette and `session.nav[].href` point at the SPA. Until then `href` is the Razor page (a full navigation; same cookie).

@@ -1,0 +1,290 @@
+.rail {
+  position: relative;
+  width: 68px;
+  transition: width 0.18s ease;
+  background: var(--color-nav-bg);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px 0 6px;
+}
+
+.rail[data-open='true'] {
+  width: 232px;
+}
+
+/* --- Brand ------------------------------------------------------------- */
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  margin: 0 8px 10px;
+  overflow: hidden;
+  flex: none;
+}
+
+.brandIcon {
+  width: 52px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.brandMark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+}
+
+/* Reveal is handled together with the row labels, further down. */
+.brandText {
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.brandName {
+  color: var(--color-nav-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.brandTag {
+  color: var(--color-nav-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --- Groups ------------------------------------------------------------ */
+
+/* The scrollbar is hidden rather than thinned: a classic scrollbar eats layout width, which would
+   shift the icon column off the rail's centreline while the brand mark and toggle stayed centred. */
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.group + .group {
+  margin-top: 10px;
+}
+
+/* Heights are explicit in both states rather than 0 → auto: `auto` is not interpolatable, so the
+   label popping in would jolt every row below it down while the rail was still gliding open. */
+/* The label and the rule are two states of one 23px slot: 14px of line plus 6/3 padding here, 1px
+   of rule plus 11px margins there. Because the slot is the same height either way, opening the rail
+   only cross-fades them — no row below ever shifts. Sizing them independently (or letting the label
+   go from height 0 to `auto`, which is not interpolatable) is what made the whole column jolt. */
+.groupLabel {
+  box-sizing: border-box;
+  color: var(--color-nav-faint);
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0 16px;
+  white-space: nowrap;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.rail[data-open='true'] .groupLabel {
+  opacity: 1;
+  height: 23px;
+  padding: 6px 16px 3px;
+  transition-delay: 0.06s;
+}
+
+/* Stands in for the group label when the rail is collapsed, so sections stay separable. */
+.groupRule {
+  height: 1px;
+  background: var(--color-nav-divider);
+  margin: 11px 22px;
+  opacity: 1;
+  transition: opacity 0.12s ease;
+}
+
+.rail[data-open='true'] .groupRule {
+  height: 0;
+  margin: 0 22px;
+  opacity: 0;
+}
+
+/* --- Rows -------------------------------------------------------------- */
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: calc(100% - 16px);
+  height: 42px;
+  cursor: pointer;
+  color: var(--color-nav-faint);
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  margin: 2px 8px;
+  padding: 0;
+  font: inherit;
+  text-align: start;
+  user-select: none;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.row:hover {
+  color: var(--color-nav-ink);
+  background: var(--color-nav-hover);
+}
+
+.row:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.row.active {
+  color: var(--color-nav-ink);
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  font-weight: 700;
+}
+
+/* The active marker reads at any width — it survives the rail collapsing to icons. */
+.row.active::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: var(--color-primary);
+}
+
+/* Fixed in both states on purpose. The rail's 8px row margin plus this 52px column puts the icon
+   centre at 34px, which is exactly the collapsed rail's centreline (68 / 2) — so the icons hold
+   still while the rail grows around them. Animating this width instead makes them swing out and
+   snap back, because a percentage width keeps re-resolving against the widening rail mid-transition. */
+.icon {
+  width: 52px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+
+.label {
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+/* Held back until the rail has most of its width, so labels arrive into space that already exists
+   instead of being wiped in by the overflow edge. Collapsing drops them immediately (no delay), so
+   they are gone before the rail narrows over them. */
+.rail[data-open='true'] .label,
+.rail[data-open='true'] .brandText {
+  opacity: 1;
+  transition-delay: 0.1s;
+}
+
+/* Full-bleed, so it needs the nav rows' 8px margin back as padding — otherwise its icon sits on a
+   different centreline than every icon above it. */
+.toggle {
+  flex: none;
+  margin-top: 6px;
+  border-top: 1px solid var(--color-nav-divider);
+  border-radius: 0;
+  width: 100%;
+  margin-inline: 0;
+  padding: 4px 0 0;
+  padding-inline-start: 8px;
+  height: 46px;
+}
+
+.toggle:hover {
+  background: var(--color-nav-hover);
+}
+
+@media (max-width: 1280px) {
+  .rail {
+    width: 72px;
+  }
+
+  .rail[data-open='true'] {
+    width: 248px;
+  }
+
+  .row {
+    height: 50px;
+  }
+
+  /* Widened to match: the rail is 72px here, so the icon column has to be 56px to keep the icon
+     centre on the collapsed rail's centreline (8 + 28 = 36). */
+  .icon,
+  .brandIcon {
+    width: 56px;
+  }
+
+  .label {
+    font-size: 14.5px;
+  }
+}
+
+/* The brand mark is the uploaded/default logo image, not a lettered tile. */
+.brandImg {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 9px;
+}
+
+/* --- Drawer (below 992 px) ------------------------------------------------
+   Same markup, taken out of the flow and slid in from the inline-start edge. translateX has no logical
+   form, so the sign follows the document direction. */
+@media (max-width: 991px) {
+  .rail {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 70;
+    width: 264px;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: none;
+  }
+
+  :global(:root[dir='rtl']) .rail {
+    transform: translateX(100%);
+  }
+
+  .rail[data-drawer='true'],
+  :global(:root[dir='rtl']) .rail[data-drawer='true'] {
+    transform: none;
+    box-shadow: var(--shadow-modal);
+  }
+}

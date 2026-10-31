@@ -126,6 +126,15 @@ public sealed record LicenseSummaryDto
 
     /// <summary>A Debug build: nothing is enforced.</summary>
     public required bool EnforcementDisabled { get; init; }
+
+    /// <summary>Banner headline, localized for this response (same text as the Razor banner).</summary>
+    public required string Title { get; init; }
+
+    /// <summary>Banner body with the dates filled in, localized for this response.</summary>
+    public required string Message { get; init; }
+
+    /// <summary><c>success</c>, <c>warning</c> (selling works, renewal due) or <c>danger</c> (selling stopped).</summary>
+    public required string Severity { get; init; }
 }
 
 public sealed record BrandingDto

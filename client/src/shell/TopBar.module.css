@@ -1,0 +1,309 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 62px;
+  padding: 0 20px;
+  background: var(--color-card);
+  border-bottom: 1px solid var(--color-border);
+  flex: none;
+}
+
+/* --- Title ------------------------------------------------------------- */
+
+.titleBlock {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+/* Names the rail section the page sits in, so a deep page still says where it lives. */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* --- Command palette trigger -------------------------------------------- */
+
+.searchBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px 0 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+  color: var(--color-faint);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.searchBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-muted);
+}
+
+.searchBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.searchLabel {
+  font-weight: 500;
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-faint);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Below the tablet breakpoint the keyboard is usually gone — keep the icon, drop the hint. */
+@media (max-width: 1280px) {
+  .searchLabel,
+  .kbd {
+    display: none;
+  }
+
+  .searchBtn {
+    padding: 0 10px;
+    height: 40px;
+  }
+}
+
+/* --- Till -------------------------------------------------------------- */
+
+.tillChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-danger);
+  padding: 7px 12px;
+  background: var(--color-danger-bg);
+  border-radius: var(--radius-control);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+
+.tillChip:hover {
+  filter: brightness(0.96);
+}
+
+.tillChip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.tillChip[data-open='true'] {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.tillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* --- User menu ---------------------------------------------------------- */
+
+.userWrap {
+  position: relative;
+}
+
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 40px;
+  padding: 0 10px 0 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.userChip:hover {
+  background: var(--color-canvas);
+  border-color: var(--color-border);
+}
+
+.userChip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.userText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.userRole {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-faint);
+  white-space: nowrap;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 60;
+  min-width: 190px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+}
+
+.menuHeader {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.menuName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.menuRole {
+  font-size: 11.5px;
+  color: var(--color-muted);
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--color-danger);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: start;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--color-danger-bg);
+}
+
+/* --- Added for NexPOS ----------------------------------------------------- */
+
+.menuBtn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.tillChip {
+  text-decoration: none;
+}
+
+.title {
+  margin: 0;
+}
+
+.menuLink {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.menuLink:hover {
+  background: var(--color-canvas);
+}
+
+/* Narrow screens: keep the identity as an avatar and let the page title have the room. */
+@media (max-width: 991px) {
+  .header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .userText,
+  .tillChip span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 1280px) {
+  .header {
+    height: 66px;
+  }
+
+  .userName {
+    font-size: 13.5px;
+  }
+}

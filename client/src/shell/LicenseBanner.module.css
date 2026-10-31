@@ -1,0 +1,75 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid;
+  border-radius: var(--radius-card);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.banner[data-severity='warning'] {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+  color: var(--color-ink);
+}
+
+.banner[data-severity='danger'] {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+  color: var(--color-ink);
+}
+
+/* Pages with their own fixed chrome (the POS) get a small dismissible card in the corner so it can never cover checkout controls. */
+.banner[data-floating='true'] {
+  position: fixed;
+  inset-block-end: 12px;
+  inset-inline-start: 12px;
+  z-index: 80;
+  max-inline-size: min(520px, calc(100vw - 24px));
+  margin: 0;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: var(--shadow-pop);
+}
+
+.text {
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  flex: none;
+  align-items: center;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dismiss {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
