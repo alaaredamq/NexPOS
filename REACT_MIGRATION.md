@@ -32,7 +32,7 @@ Change one only by editing this table and saying why in the status log.
 | D6 | **Contract-first with generated types.** Swashbuckle (already referenced) emits `swagger.json`; `openapi-typescript` generates `client/src/api/schema.d.ts`. Backend and UI sessions of one module can work in parallel off the agreed DTOs. | The enabler for parallel work. |
 | D7 | Strangler migration. SPA at **`/app/*`** while Razor pages live at their old URLs; both share the auth cookie. Migrated modules flip a one-line entry in `Web/Helpers/SpaMigration.cs` so the Razor sidebar links to `/app/...`. At cutover the SPA moves to `/`. | Ship and test module by module; `master` stays releasable. |
 | D8 | Language is client state (`localStorage`) sent as `Accept-Language`; URLs have **no** `/{lang}/` prefix in the SPA. RTL is done with CSS logical properties + `<html dir>`. Translations are converted from the `.resx`/`locales/*.json` by a re-runnable script (0E), never retyped. | The old app keeps being edited during the migration, so the conversion must be repeatable. |
-| D9 | Design tokens = BoussiCell's `tokens.css` (already ported into `Web/wwwroot/css/colors.css`). One copy at `client/src/styles/tokens.css`. No per-page colours. | Visual parity with BoussiCell, one place to rebrand. |
+| D9 | Design tokens = BoussiCell's `tokens.css` verbatim at `client/src/styles/tokens.css`, plus NexPOS brand overrides (teal, not BoussiCell blue) in `client/src/styles/theme.css`, mirroring `Web/wwwroot/css/colors.css`. No per-page colours. | Visual parity with BoussiCell, one place to rebrand. |
 | D10 | Money/stock/drawer/debt endpoints get xUnit tests **before** the UI is built. | These are the regressions that cost real money. |
 | D11 | Receipts, PDFs and thermal printing stay **server-side** (`IThermalPrinterService`, `PrintDocument`). React only calls print/PDF endpoints. | No rewrite of the print path. |
 | D12 | Route-level code splitting (`React.lazy`) is mandatory. Budgets: shell + login ≤ 250 KB gzip; POS route ≤ 350 KB gzip; route change < 100 ms on the counter PC. | The whole point is speed; budgets are checked in 0B and in Z. |
@@ -65,11 +65,10 @@ ERP/
 
 ## 4. Working in parallel — rules of engagement
 
-1. **Branches.** Integration branch `react` off `master`. Every section works on `react/<ID>` in its **own git worktree**
-   (`git worktree add ../ERP-<ID> -b react/<ID> react`) so sessions never share a working tree. Merge to `react`
-   with a normal PR/merge, small and often. Rebase on `react` before merging.
-2. **Park current work first.** `master` has ~60 uncommitted modified files from the BoussiCell restyle and
-   notifications/role-access work. Commit (or stash) them on `master` **before** branching `react`.
+1. **Branches.** Integration branch **`react/main`** off `master` (git cannot hold both `react` and `react/<ID>`, so it is not just `react`). Every section works on `react/<ID>` in its **own git worktree**
+   (`git worktree add ../ERP-<ID> -b react/<ID> react/main`) so sessions never share a working tree. Merge to `react/main`
+   with a normal PR/merge, small and often. Rebase on `react/main` before merging.
+2. **Park current work first.** *(Done 2026-10-31: the restyle/notifications work was committed on `master` as `35061e1`; `react/main` branches from it.)*
 3. **Ownership = folders.** A section edits only the paths listed under its **Owns**. Everything in `client/src/{app,api,core,ui,shell,styles}`
    and `Web/Api/Infrastructure/` and `Program.cs` is **frozen after Gate G0**. If you need a change there: make the smallest
    possible PR to `react`, merge it immediately, add a line to the Core change log (`## 10`). Don't wait, don't bundle.
@@ -311,7 +310,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 
 | ID | Section | Depends on | Size | Status | Owner / branch | Notes file |
 |----|---------|-----------|------|--------|----------------|-----------|
-| 0B | Client scaffold + baseline | – | M | ☐ todo | | |
+| 0B | Client scaffold + baseline | – | M | ◑ in review | Claude · `react/0B` | [0B.md](docs/react-migration/notes/0B.md) |
 | 0A | API foundation | 0B | L | ☐ todo | | |
 | 0C | Design system | 0B | L | ☐ todo | | |
 | 0E | i18n pipeline | 0B | M | ☐ todo | | |
@@ -350,7 +349,7 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 
 ## 12. Prompt template for a session
 
-> Read `REACT_MIGRATION.md` sections 1–5 and section **\<ID\>**. Create worktree `../ERP-<ID>` on branch `react/<ID>` from `react`.
+> Read `REACT_MIGRATION.md` sections 1–5 and section **\<ID\>**. Create worktree `../ERP-<ID>` on branch `react/<ID>` from `react/main`.
 > Set my row on the status board to ◐ with this branch. Follow the repo rules in `Web/Requirements/rules.md`.
 > Touch only the paths under **Owns**. Start by committing the DTO/contract (or the stub interface) so parallel sessions can rely on it.
 > Finish the definition of done (4.8), write `docs/react-migration/notes/<ID>.md`, update my row to ◑, and tell me what to verify by hand.
