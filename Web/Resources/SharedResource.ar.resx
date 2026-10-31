@@ -2399,4 +2399,13 @@
   <data name="Api_InternalError" xml:space="preserve"><value>حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.</value></data>
   <data name="Api_BadRequest" xml:space="preserve"><value>تعذّر فهم الطلب.</value></data>
   <data name="Api_InvalidValue" xml:space="preserve"><value>هذه القيمة غير صالحة.</value></data>
+  <data name="Prod_NameRequired" xml:space="preserve"><value>اسم المنتج مطلوب</value></data>
+  <data name="Prod_NameLength" xml:space="preserve"><value>يجب أن يتراوح اسم المنتج بين 2 و255 حرفاً</value></data>
+  <data name="Prod_BarcodeExists" xml:space="preserve"><value>يوجد منتج بهذا الباركود بالفعل.</value></data>
+  <data name="Prod_PackSizeRequired" xml:space="preserve"><value>أدخل عدد المنتجات المفردة في هذه العبوة.</value></data>
+  <data name="Prod_PackSingleRequired" xml:space="preserve"><value>اختر المنتج المفرد الذي تحتويه هذه العبوة.</value></data>
+  <data name="Prod_NotFound" xml:space="preserve"><value>المنتج غير موجود.</value></data>
+  <data name="Prod_ImportNoFile" xml:space="preserve"><value>لم يتم رفع أي ملف.</value></data>
+  <data name="Prod_ImportTooBig" xml:space="preserve"><value>حجم الملف أكبر من 10 ميغابايت.</value></data>
+  <data name="Prod_LabelInvalid" xml:space="preserve"><value>تعذّر إنشاء الملصق.</value></data>
 </root>

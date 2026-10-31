@@ -2399,4 +2399,13 @@
   <data name="Api_InternalError" xml:space="preserve"><value>An unexpected error occurred. Please try again or contact support.</value></data>
   <data name="Api_BadRequest" xml:space="preserve"><value>The request could not be understood.</value></data>
   <data name="Api_InvalidValue" xml:space="preserve"><value>This value is not valid.</value></data>
+  <data name="Prod_NameRequired" xml:space="preserve"><value>Product name is required</value></data>
+  <data name="Prod_NameLength" xml:space="preserve"><value>Product name must be between 2 and 255 characters</value></data>
+  <data name="Prod_BarcodeExists" xml:space="preserve"><value>A product with this barcode already exists.</value></data>
+  <data name="Prod_PackSizeRequired" xml:space="preserve"><value>Enter how many single products this pack holds.</value></data>
+  <data name="Prod_PackSingleRequired" xml:space="preserve"><value>Choose the single product this pack contains.</value></data>
+  <data name="Prod_NotFound" xml:space="preserve"><value>Product not found.</value></data>
+  <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
+  <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
+  <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
 </root>
