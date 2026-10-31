@@ -30,10 +30,11 @@ public sealed class AuthController : ApiControllerBase
     private readonly ISessionBootstrapService _bootstrap;
     private readonly IAuditTrail _audit;
     private readonly IStringLocalizer<SharedResource> _localizer;
+    private readonly IBrandingService _branding;
 
     public AuthController(
         IAuthService auth, IUserService users, IRoleAccessService roleAccess, ISessionBootstrapService bootstrap,
-        IAuditTrail audit, IStringLocalizer<SharedResource> localizer)
+        IAuditTrail audit, IStringLocalizer<SharedResource> localizer, IBrandingService branding)
     {
         _auth = auth;
         _users = users;
@@ -41,6 +42,7 @@ public sealed class AuthController : ApiControllerBase
         _bootstrap = bootstrap;
         _audit = audit;
         _localizer = localizer;
+        _branding = branding;
     }
 
     /// <summary>The name picker of the login screen: active accounts and the last user to sign in here. Public, as the Razor login page is.</summary>
@@ -61,7 +63,7 @@ public sealed class AuthController : ApiControllerBase
         var lastUsername = people.FirstOrDefault(p => string.Equals(p.Username, last, StringComparison.OrdinalIgnoreCase))?.Username
             ?? (people.Count == 1 ? people[0].Username : string.Empty);
 
-        return new SignInOptionsDto { Users = people, LastUsername = lastUsername };
+        return new SignInOptionsDto { Users = people, LastUsername = lastUsername, Branding = SessionBootstrapService.BuildBranding(_branding) };
     }
 
     /// <summary>Signs in with username + PIN and returns the session document.</summary>

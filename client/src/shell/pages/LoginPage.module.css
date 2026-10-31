@@ -1,0 +1,220 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--color-canvas);
+}
+
+/* Brand panel: the dark rail colour with the primary glow, like the Razor login's left half. */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-nav-ink);
+  background:
+    radial-gradient(120% 90% at 20% 10%, color-mix(in srgb, var(--color-primary) 38%, transparent), transparent 60%),
+    var(--color-nav-bg);
+}
+
+.logoMark {
+  inline-size: 96px;
+  block-size: 96px;
+  object-fit: contain;
+  padding: var(--space-4);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.logoWide {
+  block-size: 96px;
+  max-inline-size: 320px;
+  object-fit: contain;
+}
+
+.appName {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.85;
+}
+
+.formSide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.langRow {
+  inline-size: min(100%, 420px);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.card {
+  inline-size: min(100%, 420px);
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-6) var(--space-8);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+}
+
+.avatar,
+.initials {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 800;
+}
+
+.avatar {
+  inline-size: 64px;
+  block-size: 64px;
+  margin-inline: auto;
+  font-size: 22px;
+}
+
+.welcome {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.name {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin-block-start: calc(var(--space-2) * -1);
+}
+
+.status {
+  min-block-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+}
+
+.errorText,
+.error {
+  color: var(--color-danger);
+  font-weight: 600;
+  text-align: center;
+}
+
+.notice {
+  margin-block-end: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-info-bg);
+  color: var(--color-ink);
+  font-size: 13px;
+  text-align: center;
+}
+
+.link {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-3);
+  min-block-size: 44px;
+}
+
+.pickTitle {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.people {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-block-size: 360px;
+  overflow: auto;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.person:hover {
+  border-color: var(--color-primary);
+}
+
+.initials {
+  inline-size: 38px;
+  block-size: 38px;
+  flex: none;
+  font-size: 14px;
+}
+
+.personName {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 13.5px;
+}
+
+.footer {
+  color: var(--color-faint);
+}
+
+@media (max-width: 991px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .brand {
+    display: none;
+  }
+}

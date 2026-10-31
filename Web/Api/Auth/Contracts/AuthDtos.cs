@@ -24,6 +24,9 @@ public sealed record SignInOptionsDto
 
     /// <summary>The remembered user, if they are still active; otherwise empty (the screen opens on the picker).</summary>
     public required string LastUsername { get; init; }
+
+    /// <summary>App name and logo for the login screen (the session payload carries the same block once signed in).</summary>
+    public required Web.Api.Session.Contracts.BrandingDto Branding { get; init; }
 }
 
 public sealed record SignInUserDto

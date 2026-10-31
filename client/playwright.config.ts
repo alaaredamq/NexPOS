@@ -9,5 +9,7 @@ export default defineConfig({
     baseURL: process.env.BASE_URL ?? 'http://localhost:5173',
     viewport: { width: 1366, height: 768 },
     trace: 'retain-on-failure',
+    // Optional: reuse a Chromium that is already installed instead of downloading the build this Playwright version wants.
+    launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {},
   },
 })

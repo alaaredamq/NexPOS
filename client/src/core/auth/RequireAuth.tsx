@@ -1,0 +1,70 @@
+import { useEffect } from 'react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { isApiError } from '@/api/http'
+import { getLanguage, seedLanguage, useLanguage } from '@/core/i18n'
+import { IDLE_TIMEOUT_MS, useIdleTimeout } from '@/core/idle/useIdleTimeout'
+import { Button } from '@/ui/Button'
+import { Loader } from '@/ui/Loader'
+import { StatusCard } from '@/shell/pages/StatusCard'
+import { legacyAccountPath } from '@/shell/nav'
+import { loginUrl } from './returnTo'
+import { useRefreshSession, useSessionQuery } from './useSession'
+import { useSignOut } from './useSignOut'
+
+/**
+ * Everything behind the sign-in. Boots from `GET /api/v1/session`: while it loads the page is a spinner, a 401 sends the
+ * user to `/login?returnTo=<where they were>`, and only a successful bootstrap renders the routes below - which is why
+ * `useSession()` never has to handle "no session".
+ */
+export function RequireAuth() {
+  const { t } = useTranslation()
+  const location = useLocation()
+  const { language } = useLanguage()
+  const { data, error, isPending, refetch, isFetching } = useSessionQuery()
+  const signOut = useSignOut()
+  const refreshSession = useRefreshSession()
+
+  // The very first visit adopts the server's language (its culture cookie is HttpOnly); a stored choice always wins.
+  const serverLanguage = data?.language
+  useEffect(() => {
+    const before = getLanguage()
+    void seedLanguage(serverLanguage).then(() => {
+      // Nav labels come back in the language of the request, so they have to be fetched again after the switch.
+      if (getLanguage() !== before) void refreshSession()
+    })
+  }, [serverLanguage, refreshSession])
+
+  // An admin set this PIN; it must be changed before anything else. Until track A1 ships the screen it is the Razor page.
+  const mustChangePin = data?.user.mustChangePin === true
+  useEffect(() => {
+    if (mustChangePin) window.location.assign(legacyAccountPath(language, 'ChangePin'))
+  }, [mustChangePin, language])
+
+  useIdleTimeout(() => void signOut({ reason: 'idle' }), IDLE_TIMEOUT_MS)
+
+  if (isApiError(error) && error.status === 401) {
+    return <Navigate to={loginUrl(`${location.pathname}${location.search}`)} replace />
+  }
+
+  if (isPending || mustChangePin) return <Loader fullSection size="lg" />
+
+  if (!data) {
+    // The server did not answer (stopped, restarting). Not a sign-out: keep the URL and let them retry.
+    return (
+      <StatusCard
+        glyph="plug"
+        title={t('Shell_ServerDown')}
+        actions={
+          <Button variant="primary" loading={isFetching} onClick={() => void refetch()}>
+            {t('common.retry', 'Retry')}
+          </Button>
+        }
+      >
+        {error?.message ?? t('Shell_ServerDownBody')}
+      </StatusCard>
+    )
+  }
+
+  return <Outlet />
+}

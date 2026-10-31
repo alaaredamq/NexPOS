@@ -66,7 +66,7 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
             Permissions = principal.FindAll("Permission").Select(c => c.Value).Distinct().OrderBy(p => p, StringComparer.Ordinal).ToList(),
             Nav = BuildNav(principal, language),
             License = BuildLicense(),
-            Branding = BuildBranding(),
+            Branding = BuildBranding(_branding),
             Language = language,
             Direction = language == "ar" ? "rtl" : "ltr",
             Drawer = await BuildDrawerAsync(principal, userId),
@@ -120,16 +120,20 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
             DaysUntilStop = state.DaysUntilStop,
             ValidUntil = state.ValidUntil?.ToString("yyyy-MM-dd"),
             EnforcementDisabled = state.EnforcementDisabled,
+            Title = LicenseMessageHelper.Title(state, _localizer),
+            Message = LicenseMessageHelper.Message(state, _localizer),
+            Severity = LicenseMessageHelper.Severity(state),
         };
     }
 
-    private BrandingDto BuildBranding()
+    /// <summary>The branding block of the session; also served to the login screen (before anyone is signed in).</summary>
+    internal static BrandingDto BuildBranding(IBrandingService branding)
     {
-        var version = Uri.EscapeDataString(_branding.Version);
+        var version = Uri.EscapeDataString(branding.Version);
         return new BrandingDto
         {
-            AppName = _branding.AppName,
-            HasCustomLogo = _branding.HasCustomLogo,
+            AppName = branding.AppName,
+            HasCustomLogo = branding.HasCustomLogo,
             LogoUrl = $"/branding/logo?v={version}",
             MarkUrl = $"/branding/logo?variant=mark&v={version}",
             FaviconUrl = $"/branding/favicon?v={version}",

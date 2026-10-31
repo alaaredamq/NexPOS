@@ -389,6 +389,10 @@ public sealed class ApiPipelineTests
         Assert.Equal("/app/cash-drawer", items.Single(i => i.GetProperty("key").GetString() == "CashDrawer").GetProperty("spaPath").GetString());
 
         Assert.False(session.GetProperty("license").GetProperty("allowsSales").GetBoolean()); // no licence file in the test host
+        // The banner text is composed on the server (LicenseMessageHelper) so the Razor and React banners cannot drift apart.
+        Assert.False(string.IsNullOrWhiteSpace(session.GetProperty("license").GetProperty("title").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(session.GetProperty("license").GetProperty("message").GetString()));
+        Assert.Equal("danger", session.GetProperty("license").GetProperty("severity").GetString());
         Assert.False(string.IsNullOrEmpty(session.GetProperty("branding").GetProperty("appName").GetString()));
         Assert.StartsWith("/branding/logo", session.GetProperty("branding").GetProperty("logoUrl").GetString());
         Assert.Equal("en", session.GetProperty("language").GetString());
@@ -477,6 +481,9 @@ public sealed class ApiPipelineTests
         Assert.Contains(ApiFactory.AdminUser, users);
         Assert.Contains(ApiFactory.CashierUser, users);
         Assert.DoesNotContain("pinHash", body.GetRawText(), StringComparison.OrdinalIgnoreCase);
+        // The login screen draws the app name and logo before anyone is signed in.
+        Assert.False(string.IsNullOrEmpty(body.GetProperty("branding").GetProperty("appName").GetString()));
+        Assert.StartsWith("/branding/logo", body.GetProperty("branding").GetProperty("markUrl").GetString());
     }
 
     [Fact]
