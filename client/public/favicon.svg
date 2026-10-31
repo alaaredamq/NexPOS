@@ -1,0 +1,20 @@
+<!-- The same monoline B, redrawn for 16px and 24px. A stroke that reads as elegant at 256px
+     renders as a pale 1px smear in the taskbar, and the counters inside the bowls silt up
+     entirely. So this variant is optically sized rather than scaled: the stroke goes 22 -> 34,
+     the letter grows to fill more of the tile, and the bowls open up to keep roughly 2px of
+     daylight inside each counter at 16px. Same construction, same centring — just a heavier cut.
+     Rendered by ../../../scripts/make-icon.cjs; keep in sync with icon.svg by eye. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e939e"/>
+      <stop offset="1" stop-color="#08636b"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#tile)"/>
+  <g fill="none" stroke="#f2f7f7" stroke-width="34" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M82 62 V194"/>
+    <path d="M82 62 H132 A34 34 0 0 1 132 128 H82"/>
+    <path d="M82 128 H140 A34 34 0 0 1 140 194 H82"/>
+  </g>
+</svg>

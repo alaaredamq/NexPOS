@@ -1,0 +1,103 @@
+:root {
+  /* Color */
+  --color-primary: #2361d8;
+  --color-primary-hover: #1a4eb5;
+  --color-ink: #171b26;
+  --color-muted: #5c6472;
+  --color-faint: #8b93a3;
+  --color-border: #e3e7ee;
+  --color-canvas: #f4f6f9;
+  --color-card: #ffffff;
+
+  --color-success: #178a50;
+  --color-success-bg: #e7f6ee;
+  --color-warning: #9a6700;
+  --color-warning-bg: #fdf3d9;
+  --color-danger: #d23b4e;
+  --color-danger-hover: #b32f40;
+  --color-danger-bg: #fdeaed;
+  /* The trade-in *domain* colour — trade-in badges and status only. It is not a general-purpose
+     accent; chrome that just needs "informational" should use --color-info below, which tracks the
+     brand. (These were the same thing until the merge gave the product its own identity, at which
+     point every generic use of the trade-in blue started reading as a stray colour.) */
+  --color-tradein: #2361d8;
+  --color-tradein-bg: #e9f0fc;
+
+  /* Informational accent for shell chrome — hints, toasts, unread markers. Follows the brand. */
+  --color-info: var(--color-primary);
+  --color-info-bg: color-mix(in srgb, var(--color-primary) 10%, #fff);
+  --color-neutral: #5c6472;
+  --color-neutral-bg: #eef1f5;
+
+  /* The till's LCD readout. Sits on near-black, so it can't use the accent itself — it's the
+     accent lightened until it carries on the dark display, and an app's theme.css re-picks it
+     whenever the brand hue moves. Settled money reads green regardless of brand. */
+  --color-readout: #7fb2f2;
+  --color-readout-settled: #74e8ab;
+
+  --color-nav-bg: #171b26;
+  /* Surfaces layered on the nav rail: group labels, hover, the active pill. */
+  --color-nav-ink: #ffffff;
+  --color-nav-faint: #7d8698;
+  --color-nav-hover: rgba(255, 255, 255, 0.07);
+  --color-nav-divider: rgba(255, 255, 255, 0.08);
+
+  /*
+   * Each selling counter gets its own accent so a glance at the header says which till you are
+   * ringing into. Retail inherits the brand accent; operators takes a contrasting one, which an
+   * app's theme.css is expected to re-pick whenever the brand accent moves hue.
+   */
+  --color-counter-retail: var(--color-primary);
+  --color-counter-operators: #3f6fa8;
+
+  /* Focus ring — one definition, so every control agrees on what "focused" looks like. */
+  --ring: 0 0 0 3px color-mix(in srgb, var(--color-primary) 28%, transparent);
+
+  /* Type */
+  --font-sans: 'Public Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Falls back to the sans stack until an app's theme.css names a display face. */
+  --font-display: var(--font-sans);
+
+  /* Radius */
+  --radius-control: 8px;
+  --radius-control-lg: 10px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+
+  /* Spacing (4px base scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Shadow */
+  --shadow-hover: 0 2px 10px rgba(35, 97, 216, 0.10);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.25);
+  /* Resting elevation for cards that sit on the canvas rather than inside a panel. */
+  --shadow-card: 0 1px 2px rgba(16, 20, 28, 0.05), 0 1px 3px rgba(16, 20, 28, 0.04);
+  --shadow-pop: 0 12px 32px rgba(16, 20, 28, 0.16), 0 2px 6px rgba(16, 20, 28, 0.08);
+
+  /* Touch-target scale: bumped up at the tablet breakpoint, see global.css */
+  --control-h-sm: 30px;
+  --control-h-md: 42px;
+  --control-h-lg: 54px;
+  --step-btn: 28px;
+  --font-body: 13px;
+  --font-title: 16px;
+}
+
+/* Tablet-landscape and below (register / touch context): forgiving 44px+ targets */
+@media (max-width: 1280px) {
+  :root {
+    --control-h-sm: 44px;
+    --control-h-md: 52px;
+    --control-h-lg: 64px;
+    --step-btn: 44px;
+    --font-body: 14.5px;
+    --font-title: 17px;
+  }
+}

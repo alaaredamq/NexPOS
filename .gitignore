@@ -53,3 +53,9 @@ issued.csv
 tools/*.db
 tools/*.db-*
 tools/log-*.txt
+
+# React client (REACT_MIGRATION.md 0B)
+Web/wwwroot/app/
+client/node_modules/
+client/test-results/
+client/playwright-report/
