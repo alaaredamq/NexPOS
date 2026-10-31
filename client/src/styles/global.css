@@ -24,6 +24,15 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * Unlike BoussiCell, text is selectable by default: back-office screens are full of order numbers,
+ * SKUs and customer details people copy. Touch surfaces (POS tiles, keypads) opt out with .no-select.
+ */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 input,
 button,
 select,
@@ -35,7 +44,39 @@ button {
   touch-action: manipulation;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Screen-reader-only text. */
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
