@@ -1,0 +1,9 @@
+{
+  "confirmDelete": "Confirm Delete",
+  "deleteMessage": "Are you sure you want to delete this item?",
+  "errorMessage": "Error!",
+  "infoMessage": "Information",
+  "successMessage": "Success!",
+  "warningMessage": "Warning!",
+  "yesDeleteIt": "Yes, delete it!"
+}

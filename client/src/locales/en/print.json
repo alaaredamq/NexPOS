@@ -1,0 +1,7 @@
+{
+  "downloadInstead": "Download PDF instead",
+  "failed": "Could not print. Check that the receipt printer is connected and selected in Settings.",
+  "retry": "Try again",
+  "sent": "Sent to the receipt printer",
+  "title": "Printing"
+}

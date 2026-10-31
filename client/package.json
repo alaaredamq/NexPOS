@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/check-bundle-budget.mjs",
     "budget": "node scripts/check-bundle-budget.mjs",
-    "lint": "oxlint && node scripts/check-logical-css.mjs",
+    "lint": "oxlint && node scripts/check-logical-css.mjs && node scripts/check-i18n-keys.mjs",
     "test": "vitest run",
     "e2e": "playwright test",
-    "api:types": "echo \"api:types is wired up in 0A (needs swagger.json)\" && exit 1"
+    "api:types": "echo \"api:types is wired up in 0A (needs swagger.json)\" && exit 1",
+    "i18n:export": "node scripts/export-locales.mjs",
+    "i18n:lint": "node scripts/check-i18n-keys.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5",

@@ -1,0 +1,11 @@
+{
+  "info": "عرض _START_ إلى _END_ من _TOTAL_ إدخالات",
+  "infoEmpty": "عرض 0 إلى 0 من 0 إدخالات",
+  "infoFiltered": "(مصفى من _MAX_ إجمالي الإدخالات)",
+  "lengthMenu": "عرض _MENU_ إدخالات",
+  "paginate.first": "الأول",
+  "paginate.last": "الأخير",
+  "paginate.next": "التالي",
+  "paginate.previous": "السابق",
+  "search": "بحث:"
+}

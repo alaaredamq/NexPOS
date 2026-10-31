@@ -1,0 +1,9 @@
+{
+  "confirmDelete": "تأكيد الحذف",
+  "deleteMessage": "هل تريد حقاً حذف هذا العنصر؟",
+  "errorMessage": "خطأ!",
+  "infoMessage": "معلومات",
+  "successMessage": "نجح!",
+  "warningMessage": "تحذير!",
+  "yesDeleteIt": "نعم، احذفه!"
+}

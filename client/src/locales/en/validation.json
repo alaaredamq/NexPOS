@@ -1,0 +1,6 @@
+{
+  "invalidDate": "Please enter a valid date.",
+  "invalidEmail": "Please enter a valid email address.",
+  "invalidNumber": "Please enter a valid number.",
+  "required": "This field is required."
+}
