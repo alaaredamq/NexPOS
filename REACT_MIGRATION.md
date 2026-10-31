@@ -315,8 +315,8 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | 0C | Design system | 0B | L | ☑ done | Claude · `react/0C` | [0C.md](docs/react-migration/notes/0C.md) |
 | 0E | i18n pipeline | 0B | M | ☑ done | Claude · `react/0E` | [0E.md](docs/react-migration/notes/0E.md) |
 | 0F | Serving + build + Electron | 0B | M | ☑ done | Claude · `react/0F` | [0F.md](docs/react-migration/notes/0F.md) |
-| 0D | App shell | 0A, 0C | L | ◑ in review | Claude · `react/0D` | [0D.md](docs/react-migration/notes/0D.md) |
-| **G0** | **Gate: foundation done** | 0A–0F | | ☐ | | |
+| 0D | App shell | 0A, 0C | L | ☑ done | Claude · `react/0D` | [0D.md](docs/react-migration/notes/0D.md) |
+| **G0** | **Gate: foundation done** | 0A–0F | | ☑ 2026-10-31 | | |
 | P1 | POS API + contract | G0 | L | ☐ todo | | |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☐ todo | | |
 | P3 | POS cart / pricing | G0, P1 DTOs | L | ☐ todo | | |
