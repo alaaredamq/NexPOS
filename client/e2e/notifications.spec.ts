@@ -58,7 +58,11 @@ test('notifications: the bell shows the news, the page works them, and a cashier
   await expect(main.getByRole('listitem').filter({ hasText: `${tag} alert` })).toHaveCount(1)
 
   // The Arabic page flips to RTL.
-  await admin.evaluate(() => localStorage.setItem('nexpos.lang', 'ar'))
+  // (what choosing Arabic does: the stored choice and the cookie the old pages share)
+  await admin.evaluate(() => {
+    localStorage.setItem('nexpos.lang', 'ar')
+    document.cookie = 'nexpos.lang=ar; path=/'
+  })
   await admin.reload()
   await expect(admin.locator('html')).toHaveAttribute('dir', 'rtl')
   await expect(main.getByRole('heading', { name: 'الإشعارات والتنبيهات' })).toBeVisible()

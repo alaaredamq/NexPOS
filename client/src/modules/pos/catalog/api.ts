@@ -13,6 +13,13 @@ export const PRODUCT_PAGE_SIZE = 120
 /** The server returns name matches 20 at a time (`skip` = items received so far). */
 export const SEARCH_PAGE_SIZE = 20
 
+/**
+ * The till shows stock and prices, which other screens change (an inventory adjustment, a product edit, another till's sale). The app-wide
+ * 30 s freshness would keep showing the old number after coming back from Inventory, so every visit to the till asks again; the cached tiles
+ * stay on screen meanwhile (placeholder) so nothing flashes.
+ */
+const ALWAYS_FRESH = { staleTime: 0, refetchOnMount: 'always' as const, refetchOnWindowFocus: 'always' as const }
+
 const root = ['pos', 'catalog'] as const
 export const catalogKeys = {
   categories: [...root, 'categories'] as const,
@@ -24,6 +31,7 @@ export function usePosCategories() {
   return useQuery({
     queryKey: catalogKeys.categories,
     queryFn: ({ signal }) => http.get<PosCategory[]>('/pos/categories', { signal }),
+    ...ALWAYS_FRESH,
   })
 }
 
@@ -43,6 +51,7 @@ export function usePosProducts(categoryId: number | null) {
       }),
     getNextPageParam: (last) => (last.page * last.pageSize < last.total ? last.page + 1 : undefined),
     placeholderData: keepPreviousData,
+    ...ALWAYS_FRESH,
   })
 }
 
@@ -55,6 +64,7 @@ export function usePosSearch(term: string) {
     queryFn: ({ pageParam, signal }) => http.get<PosSearchResult>('/pos/products/search', { query: { q: term, skip: pageParam }, signal }),
     getNextPageParam: (last, pages) => (last.hasMore ? pages.reduce((n, p) => n + p.items.length, 0) : undefined),
     placeholderData: keepPreviousData,
+    ...ALWAYS_FRESH,
   })
 }
 

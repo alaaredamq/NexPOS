@@ -3,7 +3,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import '@/core/i18n'
 import { loadNamespaces, setLanguage } from '@/core/i18n'
-import { queryClient } from '@/api/queryClient'
+import { queryClient, queryKeys } from '@/api/queryClient'
+import { makeSession } from '@/test/sessionFixture'
 import { UiHost } from '@/ui/UiHost'
 import { toast } from '@/ui/toast'
 import { fakeApi, json, problem, stubMatchMedia, type FakeApi } from '../../_shared/testApp'
@@ -86,6 +87,8 @@ function setup(products: PosProduct[] = [cola, cheese]) {
   priceHandler(api, products)
   const onCheckout = vi.fn()
   queryClient.clear()
+  // the hold dialog's customer picker asks who may add customers: the signed-in session is part of the screen's surroundings
+  queryClient.setQueryData(queryKeys.session, makeSession({ permissions: ['Customers.Create'] }))
   render(
     <QueryClientProvider client={queryClient}>
       <CartPanel onCheckout={onCheckout} />
@@ -314,6 +317,25 @@ describe('cart panel', () => {
     await waitFor(() => expect(useCartStore.getState().lines).toHaveLength(0))
     const hold = api.calls.find((c) => c.method === 'POST' && c.url === '/api/v1/carts')
     expect(hold?.body).toEqual({ cart: { currencyId: 1, lines: [{ productId: 1, quantity: 1 }] }, customerId: null, notes: 'back soon' })
+  })
+
+  it('lets the cashier attach a customer to the held cart', async () => {
+    setup()
+    await screen.findByText('Cart is Empty')
+    api.routes['GET /api/v1/pos/customers'] = () => json({ items: [{ id: 3, name: 'Rana Haddad', email: null, balance: 0 }], page: 1, pageSize: 30, hasMore: false })
+    api.routes['POST /api/v1/carts'] = () => json({ id: 9, customerId: 3, customerName: 'Rana Haddad', isWalkIn: false, totalAmount: 2, itemCount: 1, createdAt: '2026-11-01T10:00:00Z', notes: '' })
+    await act(async () => void (await addToCart(cola)))
+    await waitFor(() => expect(total()).toHaveTextContent('2.00'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hold' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Hold Cart' })
+    fireEvent.click(within(dialog).getByRole('combobox', { name: 'Customer (Optional)' }))
+    fireEvent.click(await screen.findByRole('option', { name: /Rana Haddad/ }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Hold Cart' }))
+
+    await waitFor(() => expect(useCartStore.getState().lines).toHaveLength(0))
+    const hold = api.calls.find((c) => c.method === 'POST' && c.url === '/api/v1/carts')
+    expect(hold?.body).toMatchObject({ customerId: 3 })
   })
 
   it('does not empty the till when the server refuses to park the cart', async () => {

@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { isApiError } from '@/api/http'
 import { useLicense } from '@/core/license/license'
 import { Button } from '@/ui/Button'
-import { confirm } from '@/ui/confirm'
 import { NumericInput } from '@/ui/form/NumericInput'
 import { Loader } from '@/ui/Loader'
 import { Modal, ModalBody, ModalFooter } from '@/ui/Modal'
@@ -48,8 +47,6 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
   const [sending, setSending] = useState(false)
   const [failure, setFailure] = useState<Failure | null>(null)
   const [stopped, setStopped] = useState(!license.allowsSales)
-  // Once the cashier says "sell anyway" it stays said for the retries of this sale.
-  const [allowOversell, setAllowOversell] = useState(false)
   const amountId = useId()
   const receivedId = useId()
   const notesId = useId()
@@ -70,7 +67,7 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
   const suggestions = useMemo(() => (cash ? tenderSuggestions(owedNow) : []), [cash, owedNow])
   const others = snapshot.currencies.filter((c) => c.id !== snapshot.currencyId)
 
-  const submit = async (addToDebt: boolean, oversell = allowOversell) => {
+  const submit = async (addToDebt: boolean) => {
     if (sending || amount === null || !amountOk) return
     if (!addToDebt && methodId === null) return
     const cart = snapshot.input
@@ -84,7 +81,8 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
       totalAmount: amount,
       notes: notes.trim() || null,
       printReceipt: true,
-      allowInsufficientStock: oversell,
+      // Selling what the shelf says is gone is allowed (the count is usually just behind): stock stops at zero and the cart already warned.
+      allowInsufficientStock: true,
       requireOpenDrawer: false,
     }
     setSending(true)
@@ -95,21 +93,6 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
     } catch (error) {
       setSending(false)
       if (!isApiError(error)) throw error
-      if (error.code === 'insufficient_stock') {
-        const sellAnyway = await confirm({
-          title: t('insufficientStockTitle'),
-          message: `${error.message} ${t('sellAnywayPrompt')}`,
-          confirmLabel: t('sellAnyway'),
-          cancelLabel: t('reviewCart'),
-        })
-        if (sellAnyway) {
-          setAllowOversell(true)
-          void submit(addToDebt, true)
-        } else {
-          onClose() // back to the cart to fix the quantity
-        }
-        return
-      }
       if (error.code === 'license_sales_stopped') {
         setStopped(true)
         return

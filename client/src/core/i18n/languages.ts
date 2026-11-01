@@ -8,6 +8,12 @@ export type Direction = 'ltr' | 'rtl'
 export const DEFAULT_LANGUAGE: Language = 'en'
 /** Same key the old shell uses for UI prefs (`nexpos.rail`, …). */
 export const LANGUAGE_STORAGE_KEY = 'nexpos.lang'
+/**
+ * Same name, as a cookie: the one place the old Razor pages (language in the URL) and the SPA (language in localStorage) agree.
+ * Razor pages write it from their URL's language (LanguageMiddleware); the SPA writes it on every change and reads it once at start,
+ * so choosing Arabic on the old till and opening the dashboard in the SPA (or the other way round) keeps the language.
+ */
+export const LANGUAGE_COOKIE = 'nexpos.lang'
 
 export function isLanguage(value: unknown): value is Language {
   return typeof value === 'string' && (LANGUAGES as readonly string[]).includes(value)
@@ -33,6 +39,27 @@ export function writeStoredLanguage(language: Language): void {
   } catch {
     // not persisted; the language still applies for this page load
   }
+  try {
+    document.cookie = `${LANGUAGE_COOKIE}=${language}; path=/; max-age=31536000; samesite=lax`
+  } catch {
+    // cookies blocked: the Razor pages simply keep their own language
+  }
+}
+
+/** The language the Razor pages last showed (or the SPA last chose), if the cookie is there. */
+function readLanguageCookie(): Language | null {
+  try {
+    const match = new RegExp(`(?:^|; )${LANGUAGE_COOKIE}=([^;]*)`).exec(document.cookie)
+    return match && isLanguage(match[1]) ? match[1] : null
+  } catch {
+    return null
+  }
+}
+
+/** Call once before the first render: a language chosen on a Razor page wins over the one this browser stored earlier. */
+export function syncLanguageFromCookie(): void {
+  const fromCookie = readLanguageCookie()
+  if (fromCookie && fromCookie !== readStoredLanguage()) writeStoredLanguage(fromCookie)
 }
 
 /** Current UI language, synchronously. What the HTTP client sends as `Accept-Language`. */

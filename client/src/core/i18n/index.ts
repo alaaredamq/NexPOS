@@ -17,6 +17,7 @@ import {
   getLanguage,
   isLanguage,
   readStoredLanguage,
+  syncLanguageFromCookie,
   writeStoredLanguage,
   type Language,
 } from './languages'
@@ -46,6 +47,8 @@ const lazyJsonBackend: BackendModule = {
 }
 
 export const DEFAULT_NAMESPACE = 'common'
+
+syncLanguageFromCookie()
 
 export const i18n = i18next.createInstance()
 

@@ -11,6 +11,9 @@ async function signIn(page: Page, name: RegExp, pin: string) {
   if (await person.count()) await person.first().click() // the picker shows when this PC has no remembered user
   for (const digit of pin) await page.getByRole('button', { name: digit, exact: true }).click()
   await page.waitForURL((url) => !url.pathname.endsWith('/login'))
+  // The till is where people land and it has no rail (full-screen page): these specs are about the shell, so step onto a page that has one.
+  if (new URL(page.url()).pathname.endsWith('/pos')) await page.goto('/app/orders')
+  await railLinks(page).first().waitFor() // the shell is mounted (its key handlers are live) before the spec presses anything
 }
 
 const railLinks = (page: Page) => page.getByRole('navigation', { name: /navigation|التنقل/i }).getByRole('link')

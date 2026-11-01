@@ -91,7 +91,7 @@ export default function ChangePinPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${styles.narrow}`}>
       <PageHeader title={t('ChangePin', { ns: 'common' })} />
       <section className={styles.pinCard}>
         <p className={styles.lead}>{forced ? t('ChangePinRequired', { ns: 'account' }) : t('Pin_UpdateYourLogin', { ns: 'common' })}</p>

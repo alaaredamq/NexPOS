@@ -4,6 +4,7 @@ import { isApiError } from '@/api/http'
 import { Button } from '@/ui/Button'
 import { Modal, ModalBody, ModalFooter } from '@/ui/Modal'
 import { toast } from '@/ui/toast'
+import { CustomerPicker } from '../customer/CustomerPicker'
 import { resetCart, useCartStore, type PosCartInput } from '../store/cartStore'
 import { useHoldCart } from './api'
 import styles from './cart.module.css'
@@ -11,14 +12,17 @@ import styles from './cart.module.css'
 interface Props {
   /** The cart as it would be sold. */
   input: PosCartInput
+  /** Notation of the cart currency, for the balances shown next to customer names. */
+  notation: string
   onClose: () => void
 }
 
-/** Parks the cart so the next customer can be served. The customer (if one is attached) is whoever checkout's picker put on the cart. */
-export function HoldDialog({ input, onClose }: Props) {
+/** Parks the cart so the next customer can be served. A customer can be attached here (or left empty for a walk-in); it travels with the cart and shows again at checkout. */
+export function HoldDialog({ input, notation, onClose }: Props) {
   const { t } = useTranslation('pos')
   const hold = useHoldCart()
   const customerId = useCartStore((s) => s.customerId)
+  const setCustomerId = useCartStore((s) => s.setCustomerId)
   const [notes, setNotes] = useState(useCartStore.getState().notes)
   const [error, setError] = useState<string | null>(null)
 
@@ -46,6 +50,7 @@ export function HoldDialog({ input, onClose }: Props) {
                 {error}
               </div>
             )}
+            <CustomerPicker customerId={customerId} onChange={(id) => setCustomerId(id)} notation={notation} disabled={hold.isPending} />
             <div className={styles.fieldGroup}>
               <label htmlFor="hold-notes" className={styles.fieldLabel}>
                 {t('notesOptional')}

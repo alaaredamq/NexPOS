@@ -132,6 +132,24 @@ public class LanguageMiddleware
                     SameSite = SameSiteMode.Lax,
                     Secure = context.Request.IsHttps
                 });
+
+            // A page that chose its language in the URL (the Razor pages) tells the React app: it reads this cookie once when it starts, so
+            // switching to Arabic here and opening a migrated page does not bring English back. Only for URL-chosen languages: the SPA's own
+            // requests (/app/...) fall back to whatever the old cookie says and must not overwrite the SPA's choice.
+            if (languageFromRoute)
+            {
+                context.Response.Cookies.Append(
+                    "nexpos.lang",
+                    lang,
+                    new CookieOptions
+                    {
+                        Expires = DateTimeOffset.UtcNow.AddYears(1),
+                        HttpOnly = false,
+                        SameSite = SameSiteMode.Lax,
+                        Secure = context.Request.IsHttps,
+                        Path = "/"
+                    });
+            }
         }
 
         // Prevent caching for language-specific pages to ensure fresh content

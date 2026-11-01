@@ -175,7 +175,7 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
       {dialog?.kind === 'discount' && totals.currencyId !== null && (
         <DiscountDialog currencyId={totals.currencyId} notation={notation} subtotal={totals.subtotal} onClose={close} />
       )}
-      {dialog?.kind === 'hold' && totals.input && <HoldDialog input={totals.input} onClose={close} />}
+      {dialog?.kind === 'hold' && totals.input && <HoldDialog input={totals.input} notation={totals.notation} onClose={close} />}
       {dialog?.kind === 'held' && <HeldCartsDialog notation={notation} onClose={close} />}
       {priceDialogLine && totals.currencyId !== null && (
         <PricePickerDialog
