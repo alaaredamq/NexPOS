@@ -1,0 +1,375 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 560px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.name {
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--color-primary);
+}
+
+.muted {
+  color: var(--color-faint);
+}
+
+.clip {
+  display: block;
+  max-inline-size: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A balance: colour says which way the money goes, the title and the sign say it too. */
+.balance {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.balance[data-direction='owes-me'] {
+  color: var(--color-success);
+}
+
+.balance[data-direction='i-owe'] {
+  color: var(--color-danger);
+}
+
+/* ---- details ---- */
+
+.details {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+.facts dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-faint);
+}
+
+.facts dd {
+  margin: 2px 0 0;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.factWide {
+  grid-column: 1 / -1;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.summaryRow:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.summaryRow dt {
+  color: var(--color-muted);
+}
+
+.summaryRow dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: end;
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.viewAll {
+  align-self: center;
+}
+
+.avatarBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  inline-size: 72px;
+  block-size: 72px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actionLink:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ---- debt ---- */
+
+.debtPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.debtLabel {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-faint);
+}
+
+.debtValue {
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.debtValue[data-direction='owes-me'] {
+  color: var(--color-success);
+}
+
+.debtValue[data-direction='i-owe'] {
+  color: var(--color-danger);
+}
+
+.netBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-border);
+}
+
+.netBanner[data-state='owes-me'] {
+  background: var(--color-success-bg);
+  border-color: transparent;
+}
+
+.netBanner[data-state='i-owe'] {
+  background: var(--color-danger-bg);
+  border-color: transparent;
+}
+
+/* ---- debt dialog ---- */
+
+.dialogFor {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.dirGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.dirCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-3);
+  min-block-size: 44px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  text-align: center;
+  cursor: pointer;
+}
+
+.dirCard[data-checked='true'][data-direction='plus'] {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.dirCard[data-checked='true'][data-direction='minus'] {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.dirCard:has(input:focus-visible) {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* The radio stays in the accessibility tree and keyboard order; the card is its visible face. */
+.dirInput {
+  position: absolute;
+  opacity: 0;
+  inline-size: 1px;
+  block-size: 1px;
+}
+
+.dirSign {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dirCard[data-direction='plus'] .dirSign {
+  color: var(--color-success);
+}
+
+.dirCard[data-direction='minus'] .dirSign {
+  color: var(--color-danger);
+}
+
+.dirTitle {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.dirSub {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.effect {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.effect[data-direction='plus'] {
+  color: var(--color-success);
+}
+
+.effect[data-direction='minus'] {
+  color: var(--color-danger);
+}

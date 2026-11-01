@@ -167,6 +167,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of customers. `sort`: `name` (default), `email`, `phoneNumber`, `address`, `ordersCount`,
+         *     `totalSpent`, `balance`, `isActive`; `q` matches the name, email and phone number.
+         */
+        get: operations["listCustomers"];
+        put?: never;
+        /** Creates a customer. Only the first and last name are required. */
+        post: operations["createCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals for the tiles above the list (all customers, not just the current page). */
+        get: operations["getCustomerSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The customer, the figures of the details page and the 10 latest orders. */
+        get: operations["getCustomer"];
+        /** Changes the contact details and the active flag. The balance is not editable here: it only moves through the debt ledger. */
+        put: operations["updateCustomer"];
+        post?: never;
+        /** Deletes (soft) a customer whose balance is zero. 409 `customer_has_balance` otherwise: settle the debt or deactivate the customer. */
+        delete: operations["deleteCustomer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}/debt-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The customer's debt ledger, newest first. Same `page` / `pageSize` as the lists; `sort` and `q` are ignored. */
+        get: operations["listCustomerDebtTransactions"];
+        put?: never;
+        /**
+         * Records a manual debt entry (staff editing what a customer owes, or logging a payment) and returns the new balance.
+         *     There is no cap: paying more than is owed leaves a negative balance (the business owes the customer), as on the Razor page.
+         */
+        post: operations["addCustomerDebtTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All customers as a CSV file (the same export the Razor page offers). */
+        get: operations["exportCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/categories": {
         parameters: {
             query?: never;
@@ -940,6 +1035,187 @@ export interface components {
             id: number;
             code: string;
             notation: string;
+        };
+        /** @description Body of "add a debt transaction". */
+        CustomerDebtRequest: {
+            /**
+             * Format: double
+             * @description Always positive; Web.Api.Customers.Contracts.CustomerDebtRequest.CustomerOwesMore gives the direction.
+             */
+            amount: number;
+            /**
+             * @description True: the customer owes the business more (balance goes up). False: the customer paid, or the business owes them
+             *     (balance goes down - and below zero when more is paid than was owed: no cap, as on the Razor page).
+             */
+            customerOwesMore: boolean;
+            note?: string | null;
+        };
+        /** @description The recorded entry and the balance after it. */
+        CustomerDebtResultDto: {
+            transaction: components["schemas"]["CustomerDebtTransactionDto"];
+            /**
+             * Format: double
+             * @description Balance after the entry; same sign convention as Web.Api.Customers.Contracts.CustomerDto.Balance.
+             */
+            balance: number;
+        };
+        /** @description One entry of a customer's debt ledger. The amount is signed: positive raises what the customer owes. */
+        CustomerDebtTransactionDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /** @description `Sale` (a sale put on the account), `Payment`, `ManualAdjustment` or `SaleReversal` (a voided sale). */
+            type: string;
+            /** Format: double */
+            amount: number;
+            note?: string | null;
+            /**
+             * Format: int32
+             * @description The sale this entry belongs to, for `Sale` and `SaleReversal`.
+             */
+            orderId?: number | null;
+            /** @description Username of the staff member who recorded it. */
+            recordedBy?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        CustomerDebtTransactionDtoPagedResult: {
+            items: components["schemas"]["CustomerDebtTransactionDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description A customer with the figures of the details page. */
+        CustomerDetailsDto: {
+            customer: components["schemas"]["CustomerDto"];
+            city?: string | null;
+            country?: string | null;
+            postalCode?: string | null;
+            /** @description Notation of the default currency, for the balance and the totals. */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Web.Api.Customers.Contracts.CustomerDto.TotalSpent / Web.Api.Customers.Contracts.CustomerDto.OrdersCount, 0 without orders.
+             */
+            averageOrder: number;
+            /**
+             * Format: date-time
+             * @description Date of the latest order (any status), UTC; null for a customer who never ordered.
+             */
+            lastOrderAt?: string | null;
+            /**
+             * Format: int32
+             * @description All orders of the customer, any status, including cancelled ones.
+             */
+            allOrdersCount: number;
+            /** @description The 10 latest orders, newest first. */
+            recentOrders: components["schemas"]["CustomerOrderDto"][];
+        };
+        /** @description One row of the customers list. */
+        CustomerDto: {
+            /** Format: int32 */
+            id: number;
+            firstName: string;
+            lastName: string;
+            /** @description Null when none was entered (the stored value is an empty string). */
+            email?: string | null;
+            phoneNumber?: string | null;
+            address?: string | null;
+            /** @description Inactive customers stay on their old sales but are meant to be left alone. */
+            isActive: boolean;
+            /**
+             * Format: double
+             * @description Running debt balance in the default currency. Positive: the customer owes the business. Negative: the business owes the customer.
+             */
+            balance: number;
+            /**
+             * Format: int32
+             * @description Orders placed by the customer; cancelled and returned (voided) orders are not purchases and are not counted.
+             */
+            ordersCount: number;
+            /**
+             * Format: double
+             * @description Sum of the order totals counted by Web.Api.Customers.Contracts.CustomerDto.OrdersCount. As on the Razor page the amounts are added as they are, whatever their currency.
+             */
+            totalSpent: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+        };
+        /** @description What every list endpoint returns. */
+        CustomerDtoPagedResult: {
+            items: components["schemas"]["CustomerDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description An order row of the customer details page. */
+        CustomerOrderDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /** Format: double */
+            totalAmount: number;
+            /** @description Notation of the order's own currency. */
+            currencyNotation: string;
+            /** @description `Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled` or `Returned`. */
+            status: string;
+        };
+        /** @description Body of create and update. */
+        CustomerRequest: {
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            email?: string | null;
+            /** Format: tel */
+            phoneNumber?: string | null;
+            address?: string | null;
+            isActive?: boolean;
+        };
+        /** @description The four tiles above the customers list (all customers, not just the current page). */
+        CustomerSummaryDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            active: number;
+            /**
+             * Format: int32
+             * @description Customers whose balance is above zero.
+             */
+            owing: number;
+            /**
+             * Format: double
+             * @description Sum of the positive balances: what customers owe the business.
+             */
+            totalOwed: number;
+            /**
+             * Format: double
+             * @description Sum of all Web.Api.Customers.Contracts.CustomerDto.TotalSpent.
+             */
+            totalSpent: number;
+            /** @description Notation of the default currency (`$`, `L.L.`): the unit of the balances and totals. */
+            currencyNotation: string;
         };
         /** @description The products shown on the POS main screen, in order, with the tiles above the table. */
         DisplayOrderDto: {
@@ -2523,6 +2799,472 @@ export interface operations {
         };
     };
     exportCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listCustomers: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getCustomerSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDetailsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listCustomerDebtTransactions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDebtTransactionDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addCustomerDebtTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerDebtRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDebtResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportCustomers: {
         parameters: {
             query?: never;
             header?: never;

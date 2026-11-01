@@ -2429,4 +2429,6 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
+  <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>This customer owes you {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
+  <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>You owe this customer {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
 </root>

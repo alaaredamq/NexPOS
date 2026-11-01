@@ -2429,4 +2429,6 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>لم يتم رفع أي ملف.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>حجم الملف أكبر من 10 ميغابايت.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>تعذّر إنشاء الملصق.</value></data>
+  <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>هذا العميل مدين لك بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
+  <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>أنت مدين لهذا العميل بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
 </root>

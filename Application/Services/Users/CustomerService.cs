@@ -17,6 +17,7 @@ public class CustomerService : ICustomerService
     public async Task<List<Customer>> GetAllWithOrdersAsync() => await _repo.GetAllWithOrdersAsync();
     public async Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take) =>
         await _repo.SearchPagedAsync(search, skip, take);
+    public async Task<Dictionary<int, (int OrdersCount, decimal TotalSpent)>> GetPurchaseTotalsAsync() => await _repo.GetPurchaseTotalsAsync();
     public async Task<Customer> GetByIdAsync(int id) => await _repo.GetByIdAsync(id);
     public async Task<Customer> CreateAsync(Customer customer) => await _repo.SaveAsync(customer);
     public async Task UpdateAsync(int id, Customer customer)
