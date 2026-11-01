@@ -17,6 +17,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5",
     "i18next": "^26",
+    "jsbarcode": "^3.12.3",
     "react": "^19",
     "react-dom": "^19",
     "react-hook-form": "^7",
@@ -29,6 +30,7 @@
     "@playwright/test": "^1",
     "@testing-library/jest-dom": "^6",
     "@testing-library/react": "^16",
+    "@types/jsbarcode": "^3.11.4",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",

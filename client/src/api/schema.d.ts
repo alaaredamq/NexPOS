@@ -375,6 +375,206 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the products list.
+         * @description `q` matches name, barcode or description. `sort` is one of `name` (default), `barcode`, `category`,
+         *                 `supplier`, `purchasePrice`, `sellingPrice`, `stock`, `status`.
+         */
+        get: operations["listProducts"];
+        put?: never;
+        /**
+         * Creates a product (with its extra prices).
+         * @description 400 `validation_failed` with `errors.barcode` when the barcode belongs to another product.
+         */
+        post: operations["createProduct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles above the list: total, active, low stock, out of stock. */
+        get: operations["getProductsSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/lookups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Categories, suppliers and currencies for the product form and the list filters. */
+        get: operations["getProductLookups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active products matching a name or barcode (the single-product picker of a pack). At most 20. */
+        get: operations["searchProductOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/generate-barcode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A new unused EAN-13 barcode in the shop's own range. */
+        get: operations["generateProductBarcode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One product with everything the details page and the edit form show. */
+        get: operations["getProduct"];
+        /** Saves a product (the pack setting is not editable and is ignored). */
+        put: operations["updateProduct"];
+        post?: never;
+        /** Deletes a product (soft delete: past sales keep their history). */
+        delete: operations["deleteProduct"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/sticker-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The label size from App Settings (the print dialog's starting point). */
+        get: operations["getStickerSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/sticker-pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Barcode labels as a PDF, for a plain browser (the desktop app prints to the label printer itself). */
+        post: operations["createStickerPdf"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The whole catalogue as a CSV, in the layout the import reads. */
+        get: operations["exportProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/import-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An empty import file: the column headers and one example row. */
+        get: operations["getProductImportTemplate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reads a CSV. With `apply=false` it only reports what would happen; with `true` it saves the valid rows.
+         * @description A row whose barcode exists updates that product (blank cells stay unchanged); any other row creates one. A file that cannot be read at all answers 200 with `fileError`.
+         */
+        post: operations["importProducts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -443,6 +643,10 @@ export interface components {
             openingCash: number;
             /** Format: date-time */
             openedAt?: string | null;
+        };
+        /** @description A freshly generated, unused EAN-13 barcode (in-store prefix `2` + date). */
+        GeneratedBarcodeDto: {
+            barcode: string;
         };
         HeldCartDto: {
             /** Format: int32 */
@@ -952,6 +1156,251 @@ export interface components {
             /** @description Another page of name matches exists: ask again with `skip` = number of items received so far. */
             hasMore: boolean;
         };
+        ProductCategoryOption: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+        };
+        ProductCurrencyOption: {
+            /** Format: int32 */
+            id: number;
+            code: string;
+            notation: string;
+            isDefault: boolean;
+        };
+        /** @description Everything about one product (details page and edit form). */
+        ProductDetailDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description?: string | null;
+            barcode: string;
+            /** Format: int32 */
+            categoryId: number;
+            categoryName?: string | null;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName?: string | null;
+            /**
+             * Format: double
+             * @description The supplier's discount rate in percent (shown as a badge next to the supplier).
+             */
+            supplierDiscountRate: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /** Format: double */
+            purchasePrice: number;
+            /** Format: double */
+            sellingPrice: number;
+            /**
+             * Format: double
+             * @description Selling price minus purchase price.
+             */
+            profitMargin: number;
+            /**
+             * Format: double
+             * @description Profit as a percentage of the purchase price; 0 when there is no purchase price.
+             */
+            profitMarginPercent: number;
+            /**
+             * Format: double
+             * @description Selling price times stock on hand.
+             */
+            stockValue: number;
+            /** Format: double */
+            stockQuantity: number;
+            /** Format: double */
+            minStockLevel: number;
+            unit?: string | null;
+            isActive: boolean;
+            isPack: boolean;
+            /** Format: int32 */
+            packSize?: number | null;
+            /** Format: int32 */
+            singleProductId?: number | null;
+            /** @description Name of the single product a pack contains. */
+            singleProductName?: string | null;
+            /** @description The extra prices in display order. */
+            priceTiers: components["schemas"]["ProductPriceTierDto"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt?: string | null;
+            stockLevel: string;
+        };
+        ProductImportIssueDto: {
+            /**
+             * Format: int32
+             * @description Row number as a spreadsheet shows it (the header is row 1).
+             */
+            row: number;
+            message: string;
+        };
+        /** @description What an import did, or - for a preview - would do. */
+        ProductImportResultDto: {
+            /** @description False for a preview: nothing was saved. */
+            applied: boolean;
+            /** @description Set when the file as a whole is unusable (no header row, wrong encoding, ...). The counts are then 0. */
+            fileError?: string | null;
+            /** Format: int32 */
+            totalRows: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+            /** Format: int32 */
+            unchanged: number;
+            /**
+             * Format: int32
+             * @description Categories in the file that do not exist yet and are (or would be) created.
+             */
+            newCategories: number;
+            /**
+             * Format: int32
+             * @description Rows skipped because of an error.
+             */
+            failed: number;
+            /** @description The first problems found (capped). */
+            issues: components["schemas"]["ProductImportIssueDto"][];
+        };
+        /** @description One row of the products list. */
+        ProductListItemDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            barcode: string;
+            /** Format: int32 */
+            categoryId: number;
+            /** @description Null when the category row is gone; the UI shows its own "No category" text. */
+            categoryName?: string | null;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName?: string | null;
+            /** Format: int32 */
+            currencyId: number;
+            /** @description Short symbol of the product's currency (`$`, `LBP`) - what the old list printed in front of prices. */
+            currencyNotation: string;
+            /** Format: double */
+            purchasePrice: number;
+            /** Format: double */
+            sellingPrice: number;
+            /** Format: double */
+            stockQuantity: number;
+            /** @description `piece`, `kg`, `liter`, ... or null. */
+            unit?: string | null;
+            isActive: boolean;
+            isPack: boolean;
+            /** @description `out` (0), `low` (above 0 and up to the threshold) or `ok`. */
+            stockLevel: string;
+        };
+        /** @description What every list endpoint returns. */
+        ProductListItemDtoPagedResult: {
+            items: components["schemas"]["ProductListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description The four tiles above the products list. Always counts the whole catalogue, whatever the list is filtered by. */
+        ProductListSummaryDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            active: number;
+            /** Format: int32 */
+            lowStock: number;
+            /** Format: int32 */
+            outOfStock: number;
+            /**
+             * Format: double
+             * @description A product is "low" when its stock is above 0 and at most this many units.
+             */
+            lowStockThreshold: number;
+        };
+        /** @description The choices the product form and the list filters need, in one call. */
+        ProductLookupsDto: {
+            /** @description Active categories. */
+            categories: components["schemas"]["ProductCategoryOption"][];
+            /** @description Active suppliers in their display order. */
+            suppliers: components["schemas"]["ProductSupplierOption"][];
+            currencies: components["schemas"]["ProductCurrencyOption"][];
+            /**
+             * Format: int32
+             * @description The supplier a new product starts with: "No Supplier" if the shop has it, else the first one. Null if there are none.
+             */
+            defaultSupplierId?: number | null;
+            /** Format: int32 */
+            defaultCurrencyId?: number | null;
+        };
+        /** @description A product in a picker (the single product of a pack). */
+        ProductOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            barcode: string;
+        };
+        /** @description An extra price the cashier can pick at the till (Wholesale, ...). The selling price stays the default. */
+        ProductPriceTierDto: {
+            name?: string;
+            /** Format: double */
+            price?: number;
+        };
+        /** @description The body of create (POST) and update (PUT). Same rules as the old forms. */
+        ProductSaveRequest: {
+            name: string;
+            description?: string | null;
+            /** @description Must not be used by another product: a POS scan rings up whichever product the lookup finds first. */
+            barcode: string;
+            /** Format: int32 */
+            categoryId?: number;
+            /** Format: int32 */
+            supplierId?: number;
+            /**
+             * Format: int32
+             * @description 0 or omitted = the default currency.
+             */
+            currencyId?: number;
+            /** Format: double */
+            purchasePrice?: number;
+            /** Format: double */
+            sellingPrice?: number;
+            /** Format: double */
+            stockQuantity?: number;
+            /** Format: double */
+            minStockLevel?: number;
+            isActive?: boolean;
+            unit?: string | null;
+            /** @description Create only - a product's pack setting cannot be changed afterwards (an update ignores the three pack fields). */
+            isPack?: boolean;
+            /**
+             * Format: int32
+             * @description Create only. How many single products one pack holds; required when Web.Api.Products.Contracts.ProductSaveRequest.IsPack is true.
+             */
+            packSize?: number | null;
+            /**
+             * Format: int32
+             * @description Create only. The single product the pack contains; required when Web.Api.Products.Contracts.ProductSaveRequest.IsPack is true.
+             */
+            singleProductId?: number | null;
+            /** @description Extra prices. A fully blank row is ignored; otherwise it needs a name and an amount between the purchase price and infinity. */
+            priceTiers?: components["schemas"]["ProductPriceTierDto"][];
+        };
+        ProductSupplierOption: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: double
+             * @description Percent; shown next to the name when above 0.
+             */
+            discountRate: number;
+        };
         ResumedCartDto: {
             /** Format: int32 */
             cartId: number;
@@ -1041,6 +1490,32 @@ export interface components {
             username: string;
             displayName: string;
             initials: string;
+        };
+        /**
+         * @description A barcode sticker as a PDF, for a plain browser (the desktop app prints to the label printer itself).
+         *     The browser encodes the barcode as bars (Code 128) and the server only draws them.
+         */
+        StickerPdfRequest: {
+            name?: string | null;
+            code: string;
+            /** @description The price as it should read on the label, already formatted. */
+            price?: string | null;
+            /** @description The barcode as modules, `1` = bar and `0` = space. */
+            bars: string;
+            /** Format: int32 */
+            widthMm?: number;
+            /** Format: int32 */
+            heightMm?: number;
+            /** Format: int32 */
+            copies?: number;
+            showPrice?: boolean;
+        };
+        /** @description The label size the shop chose in App Settings; the print dialog starts with it. */
+        StickerSettingsDto: {
+            /** Format: int32 */
+            widthMm: number;
+            /** Format: int32 */
+            heightMm: number;
         };
     };
     responses: never;
@@ -2092,6 +2567,620 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listProducts: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                categoryId?: number;
+                supplierId?: number;
+                /** @description `active` or `inactive`; anything else = both. */
+                status?: string;
+                /** @description `out`, `low` or `ok` (see Web.Api.Products.Contracts.ProductStockLevel); anything else = all. */
+                stock?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ProductSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getProductsSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getProductLookups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductLookupsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    searchProductOptions: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductOptionDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    generateProductBarcode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedBarcodeDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ProductSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getStickerSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StickerSettingsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createStickerPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StickerPdfRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportProducts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getProductImportTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    importProducts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description The CSV file (UTF-8), at most 10 MB.
+                     */
+                    File?: string;
+                    /** @description False = only check the file and report (the preview step). True = save the valid rows. */
+                    Apply?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImportResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

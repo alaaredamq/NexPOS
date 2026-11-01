@@ -321,7 +321,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☐ todo | | |
 | P3 | POS cart / pricing | G0, P1 DTOs | L | ☐ todo | | |
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
-| C1 | Products | G0 | L | ☐ todo | | |
+| C1 | Products | G0 | L | ◑ in review | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☐ todo | | |
 | C3 | Inventory + Suppliers | G0 | M–L | ☐ todo | | |
 | S1 | Orders + Receipts | G0 | L | ☐ todo | | |
@@ -340,7 +340,7 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 
 **Core change log** (post-G0 edits to frozen paths — one line each: date · ID · file · why):
 
--
+- 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 

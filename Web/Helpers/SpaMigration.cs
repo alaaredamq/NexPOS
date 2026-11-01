@@ -17,6 +17,7 @@ public static class SpaMigration
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             // ["Orders"] = "/app/orders",
+            ["Products"] = "/app/products",
         };
 
     public static bool IsMigrated(string controller) => Migrated.ContainsKey(controller);

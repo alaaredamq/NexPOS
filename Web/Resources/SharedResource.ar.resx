@@ -2420,4 +2420,13 @@
   <data name="Pos_PrintOk" xml:space="preserve"><value>تم الإرسال إلى طابعة الإيصالات</value></data>
   <data name="Pos_ProductNotFound" xml:space="preserve"><value>المنتج {0} غير موجود.</value></data>
   <data name="Pos_TotalMismatch" xml:space="preserve"><value>الإجمالي {0} يختلف عن الإجمالي المحسوب {1} بأكثر من تعديل التقريب المسموح ({2}).</value></data>
+  <data name="Prod_NameRequired" xml:space="preserve"><value>اسم المنتج مطلوب</value></data>
+  <data name="Prod_NameLength" xml:space="preserve"><value>يجب أن يتراوح اسم المنتج بين 2 و255 حرفاً</value></data>
+  <data name="Prod_BarcodeExists" xml:space="preserve"><value>يوجد منتج بهذا الباركود بالفعل.</value></data>
+  <data name="Prod_PackSizeRequired" xml:space="preserve"><value>أدخل عدد المنتجات المفردة في هذه العبوة.</value></data>
+  <data name="Prod_PackSingleRequired" xml:space="preserve"><value>اختر المنتج المفرد الذي تحتويه هذه العبوة.</value></data>
+  <data name="Prod_NotFound" xml:space="preserve"><value>المنتج غير موجود.</value></data>
+  <data name="Prod_ImportNoFile" xml:space="preserve"><value>لم يتم رفع أي ملف.</value></data>
+  <data name="Prod_ImportTooBig" xml:space="preserve"><value>حجم الملف أكبر من 10 ميغابايت.</value></data>
+  <data name="Prod_LabelInvalid" xml:space="preserve"><value>تعذّر إنشاء الملصق.</value></data>
 </root>
