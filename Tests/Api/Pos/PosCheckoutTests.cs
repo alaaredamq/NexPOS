@@ -283,13 +283,14 @@ public sealed class PosCheckoutTests
         var sale = await Sold(await Sell(till, Checkout(cart, (await Price(till, cart)).GetProperty("total").GetDecimal(), Cash)));
         var orderId = sale.GetProperty("orderId").GetInt32();
 
-        var recent = await Body(await till.GetAsync("/api/v1/pos/sales/recent?count=3"));
+        var recent = await Body(await till.GetAsync("/api/v1/pos/sales/recent?count=20")); // the demo seed dates some receipts later today, so do not assume ours is first
+        var mine = recent.EnumerateArray().Single(r => r.GetProperty("orderId").GetInt32() == orderId);
         var print = await till.SendAsync(Json(HttpMethod.Post, $"/api/v1/pos/sales/{orderId}/print"));
         var pdf = await till.GetAsync($"/api/v1/pos/sales/{orderId}/receipt.pdf");
         var unknown = await till.SendAsync(Json(HttpMethod.Post, "/api/v1/pos/sales/99999/print"));
 
-        Assert.Equal(orderId, recent[0].GetProperty("orderId").GetInt32());
-        Assert.Equal(sale.GetProperty("orderNumber").GetString(), recent[0].GetProperty("orderNumber").GetString());
+        Assert.False(string.IsNullOrEmpty(mine.GetProperty("receiptNumber").GetString()));
+        Assert.Equal(sale.GetProperty("orderNumber").GetString(), mine.GetProperty("orderNumber").GetString());
         Assert.Equal(HttpStatusCode.OK, print.StatusCode); // the test host runs with NEXPOS_DEMO=1: a no-op printer that reports success, never hardware
         var printed = await Body(print);
         Assert.True(printed.GetProperty("printed").GetBoolean());
@@ -372,6 +373,25 @@ public sealed class PosCheckoutTests
         await AssertProblem(duplicate, HttpStatusCode.BadRequest, "duplicate_product");
         Assert.True(deleted.GetProperty("deletedCount").GetInt32() >= 2);
         Assert.Equal(0, after.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task Delete_all_leaves_the_carts_of_old_sales_alone_however_old_they_are()
+    {
+        var (till, _) = await Till();
+        using var scope = Selling(_factory).Services.CreateScope();
+        var orders = scope.ServiceProvider.GetRequiredService<IOrderService>();
+        // The seeded demo sales are all older than the old 30-day window the first version of "held" used.
+        var old = (await orders.GetByDateRangeAsync(DateTime.UtcNow.AddYears(-5), DateTime.UtcNow.AddDays(-31))).First(o => o.Cart.CartItems.Count > 0);
+        var items = old.Cart.CartItems.Count;
+
+        await till.SendAsync(Json(HttpMethod.Post, "/api/v1/carts", new { cart = Cart(Usd, [Line(33)]) }));
+        var deleted = await Body(await till.SendAsync(Json(HttpMethod.Delete, "/api/v1/carts")));
+
+        var again = await Selling(_factory).Services.CreateScope().ServiceProvider.GetRequiredService<IOrderService>().GetByIdAsync(old.Id);
+        Assert.True(deleted.GetProperty("deletedCount").GetInt32() >= 1);
+        Assert.False(again.Cart.IsDeleted);
+        Assert.Equal(items, again.Cart.CartItems.Count);
     }
 
     [Fact]

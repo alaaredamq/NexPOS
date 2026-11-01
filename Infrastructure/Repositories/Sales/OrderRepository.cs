@@ -29,6 +29,17 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         return order;
     }
 
+    public async Task<HashSet<int>> GetSoldCartIdsAsync(IReadOnlyCollection<int> cartIds)
+    {
+        if (cartIds.Count == 0) return new HashSet<int>();
+
+        // IgnoreQueryFilters: a deleted order still owns its cart; the cart must never be mistaken for a parked one.
+        var sold = new HashSet<int>();
+        foreach (var chunk in cartIds.Chunk(500)) // SQLite caps the number of parameters
+            sold.UnionWith(await _Context.Set<Order>().IgnoreQueryFilters().Where(o => chunk.Contains(o.CartId)).Select(o => o.CartId).ToListAsync());
+        return sold;
+    }
+
     public async Task<List<Order>> GetByCustomerIdAsync(int customerId)
     {
         return await GetAllQueryable()

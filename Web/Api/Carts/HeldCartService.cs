@@ -140,11 +140,13 @@ public sealed class HeldCartService : IHeldCartService
 
     // ---- helpers ---------------------------------------------------------------------------------------------------
 
-    /// <summary>Held carts that were not sold: "inactive and not deleted" also matches the carts of finished sales, which have an order.</summary>
+    /// <summary>Parked carts that were never sold.</summary>
     private async Task<List<Cart>> HeldCartsAsync()
     {
         var all = await _carts.GetAllHeldCartsAsync();
-        var sold = (await _orders.GetByDateRangeAsync(DateTime.UtcNow.AddDays(-30), DateTime.UtcNow)).Select(o => o.CartId).ToHashSet();
+        // "Inactive and not deleted" also matches the carts of every finished sale. The old till looked for an order in the last 30 days only, so after a month
+        // "delete all" would have deleted the carts of old sales (and their receipts lost their lines). Ask for any order, however old.
+        var sold = await _orders.GetSoldCartIdsAsync(all.Select(c => c.Id).ToList());
         return all.Where(c => !sold.Contains(c.Id)).ToList();
     }
 
