@@ -1,0 +1,262 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  min-inline-size: 0;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+}
+
+.muted {
+  color: var(--color-faint);
+}
+
+.clip {
+  display: block;
+  max-inline-size: 38ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- table ---- */
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 10px var(--space-3);
+  text-align: start;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  border-block-end: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 8px var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table [data-align='end'] {
+  text-align: end;
+}
+
+.table [data-align='center'] {
+  text-align: center;
+}
+
+.row {
+  background: var(--color-card);
+}
+
+.row[data-dragging] {
+  position: relative;
+  z-index: 2;
+  box-shadow: var(--shadow-pop);
+  opacity: 0.96;
+}
+
+.orderCol {
+  inline-size: 96px;
+}
+
+.orderCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.position {
+  min-inline-size: 2ch;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.handle {
+  inline-size: 44px;
+  block-size: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-faint);
+  cursor: grab;
+  touch-action: none;
+}
+
+.handle:hover {
+  background: var(--color-neutral-bg);
+  color: var(--color-ink);
+}
+
+.handle:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.handle:active {
+  cursor: grabbing;
+}
+
+.product {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.productText {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.thumb {
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border);
+}
+
+.thumbEmpty {
+  flex: none;
+  display: inline-block;
+  border-radius: var(--radius-control);
+  background: var(--color-neutral-bg);
+}
+
+@media (max-width: 900px) {
+  .hideNarrow {
+    display: none;
+  }
+}
+
+/* ---- add-product dialog ---- */
+
+.tabs {
+  padding: var(--space-3) var(--space-5) 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.note {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-info-bg);
+  color: var(--color-ink);
+  font-size: 12.5px;
+}
+
+.picker {
+  max-block-size: 340px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+}
+
+.pickerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pickerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.pickerRow:last-child {
+  border-block-end: 0;
+}
+
+.pickerMain {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pickerNote {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 12.5px;
+}
