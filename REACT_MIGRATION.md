@@ -338,6 +338,11 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
 
+**Integration state (2026-11-01):** every track branch so far is merged into `react/main`; all track worktrees and `react/<ID>` branches are removed, so the next
+session starts from rule 4.1. ◑ rows (P3, C3, S1, S2) are merged but still wait for the by-hand check in their notes file. `react/main` has **not** been merged
+into `master` (that is the Cutover). The main checkout (`ERP/`) currently has `react/main` checked out. `client/src/api/schema.d.ts` was regenerated after the last
+merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pass (run with `--maxWorkers=2` — under full parallel load some `findBy*` tests time out spuriously).
+
 **Core change log** (post-G0 edits to frozen paths — one line each: date · ID · file · why):
 
 - 2026-11-01 · C3 · none (no frozen path edited; `Core/Auditing/AuditActions.cs` gained `StockAdjusted`, `SharedResource.*.resx` gained 4 `Inv_`/`Sup_` keys)
