@@ -118,8 +118,8 @@ describe('audit log list', () => {
     const router = open()
     await screen.findByText('Changed the price of Milk 1L')
 
-    fireEvent.focus(screen.getByRole('combobox', { name: 'Type', exact: true }))
-    fireEvent.click(screen.getByRole('combobox', { name: 'Type', exact: true }))
+    fireEvent.focus(screen.getByRole('combobox', { name: /^Type$/ }))
+    fireEvent.click(screen.getByRole('combobox', { name: /^Type$/ }))
     fireEvent.click(await screen.findByRole('option', { name: 'Security' }))
 
     await waitFor(() => expect(router.state.location.search).toBe('?category=Security'))
@@ -127,7 +127,7 @@ describe('audit log list', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
     await waitFor(() => expect(router.state.location.search).toBe(''))
-    expect(screen.getByRole('combobox', { name: 'Type', exact: true })).toHaveValue('')
+    expect(screen.getByRole('combobox', { name: /^Type$/ })).toHaveValue('')
     expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
   })
 

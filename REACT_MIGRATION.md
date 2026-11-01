@@ -329,8 +329,8 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
 | I1 | Dashboard + Reports | G0 | M–L | ☑ done | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
 | I2 | Notifications + alerts | G0 | M | ◑ in review | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
-| A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | I3 | Audit logs | G0 | S–M | ◑ in review | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
+| A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
@@ -338,8 +338,8 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
 
-**Integration state (2026-11-01):** every track branch so far (incl. I1) is merged into `react/main`; all track worktrees and `react/<ID>` branches are removed, so the next
-session starts from rule 4.1. ◑ rows (P3, C3, S1, S2) are merged but still wait for the by-hand check in their notes file. `react/main` has **not** been merged
+**Integration state (2026-11-01):** every track branch so far (incl. I1, I2, I3, A1) is merged into `react/main`; all track worktrees and `react/<ID>` branches are removed, so the next
+session starts from rule 4.1. ◑ rows (P3, C3, S1, S2, I2, I3, A1) are merged but still wait for the by-hand check in their notes file. `react/main` has **not** been merged
 into `master` (that is the Cutover). The main checkout (`ERP/`) currently has `react/main` checked out. `client/src/api/schema.d.ts` was regenerated after the last
 merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pass (run with `--maxWorkers=2` — under full parallel load some `findBy*` tests time out spuriously).
 
