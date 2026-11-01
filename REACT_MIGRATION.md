@@ -317,11 +317,11 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | 0F | Serving + build + Electron | 0B | M | ☑ done | Claude · `react/0F` | [0F.md](docs/react-migration/notes/0F.md) |
 | 0D | App shell | 0A, 0C | L | ☑ done | Claude · `react/0D` | [0D.md](docs/react-migration/notes/0D.md) |
 | **G0** | **Gate: foundation done** | 0A–0F | | ☑ 2026-10-31 | | |
-| P1 | POS API + contract | G0 | L | ◑ in review | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
+| P1 | POS API + contract | G0 | L | ☑ done | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☐ todo | | |
 | P3 | POS cart / pricing | G0, P1 DTOs | L | ☐ todo | | |
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
-| C1 | Products | G0 | L | ◑ in review | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
+| C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
 | C3 | Inventory + Suppliers | G0 | M–L | ☐ todo | | |
 | S1 | Orders + Receipts | G0 | L | ☐ todo | | |
