@@ -328,6 +328,10 @@ export interface components {
             /** Format: date-time */
             openedAt?: string | null;
         };
+        /** @description A freshly generated, unused EAN-13 barcode (in-store prefix `2` + date). */
+        GeneratedBarcodeDto: {
+            barcode: string;
+        };
         LicenseSummaryDto: {
             /** @description Active, ExpiringSoon, GracePeriod, Expired, NotActivated, Invalid, WrongMachine or UpdatesNotCovered. */
             status: string;
@@ -392,6 +396,18 @@ export interface components {
             label: string;
             items: components["schemas"]["NavItemDto"][];
         };
+        ProductCategoryOption: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+        };
+        ProductCurrencyOption: {
+            /** Format: int32 */
+            id: number;
+            code: string;
+            notation: string;
+            isDefault: boolean;
+        };
         /** @description Everything about one product (details page and edit form). */
         ProductDetailDto: {
             /** Format: int32 */
@@ -453,6 +469,122 @@ export interface components {
             updatedAt?: string | null;
             stockLevel: string;
         };
+        ProductImportIssueDto: {
+            /**
+             * Format: int32
+             * @description Row number as a spreadsheet shows it (the header is row 1).
+             */
+            row: number;
+            message: string;
+        };
+        /** @description What an import did, or - for a preview - would do. */
+        ProductImportResultDto: {
+            /** @description False for a preview: nothing was saved. */
+            applied: boolean;
+            /** @description Set when the file as a whole is unusable (no header row, wrong encoding, ...). The counts are then 0. */
+            fileError?: string | null;
+            /** Format: int32 */
+            totalRows: number;
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+            /** Format: int32 */
+            unchanged: number;
+            /**
+             * Format: int32
+             * @description Categories in the file that do not exist yet and are (or would be) created.
+             */
+            newCategories: number;
+            /**
+             * Format: int32
+             * @description Rows skipped because of an error.
+             */
+            failed: number;
+            /** @description The first problems found (capped). */
+            issues: components["schemas"]["ProductImportIssueDto"][];
+        };
+        /** @description One row of the products list. */
+        ProductListItemDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            barcode: string;
+            /** Format: int32 */
+            categoryId: number;
+            /** @description Null when the category row is gone; the UI shows its own "No category" text. */
+            categoryName?: string | null;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName?: string | null;
+            /** Format: int32 */
+            currencyId: number;
+            /** @description Short symbol of the product's currency (`$`, `LBP`) - what the old list printed in front of prices. */
+            currencyNotation: string;
+            /** Format: double */
+            purchasePrice: number;
+            /** Format: double */
+            sellingPrice: number;
+            /** Format: double */
+            stockQuantity: number;
+            /** @description `piece`, `kg`, `liter`, ... or null. */
+            unit?: string | null;
+            isActive: boolean;
+            isPack: boolean;
+            /** @description `out` (0), `low` (above 0 and up to the threshold) or `ok`. */
+            stockLevel: string;
+        };
+        /** @description What every list endpoint returns. */
+        ProductListItemDtoPagedResult: {
+            items: components["schemas"]["ProductListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description The four tiles above the products list. Always counts the whole catalogue, whatever the list is filtered by. */
+        ProductListSummaryDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            active: number;
+            /** Format: int32 */
+            lowStock: number;
+            /** Format: int32 */
+            outOfStock: number;
+            /**
+             * Format: double
+             * @description A product is "low" when its stock is above 0 and at most this many units.
+             */
+            lowStockThreshold: number;
+        };
+        /** @description The choices the product form and the list filters need, in one call. */
+        ProductLookupsDto: {
+            /** @description Active categories. */
+            categories: components["schemas"]["ProductCategoryOption"][];
+            /** @description Active suppliers in their display order. */
+            suppliers: components["schemas"]["ProductSupplierOption"][];
+            currencies: components["schemas"]["ProductCurrencyOption"][];
+            /**
+             * Format: int32
+             * @description The supplier a new product starts with: "No Supplier" if the shop has it, else the first one. Null if there are none.
+             */
+            defaultSupplierId?: number | null;
+            /** Format: int32 */
+            defaultCurrencyId?: number | null;
+        };
+        /** @description A product in a picker (the single product of a pack). */
+        ProductOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            barcode: string;
+        };
         /** @description An extra price the cashier can pick at the till (Wholesale, ...). The selling price stays the default. */
         ProductPriceTierDto: {
             name?: string;
@@ -498,6 +630,16 @@ export interface components {
             singleProductId?: number | null;
             /** @description Extra prices. A fully blank row is ignored; otherwise it needs a name and an amount between the purchase price and infinity. */
             priceTiers?: components["schemas"]["ProductPriceTierDto"][];
+        };
+        ProductSupplierOption: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: double
+             * @description Percent; shown next to the name when above 0.
+             */
+            discountRate: number;
         };
         /**
          * @description Everything the shell needs to draw itself, in one round trip: `GET /api/v1/session` on boot (and after
@@ -572,6 +714,13 @@ export interface components {
             /** Format: int32 */
             copies?: number;
             showPrice?: boolean;
+        };
+        /** @description The label size the shop chose in App Settings; the print dialog starts with it. */
+        StickerSettingsDto: {
+            /** Format: int32 */
+            widthMm: number;
+            /** Format: int32 */
+            heightMm: number;
         };
     };
     responses: never;
@@ -687,6 +836,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListItemDtoPagedResult"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -758,6 +916,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductListSummaryDto"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -787,6 +954,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductLookupsDto"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -818,6 +994,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductOptionDto"][];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -847,6 +1032,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedBarcodeDto"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -1025,6 +1219,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StickerSettingsDto"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {
@@ -1193,6 +1396,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImportResultDto"];
+                };
+            };
             /** @description Unauthorized */
             401: {
                 headers: {

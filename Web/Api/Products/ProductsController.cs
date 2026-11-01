@@ -49,6 +49,7 @@ public sealed class ProductsController : ApiControllerBase
     [HttpGet]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "listProducts")]
+    [ProducesResponseType<PagedResult<ProductListItemDto>>(StatusCodes.Status200OK)]
     public async Task<PagedResult<ProductListItemDto>> List([FromQuery] PagedQuery query, [FromQuery] ProductListFilter filter)
         => await _catalog.ListAsync(query, filter);
 
@@ -56,18 +57,21 @@ public sealed class ProductsController : ApiControllerBase
     [HttpGet("summary")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "getProductsSummary")]
+    [ProducesResponseType<ProductListSummaryDto>(StatusCodes.Status200OK)]
     public async Task<ProductListSummaryDto> Summary() => await _catalog.SummaryAsync();
 
     /// <summary>Categories, suppliers and currencies for the product form and the list filters.</summary>
     [HttpGet("lookups")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "getProductLookups")]
+    [ProducesResponseType<ProductLookupsDto>(StatusCodes.Status200OK)]
     public async Task<ProductLookupsDto> Lookups() => await _catalog.LookupsAsync();
 
     /// <summary>Active products matching a name or barcode (the single-product picker of a pack). At most 20.</summary>
     [HttpGet("options")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "searchProductOptions")]
+    [ProducesResponseType<IReadOnlyList<ProductOptionDto>>(StatusCodes.Status200OK)]
     public async Task<IReadOnlyList<ProductOptionDto>> Options([FromQuery] string? q)
         => await _catalog.OptionsAsync(q, 20);
 
@@ -75,6 +79,7 @@ public sealed class ProductsController : ApiControllerBase
     [HttpGet("generate-barcode")]
     [RequireAnyPermission(PermissionHelper.Permissions.Products_Create, PermissionHelper.Permissions.Products_Edit)]
     [SwaggerOperation(OperationId = "generateProductBarcode")]
+    [ProducesResponseType<GeneratedBarcodeDto>(StatusCodes.Status200OK)]
     public async Task<GeneratedBarcodeDto> GenerateBarcode()
         => new() { Barcode = await _catalog.GenerateBarcodeAsync() };
 
@@ -131,6 +136,7 @@ public sealed class ProductsController : ApiControllerBase
     [HttpGet("sticker-settings")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "getStickerSettings")]
+    [ProducesResponseType<StickerSettingsDto>(StatusCodes.Status200OK)]
     public async Task<StickerSettingsDto> StickerSettings()
     {
         var settings = await _settings.GetAppSettingsAsync();
@@ -182,6 +188,7 @@ public sealed class ProductsController : ApiControllerBase
     [RequireAllPermissions(PermissionHelper.Permissions.Products_Create, PermissionHelper.Permissions.Products_Edit)]
     [Consumes("multipart/form-data")]
     [SwaggerOperation(OperationId = "importProducts")]
+    [ProducesResponseType<ProductImportResultDto>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ProductImportResultDto>> Import([FromForm] ProductImportForm form)
     {
         var file = form.File;
