@@ -324,7 +324,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
 | C3 | Inventory + Suppliers | G0 | M–L | ☐ todo | | |
-| S1 | Orders + Receipts | G0 | L | ☐ todo | | |
+| S1 | Orders + Receipts | G0 | L | ◐ in progress | Claude · `react/S1` | |
 | S2 | Cash drawer | G0 | M | ☐ todo | | |
 | S3 | Customers + debt | G0 | M | ☐ todo | | |
 | I1 | Dashboard + Reports | G0 | M–L | ☐ todo | | |
