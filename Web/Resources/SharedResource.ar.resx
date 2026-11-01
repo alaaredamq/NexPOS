@@ -2459,4 +2459,10 @@
   <data name="Role_NameRequired" xml:space="preserve"><value>يجب إدخال اسم للدور.</value></data>
   <data name="Role_NameTooLong" xml:space="preserve"><value>يجب ألا يزيد اسم الدور على 100 حرف.</value></data>
   <data name="Role_NameTaken" xml:space="preserve"><value>يوجد دور بهذا الاسم بالفعل.</value></data>
+  <data name="Set_StoreNameRequired" xml:space="preserve"><value>يجب إدخال اسم المتجر.</value></data>
+  <data name="Set_TestSent" xml:space="preserve"><value>تم إرسال صفحة الاختبار بنجاح</value></data>
+  <data name="Set_TestUnreachable" xml:space="preserve"><value>تعذّرت الطباعة على '{0}'. تأكد من أن الطابعة متصلة ومشغّلة.</value></data>
+  <data name="Set_NameTooLong" xml:space="preserve"><value>يجب ألا يزيد اسم التطبيق على {0} حرفًا.</value></data>
+  <data name="Set_FileTypeNotAllowed" xml:space="preserve"><value>نوع الملف '{0}' غير مدعوم. الأنواع المسموحة: {1}</value></data>
+  <data name="Set_FileTooLarge" xml:space="preserve"><value>حجم الملف كبير جدًا (الحد الأقصى {0} ميغابايت).</value></data>
 </root>

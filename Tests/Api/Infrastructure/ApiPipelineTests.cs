@@ -381,10 +381,10 @@ public sealed class ApiPipelineTests
         Assert.Equal(permissions.OrderBy(p => p, StringComparer.Ordinal), permissions);
 
         var items = session.GetProperty("nav").EnumerateArray().SelectMany(s => s.GetProperty("items").EnumerateArray()).ToList();
-        var page = items.Single(i => i.GetProperty("key").GetString() == "Settings");  // a page no track has migrated yet
-        Assert.Equal("/app/settings", page.GetProperty("spaPath").GetString());
-        Assert.Equal("/en/Settings", page.GetProperty("legacyPath").GetString());
-        Assert.Equal("/en/Settings", page.GetProperty("href").GetString());   // not migrated yet: a plain link to the Razor page
+        var page = items.Single(i => i.GetProperty("key").GetString() == "Backup");  // a page no track has migrated yet
+        Assert.Equal("/app/backup", page.GetProperty("spaPath").GetString());
+        Assert.Equal("/en/Backup", page.GetProperty("legacyPath").GetString());
+        Assert.Equal("/en/Backup", page.GetProperty("href").GetString());   // not migrated yet: a plain link to the Razor page
         Assert.False(page.GetProperty("migrated").GetBoolean());
         Assert.Equal("/app/cash-drawer", items.Single(i => i.GetProperty("key").GetString() == "CashDrawer").GetProperty("spaPath").GetString());
 

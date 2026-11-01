@@ -331,7 +331,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | I2 | Notifications + alerts | G0 | M | ☑ done | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
 | I3 | Audit logs | G0 | S–M | ☑ done | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
 | A1 | Users, roles, account | G0 | L | ☑ done | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
-| A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
+| A2 | Settings / branding / printers | G0 | M | ◑ in review | Claude · `react/A2` | [A2.md](docs/react-migration/notes/A2.md) |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
 | Z | Cutover | everything | L | ☐ todo | | |
@@ -349,6 +349,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · I1 · none (no frozen path edited; `Core`/`Application` untouched except `SalesReportService` bug fix, `DashboardService` +`Dates`, `ReportDocuments.SalesReport`; `SharedResource.*.resx` gained 2 `Rep_` keys)
 - 2026-11-01 · A1 · `client/src/core/auth/RequireAuth.tsx`, `client/src/shell/{UserMenu.tsx,nav.ts}` · `mustChangePin` is enforced in the SPA (redirect to `/account/change-pin`) instead of a full navigation to the Razor page; Profile / Change PIN in the user menu are router links; `legacyAccountPath` removed. Also `Web/Services/RoleAccessService.cs` (`RoleResult.Code`, additive) and `Tests/Api/Infrastructure/ApiPipelineTests.cs` (unmigrated-page example is now Settings).
 - 2026-11-01 · I2 · `client/src/shell/NotificationBell.tsx` · now re-exports the bell of `modules/notifications/bell` (dropdown + toasts + feed poll); `NotificationBell.module.css` deleted. The shell only places it.
+- 2026-11-01 · A2 · `Tests/Api/Infrastructure/ApiPipelineTests.cs` · the session test's "not migrated yet" nav example is now Backup (Settings is migrated); pick another page when A4 flips Backup. No other frozen path edited; `SharedResource.*.resx` gained 6 `Set_*` keys.
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
@@ -356,6 +357,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - Offline/PWA mode, real-time push (SignalR), new reports, product-picture return to POS, dark theme, replacing SQLite.
 - Anything discovered that deserves its own change goes here, one line, with the ID that found it.
 - Real session control (A1 dropped the "Active sessions" tab: `UserSession` rows are never validated, closed on sign-out or given an IP) needs a cookie-validation change in `Program.cs`.
+- **Cutover trap (A2):** the SPA's logo and favicon (`/branding/logo`, `/branding/favicon`, in the session payload and on the login screen) are served by the Razor `BrandingController` — an MVC controller that Z's "delete MVC controllers" step would remove. Keep it (or move it under `Web/Api`) first.
 - Emailing a receipt needs a real SMTP setting first; the old button only recorded "emailed" (S1). Decide what "Returned" should do to stock (S1 notes, item 1).
 
 ## 12. Prompt template for a session

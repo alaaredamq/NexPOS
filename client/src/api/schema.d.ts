@@ -1907,6 +1907,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/settings/store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The business details printed on receipts. */
+        get: operations["getStoreSettings"];
+        /** Saves the receipt details. The store name is required; a field over its length answers 400 `validation_failed`. */
+        put: operations["saveStoreSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/store/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Puts every receipt field back to the factory text and returns it. */
+        post: operations["resetStoreSettings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/printing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The receipt printer and the barcode sticker size. */
+        get: operations["getPrintingSettings"];
+        /** Saves the receipt printer and sticker size. A sticker size outside 15-150 x 10-150 mm answers 400 `validation_failed`. */
+        put: operations["savePrintingSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/printers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Printers installed on the machine that runs the server, for the receipt-printer picker. */
+        get: operations["listInstalledPrinters"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/printers/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prints a short test slip so the printer can be checked before it is saved. An unreachable printer is `printed: false`, not an error. */
+        post: operations["testPrinter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/branding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The custom app name, logo and favicon (and what the defaults are). */
+        get: operations["getBrandingSettings"];
+        /**
+         * Saves the app name and replaces or removes the logo and favicon. The session payload (`GET session`) carries the new branding straight away.
+         *     A file of a type that is not allowed or over 2 MB answers 400 `validation_failed` on `logo` / `favicon`; nothing is saved then.
+         */
+        put: operations["saveBrandingSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/suppliers": {
         parameters: {
             query?: never;
@@ -2332,6 +2440,26 @@ export interface components {
             logoUrl: string;
             markUrl: string;
             faviconUrl: string;
+        };
+        /** @description White-label branding as the Branding page edits it. The images themselves are served by `/branding/logo` and `/branding/favicon`. */
+        BrandingSettingsDto: {
+            /** @description The custom app name, or empty while the default is used. */
+            appName: string;
+            /** @description The name used when Web.Api.Settings.Contracts.BrandingSettingsDto.AppName is empty. */
+            defaultAppName: string;
+            hasCustomLogo: boolean;
+            hasCustomFavicon: boolean;
+            /** @description Cache-busted URL of the logo in use (the uploaded one or the built-in one). */
+            logoUrl: string;
+            /** @description Cache-busted URL of the favicon in use. */
+            faviconUrl: string;
+            /** Format: int32 */
+            maxNameLength: number;
+            /** Format: int64 */
+            maxFileBytes: number;
+            /** @description Allowed logo extensions, with the dot (`.png`). */
+            logoExtensions: string[];
+            faviconExtensions: string[];
         };
         CashDropDto: {
             /** Format: int32 */
@@ -2916,6 +3044,10 @@ export interface components {
         HeldCartsDeletedDto: {
             /** Format: int32 */
             deletedCount: number;
+        };
+        /** @description Printers installed on the machine that runs the server (the till itself in the desktop app). */
+        InstalledPrintersDto: {
+            items: string[];
         };
         /** @description One row of the inventory list. */
         InventoryItemDto: {
@@ -3801,6 +3933,40 @@ export interface components {
             /** @description Another page of name matches exists: ask again with `skip` = number of items received so far. */
             hasMore: boolean;
         };
+        /** @description Body of "print a test slip". */
+        PrinterTestRequest: {
+            printerName: string;
+        };
+        /** @description The outcome of a test print. A printer that cannot be reached is a normal answer (`printed` false), not an error. */
+        PrinterTestResultDto: {
+            printed: boolean;
+            /** @description Localized sentence for the user. */
+            message: string;
+        };
+        /** @description The shared printing settings: which printer prints receipts, and how big a barcode sticker is. */
+        PrintingSettingsDto: {
+            /** @description Windows printer name; empty = receipts are not sent to a printer by the server. */
+            receiptPrinterName: string;
+            /**
+             * Format: int32
+             * @description Barcode sticker width in millimetres (15 - 150).
+             */
+            stickerWidthMm: number;
+            /**
+             * Format: int32
+             * @description Barcode sticker height in millimetres (10 - 150).
+             */
+            stickerHeightMm: number;
+        };
+        /** @description Body of "save the printing settings". */
+        PrintingSettingsRequest: {
+            /** @description Empty clears the receipt printer. A printer that is not installed right now is accepted (it may just be unplugged). */
+            receiptPrinterName?: string | null;
+            /** Format: int32 */
+            stickerWidthMm: number;
+            /** Format: int32 */
+            stickerHeightMm: number;
+        };
         ProductCategoryOption: {
             /** Format: int32 */
             id: number;
@@ -4667,6 +4833,38 @@ export interface components {
             label: string;
             /** Format: double */
             value: number;
+        };
+        /**
+         * @description The business details printed at the top and bottom of every receipt. These are the only store columns anything reads;
+         *     the rest of the table (email, currency symbol, logo path, ...) is not exposed and a save leaves it untouched.
+         */
+        StoreSettingsDto: {
+            /** @description Printed as the receipt heading. */
+            storeName: string;
+            addressLine1: string;
+            addressLine2: string;
+            phone: string;
+            /** @description VAT / tax registration number. */
+            taxId: string;
+            website: string;
+            /** @description The "thank you" line, printed in capitals. */
+            receiptFooterMessage: string;
+            footerLine1: string;
+            footerLine2: string;
+            footerLine3: string;
+        };
+        /** @description Body of "save the store details". Blank optional fields are stored as empty text. */
+        StoreSettingsRequest: {
+            storeName: string;
+            addressLine1?: string | null;
+            addressLine2?: string | null;
+            phone?: string | null;
+            taxId?: string | null;
+            website?: string | null;
+            receiptFooterMessage?: string | null;
+            footerLine1?: string | null;
+            footerLine2?: string | null;
+            footerLine3?: string | null;
         };
         /** @description One currency choice of the supplier form. */
         SupplierCurrencyOptionDto: {
@@ -10835,6 +11033,415 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getStoreSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreSettingsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    saveStoreSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StoreSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreSettingsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    resetStoreSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreSettingsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPrintingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintingSettingsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    savePrintingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PrintingSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintingSettingsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listInstalledPrinters: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstalledPrintersDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    testPrinter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PrinterTestRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrinterTestResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getBrandingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingSettingsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    saveBrandingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** @description Blank or equal to the default name = use the default. */
+                    AppName?: string;
+                    /**
+                     * Format: binary
+                     * @description PNG, JPG, SVG or WebP up to 2 MB.
+                     */
+                    Logo?: string;
+                    /**
+                     * Format: binary
+                     * @description PNG, ICO or SVG up to 2 MB.
+                     */
+                    Favicon?: string;
+                    RemoveLogo?: boolean;
+                    RemoveFavicon?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrandingSettingsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
             /** @description Unauthorized */
