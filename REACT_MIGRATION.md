@@ -319,7 +319,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | **G0** | **Gate: foundation done** | 0A–0F | | ☑ 2026-10-31 | | |
 | P1 | POS API + contract | G0 | L | ☑ done | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☐ todo | | |
-| P3 | POS cart / pricing | G0, P1 DTOs | L | ☐ todo | | |
+| P3 | POS cart / pricing | G0, P1 DTOs | L | ◑ in review | Claude · `react/P3` | [P3.md](docs/react-migration/notes/P3.md) |
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
