@@ -1,0 +1,673 @@
+/* The till's cart (track P3). Logical properties only: the panel flips with <html dir>. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  block-size: 100%;
+  min-block-size: 0;
+  min-inline-size: 0;
+  padding: var(--space-4);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-title);
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.count {
+  min-inline-size: 24px;
+  padding-inline: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-bg);
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 24px;
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.textBtn {
+  min-block-size: 36px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.textBtn:hover:not(:disabled) {
+  background: var(--color-info-bg);
+}
+
+.textBtn:disabled {
+  color: var(--color-faint);
+  cursor: default;
+}
+
+.textBtn:focus-visible,
+.stepper button:focus-visible,
+.qtyInput:focus-visible,
+.amountBtn:focus-visible,
+.priceBtn:focus-visible,
+.del:focus-visible,
+.tier:focus-visible,
+.heldMain:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* ---- lines ---- */
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  column-gap: var(--space-2);
+  row-gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+}
+
+/* Narrow cart: the name takes the first line, quantity + price + delete share the second. */
+@container (max-inline-size: 440px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .rowName {
+    grid-column: 1 / -1;
+  }
+}
+
+.panel {
+  container-type: inline-size;
+}
+
+.rowName {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.name {
+  font-weight: 700;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.each {
+  font-size: 12px;
+  color: var(--color-faint);
+}
+
+.stockWarning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
+.rowQty {
+  display: flex;
+  align-items: center;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+
+.stepper button {
+  inline-size: var(--step-btn);
+  block-size: var(--step-btn);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.stepper button:hover {
+  background: var(--color-neutral-bg);
+}
+
+.qtyInput {
+  inline-size: 3.2ch;
+  min-inline-size: 44px;
+  block-size: var(--step-btn);
+  border: 0;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.amountBtn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-block-size: var(--step-btn);
+  padding-inline: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  align-items: center;
+}
+
+.amountBtn small {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.rowPrice {
+  display: flex;
+  justify-content: flex-end;
+  min-inline-size: 0;
+}
+
+.priceBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-block-size: var(--step-btn);
+  padding: 4px var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.priceBtn:hover {
+  background: var(--color-canvas);
+  border-color: var(--color-border);
+}
+
+.priceBtn[data-kind='tier'] .priceTier {
+  color: var(--color-primary);
+}
+
+.priceBtn[data-kind='custom'] .priceTier {
+  color: var(--color-warning);
+}
+
+.priceTotal,
+.priceText {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.priceText {
+  padding-inline: var(--space-2);
+}
+
+.priceTier {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-faint);
+}
+
+.del {
+  inline-size: var(--step-btn);
+  block-size: var(--step-btn);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-faint);
+  cursor: pointer;
+}
+
+.del:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* amounts that are still the local estimate */
+.row[data-estimate] .priceTotal,
+.row[data-estimate] .priceText {
+  opacity: 0.6;
+}
+
+.empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  color: var(--color-faint);
+}
+
+.empty strong {
+  color: var(--color-muted);
+}
+
+/* ---- notices ---- */
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  font-weight: 600;
+  flex: none;
+}
+
+.notice[data-tone='error'] {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.notice[data-tone='warning'] {
+  justify-content: flex-start;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+/* ---- totals ---- */
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+  flex: none;
+}
+
+.sumRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.discount {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.total {
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.totalRow[data-estimate] .total {
+  opacity: 0.6;
+}
+
+.pricing,
+.others {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-faint);
+  text-align: end;
+}
+
+.others {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  flex: none;
+}
+
+.actions > * {
+  flex: 1 1 0;
+}
+
+/* ---- dialogs ---- */
+
+.dialogForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.inline {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.inline > :first-child {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.select,
+.textarea {
+  inline-size: 100%;
+  min-block-size: var(--control-h-md);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.inline .select {
+  inline-size: auto;
+  min-inline-size: 96px;
+}
+
+.textarea {
+  padding-block: var(--space-2);
+  resize: vertical;
+}
+
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-color: var(--color-primary);
+}
+
+.callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-neutral-bg);
+  color: var(--color-muted);
+}
+
+.callout strong {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.callout[data-tone='total'] {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.callout[data-tone='total'] strong {
+  color: var(--color-success);
+  font-size: 20px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-muted);
+  min-block-size: 1.2em;
+}
+
+.plain {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton span {
+  display: block;
+  block-size: 52px;
+  border-radius: var(--radius-control);
+  background: var(--color-neutral-bg);
+}
+
+/* ---- price picker ---- */
+
+.tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tier {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tier:hover {
+  background: var(--color-canvas);
+}
+
+.tier[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-info-bg);
+}
+
+.tierCheck {
+  inline-size: 22px;
+  block-size: 22px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  color: transparent;
+  flex: none;
+}
+
+.tier[aria-pressed='true'] .tierCheck {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.tierText {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.tierName {
+  font-weight: 700;
+}
+
+.tierSub {
+  font-size: 12px;
+  color: var(--color-faint);
+}
+
+.tierPrice {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tierPrice small {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--color-border);
+}
+
+.customHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inUse {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ---- held carts ---- */
+
+.heldList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.heldRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+}
+
+.heldMain {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.heldNotes {
+  max-inline-size: 100%;
+  font-size: 12px;
+  color: var(--color-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heldTotal {
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
