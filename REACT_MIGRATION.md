@@ -330,7 +330,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | I1 | Dashboard + Reports | G0 | M–L | ☐ todo | | |
 | I2 | Notifications + alerts | G0 | M | ☐ todo | | |
 | I3 | Audit logs | G0 | S–M | ☐ todo | | |
-| A1 | Users, roles, account | G0 | L | ☐ todo | | |
+| A1 | Users, roles, account | G0 | L | ◐ in progress | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |

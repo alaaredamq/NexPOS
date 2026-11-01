@@ -2444,4 +2444,17 @@
   <data name="Sales_OrderClosed" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع بالفعل، فلا توجد عملية بيع لإلغائها.</value></data>
   <data name="Sales_OrderCancelled" xml:space="preserve"><value>الطلب {0} ملغى ولا يمكن إعادة فتحه.</value></data>
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>الإيصال {0} ملغى بالفعل.</value></data>
+  <data name="Usr_UsernameTaken" xml:space="preserve"><value>اسم المستخدم هذا مستخدم بالفعل.</value></data>
+  <data name="Usr_EmailTaken" xml:space="preserve"><value>عنوان البريد الإلكتروني هذا مستخدم بالفعل.</value></data>
+  <data name="Usr_PinRule" xml:space="preserve"><value>يجب أن يتكوّن الرقم السري من 4 أرقام بالضبط.</value></data>
+  <data name="Usr_UnknownRole" xml:space="preserve"><value>هذا الدور غير موجود.</value></data>
+  <data name="Usr_InUse" xml:space="preserve"><value>لهذا المستخدم نشاط مسجّل (مبيعات أو إيصالات أو جلسات)، لذلك لا يمكن حذفه. عطّله بدلاً من ذلك.</value></data>
+  <data name="Usr_UsernameInvalid" xml:space="preserve"><value>لا يمكن أن يكون اسم المستخدم فارغاً.</value></data>
+  <data name="Role_NotFound" xml:space="preserve"><value>لم يتم العثور على هذا الدور.</value></data>
+  <data name="Role_SuperAdminLocked" xml:space="preserve"><value>دور SuperAdmin يملك كل الصلاحيات دائماً ولا يمكن تعديله.</value></data>
+  <data name="Role_SystemRole" xml:space="preserve"><value>لا يمكن حذف الأدوار المدمجة.</value></data>
+  <data name="Role_InUse" xml:space="preserve"><value>لا يزال هناك مستخدمون بهذا الدور. انقلهم إلى دور آخر أولاً.</value></data>
+  <data name="Role_NameRequired" xml:space="preserve"><value>يجب إدخال اسم للدور.</value></data>
+  <data name="Role_NameTooLong" xml:space="preserve"><value>يجب ألا يزيد اسم الدور على 100 حرف.</value></data>
+  <data name="Role_NameTaken" xml:space="preserve"><value>يوجد دور بهذا الاسم بالفعل.</value></data>
 </root>

@@ -21,10 +21,12 @@ public sealed record RoleSummary(
     string[] Permissions,
     DateTime CreatedAt);
 
-public sealed record RoleResult(bool Success, string? Error = null, int? RoleId = null)
+public sealed record RoleResult(bool Success, string? Error = null, int? RoleId = null, string? Code = null)
 {
     public static RoleResult Ok(int roleId) => new(true, null, roleId);
-    public static RoleResult Fail(string error) => new(false, error);
+    /// <param name="error">The English sentence the Razor page shows.</param>
+    /// <param name="code">Stable machine string (<see cref="RoleErrors"/>) for the JSON API; the Razor page only shows <paramref name="error"/>.</param>
+    public static RoleResult Fail(string error, string? code = null) => new(false, error, null, code);
 }
 
 /// <summary>
@@ -52,6 +54,18 @@ public sealed class AccessCache
     public void Set(int userId, UserAccess? access) => _entries[userId] = (access, DateTime.UtcNow);
 
     public void Clear() => _entries.Clear();
+}
+
+/// <summary>Stable codes of a refused role change (<see cref="RoleResult.Code"/>); the JSON API turns them into localized messages.</summary>
+public static class RoleErrors
+{
+    public const string NotFound = "role_not_found";
+    public const string SuperAdminLocked = "role_super_admin_locked";
+    public const string SystemRole = "role_system";
+    public const string InUse = "role_in_use";
+    public const string NameRequired = "role_name_required";
+    public const string NameTooLong = "role_name_too_long";
+    public const string NameTaken = "role_name_taken";
 }
 
 public interface IRoleAccessService
@@ -204,8 +218,8 @@ public class RoleAccessService : IRoleAccessService
     public async Task<RoleResult> CreateAsync(string? name, string? description, IEnumerable<string>? permissions)
     {
         name = name?.Trim() ?? string.Empty;
-        var error = await ValidateNameAsync(name, exceptRoleId: null);
-        if (error is not null) return RoleResult.Fail(error);
+        var refused = await ValidateNameAsync(name, exceptRoleId: null);
+        if (refused is not null) return refused;
 
         var role = new Role(name, string.IsNullOrWhiteSpace(description) ? null : description.Trim());
         var wanted = PermissionHelper.Permissions.Normalize(permissions);
@@ -224,13 +238,13 @@ public class RoleAccessService : IRoleAccessService
         var role = await _db.Roles
             .Include(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
             .FirstOrDefaultAsync(r => r.Id == roleId);
-        if (role is null) return RoleResult.Fail("Role not found.");
+        if (role is null) return RoleResult.Fail("Role not found.", RoleErrors.NotFound);
         if (IsSuperAdmin(role.Name, role.IsSystemRole))
-            return RoleResult.Fail("The SuperAdmin role always holds every permission and cannot be edited.");
+            return RoleResult.Fail("The SuperAdmin role always holds every permission and cannot be edited.", RoleErrors.SuperAdminLocked);
 
         name = name?.Trim() ?? string.Empty;
-        var error = await ValidateNameAsync(name, exceptRoleId: roleId);
-        if (error is not null) return RoleResult.Fail(error);
+        var refused = await ValidateNameAsync(name, exceptRoleId: roleId);
+        if (refused is not null) return refused;
 
         role.Name = name;
         role.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
@@ -268,13 +282,13 @@ public class RoleAccessService : IRoleAccessService
     public async Task<RoleResult> DeleteAsync(int roleId)
     {
         var role = await _db.Roles.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == roleId);
-        if (role is null) return RoleResult.Fail("Role not found.");
-        if (role.IsSystemRole) return RoleResult.Fail("Built-in roles cannot be deleted.");
+        if (role is null) return RoleResult.Fail("Role not found.", RoleErrors.NotFound);
+        if (role.IsSystemRole) return RoleResult.Fail("Built-in roles cannot be deleted.", RoleErrors.SystemRole);
 
         // The foreign key is restrictive, so this would fail at the database anyway - answer with something
         // the page can show instead of a constraint violation.
         if (await _db.Users.AnyAsync(u => u.RoleId == roleId))
-            return RoleResult.Fail("Users still hold this role - move them to another role first.");
+            return RoleResult.Fail("Users still hold this role - move them to another role first.", RoleErrors.InUse);
 
         _db.RolePermissions.RemoveRange(role.RolePermissions);
         _db.Roles.Remove(role);
@@ -283,14 +297,14 @@ public class RoleAccessService : IRoleAccessService
         return RoleResult.Ok(roleId);
     }
 
-    private async Task<string?> ValidateNameAsync(string name, int? exceptRoleId)
+    private async Task<RoleResult?> ValidateNameAsync(string name, int? exceptRoleId)
     {
-        if (name.Length == 0) return "Name is required.";
-        if (name.Length > MaxNameLength) return $"Name can be at most {MaxNameLength} characters.";
+        if (name.Length == 0) return RoleResult.Fail("Name is required.", RoleErrors.NameRequired);
+        if (name.Length > MaxNameLength) return RoleResult.Fail($"Name can be at most {MaxNameLength} characters.", RoleErrors.NameTooLong);
 
         var lowered = name.ToLower();
         if (await _db.Roles.AnyAsync(r => r.Id != exceptRoleId && r.Name.ToLower() == lowered))
-            return "A role with that name already exists.";
+            return RoleResult.Fail("A role with that name already exists.", RoleErrors.NameTaken);
 
         return null;
     }
