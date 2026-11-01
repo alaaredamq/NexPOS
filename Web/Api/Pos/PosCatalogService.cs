@@ -171,6 +171,7 @@ public sealed class PosCatalogService : IPosCatalogService
         SellingPrice = p.SellingPrice,
         SupplierDiscountRate = p.SupplierDiscountRate,
         StockQuantity = p.StockQuantity,
+        MinimumStock = p.MinimumStock,
         Unit = p.Unit,
         UnitKind = UnitKindOf(p.Unit),
         IsPack = p.IsPack,

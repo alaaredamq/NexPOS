@@ -1,0 +1,239 @@
+/* Product catalog: category chips, the virtual tile grid and its keycap tiles. Logical properties only (RTL needs no override). */
+
+/* ---- category chips ---- */
+.chips {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-block: 2px var(--space-2);
+  scrollbar-width: thin;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  min-height: 40px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.12s ease-out, border-color 0.12s ease-out;
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.chip[data-active='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.chipDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.chipText {
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipCount {
+  color: var(--color-faint);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip[data-active='true'] .chipCount {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ---- virtual grid ---- */
+.gridWrap {
+  container-type: inline-size;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gridScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+}
+
+.gridCanvas {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.gridRow {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.gridMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-muted);
+  text-align: center;
+}
+
+.gridCount {
+  padding-block-start: var(--space-1);
+  color: var(--color-faint);
+  font-size: 0.75rem;
+  text-align: end;
+}
+
+/* ---- keycap tile ---- */
+.tile {
+  --tile-accent: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--tile-accent) 35%, var(--color-border));
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--tile-accent) 9%, var(--color-card));
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.12s ease-out, background-color 0.12s ease-out, transform 0.08s ease-out;
+}
+
+.tile:active {
+  transform: scale(0.98);
+}
+
+.tile:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    border-color: var(--tile-accent);
+    background: color-mix(in srgb, var(--tile-accent) 16%, var(--color-card));
+  }
+}
+
+.tileName {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.packBadge {
+  margin-inline-start: 4px;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  vertical-align: baseline;
+}
+
+.tileFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 8px;
+  padding-block-start: 5px;
+  border-block-start: 1.5px dashed var(--color-border);
+}
+
+/* amounts keep their "USD 3.50" order in right-to-left text too (formatMoney isolates it; this keeps it on one line) */
+.tilePrice {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tileStock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stockDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.tileStock[data-level='low'] {
+  color: var(--color-warning);
+}
+
+.tileStock[data-level='out'] {
+  color: var(--color-danger);
+}
+
+/* A sold-out key stays visible (the cashier may need to look it up) but reads as unavailable. */
+.tile[data-stock='out'] .tileName,
+.tile[data-stock='out'] .tilePrice {
+  opacity: 0.6;
+}
+
+/* the unit word is the first thing to go when a key is narrow */
+@container (max-width: 560px) {
+  .stockUnit {
+    display: none;
+  }
+}

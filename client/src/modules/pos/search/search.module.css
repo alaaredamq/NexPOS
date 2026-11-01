@@ -1,0 +1,115 @@
+/* Product search box with its result list. */
+
+.search {
+  position: relative;
+  min-width: 0;
+}
+
+.icon {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  inset-block: 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-faint);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: var(--control-h-md);
+  padding-inline: calc(var(--space-3) + 24px) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: var(--font-body);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+.list {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc(100% + 4px);
+  z-index: 20;
+  max-height: min(420px, 60vh);
+  margin: 0;
+  padding: var(--space-1);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-pop);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--control-h-md);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.option:hover,
+.option[data-active='true'] {
+  background: var(--color-info-bg);
+}
+
+.optionMain,
+.optionSide {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionSide {
+  align-items: flex-end;
+  flex: none;
+}
+
+.optionName {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionMeta {
+  color: var(--color-faint);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.optionPrice {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.optionStock {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.optionStock[data-level='low'] {
+  color: var(--color-warning);
+}
+
+.optionStock[data-level='out'] {
+  color: var(--color-danger);
+}
+
+.status {
+  padding: var(--space-3);
+  color: var(--color-muted);
+  text-align: center;
+}

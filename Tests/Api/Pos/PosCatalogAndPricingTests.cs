@@ -100,6 +100,8 @@ public sealed class PosCatalogAndPricingTests
 
         Assert.Equal("weight", cheese.GetProperty("unitKind").GetString());
         Assert.Equal("kg", cheese.GetProperty("unit").GetString());
+        // the tile's low-stock threshold travels with the product (null when the product has none: the client then uses 5)
+        Assert.True(cheese.TryGetProperty("minimumStock", out _));
         Assert.Equal(all.GetProperty("total").GetInt32(), main.GetProperty("total").GetInt32());
         Assert.False(main.GetProperty("isMainScreen").GetBoolean());
     }

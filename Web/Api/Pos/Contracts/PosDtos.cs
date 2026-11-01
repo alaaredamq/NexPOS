@@ -42,6 +42,9 @@ public sealed record PosProductDto
     /// <summary>On hand, in the product's unit (pieces, or kg / L).</summary>
     public required decimal StockQuantity { get; init; }
 
+    /// <summary>The level at or below which the tile says "low stock"; null means the till's default of 5.</summary>
+    public decimal? MinimumStock { get; init; }
+
     /// <summary>The product's own unit as stored (<c>piece</c>, <c>kg</c>, <c>liter</c> ...). Null means pieces.</summary>
     public string? Unit { get; init; }
 
