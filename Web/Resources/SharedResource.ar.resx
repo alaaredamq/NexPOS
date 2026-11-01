@@ -2429,4 +2429,8 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>لم يتم رفع أي ملف.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>حجم الملف أكبر من 10 ميغابايت.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>تعذّر إنشاء الملصق.</value></data>
+  <data name="Sales_ReceiptNotFound" xml:space="preserve"><value>لم يتم العثور على الإيصال.</value></data>
+  <data name="Sales_OrderClosed" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع بالفعل، فلا توجد عملية بيع لإلغائها.</value></data>
+  <data name="Sales_OrderCancelled" xml:space="preserve"><value>الطلب {0} ملغى ولا يمكن إعادة فتحه.</value></data>
+  <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>الإيصال {0} ملغى بالفعل.</value></data>
 </root>

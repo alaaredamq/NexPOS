@@ -18,4 +18,7 @@ public interface IReceiptRepository : IRepository<Receipt>
     Task<List<Receipt>> GetRecentReceiptsAsync(int count = 10);
     Task<string> GenerateNextReceiptNumberAsync();
     Task<List<Receipt>> SearchReceiptsAsync(string searchTerm);
+
+    /// <summary>The receipts matching the filter as light list rows (no items or payments loaded), newest first. Deleted receipts are left out.</summary>
+    Task<List<ReceiptListRow>> GetListRowsAsync(ReceiptListFilter filter);
 }

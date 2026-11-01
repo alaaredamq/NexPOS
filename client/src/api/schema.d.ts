@@ -167,6 +167,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the orders list, newest first.
+         * @description `q` matches the order number, the customer's name or the total. `sort` is one of `date` (default, descending),
+         *                 `number`, `customer`, `total`, `status`, `items`. `from` / `to` are local days (yyyy-MM-dd).
+         */
+        get: operations["listOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles above the list: counts by status and revenue per currency, for the last 30 days. */
+        get: operations["getOrdersSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The filtered list (every page, not just the visible one) as a CSV. */
+        get: operations["exportOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One order with its lines, totals and receipts. */
+        get: operations["getOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes the order's status. `4` (Cancelled) reverses the whole sale.
+         * @description Cancelling voids the receipt, puts the stock back, takes a debt sale off the customer's account and stops the open drawer expecting the money - all or nothing.
+         *     Any other status only changes the label (Returned does <b>not</b> restore stock). 409 `order_closed`: already cancelled or returned, nothing to cancel;
+         *     409 `order_cancelled`: a cancelled order cannot be reopened.
+         */
+        put: operations["updateOrderStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/categories": {
         parameters: {
             query?: never;
@@ -768,6 +862,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the receipts list, newest first.
+         * @description `q` matches the receipt number, the customer's name or phone, or the total. `status` is `valid` or `void` (omitted = both).
+         *                 `sort` is one of `date` (default, descending), `number`, `customer`, `cashier`, `amount`, `payment`, `voidDate`.
+         *                 `from` / `to` are local days (yyyy-MM-dd).
+         */
+        get: operations["listReceipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sales tiles and analytics for a range of local days (default: the last 30 days up to today).
+         * @description Money is totalled per currency, never across currencies. Void receipts only count in `voidCount`.
+         */
+        get: operations["getReceiptStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One receipt with its lines, payments and totals. */
+        get: operations["getReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Voids the receipt and reverses the sale behind it.
+         * @description Same all-or-nothing reversal as cancelling the order: receipt voided, order cancelled, stock back, debt off the customer's account, drawer corrected.
+         *     409 `receipt_already_void`. A reason is required.
+         */
+        post: operations["voidReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reprints the receipt on the receipt printer. Never fails because of the printer: `printed: false` comes with a message and the PDF link. */
+        post: operations["printReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The receipt as a PDF (receipt-roll paper). */
+        get: operations["getReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -1085,6 +1293,182 @@ export interface components {
             /** @description Already localized for this response. */
             label: string;
             items: components["schemas"]["NavItemDto"][];
+        };
+        /** @description Everything the order page shows. */
+        OrderDetailDto: {
+            /** Format: int32 */
+            id: number;
+            orderNumber: string;
+            /** Format: int32 */
+            customerId?: number | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            orderDate: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Set once the order was edited (a status change, a cancellation).
+             */
+            updatedAt?: string | null;
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned.
+             */
+            status: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Sum of the lines.
+             */
+            subtotal: number;
+            /**
+             * Format: double
+             * @description The cart discount as money off, whether the cashier typed an amount or a percentage.
+             */
+            discountAmount: number;
+            /**
+             * Format: double
+             * @description The same discount as a percentage of Web.Api.Orders.Contracts.OrderDetailDto.Subtotal.
+             */
+            discountPercentage: number;
+            /**
+             * Format: double
+             * @description What the cashier added (positive) or took off (negative) the calculated total at checkout - cash rounding. 0 when nothing.
+             */
+            adjustment: number;
+            /**
+             * Format: double
+             * @description Always 0 today: the till does not apply taxes (known unknown #4 of the migration plan).
+             */
+            taxAmount: number;
+            /** Format: double */
+            totalAmount: number;
+            lines: components["schemas"]["OrderLineDto"][];
+            receipts: components["schemas"]["OrderReceiptRefDto"][];
+        };
+        /** @description One product line of an order. */
+        OrderLineDto: {
+            /** Format: int32 */
+            productId: number;
+            productName: string;
+            /** @description Empty when the product has no barcode. */
+            barcode: string;
+            /** Format: int32 */
+            quantity: number;
+            /**
+             * Format: double
+             * @description The weighed / measured amount (in the product's base unit) for products sold by weight or volume; null for pieces.
+             */
+            weightOrVolume?: number | null;
+            /** Format: double */
+            unitPrice: number;
+            /**
+             * Format: double
+             * @description Unit price times the weighed amount, or times the quantity for pieces. Not rounded.
+             */
+            totalPrice: number;
+        };
+        /** @description One row of the orders list. */
+        OrderListItemDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description "ORD-000042". Built from the id, exactly as the old pages did. */
+            orderNumber: string;
+            /**
+             * Format: int32
+             * @description Null for a walk-in sale (or a customer that was deleted since): the client shows "Walk-in customer".
+             */
+            customerId?: number | null;
+            customerName?: string | null;
+            /**
+             * Format: date-time
+             * @description When the sale happened (UTC).
+             */
+            orderDate: string;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned.
+             */
+            status: number;
+            /**
+             * Format: int32
+             * @description Number of product lines on the order.
+             */
+            itemCount: number;
+        };
+        /** @description What every list endpoint returns. */
+        OrderListItemDtoPagedResult: {
+            items: components["schemas"]["OrderListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description A receipt issued for the order (normally one). */
+        OrderReceiptRefDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            isVoid: boolean;
+        };
+        /** @description Revenue of one currency (orders are never summed across currencies). */
+        OrderRevenueDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description The total of every order of the period that was not cancelled.
+             */
+            amount: number;
+        };
+        /** @description New status for an order. */
+        OrderStatusRequest: {
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned. 4 reverses the whole sale.
+             */
+            status?: number;
+        };
+        /** @description The order after a status change. */
+        OrderStatusResultDto: {
+            /** Format: int32 */
+            orderId: number;
+            orderNumber: string;
+            /** Format: int32 */
+            status: number;
+            reversal?: components["schemas"]["SaleReversalDto"];
+        };
+        /** @description The tiles above the orders list. Always the last 30 days, as the old page. */
+        OrderSummaryDto: {
+            /** Format: int32 */
+            periodDays: number;
+            /** Format: int32 */
+            totalOrders: number;
+            /** Format: int32 */
+            deliveredOrders: number;
+            /** Format: int32 */
+            pendingOrders: number;
+            /** Format: int32 */
+            processingOrders: number;
+            /** Format: int32 */
+            cancelledOrders: number;
+            /** @description One entry per currency that sold something, biggest first. Empty when nothing was sold. */
+            revenue: components["schemas"]["OrderRevenueDto"][];
         };
         PosCartInput: {
             /**
@@ -1786,6 +2170,186 @@ export interface components {
             /** @description The barcode the product ended up with (generated or typed). */
             barcode: string;
         };
+        /** @description Sales of one currency in the stats period. */
+        ReceiptCurrencyStatsDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Total of the valid (not void) receipts.
+             */
+            totalSales: number;
+            /** Format: int32 */
+            receiptCount: number;
+            /** Format: double */
+            averageReceipt: number;
+            /** @description Sales per LOCAL day, oldest first; days without a sale are left out. */
+            daily: components["schemas"]["ReceiptDaySalesDto"][];
+        };
+        ReceiptDaySalesDto: {
+            /** @description yyyy-MM-dd, the shop's local day. */
+            date: string;
+            /** Format: double */
+            amount: number;
+        };
+        /** @description Everything the receipt page shows. */
+        ReceiptDetailDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            /** Format: int32 */
+            orderId: number;
+            /** Format: date-time */
+            receiptDate: string;
+            /** Format: int32 */
+            customerId?: number | null;
+            /** @description Null for a walk-in sale. */
+            customerName?: string | null;
+            customerPhone?: string | null;
+            cashierName: string;
+            paymentMethod: string;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Rate to the base currency at the time of the sale; 1 when the sale was in the base currency.
+             */
+            exchangeRate: number;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            discountAmount: number;
+            /**
+             * Format: double
+             * @description The discount as a percentage of Web.Api.Receipts.Contracts.ReceiptDetailDto.SubTotal (derived: only the amount is stored).
+             */
+            discountPercentage: number;
+            /** Format: double */
+            taxAmount: number;
+            /**
+             * Format: double
+             * @description Cash rounding the cashier added (positive) or took off (negative); 0 when none.
+             */
+            adjustment: number;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: double */
+            amountPaid: number;
+            /** Format: double */
+            changeAmount: number;
+            /** @description True when the payments cover the total. */
+            isFullyPaid: boolean;
+            notes?: string | null;
+            isVoid: boolean;
+            /** Format: date-time */
+            voidDate?: string | null;
+            voidReason?: string | null;
+            voidedBy?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            printedBy?: string | null;
+            /** Format: date-time */
+            printedAt?: string | null;
+            lines: components["schemas"]["ReceiptLineDto"][];
+            payments: components["schemas"]["ReceiptPaymentDto"][];
+        };
+        /** @description One product line of a receipt. */
+        ReceiptLineDto: {
+            productName: string;
+            barcode?: string | null;
+            /** Format: double */
+            quantity: number;
+            /** @description Unit of measure ("kg", "piece" ...); null when none was recorded. */
+            unit?: string | null;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: double */
+            taxAmount: number;
+            /** Format: double */
+            lineTotal: number;
+        };
+        /** @description One row of the receipts list. */
+        ReceiptListItemDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            /** Format: int32 */
+            orderId: number;
+            /** Format: date-time */
+            receiptDate: string;
+            /** @description The name typed at the till, else the customer's name; null for a walk-in sale (the client shows "Walk-in customer"). */
+            customerName?: string | null;
+            /** @description Empty when the cashier's account has no name. */
+            cashierName: string;
+            paymentMethod: string;
+            /** Format: double */
+            totalAmount: number;
+            currencyNotation: string;
+            isVoid: boolean;
+            /** Format: date-time */
+            voidDate?: string | null;
+            voidReason?: string | null;
+            /** @description Who voided it (falls back to the cashier, as the old list did, for receipts voided before the user was recorded). */
+            voidedBy?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        ReceiptListItemDtoPagedResult: {
+            items: components["schemas"]["ReceiptListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description One payment taken against a receipt (a sale can be split over several). */
+        ReceiptPaymentDto: {
+            paymentMethod: string;
+            referenceNumber?: string | null;
+            /** Format: double */
+            amount: number;
+            /** Format: date-time */
+            paymentDate: string;
+        };
+        /** @description How many valid receipts were paid with a payment method. */
+        ReceiptPaymentShareDto: {
+            paymentMethod: string;
+            /** Format: int32 */
+            count: number;
+        };
+        /** @description Answer of a reprint. A printer problem is not an HTTP error: `printed` is false and the message says what to do. */
+        ReceiptPrintResultDto: {
+            printed: boolean;
+            /** @description Already localized. */
+            message: string;
+            /** @description Where to download the same receipt as a PDF when the printer could not be reached. */
+            pdfUrl: string;
+        };
+        /** @description The tiles and the analytics of the receipts page. */
+        ReceiptStatsDto: {
+            /** @description The local days the numbers cover (yyyy-MM-dd). With no `from` / `to` in the request: the last 30 days up to today. */
+            from: string;
+            to: string;
+            /** Format: int32 */
+            validCount: number;
+            /** Format: int32 */
+            voidCount: number;
+            /** @description One entry per currency that sold something, biggest first. */
+            currencies: components["schemas"]["ReceiptCurrencyStatsDto"][];
+            /** @description Valid receipts per payment method, most used first. */
+            paymentMethods: components["schemas"]["ReceiptPaymentShareDto"][];
+        };
+        /** @description Why a receipt is being voided. */
+        ReceiptVoidRequest: {
+            /** @description Required, as the old void dialogs demanded it. It goes on the receipt and into the audit trail. */
+            reason: string;
+        };
         /** @description New order of the main screen: the ids of the display-order rows, first to last. */
         ReorderRequest: {
             ids: number[];
@@ -1824,6 +2388,23 @@ export interface components {
             unitPrice: number;
             /** Format: int32 */
             currencyId: number;
+        };
+        /** @description What undoing a sale did. Shared by cancelling an order and voiding a receipt. */
+        SaleReversalDto: {
+            /** @description False when the order had already been cancelled or returned: only the receipt was voided and stock and balances were left alone. */
+            orderCancelled: boolean;
+            /** Format: int32 */
+            receiptsVoided: number;
+            /**
+             * Format: int32
+             * @description Order lines whose quantity went back into stock.
+             */
+            stockLinesRestored: number;
+            /**
+             * Format: double
+             * @description Amount taken off the customer's account (0 unless the sale was on debt).
+             */
+            debtReversed: number;
         };
         /**
          * @description Everything the shell needs to draw itself, in one round trip: `GET /api/v1/session` on boot (and after
@@ -2558,6 +3139,266 @@ export interface operations {
                 };
                 content: {
                     "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOrders: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description 0 Pending ... 5 Returned; omitted = every status. */
+                status?: number;
+                /** @description Only the orders of this customer (the customer page's purchase history). */
+                customerId?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOrdersSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportOrders: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description 0 Pending ... 5 Returned; omitted = every status. */
+                status?: number;
+                /** @description Only the orders of this customer (the customer page's purchase history). */
+                customerId?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateOrderStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderStatusResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -4240,6 +5081,312 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listReceipts: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description `valid` or `void`; anything else = both. */
+                status?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceiptStats: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptStatsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    voidReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReceiptVoidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleReversalDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceiptPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

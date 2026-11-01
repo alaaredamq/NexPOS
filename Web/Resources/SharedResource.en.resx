@@ -2429,4 +2429,8 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
+  <data name="Sales_ReceiptNotFound" xml:space="preserve"><value>That receipt was not found.</value></data>
+  <data name="Sales_OrderClosed" xml:space="preserve"><value>Order {0} has already been cancelled or returned, so there is no sale left to cancel.</value></data>
+  <data name="Sales_OrderCancelled" xml:space="preserve"><value>Order {0} is cancelled and cannot be reopened.</value></data>
+  <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>Receipt {0} is already void.</value></data>
 </root>
