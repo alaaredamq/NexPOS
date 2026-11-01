@@ -20,6 +20,8 @@ public static class SpaMigration
             ["Products"] = "/app/products",
             ["Categories"] = "/app/categories",
             ["ProductDisplayOrder"] = "/app/product-display-order",
+            ["Inventory"] = "/app/inventory",
+            ["Suppliers"] = "/app/suppliers",
         };
 
     public static bool IsMigrated(string controller) => Migrated.ContainsKey(controller);

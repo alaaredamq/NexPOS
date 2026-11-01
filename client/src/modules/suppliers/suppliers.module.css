@@ -1,0 +1,270 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.formWide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.name {
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--color-primary);
+}
+
+.muted {
+  color: var(--color-faint);
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.clip {
+  display: block;
+  max-inline-size: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Positive: the business owes the supplier (red). Negative: the supplier owes the business (green). */
+.balance {
+  font-weight: 700;
+}
+
+.balance[data-sign='owe'] {
+  color: var(--color-danger);
+}
+
+.balance[data-sign='owed'] {
+  color: var(--color-success);
+}
+
+.balance[data-sign='zero'] {
+  color: var(--color-faint);
+  font-weight: 500;
+}
+
+/* ---- details ---- */
+
+.details {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+
+.facts dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-faint);
+}
+
+.facts dd {
+  margin: 2px 0 0;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.factWide {
+  grid-column: 1 / -1;
+}
+
+.net {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+}
+
+.net[data-sign='owe'] {
+  border-color: var(--color-danger);
+}
+
+.net[data-sign='owed'] {
+  border-color: var(--color-success);
+}
+
+.netAmount {
+  font-size: 1.25em;
+  font-weight: 800;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.summaryRow:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.summaryRow dt {
+  color: var(--color-muted);
+}
+
+.summaryRow dd {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ---- debt dialog ---- */
+
+.directions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.direction {
+  text-align: start;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  min-block-size: 44px;
+}
+
+.direction[aria-pressed='true'] {
+  border-color: var(--color-primary);
+}
+
+.direction strong {
+  display: block;
+}
+
+.direction span {
+  color: var(--color-muted);
+  font-size: 12.5px;
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-card);
+  color: var(--color-muted);
+}
+
+.preview strong {
+  color: var(--color-ink);
+}
