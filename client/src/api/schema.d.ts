@@ -415,6 +415,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everything on the dashboard except the chart. Figures are cached for 2 minutes, like the Razor page. */
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/sales-trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sales chart. `period` is `week`, `month` (default), `quarter` or `year`; an unknown value means the month. */
+        get: operations["getSalesTrend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory": {
         parameters: {
             query?: never;
@@ -1398,6 +1432,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales and orders of today, this month and this year, and the month's average order. */
+        get: operations["getReportsSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days. */
+        get: operations["getSalesReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/sales.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same report as a CSV file. */
+        get: operations["downloadSalesReportCsv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/sales.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same report as an A4 PDF. */
+        get: operations["downloadSalesReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -1892,6 +1994,84 @@ export interface components {
             totalSpent: number;
             /** @description Notation of the default currency (`$`, `L.L.`): the unit of the balances and totals. */
             currencyNotation: string;
+        };
+        /** @description One slice of this month's sales by category. */
+        DashboardCategoryDto: {
+            name: string;
+            /** Format: double */
+            sales: number;
+            /**
+             * Format: double
+             * @description Share of this month's categorised sales, 0 to 100 (the 10 listed categories can add up to less than 100).
+             */
+            percentage: number;
+        };
+        /** @description Everything the dashboard page shows except the chart: the tiles, the latest orders and the category split. */
+        DashboardDto: {
+            /** @description Notation of the default currency (`$`); every amount on this payload is in that currency. */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Sales from the first of this month until now (cancelled and returned orders excluded).
+             */
+            monthSales: number;
+            /**
+             * Format: double
+             * @description Change of Web.Api.Dashboard.Contracts.DashboardDto.MonthSales against the same number of days of last month, in percent; 0 when last month had no sales.
+             */
+            monthSalesChangePercent: number;
+            /** Format: int32 */
+            monthOrders: number;
+            /**
+             * Format: int32
+             * @description Orders this month minus orders in the same days of last month (a count, not a percentage).
+             */
+            monthOrdersChange: number;
+            /** Format: double */
+            todaySales: number;
+            /** Format: int32 */
+            todayOrders: number;
+            /**
+             * Format: double
+             * @description Gross profit this month: (price - cost price) x quantity over the lines whose product has a cost price.
+             */
+            monthProfit: number;
+            /**
+             * Format: double
+             * @description Change of Web.Api.Dashboard.Contracts.DashboardDto.MonthProfit against last month, in percent; 0 when last month had no profit.
+             */
+            monthProfitChangePercent: number;
+            /** Format: int32 */
+            customerCount: number;
+            /** Format: int32 */
+            productCount: number;
+            /** @description The 10 newest orders of the last 90 days, any status. */
+            recentOrders: components["schemas"]["DashboardOrderDto"][];
+            /** @description Sales per category this month, biggest first (at most 10). Empty when nothing was sold. */
+            categories: components["schemas"]["DashboardCategoryDto"][];
+        };
+        /** @description One of the latest orders. */
+        DashboardOrderDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description The customer's name, or null for a walk-in sale (the UI shows its own "Walk-in" text). */
+            customerName?: string | null;
+            /** Format: double */
+            amount: number;
+            /** @description Notation of the currency of Web.Api.Dashboard.Contracts.DashboardOrderDto.Amount (the default currency, as before). */
+            currencyNotation: string;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            orderDate: string;
+            /**
+             * Format: int32
+             * @description The order status as the Orders API numbers it: 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned.
+             */
+            status: number;
+            /** @description Payment method of the receipt, or null when the order has none. */
+            paymentMethod?: string | null;
         };
         /** @description The products shown on the POS main screen, in order, with the tiles above the table. */
         DisplayOrderDto: {
@@ -3334,6 +3514,19 @@ export interface components {
         ReorderRequest: {
             ids: number[];
         };
+        /** @description Sales so far today, this month and this year (local calendar periods) - the tiles at the top of the Reports page. */
+        ReportsSummaryDto: {
+            /** @description Notation of the default currency; every amount on this payload is in that currency. */
+            currencyNotation: string;
+            today: components["schemas"]["SalesPeriodDto"];
+            thisMonth: components["schemas"]["SalesPeriodDto"];
+            thisYear: components["schemas"]["SalesPeriodDto"];
+            /**
+             * Format: double
+             * @description This month's sales divided by this month's orders; 0 without orders.
+             */
+            averageOrderValue: number;
+        };
         ResumedCartDto: {
             /** Format: int32 */
             cartId: number;
@@ -3385,6 +3578,108 @@ export interface components {
              * @description Amount taken off the customer's account (0 unless the sale was on debt).
              */
             debtReversed: number;
+        };
+        /** @description Sales and order count of one period (cancelled and returned orders are not counted). */
+        SalesPeriodDto: {
+            /** Format: double */
+            sales: number;
+            /** Format: int32 */
+            orders: number;
+        };
+        /** @description Sales of one category. */
+        SalesReportCategoryDto: {
+            /** Format: int32 */
+            categoryId: number;
+            name: string;
+            /** Format: double */
+            sales: number;
+            /**
+             * Format: double
+             * @description Share of all categorised sales, 0 to 100.
+             */
+            percentage: number;
+        };
+        /** @description One day of the report. */
+        SalesReportDayDto: {
+            /** @description The local day, `yyyy-MM-dd`. */
+            date: string;
+            /** Format: double */
+            sales: number;
+            /** Format: int32 */
+            orders: number;
+        };
+        /** @description The sales report of a range of local days. */
+        SalesReportDto: {
+            /** @description First day of the range, `yyyy-MM-dd`. */
+            from: string;
+            /** @description Last day of the range (inclusive), `yyyy-MM-dd`. */
+            to: string;
+            currencyNotation: string;
+            /** Format: double */
+            totalSales: number;
+            /** Format: int32 */
+            totalOrders: number;
+            /** Format: double */
+            averageOrderValue: number;
+            /**
+             * Format: double
+             * @description Sum of the line quantities (a weighed line counts its piece quantity, as before).
+             */
+            totalItemsSold: number;
+            /** @description One entry per local day that has sales, oldest first. */
+            daily: components["schemas"]["SalesReportDayDto"][];
+            /** @description The 10 best sellers by quantity. */
+            topProducts: components["schemas"]["SalesReportProductDto"][];
+            /** @description Sales per category, biggest first. */
+            categories: components["schemas"]["SalesReportCategoryDto"][];
+            /** @description Sales per payment method of the receipts in the range (void receipts left out), biggest first. */
+            paymentMethods: components["schemas"]["SalesReportPaymentDto"][];
+        };
+        /** @description Sales of one payment method. */
+        SalesReportPaymentDto: {
+            /** Format: int32 */
+            paymentMethodId: number;
+            name: string;
+            /** Format: double */
+            sales: number;
+            /** Format: int32 */
+            receipts: number;
+            /**
+             * Format: double
+             * @description Share of the listed payment methods' sales, 0 to 100.
+             */
+            percentage: number;
+        };
+        /** @description One of the best-selling products. */
+        SalesReportProductDto: {
+            /** Format: int32 */
+            productId: number;
+            name: string;
+            /** Format: double */
+            quantitySold: number;
+            /** Format: double */
+            revenue: number;
+            /** Format: double */
+            averagePrice: number;
+        };
+        /** @description The sales chart: revenue and gross profit per day (week, month) or per month (quarter, year). */
+        SalesTrendDto: {
+            period: string;
+            currencyNotation: string;
+            /** @description One entry per bucket that has sales, oldest first. */
+            points: components["schemas"]["SalesTrendPointDto"][];
+        };
+        /** @description One bucket of the sales chart. */
+        SalesTrendPointDto: {
+            /** @description First local day of the bucket (the day itself, or the 1st of the month), as `yyyy-MM-dd`. The UI formats it in the user's language. */
+            date: string;
+            /** Format: double */
+            sales: number;
+            /**
+             * Format: double
+             * @description Sales minus the cost price of the lines sold; lines whose product has no cost price count as 0 cost.
+             */
+            profit: number;
         };
         /**
          * @description Everything the shell needs to draw itself, in one round trip: `GET /api/v1/session` on boot (and after
@@ -5395,6 +5690,84 @@ export interface operations {
                 };
                 content: {
                     "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getSalesTrend: {
+        parameters: {
+            query?: {
+                period?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTrendDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -8102,6 +8475,202 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReportsSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getSalesReport: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesReportDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadSalesReportCsv: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadSalesReportPdf: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

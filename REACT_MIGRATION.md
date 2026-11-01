@@ -327,7 +327,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | S1 | Orders + Receipts | G0 | L | ◑ in review | Claude · `react/S1` | [S1.md](docs/react-migration/notes/S1.md) |
 | S2 | Cash drawer | G0 | M | ◑ in review | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
-| I1 | Dashboard + Reports | G0 | M–L | ◐ in progress | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
+| I1 | Dashboard + Reports | G0 | M–L | ◑ in review | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
 | I2 | Notifications + alerts | G0 | M | ☐ todo | | |
 | I3 | Audit logs | G0 | S–M | ☐ todo | | |
 | A1 | Users, roles, account | G0 | L | ☐ todo | | |
@@ -346,6 +346,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 **Core change log** (post-G0 edits to frozen paths — one line each: date · ID · file · why):
 
 - 2026-11-01 · C3 · none (no frozen path edited; `Core/Auditing/AuditActions.cs` gained `StockAdjusted`, `SharedResource.*.resx` gained 4 `Inv_`/`Sup_` keys)
+- 2026-11-01 · I1 · none (no frozen path edited; `Core`/`Application` untouched except `SalesReportService` bug fix, `DashboardService` +`Dates`, `ReportDocuments.SalesReport`; `SharedResource.*.resx` gained 2 `Rep_` keys)
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
