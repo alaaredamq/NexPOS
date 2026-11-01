@@ -406,6 +406,88 @@ namespace Application.Services.Notifications
                 .Take(request.PageSize);
         }
 
+
+        public async Task<Notification?> FindNotificationAsync(int id)
+            => await _notificationRepository.Table.FirstOrDefaultAsync(n => n.Id == id);
+
+        public async Task<Alert?> FindAlertAsync(int id)
+            => await _alertRepository.Table.FirstOrDefaultAsync(a => a.Id == id);
+
+        public async Task<NotificationPage<Notification>> GetNotificationPageAsync(NotificationPageFilter filter)
+        {
+            var query = _notificationRepository.Table.AsNoTracking();
+
+            if (filter.Type.HasValue)
+                query = query.Where(n => n.Type == filter.Type.Value);
+            if (filter.IsRead.HasValue)
+                query = query.Where(n => n.IsRead == filter.IsRead.Value);
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var term = filter.Search.Trim();
+                query = query.Where(n => n.Title.Contains(term) || n.Message.Contains(term));
+            }
+
+            var total = await query.CountAsync();
+            var ordered = filter.Descending
+                ? query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id)
+                : query.OrderBy(n => n.CreatedAt).ThenBy(n => n.Id);
+
+            return new NotificationPage<Notification>
+            {
+                Total = total,
+                Items = await ordered.Skip(filter.Skip).Take(filter.Take).ToListAsync()
+            };
+        }
+
+        public async Task<NotificationPage<Alert>> GetAlertPageAsync(AlertPageFilter filter)
+        {
+            var query = _alertRepository.Table.AsNoTracking();
+
+            query = filter.Scope switch
+            {
+                AlertScope.Open => query.Where(a => a.Status == AlertStatus.Active || a.Status == AlertStatus.Acknowledged),
+                AlertScope.Closed => query.Where(a => a.Status == AlertStatus.Resolved || a.Status == AlertStatus.Dismissed),
+                _ => query
+            };
+            if (filter.Type.HasValue)
+                query = query.Where(a => a.Type == filter.Type.Value);
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var term = filter.Search.Trim();
+                query = query.Where(a => a.Title.Contains(term) || a.Message.Contains(term));
+            }
+
+            var total = await query.CountAsync();
+            var ordered = filter.Descending
+                ? query.OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.Id)
+                : query.OrderBy(a => a.CreatedAt).ThenBy(a => a.Id);
+
+            return new NotificationPage<Alert>
+            {
+                Total = total,
+                Items = await ordered.Skip(filter.Skip).Take(filter.Take).ToListAsync()
+            };
+        }
+
+        public async Task<NotificationCountsDTO> GetCountsAsync(bool includeAlerts)
+        {
+            var counts = new NotificationCountsDTO
+            {
+                TotalNotifications = await _notificationRepository.Table.CountAsync(),
+                UnreadNotifications = await _notificationRepository.Table.CountAsync(n => !n.IsRead)
+            };
+
+            if (includeAlerts)
+            {
+                counts.TotalAlerts = await _alertRepository.Table.CountAsync();
+                counts.ActiveAlerts = await _alertRepository.Table.CountAsync(a => a.Status == AlertStatus.Active);
+                counts.OpenAlerts = await _alertRepository.Table.CountAsync(a => a.Status == AlertStatus.Active || a.Status == AlertStatus.Acknowledged);
+                counts.LowStockAlerts = await _alertRepository.Table.CountAsync(a => a.Type == AlertType.LowStock && a.Status == AlertStatus.Active);
+                counts.OutOfStockAlerts = await _alertRepository.Table.CountAsync(a => a.Type == AlertType.OutOfStock && a.Status == AlertStatus.Active);
+            }
+
+            return counts;
+        }
         #endregion
 
         #region Bulk Operations
@@ -599,7 +681,8 @@ namespace Application.Services.Notifications
             };
         }
 
-        private static NotificationFeedItemDTO MapAlertToFeedItem(Alert alert)
+        /// <summary>One alert as the bell/toast row (also what the SPA's alert list is built from): kind + product facts the client localizes.</summary>
+        public static NotificationFeedItemDTO MapAlertToFeedItem(Alert alert)
         {
             var feedItem = new NotificationFeedItemDTO
             {
@@ -642,7 +725,7 @@ namespace Application.Services.Notifications
             return feedItem;
         }
 
-        private NotificationFeedItemDTO MapNotificationToFeedItem(Notification notification)
+        public static NotificationFeedItemDTO MapNotificationToFeedItem(Notification notification)
         {
             return new NotificationFeedItemDTO
             {

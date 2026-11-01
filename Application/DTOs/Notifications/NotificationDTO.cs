@@ -1,3 +1,5 @@
+using Core.Entities.Notifications;
+
 namespace Application.DTOs.Notifications
 {
     public class NotificationDTO
@@ -138,5 +140,56 @@ namespace Application.DTOs.Notifications
         public DateTime? ToDate { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;
+    }
+
+    /// <summary>A page of rows plus how many rows match the filter in total.</summary>
+    public class NotificationPage<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int Total { get; set; }
+    }
+
+    /// <summary>Server-side filter + paging of the notifications list (the SPA's page; the old filter loaded every row first).</summary>
+    public class NotificationPageFilter
+    {
+        public NotificationType? Type { get; set; }
+        public bool? IsRead { get; set; }
+        /// <summary>Matches title or message.</summary>
+        public string? Search { get; set; }
+        public bool Descending { get; set; } = true;
+        public int Skip { get; set; }
+        public int Take { get; set; } = 25;
+    }
+
+    public enum AlertScope
+    {
+        /// <summary>Active or acknowledged: still on the bell.</summary>
+        Open,
+        /// <summary>Resolved or dismissed.</summary>
+        Closed,
+        All
+    }
+
+    public class AlertPageFilter
+    {
+        public AlertType? Type { get; set; }
+        public AlertScope Scope { get; set; } = AlertScope.Open;
+        public string? Search { get; set; }
+        public bool Descending { get; set; } = true;
+        public int Skip { get; set; }
+        public int Take { get; set; } = 25;
+    }
+
+    /// <summary>Head-line counts of the notifications page, computed in the database.</summary>
+    public class NotificationCountsDTO
+    {
+        public int TotalNotifications { get; set; }
+        public int UnreadNotifications { get; set; }
+        public int TotalAlerts { get; set; }
+        /// <summary>Alerts nobody has acknowledged yet.</summary>
+        public int ActiveAlerts { get; set; }
+        public int OpenAlerts { get; set; }
+        public int LowStockAlerts { get; set; }
+        public int OutOfStockAlerts { get; set; }
     }
 }
