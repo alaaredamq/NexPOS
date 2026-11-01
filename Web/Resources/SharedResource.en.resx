@@ -2459,4 +2459,10 @@
   <data name="Role_NameRequired" xml:space="preserve"><value>The role needs a name.</value></data>
   <data name="Role_NameTooLong" xml:space="preserve"><value>The role name can be at most 100 characters.</value></data>
   <data name="Role_NameTaken" xml:space="preserve"><value>A role with that name already exists.</value></data>
+  <data name="Set_StoreNameRequired" xml:space="preserve"><value>The store name is required.</value></data>
+  <data name="Set_TestSent" xml:space="preserve"><value>Test print sent successfully</value></data>
+  <data name="Set_TestUnreachable" xml:space="preserve"><value>Could not print to '{0}'. Check that it's connected and powered on.</value></data>
+  <data name="Set_NameTooLong" xml:space="preserve"><value>The app name can be at most {0} characters.</value></data>
+  <data name="Set_FileTypeNotAllowed" xml:space="preserve"><value>Unsupported file type '{0}'. Allowed: {1}</value></data>
+  <data name="Set_FileTooLarge" xml:space="preserve"><value>The file is too large (max {0} MB).</value></data>
 </root>

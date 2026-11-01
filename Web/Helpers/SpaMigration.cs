@@ -29,6 +29,7 @@ public static class SpaMigration
             ["Suppliers"] = "/app/suppliers",
             ["Receipts"] = "/app/receipts",
             ["Reports"] = "/app/reports",
+            ["Settings"] = "/app/settings",
             ["Users"] = "/app/users",
         };
 
