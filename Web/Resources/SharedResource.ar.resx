@@ -2399,4 +2399,25 @@
   <data name="Api_InternalError" xml:space="preserve"><value>حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى أو التواصل مع الدعم.</value></data>
   <data name="Api_BadRequest" xml:space="preserve"><value>تعذّر فهم الطلب.</value></data>
   <data name="Api_InvalidValue" xml:space="preserve"><value>هذه القيمة غير صالحة.</value></data>
+  <data name="Pos_CartEmpty" xml:space="preserve"><value>السلة فارغة.</value></data>
+  <data name="Pos_CartNotFound" xml:space="preserve"><value>لم يتم العثور على السلة المعلّقة.</value></data>
+  <data name="Pos_CurrencyNotFound" xml:space="preserve"><value>العملة غير موجودة أو متوقفة.</value></data>
+  <data name="Pos_CustomerNotFound" xml:space="preserve"><value>هذا العميل لم يعد موجودًا. يرجى اختيار عميل مرة أخرى.</value></data>
+  <data name="Pos_DebtRequiresCustomer" xml:space="preserve"><value>اختر عميلًا لإضافة هذه العملية إلى دينه.</value></data>
+  <data name="Pos_DiscountExceedsSubtotal" xml:space="preserve"><value>لا يمكن أن يكون الخصم أكبر من إجمالي البيع.</value></data>
+  <data name="Pos_DrawerNotOpen" xml:space="preserve"><value>افتح الصندوق قبل البيع.</value></data>
+  <data name="Pos_DuplicateProduct" xml:space="preserve"><value>المنتج {0} موجود في أكثر من سطر. ادمج الكميات في سطر واحد.</value></data>
+  <data name="Pos_IdempotencyKeyReused" xml:space="preserve"><value>تم استخدام مفتاح الدفع هذا لسلة مختلفة. ابدأ عملية الدفع من جديد.</value></data>
+  <data name="Pos_InvalidAmount" xml:space="preserve"><value>يجب أن يكون الوزن أو الحجم أكبر من صفر.</value></data>
+  <data name="Pos_InvalidDiscountAmount" xml:space="preserve"><value>لا يمكن أن يكون مبلغ الخصم سالبًا.</value></data>
+  <data name="Pos_InvalidDiscountPercentage" xml:space="preserve"><value>يجب أن تكون نسبة الخصم بين 0 و100.</value></data>
+  <data name="Pos_NameTooShort" xml:space="preserve"><value>أدخل حرفين على الأقل.</value></data>
+  <data name="Pos_OrderNotFound" xml:space="preserve"><value>لم يتم العثور على عملية البيع.</value></data>
+  <data name="Pos_PaymentMethodInvalid" xml:space="preserve"><value>اختر طريقة دفع.</value></data>
+  <data name="Pos_PriceBelowMinimum" xml:space="preserve"><value>السعر {1} للمنتج {0} أقل من الحد الأدنى {2}.</value></data>
+  <data name="Pos_PriceNotAvailable" xml:space="preserve"><value>السعر المحدد غير متاح للمنتج {0}.</value></data>
+  <data name="Pos_PrintFailed" xml:space="preserve"><value>تعذّرت الطباعة. تأكد من توصيل طابعة الإيصالات واختيارها في الإعدادات &gt; الطابعات.</value></data>
+  <data name="Pos_PrintOk" xml:space="preserve"><value>تم الإرسال إلى طابعة الإيصالات</value></data>
+  <data name="Pos_ProductNotFound" xml:space="preserve"><value>المنتج {0} غير موجود.</value></data>
+  <data name="Pos_TotalMismatch" xml:space="preserve"><value>الإجمالي {0} يختلف عن الإجمالي المحسوب {1} بأكثر من تعديل التقريب المسموح ({2}).</value></data>
 </root>

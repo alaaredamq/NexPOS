@@ -59,6 +59,322 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/carts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Parked carts that were not sold, newest first. */
+        get: operations["getHeldCarts"];
+        put?: never;
+        /** Parks a cart. The same checks as a sale apply to its lines (see `pos/price`), so a parked cart can always be resumed. */
+        post: operations["holdCart"];
+        /** Deletes every parked cart that was not sold. */
+        delete: operations["deleteAllHeldCarts"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/carts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A parked cart's lines and discount, to put back on the till. The parked cart stays in the list until deleted. */
+        get: operations["getHeldCart"];
+        put?: never;
+        post?: never;
+        /** Deletes one parked cart. */
+        delete: operations["deleteHeldCart"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Categories that have something to sell, for the chip row. */
+        get: operations["getPosCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A page of the product grid.
+         * @description `mainScreen=true` returns the shop's configured display order (the old "main screen" tiles) and falls back to every active product when none is set
+         *                 (`isMainScreen` says which). Otherwise products are sorted by name. `q` filters by name or barcode; `categoryId` by category. `sort` only accepts `name`.
+         */
+        get: operations["getPosProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/products/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Product search for the search box and the barcode scanner.
+         * @description An exact barcode wins (one item, `searchType: barcode`). Otherwise name matches come back 20 at a time: ask again with `skip` = items received so far while `hasMore`.
+         *     `barcodeOnly=true` (the scanner) never falls back to a name search and answers 404 `product_not_found` for an unknown code.
+         */
+        get: operations["searchPosProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One product (from the POS cache, so it is quick and carries the current stock). */
+        get: operations["getPosProduct"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/products/{id}/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The prices a cashier can choose for a product, converted into `currencyId`, with the lowest custom price allowed. */
+        get: operations["getPosProductPrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active currencies; the default one is first. */
+        get: operations["getPosCurrencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment methods for the checkout dialog. The system "Customer Debt" method is not listed: send `addToDebt` instead. */
+        get: operations["getPosPaymentMethods"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/discounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The stored discounts the cashier can apply (percentages). */
+        get: operations["getPosDiscounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of customers for the pickers, lazy-loaded as the cashier scrolls. `q` filters by name; pages are 1-based, at most 50 rows. */
+        get: operations["searchPosCustomers"];
+        put?: never;
+        /** Adds a customer from inside the checkout / hold dialogs so the cashier never leaves (and loses) the cart. First and last name only. */
+        post: operations["quickCreatePosCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/drawer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in user's cash drawer, for the "open your drawer first" prompt. See `requireOpenDrawer` on checkout. */
+        get: operations["getPosDrawer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/price": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The server's price of a cart: unit prices in the cart currency, line totals, discount, total, stock warnings.
+         * @description Call it (debounced) whenever the cart changes and show what it says. A POST because the cart is the body; it writes nothing.
+         *     Refusals: 404 `product_not_found`; 400 `price_not_available` (a price tier that is not the product's), `price_below_minimum` (custom price under cost),
+         *     `invalid_discount`, `duplicate_product` (a product on two lines), `currency_not_found`.
+         */
+        post: operations["pricePosCart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/sales/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Completes a sale: stock, order, receipt, drawer, debt - all or nothing - then prints the receipt if asked.
+         * @description Send the cart (never prices), the customer, how it is paid, the total the customer pays and a fresh `idempotencyKey`. The server prices the cart itself;
+         *     `totalAmount` may differ from its total only by a cashier's discount or cash rounding (more than the greater of 1.00 / 2 % is `total_mismatch`).
+         *
+         *     <b>Network failure:</b> retry with the <b>same</b> key. If the first attempt did go through you get that sale back (`replayed: true`); nothing is sold twice. Nothing is lost client-side until you get a success.
+         *     Refusals (409 unless noted): `insufficient_stock` (offer "sell anyway": resend with `allowInsufficientStock`), `drawer_not_open` (only with `requireOpenDrawer`),
+         *     `total_mismatch`, `customer_not_found`, `idempotency_key_reused` (same key, different cart), `checkout_failed` (any other rule of the checkout service; `detail` says which),
+         *     403 `license_sales_stopped`; 400 `payment_method_invalid`, `debt_requires_customer` and the pricing codes of `pos/price`.
+         *     A refused sale leaves nothing behind.
+         */
+        post: operations["posCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/sales/recent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in cashier's latest sales (last 7 days, voided ones left out), newest first - "reprint the last receipt". */
+        get: operations["getRecentPosSales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/sales/{orderId}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reprints a sale's receipt on the receipt printer. Never fails because of the printer: `printed: false` comes with a message and the PDF link. */
+        post: operations["printPosSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/sales/{orderId}/receipt.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The receipt as a PDF (receipt-roll paper). */
+        get: operations["getPosSaleReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -128,6 +444,29 @@ export interface components {
             /** Format: date-time */
             openedAt?: string | null;
         };
+        HeldCartDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            customerId?: number | null;
+            /** @description The customer's name; empty for a walk-in (the UI shows its own localized "Walk-in customer"). */
+            customerName: string;
+            isWalkIn: boolean;
+            /**
+             * Format: double
+             * @description Sum of the lines as parked, in each product's own currency - a rough figure for the list; resuming prices the cart properly.
+             */
+            totalAmount: number;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            notes: string;
+        };
+        HeldCartsDeletedDto: {
+            /** Format: int32 */
+            deletedCount: number;
+        };
         LicenseSummaryDto: {
             /** @description Active, ExpiringSoon, GracePeriod, Expired, NotActivated, Invalid, WrongMachine or UpdatesNotCovered. */
             status: string;
@@ -191,6 +530,462 @@ export interface components {
             /** @description Already localized for this response. */
             label: string;
             items: components["schemas"]["NavItemDto"][];
+        };
+        PosCartInput: {
+            /**
+             * Format: int32
+             * @description The currency every price and total is shown and sold in (usually the default currency).
+             */
+            currencyId?: number;
+            lines: components["schemas"]["PosLineInput"][];
+            /**
+             * Format: double
+             * @description Money off the subtotal, in the cart currency. Ignored when Web.Api.Pos.Contracts.PosCartInput.DiscountPercentage is set.
+             */
+            discountAmount?: number | null;
+            /**
+             * Format: double
+             * @description Percentage off the subtotal, 0-100. Takes precedence over Web.Api.Pos.Contracts.PosCartInput.DiscountAmount.
+             */
+            discountPercentage?: number | null;
+            /** @description What the receipt calls the discount (a stored discount's name, or empty). Never grants anything by itself. */
+            discountLabel?: string | null;
+        };
+        PosCategoryDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: int32
+             * @description Active products in the category.
+             */
+            productCount: number;
+        };
+        PosCheckoutRequest: {
+            /**
+             * @description A fresh value (a GUID) per checkout attempt. Sending the same key again returns the same sale instead of a second one,
+             *                 so a retry after a lost response is safe. Reuse the key to retry; make a new one when the cart changed.
+             */
+            idempotencyKey: string;
+            cart: components["schemas"]["PosCartInput"];
+            /**
+             * Format: int32
+             * @description Null or 0 is a walk-in customer.
+             */
+            customerId?: number | null;
+            /**
+             * Format: int32
+             * @description Ignored when Web.Api.Pos.Contracts.PosCheckoutRequest.AddToDebt is true (the server resolves the system "Customer Debt" method itself).
+             */
+            paymentMethodId?: number;
+            /** @description Put the sale on the customer's account instead of collecting payment. Needs a real customer. */
+            addToDebt?: boolean;
+            /**
+             * Format: double
+             * @description What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
+             *                 slightly (cash rounding). More than the greater of 1.00 or 2 % away from the server's total is refused (`total_mismatch`).
+             */
+            totalAmount?: number;
+            notes?: string | null;
+            /** @description Print the receipt on the receipt printer (outcome in `receiptPrinted`). */
+            printReceipt?: boolean;
+            /** @description Sell even if a product would go below zero stock (stock is floored at zero). Set after the cashier confirms an `insufficient_stock` warning. */
+            allowInsufficientStock?: boolean;
+            /**
+             * @description Refuse the sale with 409 `drawer_not_open` while the cashier has no open cash drawer. Off by default: the old till sold anyway
+             *                 and the sale simply was not part of any drawer's Z report.
+             */
+            requireOpenDrawer?: boolean;
+        };
+        PosCurrencyDto: {
+            /** Format: int32 */
+            id: number;
+            code: string;
+            name: string;
+            notation: string;
+            /**
+             * Format: double
+             * @description How many units of this currency one US dollar buys (USD itself is 1).
+             */
+            rateToUsd: number;
+            isDefault: boolean;
+        };
+        PosCustomerDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description First and last name. */
+            name: string;
+            email?: string | null;
+            /**
+             * Format: double
+             * @description What the customer owes (positive) or has in credit (negative).
+             */
+            balance: number;
+        };
+        /** @description One page of customers for the lazy-loaded pickers. There is no total: ask for the next page while Web.Api.Pos.Contracts.PosCustomerPageDto.HasMore. */
+        PosCustomerPageDto: {
+            items: components["schemas"]["PosCustomerDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            hasMore: boolean;
+        };
+        PosDiscountDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: double
+             * @description Percentage, 0-100.
+             */
+            rate: number;
+            isDefault: boolean;
+            /** Format: int32 */
+            supplierId?: number | null;
+        };
+        /** @description The signed-in user's cash drawer, for the POS "open your drawer first" prompt. */
+        PosDrawerDto: {
+            isOpen: boolean;
+            /** Format: int32 */
+            sessionId?: number | null;
+            /** Format: date-time */
+            openedAt?: string | null;
+            /** Format: double */
+            openingCash?: number;
+        };
+        /** @description Park the current cart so the next customer can be served. */
+        PosHoldCartRequest: {
+            cart: components["schemas"]["PosCartInput"];
+            /**
+             * Format: int32
+             * @description Null or 0 is a walk-in customer.
+             */
+            customerId?: number | null;
+            notes?: string | null;
+        };
+        /**
+         * @description One line to price or sell. A product appears at most once in a cart (the server keeps one line per product); the price is
+         *     never sent: pick a stored price with Web.Api.Pos.Contracts.PosLineInput.PriceTierId, type a Web.Api.Pos.Contracts.PosLineInput.CustomPrice, or send neither for the default.
+         */
+        PosLineInput: {
+            /** Format: int32 */
+            productId?: number;
+            /**
+             * Format: int32
+             * @description Whole pieces, at least 1. For a product sold by weight or volume send 1 and fill Web.Api.Pos.Contracts.PosLineInput.WeightOrVolume.
+             */
+            quantity?: number;
+            /**
+             * Format: double
+             * @description Amount in the product's base unit (kg or L). Replaces Web.Api.Pos.Contracts.PosLineInput.Quantity in the line total when set. Must be above zero.
+             */
+            weightOrVolume?: number | null;
+            /**
+             * Format: int32
+             * @description One of the product's stored extra prices.
+             */
+            priceTierId?: number | null;
+            /**
+             * Format: double
+             * @description A unit price typed by the cashier, in the cart currency. Refused below the purchase price.
+             */
+            customPrice?: number | null;
+        };
+        PosPaymentMethodDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            isDefault: boolean;
+            /** @description The checkout dialog asks for the amount handed over and shows change. */
+            requiresChange: boolean;
+        };
+        PosPriceOptionDto: {
+            /**
+             * Format: int32
+             * @description The stored price's id; null for the product's default selling price.
+             */
+            id?: number | null;
+            /** @description Empty for the default price (the UI labels it). */
+            name: string;
+            /**
+             * Format: double
+             * @description In the requested currency, not rounded.
+             */
+            price: number;
+        };
+        /** @description The prices a cashier can choose for one product, converted into Web.Api.Pos.Contracts.PosPriceOptionsDto.CurrencyId. */
+        PosPriceOptionsDto: {
+            /** Format: int32 */
+            productId: number;
+            /** Format: int32 */
+            currencyId: number;
+            /**
+             * Format: double
+             * @description The lowest custom unit price allowed (the purchase price), in Web.Api.Pos.Contracts.PosPriceOptionsDto.CurrencyId.
+             */
+            minPrice: number;
+            /** @description False when no purchase price is on file; then any price above zero is accepted. */
+            hasCost: boolean;
+            options: components["schemas"]["PosPriceOptionDto"][];
+        };
+        /** @description The server's price for a cart. Show these numbers; send Web.Api.Pos.Contracts.PosPricedCartDto.Total back as `totalAmount` at checkout. */
+        PosPricedCartDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            lines: components["schemas"]["PosPricedLineDto"][];
+            /**
+             * Format: double
+             * @description Sum of the line totals.
+             */
+            subtotal: number;
+            /**
+             * Format: double
+             * @description Money off, whichever way it was entered.
+             */
+            discountAmount: number;
+            /**
+             * Format: double
+             * @description The discount as a percentage of the subtotal.
+             */
+            discountPercentage: number;
+            /**
+             * Format: double
+             * @description Taxes are not applied at the till today (the receipt always carries 0), so this is always 0. Present so the shape does not change if that does.
+             */
+            taxAmount: number;
+            /**
+             * Format: double
+             * @description Subtotal - discount, rounded to 2 decimals: what the customer pays.
+             */
+            total: number;
+            /** @description Any line would sell below zero stock. */
+            hasInsufficientStock: boolean;
+        };
+        PosPricedLineDto: {
+            /** Format: int32 */
+            productId: number;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: double */
+            weightOrVolume?: number | null;
+            /**
+             * Format: int32
+             * @description The stored price chosen, if any.
+             */
+            priceTierId?: number | null;
+            /** @description The stored price's name; null for the default and for a custom price. */
+            priceLabel?: string | null;
+            isCustomPrice: boolean;
+            /**
+             * Format: double
+             * @description In the cart currency, rounded to 2 decimals.
+             */
+            unitPrice: number;
+            /**
+             * Format: double
+             * @description Web.Api.Pos.Contracts.PosPricedLineDto.UnitPrice x (Web.Api.Pos.Contracts.PosPricedLineDto.WeightOrVolume or Web.Api.Pos.Contracts.PosPricedLineDto.Quantity); not rounded.
+             */
+            lineTotal: number;
+            /**
+             * Format: double
+             * @description The lowest custom unit price for this product, in the cart currency.
+             */
+            minUnitPrice: number;
+            /**
+             * Format: double
+             * @description On hand now, in the product's unit.
+             */
+            stockQuantity: number;
+            /** @description Selling this line would take stock below zero (checkout then needs `allowInsufficientStock`). */
+            insufficientStock: boolean;
+        };
+        /** @description Outcome of a print request. Printing never fails the request: offer Web.Api.Pos.Contracts.PosPrintResultDto.PdfUrl when Web.Api.Pos.Contracts.PosPrintResultDto.Printed is false. */
+        PosPrintResultDto: {
+            printed: boolean;
+            /** @description Localized message for the toast. */
+            message: string;
+            /** @description Relative URL of the PDF version (`GET`, same cookie). */
+            pdfUrl: string;
+        };
+        /** @description One product as the POS shows and sells it. */
+        PosProductDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** @description Empty when the product has no barcode. */
+            barcode: string;
+            /** Format: int32 */
+            categoryId: number;
+            /** @description The category name; the tile colour is derived from Web.Api.Pos.Contracts.PosProductDto.CategoryId by the client, never stored. */
+            categoryName: string;
+            /**
+             * Format: int32
+             * @description The currency Web.Api.Pos.Contracts.PosProductDto.SellingPrice is in.
+             */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description The default unit price, in the product's currency.
+             */
+            sellingPrice: number;
+            /**
+             * Format: double
+             * @description Supplier discount, 0-100. Informational (price check); a sale is priced from Web.Api.Pos.Contracts.PosProductDto.SellingPrice, a price tier or a custom price.
+             */
+            supplierDiscountRate: number;
+            /**
+             * Format: double
+             * @description On hand, in the product's unit (pieces, or kg / L).
+             */
+            stockQuantity: number;
+            /** @description The product's own unit as stored (`piece`, `kg`, `liter` ...). Null means pieces. */
+            unit?: string | null;
+            /** @description `count`, `weight` or `volume`: whether the cashier types a weight/volume and `weightOrVolume` must be sent. */
+            unitKind: string;
+            isPack: boolean;
+            /** Format: int32 */
+            packSize?: number | null;
+            /** Format: int32 */
+            singleProductId?: number | null;
+            /** @description False for packs: they have no stored extra prices to choose from. */
+            canChangePrice: boolean;
+        };
+        /** @description A page of the product grid. */
+        PosProductPageDto: {
+            items: components["schemas"]["PosProductDto"][];
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** @description True when the list is the shop's configured "main screen" order (display order); false when it is every active product. */
+            isMainScreen: boolean;
+        };
+        PosQuickCustomerRequest: {
+            /** @description 2-100 characters. */
+            firstName: string;
+            /** @description 2-100 characters. */
+            lastName: string;
+        };
+        /** @description A completed sale: everything the success screen and a receipt preview need. The paper / PDF receipt stays server-side (`print` / `receipt.pdf`). */
+        PosSaleDto: {
+            /** Format: int32 */
+            orderId: number;
+            orderNumber: string;
+            /**
+             * Format: int32
+             * @description Null if the receipt row could not be created (the sale itself is saved; support sees it in the audit trail).
+             */
+            receiptId?: number | null;
+            receiptNumber?: string | null;
+            /** Format: date-time */
+            orderDate: string;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /** Format: double */
+            subtotal: number;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: double */
+            taxAmount: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            paid: number;
+            /** Format: double */
+            change: number;
+            paymentMethod: string;
+            /** Format: int32 */
+            customerId?: number | null;
+            customerName?: string | null;
+            addedToDebt: boolean;
+            /** @description True: this response replays an earlier checkout with the same `idempotencyKey`; nothing was sold again. */
+            replayed: boolean;
+            /**
+             * Format: int32
+             * @description The drawer session the sale was recorded in; null when the cashier had no open drawer.
+             */
+            cashDrawerSessionId?: number | null;
+            /** @description Whether the receipt reached the thermal printer. Null when printing was not requested. */
+            receiptPrinted?: boolean | null;
+            lines: components["schemas"]["PosSaleLineDto"][];
+        };
+        PosSaleLineDto: {
+            /** Format: int32 */
+            productId: number;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: double */
+            weightOrVolume?: number | null;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            lineTotal: number;
+        };
+        /** @description A sale in the "last sales" list. */
+        PosSaleSummaryDto: {
+            /** Format: int32 */
+            orderId: number;
+            orderNumber: string;
+            /** Format: int32 */
+            receiptId: number;
+            receiptNumber: string;
+            /** Format: date-time */
+            orderDate: string;
+            /** Format: double */
+            total: number;
+            currencyNotation: string;
+            customerName?: string | null;
+        };
+        /** @description Result of a product search: one exact barcode hit, or a page of name matches. */
+        PosSearchResultDto: {
+            /** @description `barcode` (exactly one item) or `name`. */
+            searchType: string;
+            items: components["schemas"]["PosProductDto"][];
+            /** @description Another page of name matches exists: ask again with `skip` = number of items received so far. */
+            hasMore: boolean;
+        };
+        ResumedCartDto: {
+            /** Format: int32 */
+            cartId: number;
+            /** Format: int32 */
+            customerId?: number | null;
+            lines: components["schemas"]["ResumedLineDto"][];
+            /** Format: double */
+            discountAmount?: number | null;
+            /** Format: double */
+            discountPercentage?: number | null;
+            discountLabel?: string | null;
+            notes: string;
+        };
+        /** @description A line of a resumed cart, in the same terms the till sends it: product + the way it was priced. Send it to `pos/price` to get current prices. */
+        ResumedLineDto: {
+            /** Format: int32 */
+            productId: number;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: double */
+            weightOrVolume?: number | null;
+            /** @description `default`, `tier` (one of the product's stored prices) or `custom`. */
+            priceKind: string;
+            /** Format: int32 */
+            priceTierId?: number | null;
+            priceLabel?: string | null;
+            /**
+             * Format: double
+             * @description The unit price it was parked at, in the product's currency. For a `custom` line convert it into the cart currency before sending it as `customPrice`.
+             */
+            unitPrice: number;
+            /** Format: int32 */
+            currencyId: number;
         };
         /**
          * @description Everything the shell needs to draw itself, in one round trip: `GET /api/v1/session` on boot (and after
@@ -333,6 +1128,972 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    getHeldCarts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeldCartDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    holdCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PosHoldCartRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeldCartDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteAllHeldCarts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HeldCartsDeletedDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getHeldCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumedCartDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteHeldCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCategoryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosProducts: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                categoryId?: number;
+                mainScreen?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosProductPageDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    searchPosProducts: {
+        parameters: {
+            query: {
+                q: string;
+                barcodeOnly?: boolean;
+                skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosSearchResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosProductDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosProductPrices: {
+        parameters: {
+            query?: {
+                currencyId?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosPriceOptionsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosCurrencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCurrencyDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosPaymentMethods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosPaymentMethodDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosDiscounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosDiscountDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    searchPosCustomers: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCustomerPageDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    quickCreatePosCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PosQuickCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCustomerDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosDrawer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosDrawerDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    pricePosCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PosCartInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosPricedCartDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    posCheckout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PosCheckoutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosSaleDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getRecentPosSales: {
+        parameters: {
+            query?: {
+                count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosSaleSummaryDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printPosSale: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPosSaleReceiptPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orderId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
             };
         };
     };
