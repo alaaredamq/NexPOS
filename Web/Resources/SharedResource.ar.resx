@@ -2459,4 +2459,24 @@
   <data name="Role_NameRequired" xml:space="preserve"><value>يجب إدخال اسم للدور.</value></data>
   <data name="Role_NameTooLong" xml:space="preserve"><value>يجب ألا يزيد اسم الدور على 100 حرف.</value></data>
   <data name="Role_NameTaken" xml:space="preserve"><value>يوجد دور بهذا الاسم بالفعل.</value></data>
+  <data name="Mny_CurrencyCodeRequired" xml:space="preserve"><value>يجب إدخال رمز للعملة.</value></data>
+  <data name="Mny_CurrencyCodeTaken" xml:space="preserve"><value>توجد عملة بهذا الرمز بالفعل.</value></data>
+  <data name="Mny_CurrencyDefaultRequired" xml:space="preserve"><value>هذه هي العملة الافتراضية. اجعل عملة أخرى هي الافتراضية بدلاً من ذلك.</value></data>
+  <data name="Mny_CurrencyDefaultInactive" xml:space="preserve"><value>يجب أن تكون العملة الافتراضية مفعّلة.</value></data>
+  <data name="Mny_CurrencyDeleteDefault" xml:space="preserve"><value>لا يمكن حذف العملة الافتراضية. اجعل عملة أخرى هي الافتراضية أولاً.</value></data>
+  <data name="Mny_CurrencyInUse" xml:space="preserve"><value>لا يزال موردون أو إيصالات أو أسعار صرف تستخدم هذه العملة، لذا لا يمكن حذفها. عطّلها بدلاً من ذلك.</value></data>
+  <data name="Mny_UnknownCurrency" xml:space="preserve"><value>هذه العملة غير موجودة.</value></data>
+  <data name="Mny_UnknownSupplier" xml:space="preserve"><value>هذا المورد غير موجود.</value></data>
+  <data name="Mny_RateSameCurrency" xml:space="preserve"><value>اختر عملتين مختلفتين.</value></data>
+  <data name="Mny_RateExists" xml:space="preserve"><value>يوجد سعر صرف لهذا الزوج من العملات (ولهذا المورد) بالفعل. عدّله بدلاً من ذلك.</value></data>
+  <data name="Mny_UnknownTax" xml:space="preserve"><value>هذه الضريبة غير موجودة.</value></data>
+  <data name="Mny_UnknownCategory" xml:space="preserve"><value>هذه الفئة غير موجودة.</value></data>
+  <data name="Mny_TaxDatesOrder" xml:space="preserve"><value>لا يمكن أن يسبق تاريخ الانتهاء تاريخ البداية.</value></data>
+  <data name="Mny_DiscountInUse" xml:space="preserve"><value>ما زال هناك ما يستخدم هذا الخصم، لذا لا يمكن حذفه.</value></data>
+  <data name="Mny_PaymentMethodSystem" xml:space="preserve"><value>طريقة "Customer Debt" هي ما تُسجَّل به المبيعات على حساب العميل، لذا لا يمكن تعديلها أو حذفها.</value></data>
+  <data name="Mny_PaymentMethodSystemName" xml:space="preserve"><value>الاسم "Customer Debt" محجوز للمبيعات المسجَّلة على حساب العميل. اختر اسماً آخر.</value></data>
+  <data name="Mny_PaymentMethodNameTaken" xml:space="preserve"><value>توجد طريقة دفع بهذا الاسم بالفعل.</value></data>
+  <data name="Mny_PaymentMethodInUse" xml:space="preserve"><value>دُفعت إيصالات بهذه الطريقة، لذا لا يمكن حذفها.</value></data>
+  <data name="Mny_CodeListKeyTaken" xml:space="preserve"><value>توجد قائمة رموز بهذا المفتاح بالفعل.</value></data>
+  <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>هذه القائمة تحتوي على هذه القيمة بالفعل.</value></data>
 </root>

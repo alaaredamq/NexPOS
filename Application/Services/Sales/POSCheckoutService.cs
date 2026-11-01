@@ -42,9 +42,10 @@ namespace Application.Services.Sales
         /// <summary>
         /// Name of the system payment method used to mark a sale as placed on a customer's
         /// account (seeded in ErpDbContext). Resolved by name rather than a hardcoded id so a
-        /// re-seed/migration doesn't silently break this.
+        /// re-seed/migration doesn't silently break this. Public so the money-configuration API can
+        /// refuse to rename or delete it.
         /// </summary>
-        private const string DebtPaymentMethodName = "Customer Debt";
+        public const string DebtPaymentMethodName = "Customer Debt";
 
         public POSCheckoutService(
             IOrderService orderService,
