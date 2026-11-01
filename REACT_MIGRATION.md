@@ -329,8 +329,8 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
 | I1 | Dashboard + Reports | G0 | M–L | ☑ done | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
 | I2 | Notifications + alerts | G0 | M | ◑ in review | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
-| I3 | Audit logs | G0 | S–M | ☐ todo | | |
 | A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
+| I3 | Audit logs | G0 | S–M | ◑ in review | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
