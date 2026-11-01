@@ -529,4 +529,52 @@
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>حذف نسخ احتياطية متعددة</value>
   </data>
+  <data name="Msg_BackupCompleted" xml:space="preserve"><value>اكتملت النسخة الاحتياطية بنجاح</value></data>
+  <data name="Msg_BackupFailed" xml:space="preserve"><value>لم تكتمل النسخة الاحتياطية</value></data>
+  <data name="Busy_Creating" xml:space="preserve"><value>جارٍ إنشاء النسخة الاحتياطية. أبقِ هذه النافذة مفتوحة حتى تنتهي.</value></data>
+  <data name="Busy_Restoring" xml:space="preserve"><value>جارٍ استعادة البيانات. أبقِ هذه النافذة مفتوحة حتى تنتهي.</value></data>
+  <data name="Restore_ConfirmTitle" xml:space="preserve"><value>استعادة هذه النسخة؟</value></data>
+  <data name="Restore_ConfirmMessage" xml:space="preserve"><value>ستُستبدل جميع البيانات الحالية (المبيعات والمنتجات والعملاء والمستخدمون) ببيانات "{0}" المأخوذة في {1}. وكل ما أُدخل بعد ذلك الوقت سيُفقد.</value></data>
+  <data name="Restore_ConfirmWithSafety" xml:space="preserve"><value>تُؤخذ نسخة احتياطية من البيانات الحالية أولاً، لذا يمكن التراجع عن هذه العملية.</value></data>
+  <data name="Restore_ConfirmNoSafety" xml:space="preserve"><value>لن تُؤخذ نسخة احتياطية من البيانات الحالية قبل ذلك. لا يمكن التراجع عن هذه العملية.</value></data>
+  <data name="Restore_Action" xml:space="preserve"><value>استعادة</value></data>
+  <data name="Msg_RestoreDone" xml:space="preserve"><value>اكتملت الاستعادة. عادت البيانات كما كانت في {0}.</value></data>
+  <data name="Msg_RestoreFailed" xml:space="preserve"><value>لم تكتمل الاستعادة</value></data>
+  <data name="Restore_Intro" xml:space="preserve"><value>استبدل جميع البيانات الحالية ببيانات نسخة احتياطية. اختر واحدة من القائمة أدناه.</value></data>
+  <data name="Restore_NoBackups" xml:space="preserve"><value>لا توجد نسخة احتياطية مكتملة للاستعادة بعد.</value></data>
+  <data name="Restore_BackupMissing" xml:space="preserve"><value>ملف هذه النسخة لم يعد موجوداً في مجلد النسخ الاحتياطية.</value></data>
+  <data name="SelectedCount" xml:space="preserve"><value>تم تحديد {0}</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>تحديد الكل</value></data>
+  <data name="SelectBackupRow" xml:space="preserve"><value>تحديد النسخة {0}</value></data>
+  <data name="Msg_BackupsDeleted" xml:space="preserve"><value>تم حذف {0} نسخة احتياطية</value></data>
+  <data name="Msg_AllValid" xml:space="preserve"><value>جميع النسخ المحددة سليمة</value></data>
+  <data name="Msg_SomeInvalid" xml:space="preserve"><value>{0} من النسخ المحددة مفقودة أو فارغة</value></data>
+  <data name="Msg_ScheduleRan" xml:space="preserve"><value>تم أخذ نسخة احتياطية من الجدول</value></data>
+  <data name="Msg_Copied" xml:space="preserve"><value>تم النسخ</value></data>
+  <data name="Msg_ConnectionsOk" xml:space="preserve"><value>يمكن فتح قاعدة البيانات للنسخ الاحتياطي والاستعادة</value></data>
+  <data name="Status_Completed" xml:space="preserve"><value>مكتملة</value></data>
+  <data name="Status_Failed" xml:space="preserve"><value>فاشلة</value></data>
+  <data name="Status_InProgress" xml:space="preserve"><value>قيد التنفيذ</value></data>
+  <data name="Status_Cancelled" xml:space="preserve"><value>ملغاة</value></data>
+  <data name="Filter_AllStatuses" xml:space="preserve"><value>كل الحالات</value></data>
+  <data name="SearchBackups" xml:space="preserve"><value>ابحث في النسخ الاحتياطية</value></data>
+  <data name="Schedule_Daily" xml:space="preserve"><value>{0} الساعة {1}</value></data>
+  <data name="Schedule_Weekly" xml:space="preserve"><value>{0}، {1} الساعة {2}</value></data>
+  <data name="Schedule_Monthly" xml:space="preserve"><value>{0}، اليوم {1} الساعة {2}</value></data>
+  <data name="Schedule_Paused" xml:space="preserve"><value>متوقف مؤقتاً</value></data>
+  <data name="Schedule_RetentionDays" xml:space="preserve"><value>يحتفظ بـ {0} يوماً</value></data>
+  <data name="Schedule_KeepsAll" xml:space="preserve"><value>يحتفظ بكل شيء</value></data>
+  <data name="Schedule_ConfirmRun" xml:space="preserve"><value>أخذ نسخة احتياطية الآن بحسب هذا الجدول؟</value></data>
+  <data name="BackupFolder" xml:space="preserve"><value>مجلد النسخ الاحتياطية</value></data>
+  <data name="BackupFolderHint" xml:space="preserve"><value>النسخ الاحتياطية محفوظة على هذا الجهاز. انسخ هذا المجلد بانتظام إلى قرص آخر أو ذاكرة USB: فالنسخة الموجودة على القرص نفسه لا تنجو إذا تعطل هذا القرص.</value></data>
+  <data name="FreeSpace" xml:space="preserve"><value>المساحة الحرة على ذلك القرص</value></data>
+  <data name="DatabaseSize" xml:space="preserve"><value>حجم قاعدة البيانات</value></data>
+  <data name="LastBackupFailed" xml:space="preserve"><value>فشلت آخر نسخة احتياطية</value></data>
+  <data name="Duration" xml:space="preserve"><value>المدة</value></data>
+  <data name="Backup_Aria_Tabs" xml:space="preserve"><value>أقسام النسخ الاحتياطي</value></data>
+  <data name="Retention_Days_Suffix" xml:space="preserve"><value>يوم</value></data>
+  <data name="NoBackupsMatch" xml:space="preserve"><value>لا توجد نسخ احتياطية مطابقة للبحث.</value></data>
+  <data name="Schedule_TimeRequired" xml:space="preserve"><value>اختر وقت اليوم.</value></data>
+  <data name="Schedule_RetentionRule" xml:space="preserve"><value>أدخل عدداً صحيحاً من الأيام بين 1 و3650، أو اتركه فارغاً.</value></data>
+  <data name="Schedule_DayRequired" xml:space="preserve"><value>اختر اليوم.</value></data>
 </root>

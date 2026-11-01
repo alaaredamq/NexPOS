@@ -397,6 +397,12 @@ public sealed class BackupsApiTests : CatalogApiTestBase
 
         // The Backups table was rolled back with the rest of the database; the list is rebuilt from the files on disk.
         Assert.Contains(later.GetProperty("name").GetString(), await NamesAsync(admin));
+        // The snapshot was taken while its own record still said "InProgress", and that record came back with the table:
+        // it must not stay in progress (the file is there and whole), or it could not be downloaded again.
+        var restoredFrom = await Body(await admin.GetAsync($"/api/v1/backups/{snapshot.GetProperty("id").GetInt32()}"));
+        Assert.Equal("Completed", restoredFrom.GetProperty("status").GetString());
+        Assert.True(restoredFrom.GetProperty("fileSizeBytes").GetInt64() > 0);
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync($"/api/v1/backups/{snapshot.GetProperty("id").GetInt32()}/download")).StatusCode);
         // The audit trail is a separate database: it was not rolled back and records the restore.
         Assert.Equal(restored + 1, await AuditCountAsync(admin, "BackupRestored"));
     }

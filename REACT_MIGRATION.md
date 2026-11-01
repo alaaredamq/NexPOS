@@ -333,7 +333,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
-| A4 | Backup + licence | G0 | M | ◐ in progress | Claude · `react/A4` | [A4.md](docs/react-migration/notes/A4.md) |
+| A4 | Backup + licence | G0 | M | ◑ in review | Claude · `react/A4` | [A4.md](docs/react-migration/notes/A4.md) |
 | Z | Cutover | everything | L | ☐ todo | | |
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
@@ -350,6 +350,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · A1 · `client/src/core/auth/RequireAuth.tsx`, `client/src/shell/{UserMenu.tsx,nav.ts}` · `mustChangePin` is enforced in the SPA (redirect to `/account/change-pin`) instead of a full navigation to the Razor page; Profile / Change PIN in the user menu are router links; `legacyAccountPath` removed. Also `Web/Services/RoleAccessService.cs` (`RoleResult.Code`, additive) and `Tests/Api/Infrastructure/ApiPipelineTests.cs` (unmigrated-page example is now Settings).
 - 2026-11-01 · I2 · `client/src/shell/NotificationBell.tsx` · now re-exports the bell of `modules/notifications/bell` (dropdown + toasts + feed poll); `NotificationBell.module.css` deleted. The shell only places it.
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
+- 2026-11-01 · A4 · `client/src/ui/Icon.tsx` · two glyphs added (`download`, `play`), additive. No other frozen path edited (`Application/Services/Backup/BackupService.cs` fixes are listed in A4.md; `SharedResource.*.resx` gained 2 `Backup_Err_` keys).
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 

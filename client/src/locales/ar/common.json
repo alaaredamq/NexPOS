@@ -68,6 +68,8 @@
   "BackupStartedSuccessfully": "بدأت النسخة الاحتياطية بنجاح",
   "BackupType": "نوع النسخة الاحتياطية",
   "BackupValidationFailed": "فشل التحقق من النسخة الاحتياطية",
+  "Backup_Err_DayOfMonthRequired": "اختر يوم الشهر للجدول الشهري.",
+  "Backup_Err_DayOfWeekRequired": "اختر يوم الأسبوع للجدول الأسبوعي.",
   "Backups": "النسخ الاحتياطية",
   "Balanced": "متوازن",
   "BalancedNoDebt": "متوازن - لا يوجد دين",
