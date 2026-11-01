@@ -2429,4 +2429,9 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
+  <data name="Drawer_AlreadyOpen" xml:space="preserve"><value>You already have an open cash drawer session.</value></data>
+  <data name="Drawer_SessionNotFound" xml:space="preserve"><value>That cash drawer session was not found.</value></data>
+  <data name="Drawer_SessionClosed" xml:space="preserve"><value>That cash drawer session is already closed.</value></data>
+  <data name="Drawer_SessionStillOpen" xml:space="preserve"><value>The Z-Report is only available once the session is closed.</value></data>
+  <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>This session was closed by an older version and has no stored totals, so no Z-Report can be produced.</value></data>
 </root>
