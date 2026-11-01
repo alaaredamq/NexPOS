@@ -2485,4 +2485,6 @@
   <data name="Mny_PaymentMethodInUse" xml:space="preserve"><value>دُفعت إيصالات بهذه الطريقة، لذا لا يمكن حذفها.</value></data>
   <data name="Mny_CodeListKeyTaken" xml:space="preserve"><value>توجد قائمة رموز بهذا المفتاح بالفعل.</value></data>
   <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>هذه القائمة تحتوي على هذه القيمة بالفعل.</value></data>
+  <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>اختر يوم الأسبوع للجدول الأسبوعي.</value></data>
+  <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>اختر يوم الشهر للجدول الشهري.</value></data>
 </root>

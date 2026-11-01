@@ -2485,4 +2485,6 @@
   <data name="Mny_PaymentMethodInUse" xml:space="preserve"><value>Receipts were paid with this method, so it can't be deleted.</value></data>
   <data name="Mny_CodeListKeyTaken" xml:space="preserve"><value>A code list with that key already exists.</value></data>
   <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>This list already has that value.</value></data>
+  <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>Choose the day of the week for a weekly schedule.</value></data>
+  <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>Choose the day of the month for a monthly schedule.</value></data>
 </root>

@@ -188,6 +188,261 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/backup-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All schedules (active or not), by name. There are a handful, so the list is not paged. */
+        get: operations["listBackupSchedules"];
+        put?: never;
+        /** Creates a schedule. A weekly one needs `dayOfWeek`, a monthly one `dayOfMonth` (400 `validation_failed` with the field). */
+        post: operations["createBackupSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backup-schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replaces a schedule's settings and works out its next run again. */
+        put: operations["updateBackupSchedule"];
+        post?: never;
+        /** Deletes a schedule. Backups it already made stay. */
+        delete: operations["deleteBackupSchedule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backup-schedules/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Pauses or resumes a schedule (a paused one has no next run). */
+        put: operations["setBackupScheduleActive"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backup-schedules/{id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes a backup now, as this schedule would, and records the run. Needs `Backup.Create`. */
+        post: operations["runBackupSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles of the page, where the files live and how much room is left. Also re-registers any backup file found on disk but missing from the list. */
+        get: operations["getBackupSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of backups, newest first. `sort`: `createdAt` (default), `name`, `size`; `q` matches the name,
+         *     file name and description; `status`: `Completed`, `Failed`, `InProgress` or `Cancelled`.
+         */
+        get: operations["listBackups"];
+        put?: never;
+        /**
+         * Takes a snapshot now. The request returns when the file is written (a few seconds for a shop-sized database), so the UI shows a
+         *     busy state meanwhile. A snapshot that fails is still recorded in the list, and answers 500 `backup_failed` with the reason.
+         */
+        post: operations["createBackup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One backup. */
+        get: operations["getBackup"];
+        put?: never;
+        post?: never;
+        /** Deletes the file and its record. 404 for an unknown id. */
+        delete: operations["deleteBackup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replaces ALL business data with the backup's, then reconciles the list. By default a backup of the current data is taken first.
+         *     409 `restore_failed` when the file is missing or is not a backup of this database. The caller's own session may not survive
+         *     (the users table is replaced too), so the UI reloads the session afterwards.
+         */
+        post: operations["restoreBackup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/{id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks that the file exists and reads its size and checksum. */
+        post: operations["validateBackup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The backup file itself (`application/octet-stream`, streamed, resumable). A plain GET so a link or the browser's download
+         *     manager can use it. 404 `backup_file_missing` when the file was removed from the folder.
+         */
+        get: operations["downloadBackup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/bulk-delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deletes several backups; ids that no longer exist are skipped. */
+        post: operations["bulkDeleteBackups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/bulk-validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks that each file exists and is not empty. */
+        post: operations["bulkValidateBackups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/cleanup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deletes every backup older than `daysToKeep` days (what a schedule's retention does after each run). */
+        post: operations["cleanupBackups"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/backups/test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Can the app open its database for a backup and for a restore ("Test connections"). */
+        post: operations["testBackupConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/carts": {
         parameters: {
             query?: never;
@@ -983,6 +1238,44 @@ export interface paths {
         get: operations["downloadStockValueReportPdf"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/license": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What is installed and what it allows. */
+        get: operations["getLicense"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/license/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Installs a pasted key. A refused key (incomplete, forged, for another computer, older than the active one ...) answers 400
+         *     `validation_failed` with the reason on `licenseKey`, and nothing changes. On success the answer is the new state;
+         *     the shell's banner follows on its next refresh of the session.
+         */
+        post: operations["activateLicense"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2812,6 +3105,210 @@ export interface components {
             /** @description Whether another page exists after these rows. */
             hasMore: boolean;
         };
+        /** @description How many of the requested backups were removed (ids that no longer exist are skipped, not errors). */
+        BackupBulkDeleteResult: {
+            /** Format: int32 */
+            deleted: number;
+        };
+        /** @description Per backup: does the file exist and is it non-empty. `AllValid` is the old "all backups validated" verdict. */
+        BackupBulkValidateResult: {
+            allValid: boolean;
+            results: components["schemas"]["BackupCheckDto"][];
+        };
+        BackupCheckDto: {
+            /** Format: int32 */
+            id: number;
+            isValid: boolean;
+        };
+        /** @description Body of "delete backups older than ..." (the retention clean-up a schedule also runs after each backup). */
+        BackupCleanupRequest: {
+            /** Format: int32 */
+            daysToKeep?: number;
+        };
+        /** @description Whether the app can open its database for a backup and for a restore. */
+        BackupConnectionDto: {
+            backupConnection: boolean;
+            restoreConnection: boolean;
+            readonly ok?: boolean;
+        };
+        /** @description Body of "create a backup". Both fields are optional: a blank name becomes `Backup_yyyyMMdd_HHmmss`. */
+        BackupCreateRequest: {
+            name?: string | null;
+            description?: string | null;
+        };
+        /**
+         * @description One backup: a complete, consistent snapshot of the database (SQLite `VACUUM INTO`) kept in the `Backups` folder
+         *     next to the database file. The catalog is rebuilt from the files on disk, so a restore that rolls the table back never loses one.
+         */
+        BackupDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description?: string | null;
+            /** @description The file on disk (not the full path): enough to recognise it, nothing that tells a client how the server's folders are laid out. */
+            fileName: string;
+            /** Format: int64 */
+            fileSizeBytes: number;
+            /** @description `Completed`, `Failed`, `InProgress` or `Cancelled`. */
+            status: string;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description UTC; null while the backup is still running.
+             */
+            completedAt?: string | null;
+            /**
+             * Format: double
+             * @description How long the snapshot took, in seconds; null while it runs.
+             */
+            durationSeconds?: number | null;
+            /** @description Why a failed backup failed; empty otherwise. */
+            errorMessage?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        BackupDtoPagedResult: {
+            items: components["schemas"]["BackupDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Body of the bulk calls. */
+        BackupIdsRequest: {
+            ids: number[];
+        };
+        /** @description Body of "restore this backup". */
+        BackupRestoreRequest: {
+            /** @description Take a backup of the current data first (default `true`), so a wrong restore can itself be undone. */
+            createBackupBeforeRestore?: boolean;
+        };
+        /** @description Body of "turn a schedule on / off". */
+        BackupScheduleActiveRequest: {
+            isActive: boolean;
+        };
+        /** @description A recurring backup. Times are the shop's local clock; the next/last run are UTC instants. */
+        BackupScheduleDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description?: string | null;
+            /** @description `Daily`, `Weekly` or `Monthly`. */
+            frequency: string;
+            /** @description Local time of day, `HH:mm`. */
+            time: string;
+            /**
+             * Format: int32
+             * @description 0 = Sunday ... 6 = Saturday; weekly schedules only.
+             */
+            dayOfWeek?: number | null;
+            /**
+             * Format: int32
+             * @description 1 to 28; monthly schedules only.
+             */
+            dayOfMonth?: number | null;
+            isActive: boolean;
+            /**
+             * Format: int32
+             * @description Backups older than this many days are deleted after each scheduled run; null keeps everything.
+             */
+            retentionDays?: number | null;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            lastRunAt?: string | null;
+            /**
+             * Format: date-time
+             * @description UTC; null while the schedule is paused.
+             */
+            nextRunAt?: string | null;
+        };
+        /** @description Body of "create a schedule" and "change a schedule". */
+        BackupScheduleRequest: {
+            name: string;
+            description?: string | null;
+            /** @description `Daily`, `Weekly` or `Monthly`. */
+            frequency: string;
+            /** @description Local time of day, `HH:mm` (24-hour). */
+            time: string;
+            /**
+             * Format: int32
+             * @description Weekly only: 0 = Sunday ... 6 = Saturday.
+             */
+            dayOfWeek?: number | null;
+            /**
+             * Format: int32
+             * @description Monthly only: 1 to 28 (every month has those days).
+             */
+            dayOfMonth?: number | null;
+            isActive?: boolean;
+            /**
+             * Format: int32
+             * @description Delete backups older than this many days after each run; omit or null to keep everything.
+             */
+            retentionDays?: number | null;
+        };
+        /** @description The tiles above the Backup page, plus where the files go and how much room is left for them. */
+        BackupSummaryDto: {
+            /** Format: int32 */
+            totalBackups: number;
+            /** Format: int32 */
+            successfulBackups: number;
+            /** Format: int32 */
+            failedBackups: number;
+            /**
+             * Format: int64
+             * @description Size of all backup files together.
+             */
+            totalSizeBytes: number;
+            /**
+             * Format: int32
+             * @description Active schedules.
+             */
+            scheduledCount: number;
+            /**
+             * Format: date-time
+             * @description UTC; the soonest run of any active schedule.
+             */
+            nextScheduledAt?: string | null;
+            /**
+             * Format: date-time
+             * @description UTC; when the newest completed backup finished.
+             */
+            lastBackupAt?: string | null;
+            /** @description Status of the newest backup of any kind, so a failure right now is not hidden by an older success. */
+            lastBackupStatus?: string | null;
+            /** @description Folder the backups are written to (shown to the administrator, who needs to know where to copy them from). */
+            backupDirectory: string;
+            /**
+             * Format: int64
+             * @description Free space on the drive that holds that folder.
+             */
+            availableDiskBytes: number;
+            /**
+             * Format: int64
+             * @description The live database file.
+             */
+            databaseSizeBytes: number;
+        };
+        /** @description The outcome of checking one backup file. */
+        BackupValidationDto: {
+            isValid: boolean;
+            errors: string[];
+            warnings: string[];
+            checksum?: string | null;
+            /** Format: int64 */
+            fileSizeBytes?: number;
+        };
         BrandingDto: {
             appName: string;
             hasCustomLogo: boolean;
@@ -3754,6 +4251,49 @@ export interface components {
             totalStockValue: number;
             /** @description Notation of the default currency, for Web.Api.Inventory.Contracts.InventorySummaryDto.TotalStockValue. */
             currencyNotation: string;
+        };
+        /** @description Body of "activate a licence": the key as it was sent to the customer, pasted whole. */
+        LicenseActivateRequest: {
+            licenseKey: string;
+        };
+        /**
+         * @description The licence screen: what is installed, what it allows, and this PC's Machine ID (which the customer sends to the issuer).
+         *     The same fields the Razor License page showed; the shell's banner reads the shorter `license` block of `/session`.
+         */
+        LicenseDto: {
+            /** @description `Active`, `ExpiringSoon`, `GracePeriod`, `Expired`, `NotActivated`, `Invalid`, `WrongMachine` or `UpdatesNotCovered`. */
+            status: string;
+            /** @description `success`, `warning` or `danger`. */
+            severity: string;
+            /** @description Localized headline of the status. */
+            title: string;
+            /** @description Localized sentence that says what the status means for this shop (dates included). */
+            message: string;
+            allowsSales: boolean;
+            showsWarning: boolean;
+            /** @description A Debug build: nothing is enforced. */
+            enforcementDisabled: boolean;
+            /** @description This computer's id, `XXXXX-XXXXX-XXXXX-XXXXX`. */
+            machineId: string;
+            /** @description `yyyy-MM-dd`: when this build was released (a perpetual licence only covers builds up to its updates date). */
+            buildDate: string;
+            /** @description Present once a licence is installed. */
+            customer?: string | null;
+            /** @description `Full`, `Provisional` or `Trial`; null while nothing is installed. */
+            kind?: string | null;
+            serial?: string | null;
+            /** @description `yyyy-MM-dd`. */
+            issuedOn?: string | null;
+            /** @description `yyyy-MM-dd`. A time-limited licence: the last valid day. A full one: the last day of its updates plan. */
+            validUntil?: string | null;
+            /** @description True for `Provisional` and `Trial`: Web.Api.License.Contracts.LicenseDto.ValidUntil is then an expiry, not an updates date. */
+            isTimeLimited: boolean;
+            /** Format: int32 */
+            daysLeft?: number | null;
+            /** Format: int32 */
+            daysUntilStop?: number | null;
+            /** @description `yyyy-MM-dd`; time-limited licences: the last day selling still works. */
+            salesStopAfter?: string | null;
         };
         LicenseSummaryDto: {
             /** @description Active, ExpiringSoon, GracePeriod, Expired, NotActivated, Invalid, WrongMachine or UpdatesNotCovered. */
@@ -6397,6 +6937,894 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    listBackupSchedules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupScheduleDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createBackupSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupScheduleDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateBackupSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupScheduleDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteBackupSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setBackupScheduleActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupScheduleActiveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupScheduleDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    runBackupSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getBackupSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listBackups: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupDtoPagedResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    restoreBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupRestoreRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    validateBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupValidationDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    bulkDeleteBackups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupIdsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupBulkDeleteResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    bulkValidateBackups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupIdsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupBulkValidateResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    cleanupBackups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BackupCleanupRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    testBackupConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BackupConnectionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
             };
         };
     };
@@ -9865,6 +11293,95 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getLicense: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenseDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    activateLicense: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LicenseActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenseDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

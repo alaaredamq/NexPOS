@@ -333,7 +333,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | A1 | Users, roles, account | G0 | L | ☑ done | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ◑ in review | Claude · `react/A2` | [A2.md](docs/react-migration/notes/A2.md) |
 | A3 | Money configuration | G0 | M | ◑ in review | Claude · `react/A3` | [A3.md](docs/react-migration/notes/A3.md) |
-| A4 | Backup + licence | G0 | M | ☐ todo | | |
+| A4 | Backup + licence | G0 | M | ◑ in review | Claude · `react/A4` | [A4.md](docs/react-migration/notes/A4.md) |
 | Z | Cutover | everything | L | ☐ todo | | |
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
@@ -352,6 +352,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · A2 · `Tests/Api/Infrastructure/ApiPipelineTests.cs` · the session test's "not migrated yet" nav example is now Backup (Settings is migrated); pick another page when A4 flips Backup. No other frozen path edited; `SharedResource.*.resx` gained 6 `Set_*` keys.
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 - 2026-11-01 · A3 · none (no frozen path edited; `Application/Services/Sales/POSCheckoutService.cs` `DebtPaymentMethodName` private → public; `SharedResource.*.resx` gained 20 `Mny_` keys)
+- 2026-11-01 · A4 · `client/src/ui/Icon.tsx` · two glyphs added (`download`, `play`), additive. No other frozen path edited (`Application/Services/Backup/BackupService.cs` fixes are listed in A4.md; `SharedResource.*.resx` gained 2 `Backup_Err_` keys).
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 

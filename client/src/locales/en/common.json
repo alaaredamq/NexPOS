@@ -68,6 +68,8 @@
   "BackupStartedSuccessfully": "Backup started successfully",
   "BackupType": "Backup Type",
   "BackupValidationFailed": "Backup validation failed",
+  "Backup_Err_DayOfMonthRequired": "Choose the day of the month for a monthly schedule.",
+  "Backup_Err_DayOfWeekRequired": "Choose the day of the week for a weekly schedule.",
   "Backups": "Backups",
   "Balanced": "Balanced",
   "BalancedNoDebt": "Balanced - No debt",

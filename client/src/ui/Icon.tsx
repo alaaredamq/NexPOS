@@ -32,6 +32,8 @@ export const ICON_PATHS = {
   warning: 'M12 4l9 16H3z M12 10v4.5 M12 17.3v.2',
   error: 'M12 21a9 9 0 100-18 9 9 0 000 18z M9 9l6 6 M15 9l-6 6',
   more: 'M5 12h.01 M12 12h.01 M19 12h.01',
+  download: 'M12 4v11 M7 10.5l5 5 5-5 M5 19.5h14',
+  play: 'M8 5.5v13l10-6.5z',
 } as const
 
 export type IconName = keyof typeof ICON_PATHS

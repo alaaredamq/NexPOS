@@ -529,4 +529,52 @@
   <data name="DeleteMultipleBackups" xml:space="preserve">
     <value>Delete Multiple Backups</value>
   </data>
+  <data name="Msg_BackupCompleted" xml:space="preserve"><value>Backup completed successfully</value></data>
+  <data name="Msg_BackupFailed" xml:space="preserve"><value>The backup did not complete</value></data>
+  <data name="Busy_Creating" xml:space="preserve"><value>Creating the backup. Please keep this window open until it finishes.</value></data>
+  <data name="Busy_Restoring" xml:space="preserve"><value>Restoring the data. Please keep this window open until it finishes.</value></data>
+  <data name="Restore_ConfirmTitle" xml:space="preserve"><value>Restore this backup?</value></data>
+  <data name="Restore_ConfirmMessage" xml:space="preserve"><value>All current data (sales, products, customers, users) will be replaced by the data in "{0}", taken on {1}. Anything entered after that moment will be lost.</value></data>
+  <data name="Restore_ConfirmWithSafety" xml:space="preserve"><value>A backup of the current data is taken first, so this can be undone.</value></data>
+  <data name="Restore_ConfirmNoSafety" xml:space="preserve"><value>No backup of the current data is taken first. This cannot be undone.</value></data>
+  <data name="Restore_Action" xml:space="preserve"><value>Restore</value></data>
+  <data name="Msg_RestoreDone" xml:space="preserve"><value>Restore completed. The data is back as it was on {0}.</value></data>
+  <data name="Msg_RestoreFailed" xml:space="preserve"><value>The restore did not complete</value></data>
+  <data name="Restore_Intro" xml:space="preserve"><value>Replace all current data with the data of a backup. Pick one from the list below.</value></data>
+  <data name="Restore_NoBackups" xml:space="preserve"><value>There is no completed backup to restore yet.</value></data>
+  <data name="Restore_BackupMissing" xml:space="preserve"><value>This backup's file is no longer in the backup folder.</value></data>
+  <data name="SelectedCount" xml:space="preserve"><value>{0} selected</value></data>
+  <data name="SelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="SelectBackupRow" xml:space="preserve"><value>Select backup {0}</value></data>
+  <data name="Msg_BackupsDeleted" xml:space="preserve"><value>{0} backup(s) deleted</value></data>
+  <data name="Msg_AllValid" xml:space="preserve"><value>All selected backups are valid</value></data>
+  <data name="Msg_SomeInvalid" xml:space="preserve"><value>{0} of the selected backups are missing or empty</value></data>
+  <data name="Msg_ScheduleRan" xml:space="preserve"><value>Backup taken from the schedule</value></data>
+  <data name="Msg_Copied" xml:space="preserve"><value>Copied</value></data>
+  <data name="Msg_ConnectionsOk" xml:space="preserve"><value>The database can be opened for backup and restore</value></data>
+  <data name="Status_Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="Status_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Status_InProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Status_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Filter_AllStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="SearchBackups" xml:space="preserve"><value>Search backups</value></data>
+  <data name="Schedule_Daily" xml:space="preserve"><value>{0} at {1}</value></data>
+  <data name="Schedule_Weekly" xml:space="preserve"><value>{0}, {1} at {2}</value></data>
+  <data name="Schedule_Monthly" xml:space="preserve"><value>{0}, day {1} at {2}</value></data>
+  <data name="Schedule_Paused" xml:space="preserve"><value>Paused</value></data>
+  <data name="Schedule_RetentionDays" xml:space="preserve"><value>Keeps {0} days</value></data>
+  <data name="Schedule_KeepsAll" xml:space="preserve"><value>Keeps everything</value></data>
+  <data name="Schedule_ConfirmRun" xml:space="preserve"><value>Take a backup now with this schedule?</value></data>
+  <data name="BackupFolder" xml:space="preserve"><value>Backup folder</value></data>
+  <data name="BackupFolderHint" xml:space="preserve"><value>Backups live on this computer. Copy this folder to another disk or a USB drive regularly: a backup on the same disk does not survive that disk failing.</value></data>
+  <data name="FreeSpace" xml:space="preserve"><value>Free space on that drive</value></data>
+  <data name="DatabaseSize" xml:space="preserve"><value>Database size</value></data>
+  <data name="LastBackupFailed" xml:space="preserve"><value>The last backup failed</value></data>
+  <data name="Duration" xml:space="preserve"><value>Duration</value></data>
+  <data name="Backup_Aria_Tabs" xml:space="preserve"><value>Backup sections</value></data>
+  <data name="Retention_Days_Suffix" xml:space="preserve"><value>days</value></data>
+  <data name="NoBackupsMatch" xml:space="preserve"><value>No backups match the search.</value></data>
+  <data name="Schedule_TimeRequired" xml:space="preserve"><value>Choose the time of day.</value></data>
+  <data name="Schedule_RetentionRule" xml:space="preserve"><value>Enter a whole number of days from 1 to 3650, or leave it empty.</value></data>
+  <data name="Schedule_DayRequired" xml:space="preserve"><value>Choose the day.</value></data>
 </root>

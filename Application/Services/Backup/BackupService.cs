@@ -282,7 +282,7 @@ namespace Application.Services.Backup
                 // A restore replaces the whole database, including the Backups table, so any
                 // backups taken after the restored point vanish from the list. Rebuild the
                 // catalog from the .bak files (and their sidecars) still present on disk.
-                await ReconcileBackupCatalogAsync();
+                await ReconcileBackupCatalogAsync(afterRestore: true);
 
                 // The audit trail lives in its own database file, so this restore did not touch it: the history up to
                 // this moment is intact, and this entry marks the point where the business data jumped back in time.
@@ -781,8 +781,18 @@ namespace Application.Services.Backup
             var type = backupType.ToLower();
             var dateStr = timestamp.ToString("yyyyMMdd_HHmmss");
             var extension = "bak";
-            
-            return $"ERP_{type}_backup_{dateStr}.{extension}";
+
+            // Two backups in the same second (a schedule firing as someone clicks, a restore's safety backup) would get one
+            // name, and the second snapshot would silently overwrite the first one's file. Number the later one instead.
+            var directory = await GetBackupDirectoryAsync();
+            var baseName = $"ERP_{type}_backup_{dateStr}";
+            var fileName = $"{baseName}.{extension}";
+            for (var n = 2; File.Exists(Path.Combine(directory, fileName)); n++)
+            {
+                fileName = $"{baseName}_{n}.{extension}";
+            }
+
+            return fileName;
         }
 
         public async Task<string> GetBackupDirectoryAsync()
@@ -1617,7 +1627,7 @@ namespace Application.Services.Backup
         /// rows that turn out to belong to another database. Safe to call often; never throws.
         /// Only table rows are added or removed here - backup files are never touched.
         /// </summary>
-        private async Task ReconcileBackupCatalogAsync()
+        private async Task ReconcileBackupCatalogAsync(bool afterRestore = false)
         {
             try
             {
@@ -1672,7 +1682,7 @@ namespace Application.Services.Backup
                     }
                 }
 
-                await ResolveStuckBackupsAsync(refreshed);
+                await ResolveStuckBackupsAsync(refreshed, afterRestore ? TimeSpan.Zero : TimeSpan.FromMinutes(30));
             }
             catch (Exception ex)
             {
@@ -1683,11 +1693,13 @@ namespace Application.Services.Backup
         /// <summary>
         /// Backups left "InProgress" by an interrupted operation or an app restart never
         /// recover on their own (the progress tracker is in-memory only). Resolve them:
-        /// mark Completed if a valid .bak exists, otherwise Failed.
+        /// mark Completed if a valid .bak exists, otherwise Failed. Only rows older than <paramref name="grace"/> count as stuck
+        /// (a backup that is running right now is young); right after a restore the grace is zero, because the snapshot was
+        /// taken while its own row said "InProgress" and that row has just come back with the restored table.
         /// </summary>
-        private async Task ResolveStuckBackupsAsync(IEnumerable<BackupEntity> existing)
+        private async Task ResolveStuckBackupsAsync(IEnumerable<BackupEntity> existing, TimeSpan grace)
         {
-            var cutoff = DateTime.UtcNow.AddMinutes(-30);
+            var cutoff = DateTime.UtcNow - grace;
             var stuck = existing
                 .Where(b => b.Status == BackupStatus.InProgress
                             && b.CreatedAt < cutoff
@@ -1773,6 +1785,10 @@ namespace Application.Services.Backup
 
             // Drop pooled connections that may hold stale page caches of the pre-restore file.
             SqliteConnection.ClearAllPools();
+
+            // Rows this context loaded before the restore (the backup being restored, among others) describe the database that was just
+            // replaced; left tracked, EF would hand them back instead of the restored values on the next query.
+            _context.ChangeTracker.Clear();
 
             // A backup taken before a schema change is restored with the old schema; bring it up to date.
             // The migration's own statements are not events anyone investigates.

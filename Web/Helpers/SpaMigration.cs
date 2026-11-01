@@ -16,6 +16,7 @@ public static class SpaMigration
     public static IReadOnlyDictionary<string, string> Migrated { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
+            ["Backup"] = "/app/backup",
             ["CashDrawer"] = "/app/cash-drawer",
             ["Currency"] = "/app/currency",
             ["Dashboard"] = "/app/dashboard",
@@ -26,6 +27,7 @@ public static class SpaMigration
             ["Customers"] = "/app/customers",
             ["ProductDisplayOrder"] = "/app/product-display-order",
             ["Inventory"] = "/app/inventory",
+            ["License"] = "/app/license",
             ["Notifications"] = "/app/notifications",
             ["Suppliers"] = "/app/suppliers",
             ["Tax"] = "/app/tax",
