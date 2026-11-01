@@ -320,6 +320,369 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of customers. `sort`: `name` (default), `email`, `phoneNumber`, `address`, `ordersCount`,
+         *     `totalSpent`, `balance`, `isActive`; `q` matches the name, email and phone number.
+         */
+        get: operations["listCustomers"];
+        put?: never;
+        /** Creates a customer. Only the first and last name are required. */
+        post: operations["createCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals for the tiles above the list (all customers, not just the current page). */
+        get: operations["getCustomerSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The customer, the figures of the details page and the 10 latest orders. */
+        get: operations["getCustomer"];
+        /** Changes the contact details and the active flag. The balance is not editable here: it only moves through the debt ledger. */
+        put: operations["updateCustomer"];
+        post?: never;
+        /** Deletes (soft) a customer whose balance is zero. 409 `customer_has_balance` otherwise: settle the debt or deactivate the customer. */
+        delete: operations["deleteCustomer"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}/debt-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The customer's debt ledger, newest first. Same `page` / `pageSize` as the lists; `sort` and `q` are ignored. */
+        get: operations["listCustomerDebtTransactions"];
+        put?: never;
+        /**
+         * Records a manual debt entry (staff editing what a customer owes, or logging a payment) and returns the new balance.
+         *     There is no cap: paying more than is owed leaves a negative balance (the business owes the customer), as on the Razor page.
+         */
+        post: operations["addCustomerDebtTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All customers as a CSV file (the same export the Razor page offers). */
+        get: operations["exportCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of products with their stock figures.
+         * @description `q` matches name, barcode, description or category. `sort` is one of `name` (default), `barcode`, `category`,
+         *                 `stock`, `minimum`, `maximum`, `cost`, `price`, `value`, `status`.
+         */
+        get: operations["listInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles above the list (all products, not just the current page). */
+        get: operations["getInventorySummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/{productId}/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adds or removes units of a product. 400 on the `quantity` field when a removal would take stock below zero. */
+        post: operations["adjustStock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/{productId}/minimum-stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the level under which the product counts as low stock. */
+        put: operations["setMinimumStock"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/low-stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Products at or below their minimum, least stock first, with the totals of the whole report. `q` matches name, barcode or category. */
+        get: operations["getLowStockReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/stock-value": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock value of the active products, the two chart series and one page of the table. `sort`: `value` (default, descending), `name`, `category`, `stock`, `cost`. */
+        get: operations["getStockValueReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/low-stock/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends the low-stock report to the receipt printer. Answers 200 with `printed: false` when the printer is unavailable. */
+        post: operations["printLowStockReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/low-stock.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The low-stock report as an A4 PDF. */
+        get: operations["downloadLowStockReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/stock-value/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends the stock-value report to the receipt printer. Answers 200 with `printed: false` when the printer is unavailable. */
+        post: operations["printStockValueReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/stock-value.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The stock-value report as an A4 PDF. */
+        get: operations["downloadStockValueReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the orders list, newest first.
+         * @description `q` matches the order number, the customer's name or the total. `sort` is one of `date` (default, descending),
+         *                 `number`, `customer`, `total`, `status`, `items`. `from` / `to` are local days (yyyy-MM-dd).
+         */
+        get: operations["listOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles above the list: counts by status and revenue per currency, for the last 30 days. */
+        get: operations["getOrdersSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The filtered list (every page, not just the visible one) as a CSV. */
+        get: operations["exportOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One order with its lines, totals and receipts. */
+        get: operations["getOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes the order's status. `4` (Cancelled) reverses the whole sale.
+         * @description Cancelling voids the receipt, puts the stock back, takes a debt sale off the customer's account and stops the open drawer expecting the money - all or nothing.
+         *     Any other status only changes the label (Returned does <b>not</b> restore stock). 409 `order_closed`: already cancelled or returned, nothing to cancel;
+         *     409 `order_cancelled`: a cancelled order cannot be reopened.
+         */
+        put: operations["updateOrderStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/categories": {
         parameters: {
             query?: never;
@@ -921,6 +1284,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of the receipts list, newest first.
+         * @description `q` matches the receipt number, the customer's name or phone, or the total. `status` is `valid` or `void` (omitted = both).
+         *                 `sort` is one of `date` (default, descending), `number`, `customer`, `cashier`, `amount`, `payment`, `voidDate`.
+         *                 `from` / `to` are local days (yyyy-MM-dd).
+         */
+        get: operations["listReceipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sales tiles and analytics for a range of local days (default: the last 30 days up to today).
+         * @description Money is totalled per currency, never across currencies. Void receipts only count in `voidCount`.
+         */
+        get: operations["getReceiptStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One receipt with its lines, payments and totals. */
+        get: operations["getReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Voids the receipt and reverses the sale behind it.
+         * @description Same all-or-nothing reversal as cancelling the order: receipt voided, order cancelled, stock back, debt off the customer's account, drawer corrected.
+         *     409 `receipt_already_void`. A reason is required.
+         */
+        post: operations["voidReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reprints the receipt on the receipt printer. Never fails because of the printer: `printed: false` comes with a message and the PDF link. */
+        post: operations["printReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The receipt as a PDF (receipt-roll paper). */
+        get: operations["getReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -934,6 +1411,112 @@ export interface paths {
          *     language, the user's drawer and the unread-notification count. A 401 means the cookie is missing, expired, or the account was disabled - go to the login page.
          */
         get: operations["getSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of suppliers. `sort`: `name` (default), `email`, `phone`, `balance`, `isActive`, `discount`, `products`; `q` matches name, email and phone. */
+        get: operations["listSuppliers"];
+        put?: never;
+        /** Creates a supplier with a zero balance. */
+        post: operations["createSupplier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals for the tiles above the list (all suppliers, not just the current page). */
+        get: operations["getSupplierSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The currencies the supplier form offers, and the one a new supplier starts with. */
+        get: operations["getSupplierOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One supplier with its balance. */
+        get: operations["getSupplier"];
+        /** Edits a supplier. The balance is not editable here: use the debt ledger. */
+        put: operations["updateSupplier"];
+        post?: never;
+        /** Deletes a supplier. 409 `supplier_has_balance` while money is owed either way; 409 `supplier_in_use` while products (even deleted ones) or ledger rows point at it. */
+        delete: operations["deleteSupplier"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/debt-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The supplier's debt ledger, newest first. */
+        get: operations["listSupplierDebtTransactions"];
+        put?: never;
+        /** Records a manual debt entry: the business owes more, or pays something off. */
+        post: operations["addSupplierDebtTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All suppliers as a CSV file (the same export the Razor page offers). */
+        get: operations["exportSuppliers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1129,6 +1712,187 @@ export interface components {
             status: components["schemas"]["DrawerStatusDto"];
             session?: components["schemas"]["DrawerSessionDto"];
         };
+        /** @description Body of "add a debt transaction". */
+        CustomerDebtRequest: {
+            /**
+             * Format: double
+             * @description Always positive; Web.Api.Customers.Contracts.CustomerDebtRequest.CustomerOwesMore gives the direction.
+             */
+            amount: number;
+            /**
+             * @description True: the customer owes the business more (balance goes up). False: the customer paid, or the business owes them
+             *     (balance goes down - and below zero when more is paid than was owed: no cap, as on the Razor page).
+             */
+            customerOwesMore: boolean;
+            note?: string | null;
+        };
+        /** @description The recorded entry and the balance after it. */
+        CustomerDebtResultDto: {
+            transaction: components["schemas"]["CustomerDebtTransactionDto"];
+            /**
+             * Format: double
+             * @description Balance after the entry; same sign convention as Web.Api.Customers.Contracts.CustomerDto.Balance.
+             */
+            balance: number;
+        };
+        /** @description One entry of a customer's debt ledger. The amount is signed: positive raises what the customer owes. */
+        CustomerDebtTransactionDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /** @description `Sale` (a sale put on the account), `Payment`, `ManualAdjustment` or `SaleReversal` (a voided sale). */
+            type: string;
+            /** Format: double */
+            amount: number;
+            note?: string | null;
+            /**
+             * Format: int32
+             * @description The sale this entry belongs to, for `Sale` and `SaleReversal`.
+             */
+            orderId?: number | null;
+            /** @description Username of the staff member who recorded it. */
+            recordedBy?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        CustomerDebtTransactionDtoPagedResult: {
+            items: components["schemas"]["CustomerDebtTransactionDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description A customer with the figures of the details page. */
+        CustomerDetailsDto: {
+            customer: components["schemas"]["CustomerDto"];
+            city?: string | null;
+            country?: string | null;
+            postalCode?: string | null;
+            /** @description Notation of the default currency, for the balance and the totals. */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Web.Api.Customers.Contracts.CustomerDto.TotalSpent / Web.Api.Customers.Contracts.CustomerDto.OrdersCount, 0 without orders.
+             */
+            averageOrder: number;
+            /**
+             * Format: date-time
+             * @description Date of the latest order (any status), UTC; null for a customer who never ordered.
+             */
+            lastOrderAt?: string | null;
+            /**
+             * Format: int32
+             * @description All orders of the customer, any status, including cancelled ones.
+             */
+            allOrdersCount: number;
+            /** @description The 10 latest orders, newest first. */
+            recentOrders: components["schemas"]["CustomerOrderDto"][];
+        };
+        /** @description One row of the customers list. */
+        CustomerDto: {
+            /** Format: int32 */
+            id: number;
+            firstName: string;
+            lastName: string;
+            /** @description Null when none was entered (the stored value is an empty string). */
+            email?: string | null;
+            phoneNumber?: string | null;
+            address?: string | null;
+            /** @description Inactive customers stay on their old sales but are meant to be left alone. */
+            isActive: boolean;
+            /**
+             * Format: double
+             * @description Running debt balance in the default currency. Positive: the customer owes the business. Negative: the business owes the customer.
+             */
+            balance: number;
+            /**
+             * Format: int32
+             * @description Orders placed by the customer; cancelled and returned (voided) orders are not purchases and are not counted.
+             */
+            ordersCount: number;
+            /**
+             * Format: double
+             * @description Sum of the order totals counted by Web.Api.Customers.Contracts.CustomerDto.OrdersCount. As on the Razor page the amounts are added as they are, whatever their currency.
+             */
+            totalSpent: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+        };
+        /** @description What every list endpoint returns. */
+        CustomerDtoPagedResult: {
+            items: components["schemas"]["CustomerDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description An order row of the customer details page. */
+        CustomerOrderDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /** Format: double */
+            totalAmount: number;
+            /** @description Notation of the order's own currency. */
+            currencyNotation: string;
+            /** @description `Pending`, `Processing`, `Shipped`, `Delivered`, `Cancelled` or `Returned`. */
+            status: string;
+        };
+        /** @description Body of create and update. */
+        CustomerRequest: {
+            firstName: string;
+            lastName: string;
+            /** Format: email */
+            email?: string | null;
+            /** Format: tel */
+            phoneNumber?: string | null;
+            address?: string | null;
+            isActive?: boolean;
+        };
+        /** @description The four tiles above the customers list (all customers, not just the current page). */
+        CustomerSummaryDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            active: number;
+            /**
+             * Format: int32
+             * @description Customers whose balance is above zero.
+             */
+            owing: number;
+            /**
+             * Format: double
+             * @description Sum of the positive balances: what customers owe the business.
+             */
+            totalOwed: number;
+            /**
+             * Format: double
+             * @description Sum of all Web.Api.Customers.Contracts.CustomerDto.TotalSpent.
+             */
+            totalSpent: number;
+            /** @description Notation of the default currency (`$`, `L.L.`): the unit of the balances and totals. */
+            currencyNotation: string;
+        };
         /** @description The products shown on the POS main screen, in order, with the tiles above the table. */
         DisplayOrderDto: {
             items: components["schemas"]["DisplayOrderItemDto"][];
@@ -1293,6 +2057,86 @@ export interface components {
             /** Format: int32 */
             deletedCount: number;
         };
+        /** @description One row of the inventory list. */
+        InventoryItemDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            barcode: string;
+            /** @description Null when the product has no category; the UI shows its own "No category" text. */
+            categoryName?: string | null;
+            /** Format: double */
+            currentStock: number;
+            /**
+             * Format: double
+             * @description Null when no minimum was ever set.
+             */
+            minimumStock?: number | null;
+            /** Format: double */
+            maximumStock?: number | null;
+            /**
+             * Format: double
+             * @description Null when no cost price is recorded (stock value then uses the selling price).
+             */
+            costPrice?: number | null;
+            /** Format: double */
+            sellingPrice: number;
+            /** @description Notation of the product's own currency (`$`, `L.L.`). */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Stock x (cost price, or selling price when there is no cost), in the product's own currency (no conversion, as before).
+             */
+            stockValue: number;
+            /** @description The product's unit (`kg`, `piece`) or null. */
+            unit?: string | null;
+            isActive: boolean;
+            /** @description See Web.Api.Inventory.Contracts.InventoryStatus. */
+            status: string;
+        };
+        /** @description What every list endpoint returns. */
+        InventoryItemDtoPagedResult: {
+            items: components["schemas"]["InventoryItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Answer of "print on the receipt printer". A printer problem is not an HTTP error: the page shows the message and offers the PDF. */
+        InventoryPrintResultDto: {
+            printed: boolean;
+            /** @description Already localized. */
+            message: string;
+            /** @description Where the same document can be downloaded as a PDF. */
+            pdfUrl: string;
+        };
+        /** @description The four tiles above the inventory list. */
+        InventorySummaryDto: {
+            /** Format: int32 */
+            totalProducts: number;
+            /**
+             * Format: int32
+             * @description Products with a minimum set and stock at or below it (out-of-stock ones with a minimum are included, as before).
+             */
+            lowStockCount: number;
+            /**
+             * Format: int32
+             * @description Products with stock of zero or below.
+             */
+            outOfStockCount: number;
+            /**
+             * Format: double
+             * @description Stock x cost over every product, active or not, in the default currency's notation (the old figure; no conversion).
+             */
+            totalStockValue: number;
+            /** @description Notation of the default currency, for Web.Api.Inventory.Contracts.InventorySummaryDto.TotalStockValue. */
+            currencyNotation: string;
+        };
         LicenseSummaryDto: {
             /** @description Active, ExpiringSoon, GracePeriod, Expired, NotActivated, Invalid, WrongMachine or UpdatesNotCovered. */
             status: string;
@@ -1327,6 +2171,65 @@ export interface components {
             pin: string;
             /** @description Keep the cookie for 30 days instead of 8 hours. */
             rememberMe?: boolean;
+        };
+        /** @description One product of the low-stock report. */
+        LowStockItemDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description?: string | null;
+            barcode: string;
+            categoryName?: string | null;
+            /** Format: double */
+            currentStock: number;
+            /** Format: double */
+            minimumStock: number;
+            /**
+             * Format: double
+             * @description How far under the minimum the stock is (never negative).
+             */
+            deficit: number;
+            unit?: string | null;
+            /** @description See Web.Api.Inventory.Contracts.LowStockPriority. */
+            priority: string;
+        };
+        /** @description What every list endpoint returns. */
+        LowStockItemDtoPagedResult: {
+            items: components["schemas"]["LowStockItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description The low-stock report: totals plus one page of products, least stock first. */
+        LowStockReportDto: {
+            summary: components["schemas"]["LowStockSummaryDto"];
+            items: components["schemas"]["LowStockItemDtoPagedResult"];
+        };
+        /** @description The numbers above the low-stock report. */
+        LowStockSummaryDto: {
+            /**
+             * Format: int32
+             * @description Products with low stock (out-of-stock included).
+             */
+            products: number;
+            /** Format: int32 */
+            outOfStock: number;
+            /**
+             * Format: double
+             * @description Units still on the shelf across those products.
+             */
+            totalUnits: number;
+        };
+        /** @description Body of "set minimum stock". */
+        MinimumStockRequest: {
+            /** Format: double */
+            minimumStock: number;
         };
         NavItemDto: {
             /** @description The page's MVC controller name (`Orders`, `CashDrawer`): the stable id of a page. */
@@ -1365,6 +2268,182 @@ export interface components {
              */
             openingCash?: number;
             notes?: string | null;
+        };
+        /** @description Everything the order page shows. */
+        OrderDetailDto: {
+            /** Format: int32 */
+            id: number;
+            orderNumber: string;
+            /** Format: int32 */
+            customerId?: number | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            orderDate: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Set once the order was edited (a status change, a cancellation).
+             */
+            updatedAt?: string | null;
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned.
+             */
+            status: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Sum of the lines.
+             */
+            subtotal: number;
+            /**
+             * Format: double
+             * @description The cart discount as money off, whether the cashier typed an amount or a percentage.
+             */
+            discountAmount: number;
+            /**
+             * Format: double
+             * @description The same discount as a percentage of Web.Api.Orders.Contracts.OrderDetailDto.Subtotal.
+             */
+            discountPercentage: number;
+            /**
+             * Format: double
+             * @description What the cashier added (positive) or took off (negative) the calculated total at checkout - cash rounding. 0 when nothing.
+             */
+            adjustment: number;
+            /**
+             * Format: double
+             * @description Always 0 today: the till does not apply taxes (known unknown #4 of the migration plan).
+             */
+            taxAmount: number;
+            /** Format: double */
+            totalAmount: number;
+            lines: components["schemas"]["OrderLineDto"][];
+            receipts: components["schemas"]["OrderReceiptRefDto"][];
+        };
+        /** @description One product line of an order. */
+        OrderLineDto: {
+            /** Format: int32 */
+            productId: number;
+            productName: string;
+            /** @description Empty when the product has no barcode. */
+            barcode: string;
+            /** Format: int32 */
+            quantity: number;
+            /**
+             * Format: double
+             * @description The weighed / measured amount (in the product's base unit) for products sold by weight or volume; null for pieces.
+             */
+            weightOrVolume?: number | null;
+            /** Format: double */
+            unitPrice: number;
+            /**
+             * Format: double
+             * @description Unit price times the weighed amount, or times the quantity for pieces. Not rounded.
+             */
+            totalPrice: number;
+        };
+        /** @description One row of the orders list. */
+        OrderListItemDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description "ORD-000042". Built from the id, exactly as the old pages did. */
+            orderNumber: string;
+            /**
+             * Format: int32
+             * @description Null for a walk-in sale (or a customer that was deleted since): the client shows "Walk-in customer".
+             */
+            customerId?: number | null;
+            customerName?: string | null;
+            /**
+             * Format: date-time
+             * @description When the sale happened (UTC).
+             */
+            orderDate: string;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned.
+             */
+            status: number;
+            /**
+             * Format: int32
+             * @description Number of product lines on the order.
+             */
+            itemCount: number;
+        };
+        /** @description What every list endpoint returns. */
+        OrderListItemDtoPagedResult: {
+            items: components["schemas"]["OrderListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description A receipt issued for the order (normally one). */
+        OrderReceiptRefDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            isVoid: boolean;
+        };
+        /** @description Revenue of one currency (orders are never summed across currencies). */
+        OrderRevenueDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description The total of every order of the period that was not cancelled.
+             */
+            amount: number;
+        };
+        /** @description New status for an order. */
+        OrderStatusRequest: {
+            /**
+             * Format: int32
+             * @description 0 Pending, 1 Processing, 2 Shipped, 3 Delivered, 4 Cancelled, 5 Returned. 4 reverses the whole sale.
+             */
+            status?: number;
+        };
+        /** @description The order after a status change. */
+        OrderStatusResultDto: {
+            /** Format: int32 */
+            orderId: number;
+            orderNumber: string;
+            /** Format: int32 */
+            status: number;
+            reversal?: components["schemas"]["SaleReversalDto"];
+        };
+        /** @description The tiles above the orders list. Always the last 30 days, as the old page. */
+        OrderSummaryDto: {
+            /** Format: int32 */
+            periodDays: number;
+            /** Format: int32 */
+            totalOrders: number;
+            /** Format: int32 */
+            deliveredOrders: number;
+            /** Format: int32 */
+            pendingOrders: number;
+            /** Format: int32 */
+            processingOrders: number;
+            /** Format: int32 */
+            cancelledOrders: number;
+            /** @description One entry per currency that sold something, biggest first. Empty when nothing was sold. */
+            revenue: components["schemas"]["OrderRevenueDto"][];
         };
         PosCartInput: {
             /**
@@ -2071,6 +3150,186 @@ export interface components {
             /** @description The barcode the product ended up with (generated or typed). */
             barcode: string;
         };
+        /** @description Sales of one currency in the stats period. */
+        ReceiptCurrencyStatsDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Total of the valid (not void) receipts.
+             */
+            totalSales: number;
+            /** Format: int32 */
+            receiptCount: number;
+            /** Format: double */
+            averageReceipt: number;
+            /** @description Sales per LOCAL day, oldest first; days without a sale are left out. */
+            daily: components["schemas"]["ReceiptDaySalesDto"][];
+        };
+        ReceiptDaySalesDto: {
+            /** @description yyyy-MM-dd, the shop's local day. */
+            date: string;
+            /** Format: double */
+            amount: number;
+        };
+        /** @description Everything the receipt page shows. */
+        ReceiptDetailDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            /** Format: int32 */
+            orderId: number;
+            /** Format: date-time */
+            receiptDate: string;
+            /** Format: int32 */
+            customerId?: number | null;
+            /** @description Null for a walk-in sale. */
+            customerName?: string | null;
+            customerPhone?: string | null;
+            cashierName: string;
+            paymentMethod: string;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Rate to the base currency at the time of the sale; 1 when the sale was in the base currency.
+             */
+            exchangeRate: number;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            discountAmount: number;
+            /**
+             * Format: double
+             * @description The discount as a percentage of Web.Api.Receipts.Contracts.ReceiptDetailDto.SubTotal (derived: only the amount is stored).
+             */
+            discountPercentage: number;
+            /** Format: double */
+            taxAmount: number;
+            /**
+             * Format: double
+             * @description Cash rounding the cashier added (positive) or took off (negative); 0 when none.
+             */
+            adjustment: number;
+            /** Format: double */
+            totalAmount: number;
+            /** Format: double */
+            amountPaid: number;
+            /** Format: double */
+            changeAmount: number;
+            /** @description True when the payments cover the total. */
+            isFullyPaid: boolean;
+            notes?: string | null;
+            isVoid: boolean;
+            /** Format: date-time */
+            voidDate?: string | null;
+            voidReason?: string | null;
+            voidedBy?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            printedBy?: string | null;
+            /** Format: date-time */
+            printedAt?: string | null;
+            lines: components["schemas"]["ReceiptLineDto"][];
+            payments: components["schemas"]["ReceiptPaymentDto"][];
+        };
+        /** @description One product line of a receipt. */
+        ReceiptLineDto: {
+            productName: string;
+            barcode?: string | null;
+            /** Format: double */
+            quantity: number;
+            /** @description Unit of measure ("kg", "piece" ...); null when none was recorded. */
+            unit?: string | null;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: double */
+            taxAmount: number;
+            /** Format: double */
+            lineTotal: number;
+        };
+        /** @description One row of the receipts list. */
+        ReceiptListItemDto: {
+            /** Format: int32 */
+            id: number;
+            receiptNumber: string;
+            /** Format: int32 */
+            orderId: number;
+            /** Format: date-time */
+            receiptDate: string;
+            /** @description The name typed at the till, else the customer's name; null for a walk-in sale (the client shows "Walk-in customer"). */
+            customerName?: string | null;
+            /** @description Empty when the cashier's account has no name. */
+            cashierName: string;
+            paymentMethod: string;
+            /** Format: double */
+            totalAmount: number;
+            currencyNotation: string;
+            isVoid: boolean;
+            /** Format: date-time */
+            voidDate?: string | null;
+            voidReason?: string | null;
+            /** @description Who voided it (falls back to the cashier, as the old list did, for receipts voided before the user was recorded). */
+            voidedBy?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        ReceiptListItemDtoPagedResult: {
+            items: components["schemas"]["ReceiptListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description One payment taken against a receipt (a sale can be split over several). */
+        ReceiptPaymentDto: {
+            paymentMethod: string;
+            referenceNumber?: string | null;
+            /** Format: double */
+            amount: number;
+            /** Format: date-time */
+            paymentDate: string;
+        };
+        /** @description How many valid receipts were paid with a payment method. */
+        ReceiptPaymentShareDto: {
+            paymentMethod: string;
+            /** Format: int32 */
+            count: number;
+        };
+        /** @description Answer of a reprint. A printer problem is not an HTTP error: `printed` is false and the message says what to do. */
+        ReceiptPrintResultDto: {
+            printed: boolean;
+            /** @description Already localized. */
+            message: string;
+            /** @description Where to download the same receipt as a PDF when the printer could not be reached. */
+            pdfUrl: string;
+        };
+        /** @description The tiles and the analytics of the receipts page. */
+        ReceiptStatsDto: {
+            /** @description The local days the numbers cover (yyyy-MM-dd). With no `from` / `to` in the request: the last 30 days up to today. */
+            from: string;
+            to: string;
+            /** Format: int32 */
+            validCount: number;
+            /** Format: int32 */
+            voidCount: number;
+            /** @description One entry per currency that sold something, biggest first. */
+            currencies: components["schemas"]["ReceiptCurrencyStatsDto"][];
+            /** @description Valid receipts per payment method, most used first. */
+            paymentMethods: components["schemas"]["ReceiptPaymentShareDto"][];
+        };
+        /** @description Why a receipt is being voided. */
+        ReceiptVoidRequest: {
+            /** @description Required, as the old void dialogs demanded it. It goes on the receipt and into the audit trail. */
+            reason: string;
+        };
         /** @description New order of the main screen: the ids of the display-order rows, first to last. */
         ReorderRequest: {
             ids: number[];
@@ -2109,6 +3368,23 @@ export interface components {
             unitPrice: number;
             /** Format: int32 */
             currencyId: number;
+        };
+        /** @description What undoing a sale did. Shared by cancelling an order and voiding a receipt. */
+        SaleReversalDto: {
+            /** @description False when the order had already been cancelled or returned: only the receipt was voided and stock and balances were left alone. */
+            orderCancelled: boolean;
+            /** Format: int32 */
+            receiptsVoided: number;
+            /**
+             * Format: int32
+             * @description Order lines whose quantity went back into stock.
+             */
+            stockLinesRestored: number;
+            /**
+             * Format: double
+             * @description Amount taken off the customer's account (0 unless the sale was on debt).
+             */
+            debtReversed: number;
         };
         /**
          * @description Everything the shell needs to draw itself, in one round trip: `GET /api/v1/session` on boot (and after
@@ -2190,6 +3466,234 @@ export interface components {
             widthMm: number;
             /** Format: int32 */
             heightMm: number;
+        };
+        /** @description Body of an adjustment. */
+        StockAdjustmentRequest: {
+            /** @description `add` or `remove`. */
+            type: string;
+            /**
+             * Format: double
+             * @description Units to add or remove, in the product's unit; decimals allowed (kg, litres).
+             */
+            quantity: number;
+            /** @description Why; kept in the audit trail. */
+            reason?: string | null;
+        };
+        /** @description What an adjustment did. */
+        StockAdjustmentResultDto: {
+            /** Format: double */
+            previousStock: number;
+            /** Format: double */
+            newStock: number;
+            item: components["schemas"]["InventoryItemDto"];
+        };
+        /** @description One product of the stock-value report. */
+        StockValueItemDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            categoryName?: string | null;
+            /** Format: double */
+            stockQuantity: number;
+            unit?: string | null;
+            /**
+             * Format: double
+             * @description Cost price, or the selling price when there is no cost.
+             */
+            unitCost: number;
+            /** Format: double */
+            stockValue: number;
+            /** @description Notation of the product's own currency. */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Share of the report's total value, 0 to 100.
+             */
+            valuePercent: number;
+        };
+        /** @description What every list endpoint returns. */
+        StockValueItemDtoPagedResult: {
+            items: components["schemas"]["StockValueItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description The stock-value report over active products. */
+        StockValueReportDto: {
+            /** Format: int32 */
+            totalProducts: number;
+            /** Format: double */
+            totalUnits: number;
+            /**
+             * Format: double
+             * @description Sum of every row's value, in the default currency's notation (no conversion, as before).
+             */
+            totalValue: number;
+            /** Format: double */
+            averageValue: number;
+            currencyNotation: string;
+            /** @description The eight categories with the most value (the old pie chart). A product with no category counts under an empty label. */
+            byCategory: components["schemas"]["StockValueSliceDto"][];
+            /** @description The ten most valuable products (the old bar chart). */
+            topProducts: components["schemas"]["StockValueSliceDto"][];
+            items: components["schemas"]["StockValueItemDtoPagedResult"];
+        };
+        /** @description One bar of the stock-value charts. An empty label stands for products with no category. */
+        StockValueSliceDto: {
+            label: string;
+            /** Format: double */
+            value: number;
+        };
+        /** @description One currency choice of the supplier form. */
+        SupplierCurrencyOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            notation: string;
+        };
+        /** @description One entry of a supplier's debt ledger, newest first. */
+        SupplierDebtEntryDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+            /** @description See Web.Api.Suppliers.Contracts.SupplierDebtKind. */
+            kind: string;
+            /**
+             * Format: double
+             * @description Signed: positive raised what the business owes, negative lowered it.
+             */
+            amount: number;
+            note?: string | null;
+            /** @description Who entered it. */
+            userName?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        SupplierDebtEntryDtoPagedResult: {
+            items: components["schemas"]["SupplierDebtEntryDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Body of a manual debt entry. */
+        SupplierDebtRequest: {
+            /** Format: double */
+            amount: number;
+            /** @description True: the business owes the supplier more (balance goes up). False: the business pays something off, or the supplier owes the business (balance goes down). */
+            iOweMore: boolean;
+            note?: string | null;
+        };
+        /** @description What a debt entry did. */
+        SupplierDebtResultDto: {
+            entry: components["schemas"]["SupplierDebtEntryDto"];
+            /**
+             * Format: double
+             * @description The supplier's balance after the entry.
+             */
+            balance: number;
+        };
+        /** @description One supplier, as the list and the details page show it. */
+        SupplierDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            email?: string | null;
+            phone?: string | null;
+            address?: string | null;
+            city?: string | null;
+            country?: string | null;
+            postalCode?: string | null;
+            /**
+             * Format: double
+             * @description Percent, 0 to 100.
+             */
+            discountRate: number;
+            isActive: boolean;
+            /** Format: int32 */
+            currencyId: number;
+            /** @description Name of the supplier's currency (`US Dollar`). */
+            currencyName?: string | null;
+            /** @description Short symbol of the supplier's currency (`$`); empty when the currency row is gone. */
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Positive: the business owes the supplier. Negative: the supplier owes the business. In the supplier's currency.
+             */
+            balance: number;
+            /**
+             * Format: int32
+             * @description Products that point at this supplier (deleted ones not counted).
+             */
+            productCount: number;
+        };
+        /** @description What every list endpoint returns. */
+        SupplierDtoPagedResult: {
+            items: components["schemas"]["SupplierDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description What the supplier form needs besides the supplier. */
+        SupplierOptionsDto: {
+            /** @description Active currencies. */
+            currencies: components["schemas"]["SupplierCurrencyOptionDto"][];
+            /**
+             * Format: int32
+             * @description The currency a new supplier starts with (the shop's default), or null when none is marked default.
+             */
+            defaultCurrencyId?: number | null;
+        };
+        /** @description Body of create and update. */
+        SupplierRequest: {
+            name: string;
+            /** Format: email */
+            email?: string | null;
+            /** Format: tel */
+            phone?: string | null;
+            address?: string | null;
+            city?: string | null;
+            country?: string | null;
+            postalCode?: string | null;
+            /** Format: double */
+            discountRate?: number;
+            /** Format: int32 */
+            currencyId: number;
+            isActive?: boolean;
+        };
+        /** @description The tiles above the suppliers list. */
+        SupplierSummaryDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            active: number;
+            /** Format: int32 */
+            inactive: number;
+            /**
+             * Format: int32
+             * @description Suppliers with a balance other than zero.
+             */
+            withBalance: number;
         };
         /** @description The end-of-day report of a closed session (what the Z report page prints). */
         ZReportDto: {
@@ -3425,6 +4929,1196 @@ export interface operations {
                 };
                 content: {
                     "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listCustomers: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getCustomerSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDetailsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listCustomerDebtTransactions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDebtTransactionDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addCustomerDebtTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CustomerDebtRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerDebtResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listInventory: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getInventorySummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventorySummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    adjustStock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                productId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StockAdjustmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockAdjustmentResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setMinimumStock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                productId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MinimumStockRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getLowStockReport: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LowStockReportDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getStockValueReport: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockValueReportDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printLowStockReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadLowStockReportPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printStockValueReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadStockValueReportPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOrders: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description 0 Pending ... 5 Returned; omitted = every status. */
+                status?: number;
+                /** @description Only the orders of this customer (the customer page's purchase history). */
+                customerId?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOrdersSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportOrders: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description 0 Pending ... 5 Returned; omitted = every status. */
+                status?: number;
+                /** @description Only the orders of this customer (the customer page's purchase history). */
+                customerId?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateOrderStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderStatusResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -5112,6 +7806,312 @@ export interface operations {
             };
         };
     };
+    listReceipts: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description `valid` or `void`; anything else = both. */
+                status?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceiptStats: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptStatsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    voidReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReceiptVoidRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleReversalDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getReceiptPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getSession: {
         parameters: {
             query?: never;
@@ -5145,6 +8145,510 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listSuppliers: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getSupplierSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getSupplierOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierOptionsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteSupplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listSupplierDebtTransactions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDebtEntryDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addSupplierDebtTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SupplierDebtRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDebtResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportSuppliers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
