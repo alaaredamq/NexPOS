@@ -2436,4 +2436,8 @@
   <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>أُغلقت هذه الجلسة بإصدار أقدم ولا تحتوي على إجماليات محفوظة، لذلك لا يمكن إنشاء تقرير Z.</value></data>
   <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>هذا العميل مدين لك بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
   <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>أنت مدين لهذا العميل بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
+  <data name="Inv_InsufficientStock" xml:space="preserve"><value>المخزون المتوفر {0} فقط، لذا لا يمكن إزالة {1}.</value></data>
+  <data name="Sup_HasBalance" xml:space="preserve"><value>يوجد رصيد مستحق بقيمة {0} مع هذا المورد. قم بتسويته قبل الحذف، أو عطّل المورد بدلاً من ذلك.</value></data>
+  <data name="Sup_InUse" xml:space="preserve"><value>لا يزال هذا المورد مرتبطاً بمنتجات (بما فيها المحذوفة المحتفظ بها لسجل المبيعات) أو بسجلات ديون، لذا لا يمكن حذفه. عطّله بدلاً من ذلك.</value></data>
+  <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>اختر عملة من القائمة.</value></data>
 </root>

@@ -2436,4 +2436,8 @@
   <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>This session was closed by an older version and has no stored totals, so no Z-Report can be produced.</value></data>
   <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>This customer owes you {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
   <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>You owe this customer {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
+  <data name="Inv_InsufficientStock" xml:space="preserve"><value>Only {0} in stock, so {1} cannot be removed.</value></data>
+  <data name="Sup_HasBalance" xml:space="preserve"><value>There is an outstanding balance of {0} with this supplier. Settle it before deleting, or deactivate the supplier instead.</value></data>
+  <data name="Sup_InUse" xml:space="preserve"><value>This supplier is still used by products (including deleted ones kept for sales history) or debt records, so it can't be removed. Deactivate it instead.</value></data>
+  <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>Choose a currency from the list.</value></data>
 </root>
