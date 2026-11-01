@@ -58,10 +58,10 @@ export default function InventoryPage() {
         </span>
       ),
     },
-    { key: 'minimum', header: t('MinStock'), sortable: true, align: 'center', hideBelow: 1100, cell: (p) => formatQty(p.minimumStock ?? 0) },
-    { key: 'maximum', header: t('MaxStock'), sortable: true, align: 'center', hideBelow: 1300, cell: (p) => formatQty(p.maximumStock ?? 0) },
-    { key: 'cost', header: t('CostPrice'), sortable: true, align: 'end', hideBelow: 1200, cell: (p) => formatMoney(p.costPrice ?? 0, p.currencyNotation) },
-    { key: 'price', header: t('SellingPrice'), sortable: true, align: 'end', hideBelow: 1000, cell: (p) => formatMoney(p.sellingPrice, p.currencyNotation) },
+    { key: 'minimum', header: t('MinStock'), sortable: true, align: 'center', hideBelow: 1000, cell: (p) => formatQty(p.minimumStock ?? 0) },
+    { key: 'maximum', header: t('MaxStock'), sortable: true, align: 'center', hideBelow: 1600, cell: (p) => formatQty(p.maximumStock ?? 0) },
+    { key: 'cost', header: t('CostPrice'), sortable: true, align: 'end', hideBelow: 1500, cell: (p) => formatMoney(p.costPrice ?? 0, p.currencyNotation) },
+    { key: 'price', header: t('SellingPrice'), sortable: true, align: 'end', hideBelow: 1100, cell: (p) => formatMoney(p.sellingPrice, p.currencyNotation) },
     { key: 'value', header: t('StockValue'), sortable: true, align: 'end', cell: (p) => formatMoney(p.stockValue, p.currencyNotation) },
     {
       key: 'status',

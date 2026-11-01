@@ -323,7 +323,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
-| C3 | Inventory + Suppliers | G0 | M–L | ◐ in progress | Claude · `react/C3` | |
+| C3 | Inventory + Suppliers | G0 | M–L | ◑ in review | Claude · `react/C3` | [C3.md](docs/react-migration/notes/C3.md) |
 | S1 | Orders + Receipts | G0 | L | ☐ todo | | |
 | S2 | Cash drawer | G0 | M | ☐ todo | | |
 | S3 | Customers + debt | G0 | M | ☐ todo | | |
@@ -340,6 +340,7 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 
 **Core change log** (post-G0 edits to frozen paths — one line each: date · ID · file · why):
 
+- 2026-11-01 · C3 · none (no frozen path edited; `Core/Auditing/AuditActions.cs` gained `StockAdjusted`, `SharedResource.*.resx` gained 4 `Inv_`/`Sup_` keys)
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)

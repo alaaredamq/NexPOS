@@ -321,11 +321,9 @@ public sealed class SuppliersApiTests : CatalogApiTestBase
         await AssertProblem(await admin.SendAsync(Json(HttpMethod.Delete, $"/api/v1/suppliers/{owing}")), HttpStatusCode.Conflict, "supplier_has_balance");
         Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync($"/api/v1/suppliers/{owed}")).StatusCode);
 
-        // Settled: the ledger still exists, so the row is kept for history and the delete is refused for that reason instead.
+        // Settled to zero: the supplier is soft-deleted (its ledger rows stay for history), so the delete goes through.
         await AddDebt(admin, owed, 10, false);
-        var afterSettling = await admin.SendAsync(Json(HttpMethod.Delete, $"/api/v1/suppliers/{owed}"));
-        Assert.True(afterSettling.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.Conflict);
-        if (afterSettling.StatusCode == HttpStatusCode.Conflict) Assert.Equal("supplier_in_use", (await Body(afterSettling)).GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.SendAsync(Json(HttpMethod.Delete, $"/api/v1/suppliers/{owed}"))).StatusCode);
     }
 
     [Fact]

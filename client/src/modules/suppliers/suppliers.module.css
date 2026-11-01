@@ -74,6 +74,7 @@
 
 /* Positive: the business owes the supplier (red). Negative: the supplier owes the business (green). */
 .balance {
+  white-space: nowrap;
   font-weight: 700;
 }
 

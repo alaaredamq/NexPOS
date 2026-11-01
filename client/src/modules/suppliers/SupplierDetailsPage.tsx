@@ -8,7 +8,7 @@ import { NotFoundPage } from '@/shell/pages/pages'
 import { Button } from '@/ui/Button'
 import { confirm } from '@/ui/confirm'
 import { DataTable, type Column } from '@/ui/DataTable'
-import { formatDateTime, formatMoney, formatNumber, formatPercent } from '@/ui/format'
+import { formatDateTime, formatMoney, formatNumber, formatPercent, ltrIsolate } from '@/ui/format'
 import { Loader } from '@/ui/Loader'
 import { PageHeader } from '@/ui/PageHeader'
 import { Pagination } from '@/ui/Pagination'
@@ -87,8 +87,7 @@ export default function SupplierDetailsPage() {
       align: 'end',
       cell: (e) => (
         <span className={styles.balance} data-sign={e.amount > 0 ? 'owe' : 'owed'}>
-          {e.amount > 0 ? '+' : ''}
-          {money(e.amount)}
+          {ltrIsolate(`${e.amount > 0 ? '+' : ''}${money(e.amount)}`)}
         </span>
       ),
     },

@@ -264,7 +264,7 @@ public sealed class InventoryApiTests : CatalogApiTestBase
 
         var report = await Body(await admin.GetAsync("/api/v1/inventory/reports/low-stock?pageSize=200"));
         var items = report.GetProperty("items").GetProperty("items").EnumerateArray().ToList();
-        var byName = items.ToDictionary(i => i.GetProperty("name").GetString()!);
+        var byName = items.GroupBy(i => i.GetProperty("name").GetString()!).ToDictionary(g => g.Key, g => g.First()); // other tests leave same-named products behind
 
         Assert.False(byName.ContainsKey(fine));
         Assert.Equal("critical", byName[critical].GetProperty("priority").GetString());
