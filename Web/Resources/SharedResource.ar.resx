@@ -2429,4 +2429,9 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>لم يتم رفع أي ملف.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>حجم الملف أكبر من 10 ميغابايت.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>تعذّر إنشاء الملصق.</value></data>
+  <data name="Drawer_AlreadyOpen" xml:space="preserve"><value>لديك جلسة صندوق نقدي مفتوحة بالفعل.</value></data>
+  <data name="Drawer_SessionNotFound" xml:space="preserve"><value>لم يتم العثور على جلسة الصندوق.</value></data>
+  <data name="Drawer_SessionClosed" xml:space="preserve"><value>جلسة الصندوق مغلقة بالفعل.</value></data>
+  <data name="Drawer_SessionStillOpen" xml:space="preserve"><value>تقرير Z متاح فقط بعد إغلاق الجلسة.</value></data>
+  <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>أُغلقت هذه الجلسة بإصدار أقدم ولا تحتوي على إجماليات محفوظة، لذلك لا يمكن إنشاء تقرير Z.</value></data>
 </root>

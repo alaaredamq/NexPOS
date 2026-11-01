@@ -96,6 +96,159 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cash-drawer/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in user's drawer: open or not, and the open session with its running figures. */
+        get: operations["getCurrentDrawer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opens the signed-in user's drawer with a starting float. 409 `drawer_already_open` when one is open. */
+        post: operations["openDrawer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The user's own sessions, newest first. `from` / `to` are local dates (`2026-11-01`) and include both days. */
+        get: operations["listDrawerSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One session with its figures and cash drops (any user's, as the Razor close and Z report pages allowed). */
+        get: operations["getDrawerSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Closes a session against the counted cash. The difference to the expected cash is stored with it. */
+        post: operations["closeDrawerSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}/drops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes cash out of an open session. */
+        post: operations["addCashDrop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}/z-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Z report of a closed session. 409 `session_still_open` while it is open. */
+        get: operations["getZReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}/z-report/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends the Z report to the receipt printer. Never fails because of the printer: `printed: false` comes with a message and the PDF link. */
+        post: operations["printZReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cash-drawer/sessions/{id}/z-report.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Z report as an A4 PDF. */
+        get: operations["getZReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/categories": {
         parameters: {
             query?: never;
@@ -846,6 +999,24 @@ export interface components {
             markUrl: string;
             faviconUrl: string;
         };
+        CashDropDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: double */
+            amount: number;
+            /** Format: date-time */
+            droppedAt: string;
+            reason?: string | null;
+            notes?: string | null;
+        };
+        /** @description Takes cash out of an open drawer (to the safe or the bank). */
+        CashDropRequest: {
+            /** Format: double */
+            amount?: number;
+            /** @description Free text; the page offers Safe Deposit, Bank Deposit, Excess Cash and Other. */
+            reason?: string | null;
+            notes?: string | null;
+        };
         /** @description A category with its products (first 20) and stock figures, for the details page. */
         CategoryDetailsDto: {
             category: components["schemas"]["CategoryDto"];
@@ -935,11 +1106,28 @@ export interface components {
              */
             products: number;
         };
+        /** @description Closes a session against what was counted. */
+        CloseDrawerRequest: {
+            /**
+             * Format: double
+             * @description The cash counted in the drawer; 0 is allowed (everything was dropped).
+             */
+            actualCash?: number;
+            notes?: string | null;
+        };
         CurrencyOptionDto: {
             /** Format: int32 */
             id: number;
             code: string;
             notation: string;
+        };
+        /**
+         * @description The drawer page's first load: whether the signed-in user has an open session and, if so, the session with its running figures.
+         *     Web.Api.CashDrawer.Contracts.CurrentDrawerDto.Status has the shape of `session.drawer` in the bootstrap payload, so the shell chip and the till can read either.
+         */
+        CurrentDrawerDto: {
+            status: components["schemas"]["DrawerStatusDto"];
+            session?: components["schemas"]["DrawerSessionDto"];
         };
         /** @description The products shown on the POS main screen, in order, with the tiles above the table. */
         DisplayOrderDto: {
@@ -982,6 +1170,89 @@ export interface components {
             /** Format: double */
             stockQuantity: number;
             isLowStock: boolean;
+        };
+        /** @description One line of the session history (the signed-in user's own sessions). Figures are what was stored at closing, so an open session has none. */
+        DrawerHistoryRowDto: {
+            /** Format: int32 */
+            id: number;
+            isOpen: boolean;
+            /** Format: date-time */
+            openedAt: string;
+            /** Format: date-time */
+            closedAt?: string | null;
+            /** Format: double */
+            openingCash: number;
+            /**
+             * Format: double
+             * @description The count entered at closing.
+             */
+            closingCash?: number | null;
+            /** Format: double */
+            totalSales?: number | null;
+            /** Format: int32 */
+            totalTransactions?: number | null;
+            /**
+             * Format: double
+             * @description Actual - expected; positive is a surplus.
+             */
+            cashDifference?: number | null;
+        };
+        /** @description What every list endpoint returns. */
+        DrawerHistoryRowDtoPagedResult: {
+            items: components["schemas"]["DrawerHistoryRowDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description A drawer session (a shift). Open ones carry the running figures; closed ones what was stored when they were closed. */
+        DrawerSessionDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            userId: number;
+            cashierName: string;
+            isOpen: boolean;
+            /** Format: date-time */
+            openedAt: string;
+            /** Format: date-time */
+            closedAt?: string | null;
+            /** Format: double */
+            openingCash: number;
+            /**
+             * Format: double
+             * @description Opening cash + sales - cash drops. For a closed session, the figure it was closed against.
+             */
+            expectedCash: number;
+            /**
+             * Format: double
+             * @description What the cashier counted at closing; null while open.
+             */
+            actualCash?: number | null;
+            /**
+             * Format: double
+             * @description Actual - expected: positive is a surplus, negative a shortage. Null while open.
+             */
+            cashDifference?: number | null;
+            /** Format: double */
+            totalSales: number;
+            /** Format: int32 */
+            totalTransactions: number;
+            /** Format: double */
+            totalDiscounts: number;
+            /** Format: double */
+            totalAdjustments: number;
+            /** Format: double */
+            totalCashDrops: number;
+            openingNotes?: string | null;
+            closingNotes?: string | null;
+            /** @description The session's cash drops, oldest first. */
+            cashDrops: components["schemas"]["CashDropDto"][];
         };
         DrawerStatusDto: {
             isOpen: boolean;
@@ -1085,6 +1356,15 @@ export interface components {
             /** @description Already localized for this response. */
             label: string;
             items: components["schemas"]["NavItemDto"][];
+        };
+        /** @description Opens the signed-in user's drawer. */
+        OpenDrawerRequest: {
+            /**
+             * Format: double
+             * @description The starting float counted into the drawer; 0 is allowed.
+             */
+            openingCash?: number;
+            notes?: string | null;
         };
         PosCartInput: {
             /**
@@ -1911,6 +2191,70 @@ export interface components {
             /** Format: int32 */
             heightMm: number;
         };
+        /** @description The end-of-day report of a closed session (what the Z report page prints). */
+        ZReportDto: {
+            /** Format: int32 */
+            sessionId: number;
+            cashierName: string;
+            /** Format: date-time */
+            openedAt: string;
+            /** Format: date-time */
+            closedAt: string;
+            /** Format: double */
+            openingCash: number;
+            /** Format: int32 */
+            totalTransactions: number;
+            /** Format: double */
+            totalSales: number;
+            /** Format: double */
+            totalDiscounts: number;
+            /** Format: double */
+            totalAdjustments: number;
+            /**
+             * Format: double
+             * @description Gross sales minus discounts.
+             */
+            netSales: number;
+            /** Format: double */
+            cashSales: number;
+            /** Format: double */
+            cardSales: number;
+            /** Format: double */
+            otherPayments: number;
+            /** Format: double */
+            totalCashDrops: number;
+            /** Format: int32 */
+            cashDropCount: number;
+            /** Format: double */
+            expectedCash: number;
+            /** Format: double */
+            actualCash: number;
+            /** Format: double */
+            cashDifference: number;
+            cashDrops: components["schemas"]["CashDropDto"][];
+            orders: components["schemas"]["ZReportOrderDto"][];
+        };
+        ZReportOrderDto: {
+            /** Format: int32 */
+            orderId: number;
+            /** @description `ORD-000123`. */
+            orderNumber: string;
+            /** Format: date-time */
+            orderDate: string;
+            /** @description The customer's name; empty for a walk-in (the page says "Walk-in"). */
+            customerName: string;
+            /** Format: double */
+            totalAmount: number;
+            paymentMethod: string;
+        };
+        /** @description Outcome of sending the Z report to the receipt printer. Printing never fails the request: offer Web.Api.CashDrawer.Contracts.ZReportPrintResultDto.PdfUrl when Web.Api.CashDrawer.Contracts.ZReportPrintResultDto.Printed is false. */
+        ZReportPrintResultDto: {
+            printed: boolean;
+            /** @description Localized message for the toast. */
+            message: string;
+            /** @description Relative URL of the PDF version (`GET`, same cookie). */
+            pdfUrl: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2218,6 +2562,524 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getCurrentDrawer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentDrawerDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    openDrawer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OpenDrawerRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrawerSessionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listDrawerSessions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrawerHistoryRowDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getDrawerSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrawerSessionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    closeDrawerSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CloseDrawerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DrawerSessionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addCashDrop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CashDropRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashDropDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getZReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZReportDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printZReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ZReportPrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getZReportPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

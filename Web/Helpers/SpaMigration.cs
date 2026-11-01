@@ -17,6 +17,7 @@ public static class SpaMigration
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             // ["Orders"] = "/app/orders",
+            ["CashDrawer"] = "/app/cash-drawer",
             ["Products"] = "/app/products",
             ["Categories"] = "/app/categories",
             ["ProductDisplayOrder"] = "/app/product-display-order",
