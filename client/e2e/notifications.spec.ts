@@ -59,10 +59,8 @@ test('notifications: the bell shows the news, the page works them, and a cashier
 
   // The Arabic page flips to RTL.
   // (what choosing Arabic does: the stored choice and the cookie the old pages share)
-  await admin.evaluate(() => {
-    localStorage.setItem('nexpos.lang', 'ar')
-    document.cookie = 'nexpos.lang=ar; path=/'
-  })
+  await admin.evaluate(() => localStorage.setItem('nexpos.lang', 'ar'))
+  await admin.context().addCookies([{ name: 'nexpos.lang', value: 'ar', url: admin.url() }])
   await admin.reload()
   await expect(admin.locator('html')).toHaveAttribute('dir', 'rtl')
   await expect(main.getByRole('heading', { name: 'الإشعارات والتنبيهات' })).toBeVisible()
