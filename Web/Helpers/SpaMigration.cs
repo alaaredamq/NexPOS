@@ -16,10 +16,11 @@ public static class SpaMigration
     public static IReadOnlyDictionary<string, string> Migrated { get; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            // ["Orders"] = "/app/orders",
+            ["Orders"] = "/app/orders",
             ["Products"] = "/app/products",
             ["Categories"] = "/app/categories",
             ["ProductDisplayOrder"] = "/app/product-display-order",
+            ["Receipts"] = "/app/receipts",
         };
 
     public static bool IsMigrated(string controller) => Migrated.ContainsKey(controller);
