@@ -1,0 +1,170 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 700px) {
+  .tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  min-inline-size: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.search {
+  flex: 1 1 200px;
+  min-inline-size: 160px;
+  max-inline-size: 320px;
+}
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+.textLink {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  padding: var(--space-2);
+}
+
+.textLink:hover {
+  text-decoration: underline;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.row:last-child {
+  border-block-end: 0;
+}
+
+.row[data-unread='true'] {
+  background: var(--color-info-bg);
+}
+
+.dot {
+  --tone: var(--color-info);
+  flex: none;
+  inline-size: 10px;
+  block-size: 10px;
+  margin-block-start: 6px;
+  border-radius: 50%;
+  background: var(--tone);
+}
+
+.row[data-unread='false'] .dot {
+  background: var(--color-border);
+}
+
+.row[data-kind='lowStock'] .dot,
+.row[data-kind='warning'] .dot {
+  --tone: var(--color-warning);
+}
+
+.row[data-kind='outOfStock'] .dot,
+.row[data-kind='error'] .dot,
+.row[data-kind='paymentFailed'] .dot,
+.row[data-kind='systemError'] .dot,
+.row[data-kind='backupFailed'] .dot,
+.row[data-kind='securityBreach'] .dot,
+.row[data-kind='expiredProduct'] .dot {
+  --tone: var(--color-danger);
+}
+
+.row[data-kind='success'] .dot {
+  --tone: var(--color-success);
+}
+
+.body {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.link {
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--color-primary);
+}
+
+.message {
+  margin: 2px 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.time {
+  color: var(--color-faint);
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-1);
+  flex: none;
+}
+
+.empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--color-faint);
+}
+
+.footer {
+  padding: var(--space-3) var(--space-4);
+  border-block-start: 1px solid var(--color-border);
+}

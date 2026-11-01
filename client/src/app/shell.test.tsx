@@ -131,7 +131,8 @@ describe('shell', () => {
     expect(screen.getByText('Sara Cashier')).toBeInTheDocument()
     expect(screen.getByText('Cashier')).toBeInTheDocument()
     expect(screen.getByText(/Drawer open/)).toHaveTextContent('100.00')
-    expect(screen.getByRole('link', { name: /Notifications \(3 unread\)/ })).toHaveAttribute('href', '/en/Notifications')
+    // The bell is a dropdown now (I2); until the feed answers its badge shows the session's count.
+    expect(screen.getByRole('button', { name: /Notifications \(3 unread\)/ })).toBeInTheDocument()
   })
 
   it('hides the drawer chip for people who cannot use a drawer', async () => {
