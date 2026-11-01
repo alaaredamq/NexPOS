@@ -4,6 +4,98 @@
  */
 
 export interface paths {
+    "/api/v1/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of entries, newest first (`dir=asc` for oldest first - the only sort there is, so `sort` may be left out
+         *     or be `time`). `q` is free text matched against the description, record label, user, action, record type, path,
+         *     IP address and request id. Every other filter is optional and they combine with AND.
+         */
+        get: operations["listAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit-logs/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Headline numbers for the tiles (the whole log, not the current filter). */
+        get: operations["getAuditLogSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit-logs/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The users, record types and actions that appear in the log - the contents of the filter drop-downs. */
+        get: operations["getAuditLogOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everything about one entry: who, what, where, the field-by-field changes and the raw details. */
+        get: operations["getAuditLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit-logs/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The matching entries as a CSV download (up to 100,000 rows, streamed as they are read). Takes the same filters as the list;
+         *     `dir` and `q` work as there, `page`, `pageSize` and `sort` are ignored. The export itself is audited.
+         */
+        get: operations["exportAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/sign-in-options": {
         parameters: {
             query?: never;
@@ -1557,6 +1649,124 @@ export interface components {
             errors?: {
                 [key: string]: string[];
             } | null;
+        };
+        /** @description One field of a record that changed. A create has only Web.Api.AuditLogs.Contracts.AuditFieldChangeDto.NewValue, a delete only Web.Api.AuditLogs.Contracts.AuditFieldChangeDto.OldValue. */
+        AuditFieldChangeDto: {
+            field: string;
+            oldValue?: string | null;
+            newValue?: string | null;
+        };
+        /** @description An entry with everything the details drawer shows. */
+        AuditLogDetailsDto: {
+            entry: components["schemas"]["AuditLogDto"];
+            /** @description Field-by-field changes (updates), the saved values (creates) or the removed values (deletes). Empty for requests, sign-ins and the like. */
+            changes: components["schemas"]["AuditFieldChangeDto"][];
+            /** @description Request parameters, exception text and so on, as pretty-printed JSON. Null when there is none. */
+            additional?: string | null;
+            ipAddress?: string | null;
+            userAgent?: string | null;
+            /** @description The computer the entry was written on. */
+            machine?: string | null;
+            appVersion?: string | null;
+            /** @description Groups every row one HTTP request produced (the "Request ID" the error page shows). */
+            correlationId?: string | null;
+            /** @description `Web` for user-driven work, `System:job` for background work. */
+            source?: string | null;
+            httpMethod?: string | null;
+            path?: string | null;
+            /**
+             * Format: int32
+             * @description Rows in total that belong to the same request, this one included (1 when it has no request id).
+             */
+            rowsInSameRequest: number;
+        };
+        /** @description One row of the audit log table. */
+        AuditLogDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description When it happened (UTC).
+             */
+            time: string;
+            /**
+             * Format: int32
+             * @description Null when nobody was signed in, and for actors that only exist as a name (see Web.Api.AuditLogs.Contracts.AuditLogDto.User).
+             */
+            userId?: number | null;
+            /** @description The acting user's name at the time; `System` for background work. Null when nobody was signed in. */
+            user?: string | null;
+            role?: string | null;
+            /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
+            category: string;
+            /** @description Verb or event name, e.g. `Update`, `Login`, `POST Api.Pos/Checkout`. */
+            action: string;
+            /** @description The table for data changes, otherwise the subsystem (`Http`, `Auth`, `Backup` ...). */
+            entityType: string;
+            /** Format: int32 */
+            entityId?: number | null;
+            /** @description Display name of the record at the time (product name, receipt number ...). */
+            label?: string | null;
+            /** @description One sentence describing the event. Whatever language it was written in; users typed parts of it. */
+            description?: string | null;
+            /** @description `Success`, `Failure` or `Denied`. */
+            outcome: string;
+            /** @description `Info`, `Warning`, `Error` or `Critical`. */
+            severity: string;
+            /**
+             * Format: int32
+             * @description HTTP status of the request, when the entry belongs to one.
+             */
+            statusCode?: number | null;
+            /** Format: int32 */
+            durationMs?: number | null;
+        };
+        /** @description What every list endpoint returns. */
+        AuditLogDtoPagedResult: {
+            items: components["schemas"]["AuditLogDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description The distinct values that fill the filter drop-downs. */
+        AuditLogOptionsDto: {
+            users: components["schemas"]["AuditUserOptionDto"][];
+            entityTypes: string[];
+            actions: string[];
+        };
+        /** @description The four tiles above the table. Counts cover the whole log, not the current filter. */
+        AuditLogStatsDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            last24Hours: number;
+            /**
+             * Format: int32
+             * @description Failed and denied entries in the last 24 hours.
+             */
+            failures24Hours: number;
+            /** Format: int32 */
+            security24Hours: number;
+            /**
+             * Format: date-time
+             * @description Time of the oldest entry (UTC); null when the log is empty.
+             */
+            oldestUtc?: string | null;
+        };
+        /** @description A user (or an actor that only exists as a name) that appears in the log. */
+        AuditUserOptionDto: {
+            /**
+             * Format: int32
+             * @description Null for actors without an account: `System`, or the name typed into a failed sign-in. Filter those with `username`.
+             */
+            userId?: number | null;
+            username: string;
         };
         AvailableProductDto: {
             /** Format: int32 */
@@ -3768,6 +3978,278 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    listAuditLogs: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description Entries at or after this instant (ISO-8601; the page converts its local pickers to UTC). */
+                from?: string;
+                /** @description Entries before this instant (exclusive). */
+                to?: string;
+                userId?: number;
+                /** @description For actors that only exist as a name: `System`, or the name typed into a failed sign-in. */
+                username?: string;
+                /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
+                category?: string;
+                /** @description `Success`, `Failure` or `Denied`. */
+                outcome?: string;
+                /** @description Only entries at this severity or worse: `Warning`, `Error` or `Critical`. */
+                minSeverity?: string;
+                entityType?: string;
+                entityId?: number;
+                action?: string;
+                /** @description Everything one HTTP request wrote (the "Request ID"). */
+                correlationId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogDtoPagedResult"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getAuditLogSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogStatsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getAuditLogOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogOptionsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getAuditLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogDetailsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportAuditLogs: {
+        parameters: {
+            query?: {
+                /** @description Entries at or after this instant (ISO-8601; the page converts its local pickers to UTC). */
+                from?: string;
+                /** @description Entries before this instant (exclusive). */
+                to?: string;
+                userId?: number;
+                /** @description For actors that only exist as a name: `System`, or the name typed into a failed sign-in. */
+                username?: string;
+                /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
+                category?: string;
+                /** @description `Success`, `Failure` or `Denied`. */
+                outcome?: string;
+                /** @description Only entries at this severity or worse: `Warning`, `Error` or `Critical`. */
+                minSeverity?: string;
+                entityType?: string;
+                entityId?: number;
+                action?: string;
+                /** @description Everything one HTTP request wrote (the "Request ID"). */
+                correlationId?: string;
+                q?: string;
+                dir?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getSignInOptions: {
         parameters: {
             query?: never;
