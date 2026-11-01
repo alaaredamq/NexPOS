@@ -2399,4 +2399,25 @@
   <data name="Api_InternalError" xml:space="preserve"><value>An unexpected error occurred. Please try again or contact support.</value></data>
   <data name="Api_BadRequest" xml:space="preserve"><value>The request could not be understood.</value></data>
   <data name="Api_InvalidValue" xml:space="preserve"><value>This value is not valid.</value></data>
+  <data name="Pos_CartEmpty" xml:space="preserve"><value>The cart is empty.</value></data>
+  <data name="Pos_CartNotFound" xml:space="preserve"><value>That held cart was not found.</value></data>
+  <data name="Pos_CurrencyNotFound" xml:space="preserve"><value>The currency was not found or is switched off.</value></data>
+  <data name="Pos_CustomerNotFound" xml:space="preserve"><value>That customer no longer exists. Please select a customer again.</value></data>
+  <data name="Pos_DebtRequiresCustomer" xml:space="preserve"><value>Select a customer to add this sale to their debt.</value></data>
+  <data name="Pos_DiscountExceedsSubtotal" xml:space="preserve"><value>The discount cannot be more than the sale total.</value></data>
+  <data name="Pos_DrawerNotOpen" xml:space="preserve"><value>Open your cash drawer before selling.</value></data>
+  <data name="Pos_DuplicateProduct" xml:space="preserve"><value>The product {0} is on more than one line. Combine the quantities into one line.</value></data>
+  <data name="Pos_IdempotencyKeyReused" xml:space="preserve"><value>This checkout key was already used for a different cart. Start the checkout again.</value></data>
+  <data name="Pos_InvalidAmount" xml:space="preserve"><value>The weight or volume must be greater than zero.</value></data>
+  <data name="Pos_InvalidDiscountAmount" xml:space="preserve"><value>The discount amount cannot be negative.</value></data>
+  <data name="Pos_InvalidDiscountPercentage" xml:space="preserve"><value>The discount percentage must be between 0 and 100.</value></data>
+  <data name="Pos_NameTooShort" xml:space="preserve"><value>Enter at least 2 letters.</value></data>
+  <data name="Pos_OrderNotFound" xml:space="preserve"><value>That sale was not found.</value></data>
+  <data name="Pos_PaymentMethodInvalid" xml:space="preserve"><value>Select a payment method.</value></data>
+  <data name="Pos_PriceBelowMinimum" xml:space="preserve"><value>The price {1} for {0} is below the minimum of {2}.</value></data>
+  <data name="Pos_PriceNotAvailable" xml:space="preserve"><value>The selected price is not available for {0}.</value></data>
+  <data name="Pos_PrintFailed" xml:space="preserve"><value>Could not print. Check that the receipt printer is connected and selected in Settings &gt; Printers.</value></data>
+  <data name="Pos_PrintOk" xml:space="preserve"><value>Sent to the receipt printer</value></data>
+  <data name="Pos_ProductNotFound" xml:space="preserve"><value>Product {0} was not found.</value></data>
+  <data name="Pos_TotalMismatch" xml:space="preserve"><value>The total {0} differs from the calculated total {1} by more than the allowed rounding adjustment ({2}).</value></data>
 </root>

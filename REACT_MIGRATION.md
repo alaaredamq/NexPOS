@@ -317,7 +317,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | 0F | Serving + build + Electron | 0B | M | ☑ done | Claude · `react/0F` | [0F.md](docs/react-migration/notes/0F.md) |
 | 0D | App shell | 0A, 0C | L | ☑ done | Claude · `react/0D` | [0D.md](docs/react-migration/notes/0D.md) |
 | **G0** | **Gate: foundation done** | 0A–0F | | ☑ 2026-10-31 | | |
-| P1 | POS API + contract | G0 | L | ☐ todo | | |
+| P1 | POS API + contract | G0 | L | ◑ in review | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☐ todo | | |
 | P3 | POS cart / pricing | G0, P1 DTOs | L | ☐ todo | | |
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
@@ -359,5 +359,5 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 1. Does `ViewRenderService` render Razor to HTML for print/PDF? (Blocks deleting views in Z.) → check in 0A. **Resolved (0A): no - registered but never injected; safe to delete.**
 2. What do `electron-preload.js` / `nexprint.js` expose (silent print, zoom)? → 0F.
 3. ~~How does `localization.js` format numbers/dates for Arabic (Eastern digits?)~~ → **answered by 0E**: Western digits everywhere (`en-US` in the old JS; .NET never substitutes digits); no pluralisation. See `docs/react-migration/notes/0E.md`.
-4. Two `TaxService`/`Tax` entities exist (`Core/Entities/Products/Tax.cs` and `Sales/Tax.cs`; `ITaxService` in both Products and Sales) — which is live? → A3, but P1 needs the answer on day one for pricing.
-5. Are there tests covering `POSCheckoutService` today? (`Tests/Services`) → P1 to extend, not rewrite.
+4. Two `TaxService`/`Tax` entities exist (`Core/Entities/Products/Tax.cs` and `Sales/Tax.cs`; `ITaxService` in both Products and Sales) — which is live? → A3, but P1 needs the answer on day one for pricing. **Answered by P1: neither affects the till; `POSCheckoutService` hard-codes `taxAmount = 0`. Which one A3 keeps is still open.**
+5. Are there tests covering `POSCheckoutService` today? (`Tests/Services`) → P1 to extend, not rewrite. **Answered by P1: none (only `DiscountDisplayTests` touches the discount maths); `Tests/Api/Pos/` now covers checkout end to end.**

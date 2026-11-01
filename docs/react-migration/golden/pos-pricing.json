@@ -1,0 +1,28 @@
+{
+  "about": "Golden cases of the till's price arithmetic (track P1). The C# test Tests/Api/Pos/PosPricingGoldenTests.cs runs them against PosPricingMath; P3's Vitest must produce the very same numbers. Rounding is Math.Round(x, 2) = banker's rounding (midpoint goes to the even neighbour), exactly like the old POS ConvertPrice endpoint. Rates are 'units of the currency per 1 USD'. Conversion is amount / fromRate * toRate; same currency is left untouched (not rounded).",
+  "unitPrice": [
+    { "name": "same currency is untouched",            "price": "3.2",    "fromRate": "1",     "toRate": "1",     "sameCurrency": true,  "expected": "3.2" },
+    { "name": "same currency keeps 4 decimals",        "price": "2.5555", "fromRate": "1",     "toRate": "1",     "sameCurrency": true,  "expected": "2.5555" },
+    { "name": "USD to EUR",                            "price": "3.2",    "fromRate": "1",     "toRate": "1.1",   "sameCurrency": false, "expected": "3.52" },
+    { "name": "USD to LBP",                            "price": "3.2",    "fromRate": "1",     "toRate": "89500", "sameCurrency": false, "expected": "286400" },
+    { "name": "EUR back to USD",                       "price": "3.52",   "fromRate": "1.1",   "toRate": "1",     "sameCurrency": false, "expected": "3.2" },
+    { "name": "LBP to USD",                            "price": "286400", "fromRate": "89500", "toRate": "1",     "sameCurrency": false, "expected": "3.2" },
+    { "name": "midpoint 0.275 goes to the even 0.28",  "price": "0.25",   "fromRate": "1",     "toRate": "1.1",   "sameCurrency": false, "expected": "0.28" },
+    { "name": "midpoint 0.165 goes to the even 0.16",  "price": "0.15",   "fromRate": "1",     "toRate": "1.1",   "sameCurrency": false, "expected": "0.16" },
+    { "name": "EUR to LBP rounds to cents",            "price": "10",     "fromRate": "1.1",   "toRate": "89500", "sameCurrency": false, "expected": "813636.36" }
+  ],
+  "lineTotal": [
+    { "name": "pieces",                                     "unitPrice": "3.2",  "quantity": 3, "weightOrVolume": null,   "expected": "9.6" },
+    { "name": "weight replaces the quantity",               "unitPrice": "11.5", "quantity": 1, "weightOrVolume": "0.75", "expected": "8.625" },
+    { "name": "weight wins even when the quantity is 4",    "unitPrice": "1.9",  "quantity": 4, "weightOrVolume": "0.5",  "expected": "0.95" },
+    { "name": "line totals are not rounded",                "unitPrice": "5.55", "quantity": 1, "weightOrVolume": "0.3333", "expected": "1.849815" }
+  ],
+  "discount": [
+    { "name": "no discount",                     "subtotal": "18.225", "amount": null,   "percentage": null, "expectedAmount": "0",      "expectedTotal": "18.22" },
+    { "name": "percentage of the subtotal",      "subtotal": "18.225", "amount": null,   "percentage": "10", "expectedAmount": "1.8225", "expectedTotal": "16.4" },
+    { "name": "percentage wins over an amount",  "subtotal": "100",    "amount": "50",   "percentage": "10", "expectedAmount": "10",     "expectedTotal": "90" },
+    { "name": "flat amount",                     "subtotal": "100",    "amount": "12.5", "percentage": null, "expectedAmount": "12.5",   "expectedTotal": "87.5" },
+    { "name": "total midpoint 0.005 -> even",    "subtotal": "0.005",  "amount": null,   "percentage": null, "expectedAmount": "0",      "expectedTotal": "0" },
+    { "name": "total midpoint 0.015 -> even",    "subtotal": "0.015",  "amount": null,   "percentage": null, "expectedAmount": "0",      "expectedTotal": "0.02" }
+  ]
+}

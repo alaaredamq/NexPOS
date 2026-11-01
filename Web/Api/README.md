@@ -77,6 +77,11 @@ public sealed class CashDrawerController : ApiControllerBase   // signed-in user
 Existing `[RequirePermission]` / `[RequireRole]` attributes work unchanged: for any `/api/*` request they answer 401 / 403 JSON instead of
 redirecting to the login / access-denied page. The cookie challenge does the same for `[Authorize]`.
 
+## The point of sale (track P1)
+
+`Web/Api/Pos/` (`api/v1/pos/*`) and `Web/Api/Carts/` (`api/v1/carts`). Business refusals are a `PosRuleException` (status + stable `code` + a `SharedResource` key), turned into problem JSON by
+`PosControllerBase`: inherit it instead of `ApiControllerBase` when a service has rules to refuse with. Contract, rounding rules and error codes: `docs/react-migration/notes/P1.md`.
+
 ## Contract and generated types
 
 `npm run api:types` (in `client/`; add `-- --no-build` to reuse the last build of `Web`) runs `Web.exe --dump-api-contract <tmp>`, which builds the
