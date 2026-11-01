@@ -2444,4 +2444,6 @@
   <data name="Sales_OrderClosed" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع بالفعل، فلا توجد عملية بيع لإلغائها.</value></data>
   <data name="Sales_OrderCancelled" xml:space="preserve"><value>الطلب {0} ملغى ولا يمكن إعادة فتحه.</value></data>
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>الإيصال {0} ملغى بالفعل.</value></data>
+  <data name="Rep_RangeBackwards" xml:space="preserve"><value>يجب ألا يسبق تاريخ النهاية تاريخ البداية.</value></data>
+  <data name="Rep_RangeTooLong" xml:space="preserve"><value>اختر نطاقاً لا يتجاوز {0} يوماً.</value></data>
 </root>

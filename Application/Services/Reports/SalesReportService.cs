@@ -35,7 +35,7 @@ namespace Application.Services.Reports
 
             // Get cart items for orders to calculate items sold
             var orderCartIds = orders.Select(o => o.CartId).ToList();
-            var cartItems = await _cartRepository.GetAllAsync(c => orderCartIds.Contains(c.Id));
+            var cartItems = await LoadCartsAsync(orderCartIds);
             var allCartItems = cartItems.SelectMany(c => c.CartItems).ToList();
 
             var report = new SalesReportDTO
@@ -122,7 +122,7 @@ namespace Application.Services.Reports
                 o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var orderCartIds = orders.Select(o => o.CartId).ToList();
-            var cartItems = await _cartRepository.GetAllAsync(c => orderCartIds.Contains(c.Id));
+            var cartItems = await LoadCartsAsync(orderCartIds);
             var allCartItems = cartItems.SelectMany(c => c.CartItems).ToList();
 
             return await GetTopProductsDataAsync(orders, allCartItems, limit);
@@ -137,7 +137,7 @@ namespace Application.Services.Reports
                 o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
 
             var orderCartIds = orders.Select(o => o.CartId).ToList();
-            var cartItems = await _cartRepository.GetAllAsync(c => orderCartIds.Contains(c.Id));
+            var cartItems = await LoadCartsAsync(orderCartIds);
             var allCartItems = cartItems.SelectMany(c => c.CartItems).ToList();
 
             return await GetCategorySalesDataAsync(orders, allCartItems);
@@ -177,6 +177,18 @@ namespace Application.Services.Reports
             return totalOrders > 0 ? orders.Sum(o => o.TotalAmount) / totalOrders : 0;
         }
 
+        /// <summary>
+        /// The carts of the orders with their lines, products and categories. A plain GetAllAsync loads the carts only: the lines then stay empty,
+        /// so items sold, top products and category sales were always zero / empty. Revenue per line is CartItem.TotalPrice (weight x price for
+        /// weighed products), the same figure the receipt shows.
+        /// </summary>
+        private async Task<List<Core.Entities.Inventory.Cart>> LoadCartsAsync(List<int> cartIds)
+            => await _cartRepository.GetAllQueryable(c => cartIds.Contains(c.Id))
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.Product)
+                .ThenInclude(p => p.Category)
+                .ToListAsync();
+
         private async Task<List<DailySalesDTO>> GetDailySalesDataAsync(IEnumerable<Core.Entities.Sales.Order> orders)
         {
             var dailySales = orders
@@ -203,7 +215,7 @@ namespace Application.Services.Reports
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.Name ?? "Unknown Product",
                     QuantitySold = g.Sum(ci => ci.Quantity),
-                    TotalRevenue = g.Sum(ci => ci.UnitPrice * ci.Quantity),
+                    TotalRevenue = g.Sum(ci => ci.TotalPrice),
                     AveragePrice = g.Average(ci => ci.UnitPrice)
                 })
                 .OrderByDescending(p => p.QuantitySold)
@@ -222,7 +234,7 @@ namespace Application.Services.Reports
                 {
                     CategoryId = g.Key.Id,
                     CategoryName = g.Key.Name ?? "Unknown Category",
-                    TotalSales = g.Sum(ci => ci.UnitPrice * ci.Quantity),
+                    TotalSales = g.Sum(ci => ci.TotalPrice),
                     TotalOrders = orders.Count()
                 })
                 .OrderByDescending(c => c.TotalSales)
