@@ -2459,4 +2459,6 @@
   <data name="Role_NameRequired" xml:space="preserve"><value>The role needs a name.</value></data>
   <data name="Role_NameTooLong" xml:space="preserve"><value>The role name can be at most 100 characters.</value></data>
   <data name="Role_NameTaken" xml:space="preserve"><value>A role with that name already exists.</value></data>
+  <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>Choose the day of the week for a weekly schedule.</value></data>
+  <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>Choose the day of the month for a monthly schedule.</value></data>
 </root>

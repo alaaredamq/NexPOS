@@ -781,8 +781,18 @@ namespace Application.Services.Backup
             var type = backupType.ToLower();
             var dateStr = timestamp.ToString("yyyyMMdd_HHmmss");
             var extension = "bak";
-            
-            return $"ERP_{type}_backup_{dateStr}.{extension}";
+
+            // Two backups in the same second (a schedule firing as someone clicks, a restore's safety backup) would get one
+            // name, and the second snapshot would silently overwrite the first one's file. Number the later one instead.
+            var directory = await GetBackupDirectoryAsync();
+            var baseName = $"ERP_{type}_backup_{dateStr}";
+            var fileName = $"{baseName}.{extension}";
+            for (var n = 2; File.Exists(Path.Combine(directory, fileName)); n++)
+            {
+                fileName = $"{baseName}_{n}.{extension}";
+            }
+
+            return fileName;
         }
 
         public async Task<string> GetBackupDirectoryAsync()

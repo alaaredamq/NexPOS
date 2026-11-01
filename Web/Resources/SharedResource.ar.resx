@@ -2459,4 +2459,6 @@
   <data name="Role_NameRequired" xml:space="preserve"><value>يجب إدخال اسم للدور.</value></data>
   <data name="Role_NameTooLong" xml:space="preserve"><value>يجب ألا يزيد اسم الدور على 100 حرف.</value></data>
   <data name="Role_NameTaken" xml:space="preserve"><value>يوجد دور بهذا الاسم بالفعل.</value></data>
+  <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>اختر يوم الأسبوع للجدول الأسبوعي.</value></data>
+  <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>اختر يوم الشهر للجدول الشهري.</value></data>
 </root>
