@@ -122,7 +122,7 @@ export function TaxFormModal({ tax, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={720} title={tax ? t('EditTax', { ns: 'money' }) : t('AddTax', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />

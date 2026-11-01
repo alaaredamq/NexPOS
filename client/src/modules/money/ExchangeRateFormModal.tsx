@@ -86,7 +86,7 @@ export function ExchangeRateFormModal({ rate, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={620} title={rate ? t('EditExchangeRate', { ns: 'money' }) : t('AddExchangeRate', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />

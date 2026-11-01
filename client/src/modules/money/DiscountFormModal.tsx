@@ -60,7 +60,7 @@ export function DiscountFormModal({ discount, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={520} title={discount ? t('EditDiscount', { ns: 'money' }) : t('AddDiscount', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />

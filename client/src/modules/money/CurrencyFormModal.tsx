@@ -84,7 +84,7 @@ export function CurrencyFormModal({ currency, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={620} title={currency ? t('EditCurrency', { ns: 'money' }) : t('AddCurrency', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />

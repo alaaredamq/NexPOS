@@ -209,3 +209,8 @@
   max-block-size: 40vh;
   overflow: auto;
 }
+
+/* The form wraps ModalBody + ModalFooter: let them stay direct flex children of the dialog card so a tall body scrolls and the footer stays in view. */
+.modalForm {
+  display: contents;
+}

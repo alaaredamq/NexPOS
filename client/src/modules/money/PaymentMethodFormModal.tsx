@@ -57,7 +57,7 @@ export function PaymentMethodFormModal({ method, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={520} title={method ? t('EditPaymentMethod', { ns: 'money' }) : t('AddPaymentMethod', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />

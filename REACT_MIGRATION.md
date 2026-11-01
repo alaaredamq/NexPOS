@@ -332,7 +332,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | I3 | Audit logs | G0 | S–M | ◑ in review | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
 | A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
-| A3 | Money configuration | G0 | M | ☐ todo | | |
+| A3 | Money configuration | G0 | M | ◑ in review | Claude · `react/A3` | [A3.md](docs/react-migration/notes/A3.md) |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
 | Z | Cutover | everything | L | ☐ todo | | |
 
@@ -350,6 +350,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · A1 · `client/src/core/auth/RequireAuth.tsx`, `client/src/shell/{UserMenu.tsx,nav.ts}` · `mustChangePin` is enforced in the SPA (redirect to `/account/change-pin`) instead of a full navigation to the Razor page; Profile / Change PIN in the user menu are router links; `legacyAccountPath` removed. Also `Web/Services/RoleAccessService.cs` (`RoleResult.Code`, additive) and `Tests/Api/Infrastructure/ApiPipelineTests.cs` (unmigrated-page example is now Settings).
 - 2026-11-01 · I2 · `client/src/shell/NotificationBell.tsx` · now re-exports the bell of `modules/notifications/bell` (dropdown + toasts + feed poll); `NotificationBell.module.css` deleted. The shell only places it.
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
+- 2026-11-01 · A3 · none (no frozen path edited; `Application/Services/Sales/POSCheckoutService.cs` `DebtPaymentMethodName` private → public; `SharedResource.*.resx` gained 20 `Mny_` keys)
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 
@@ -370,5 +371,5 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 1. Does `ViewRenderService` render Razor to HTML for print/PDF? (Blocks deleting views in Z.) → check in 0A. **Resolved (0A): no - registered but never injected; safe to delete.**
 2. What do `electron-preload.js` / `nexprint.js` expose (silent print, zoom)? → 0F.
 3. ~~How does `localization.js` format numbers/dates for Arabic (Eastern digits?)~~ → **answered by 0E**: Western digits everywhere (`en-US` in the old JS; .NET never substitutes digits); no pluralisation. See `docs/react-migration/notes/0E.md`.
-4. Two `TaxService`/`Tax` entities exist (`Core/Entities/Products/Tax.cs` and `Sales/Tax.cs`; `ITaxService` in both Products and Sales) — which is live? → A3, but P1 needs the answer on day one for pricing. **Answered by P1: neither affects the till; `POSCheckoutService` hard-codes `taxAmount = 0`. Which one A3 keeps is still open.**
+4. Two `TaxService`/`Tax` entities exist (`Core/Entities/Products/Tax.cs` and `Sales/Tax.cs`; `ITaxService` in both Products and Sales) — which is live? → A3, but P1 needs the answer on day one for pricing. **Answered by P1: neither affects the till; `POSCheckoutService` hard-codes `taxAmount = 0`. Which one A3 keeps is still open.** **Answered by A3: `Products.TaxRate` is the one with a screen and is what the SPA manages; `Sales.Tax` (`api/sales-taxes`) has no screen or consumer and can be deleted at Cutover.**
 5. Are there tests covering `POSCheckoutService` today? (`Tests/Services`) → P1 to extend, not rewrite. **Answered by P1: none (only `DiscountDisplayTests` touches the discount maths); `Tests/Api/Pos/` now covers checkout end to end.**

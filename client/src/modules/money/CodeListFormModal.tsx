@@ -83,7 +83,7 @@ export function CodeListFormModal({ list, onClose }: Props) {
 
   return (
     <Modal onClose={onClose} width={620} title={list ? t('EditCodeList', { ns: 'money' }) : t('AddCodeList', { ns: 'money' })}>
-      <form onSubmit={submit} noValidate>
+      <form onSubmit={submit} noValidate className={styles.modalForm}>
         <ModalBody>
           <div className={styles.form}>
             <FormError messages={formErrors} />
