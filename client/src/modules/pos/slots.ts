@@ -36,7 +36,7 @@ export interface AddProductRequest {
   source: 'tile' | 'scan' | 'search'
 }
 
-export const POS_COMMANDS = ['checkout', 'hold', 'clear', 'retrieve', 'discount'] as const
+export const POS_COMMANDS = ['checkout', 'hold', 'clear', 'retrieve', 'discount', 'recentSales'] as const
 export type PosCommand = (typeof POS_COMMANDS)[number]
 
 type Handler<T> = (payload: T) => void

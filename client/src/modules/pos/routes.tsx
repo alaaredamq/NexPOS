@@ -2,7 +2,7 @@ import type { RouteObject } from 'react-router-dom'
 import { loadNamespaces } from '@/core/i18n'
 
 async function loadPosStrings() {
-  await loadNamespaces('pos', 'common')
+  await loadNamespaces('pos', 'common', 'print')
   return null
 }
 

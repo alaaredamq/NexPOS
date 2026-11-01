@@ -21,6 +21,7 @@ public static class SpaMigration
             ["Currency"] = "/app/currency",
             ["Dashboard"] = "/app/dashboard",
             ["Orders"] = "/app/orders",
+            ["POS"] = "/app/pos",
             ["Products"] = "/app/products",
             ["Categories"] = "/app/categories",
             ["AuditLogs"] = "/app/audit-logs",

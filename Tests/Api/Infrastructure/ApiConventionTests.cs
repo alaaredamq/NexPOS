@@ -182,7 +182,8 @@ public sealed class ApiConventionTests
     public void A_page_that_is_not_migrated_links_to_its_razor_page_in_the_current_language()
     {
         // Whichever page is still waiting for its track: this test must not need editing every time a module flips its line.
-        var waiting = NavCatalog.All.First(p => !SpaMigration.IsMigrated(p.Controller)).Controller;
+        // (Once every page is migrated, as after P4, an unknown controller name stands in: the rule is about the link, not the catalog.)
+        var waiting = NavCatalog.All.FirstOrDefault(p => !SpaMigration.IsMigrated(p.Controller))?.Controller ?? "SomePageNotMigratedYet";
         Assert.Equal($"/ar/{waiting}", SpaMigration.HrefFor(waiting, "ar"));
         Assert.Equal("/app/orders", SpaMigration.HrefFor("Orders", "ar"));
     }

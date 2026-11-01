@@ -381,11 +381,11 @@ public sealed class ApiPipelineTests
         Assert.Equal(permissions.OrderBy(p => p, StringComparer.Ordinal), permissions);
 
         var items = session.GetProperty("nav").EnumerateArray().SelectMany(s => s.GetProperty("items").EnumerateArray()).ToList();
-        var page = items.Single(i => i.GetProperty("key").GetString() == "POS");  // a page no track has migrated yet
+        var page = items.Single(i => i.GetProperty("key").GetString() == "POS");  // the last page to be migrated (P4)
         Assert.Equal("/app/pos", page.GetProperty("spaPath").GetString());
         Assert.Equal("/en/POS", page.GetProperty("legacyPath").GetString());
-        Assert.Equal("/en/POS", page.GetProperty("href").GetString());   // not migrated yet: a plain link to the Razor page
-        Assert.False(page.GetProperty("migrated").GetBoolean());
+        Assert.Equal("/app/pos", page.GetProperty("href").GetString());   // migrated: the sidebar links to the SPA; the Razor page stays reachable at legacyPath
+        Assert.True(page.GetProperty("migrated").GetBoolean());
         Assert.Equal("/app/cash-drawer", items.Single(i => i.GetProperty("key").GetString() == "CashDrawer").GetProperty("spaPath").GetString());
 
         Assert.False(session.GetProperty("license").GetProperty("allowsSales").GetBoolean()); // no licence file in the test host
