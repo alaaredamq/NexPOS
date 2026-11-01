@@ -60,7 +60,11 @@ builder.Services.AddLocalization(options =>
 });
 
 builder.Services
-    .AddControllersWithViews()
+    .AddControllersWithViews(options =>
+    {
+        // A migrated screen's old Razor URL opens the React page instead (Web/Helpers/SpaRedirectFilter.cs; removed at the cutover).
+        options.Filters.Add<Web.Helpers.SpaRedirectFilter>();
+    })
     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
     .AddDataAnnotationsLocalization(options =>
     {

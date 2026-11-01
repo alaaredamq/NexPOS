@@ -81,7 +81,7 @@
   "cartLowStock": "Only {{stock}} in stock",
   "cartPriceUnreachable": "Cannot reach the server to price the cart.",
   "cartPricing": "Confirming prices…",
-  "cartStockWarning": "Some items are not in stock. You will be asked to confirm at checkout.",
+  "cartStockWarning": "Some items are not in stock. They can still be sold; the stock count stops at zero.",
   "cartTax": "Tax",
   "cartTotal": "Total",
   "cartUndo": "Undo",

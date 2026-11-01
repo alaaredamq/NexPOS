@@ -188,6 +188,27 @@ public sealed class ApiConventionTests
         Assert.Equal("/app/orders", SpaMigration.HrefFor("Orders", "ar"));
     }
 
+    [Theory]
+    [InlineData("Backup", "Index", "/app/backup")]
+    [InlineData("Settings", "Index", "/app/settings")]
+    [InlineData("License", "Index", "/app/license")]
+    [InlineData("POS", "Index", "/app/pos")]
+    [InlineData("Account", "Profile", "/app/account/profile")]
+    [InlineData("Account", "ChangePin", "/app/account/change-pin")]
+    [InlineData("Account", "ChangePassword", "/app/account/change-pin")]
+    [InlineData("backup", "index", "/app/backup")]
+    public void The_old_razor_page_of_a_migrated_screen_points_at_the_react_page(string controller, string action, string expected)
+        => Assert.Equal(expected, SpaRedirectFilter.TargetFor(controller, action));
+
+    [Theory]
+    [InlineData("Orders", "Details")]      // a sub-page nothing has replaced yet
+    [InlineData("Backup", "Download")]     // an action behind a button, not the page
+    [InlineData("Account", "Login")]       // the old sign-in page is kept on purpose
+    [InlineData("Account", "Logout")]
+    [InlineData("Home", "Index")]
+    public void Razor_actions_that_are_not_a_replaced_screen_are_left_alone(string controller, string action)
+        => Assert.Null(SpaRedirectFilter.TargetFor(controller, action));
+
     [Fact]
     public void Every_migrated_path_lives_under_app()
         => Assert.All(SpaMigration.Migrated.Values, p => Assert.StartsWith("/app/", p));

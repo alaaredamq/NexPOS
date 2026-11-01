@@ -532,4 +532,39 @@ public sealed class ApiPipelineTests
         Assert.False(login.GetProperty("responses").TryGetProperty("403", out _), "a public action does not declare 401/403 from the base class");
         Assert.Single(login.GetProperty("requestBody").GetProperty("content").EnumerateObject());
     }
+
+    // ---- the old Razor URLs of migrated screens, and the language the two UIs share ------------------------------
+
+    [Theory]
+    [InlineData("/en/Backup", "/app/backup")]
+    [InlineData("/ar/Settings", "/app/settings")]
+    [InlineData("/en/License", "/app/license")]
+    [InlineData("/en/Account/Profile", "/app/account/profile")]
+    [InlineData("/en/Account/ChangePin", "/app/account/change-pin")]
+    [InlineData("/en/Orders?customerId=7", "/app/orders?customerId=7")]
+    public async Task An_old_razor_url_of_a_migrated_screen_redirects_to_the_react_page(string oldUrl, string expected)
+    {
+        var admin = await SignedIn(ApiFactory.AdminUser, ApiFactory.AdminPin);
+
+        var response = await admin.GetAsync(oldUrl);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(expected, response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task A_page_with_its_language_in_the_url_tells_the_react_app_which_language_it_is_in()
+    {
+        var browser = _factory.CreateBrowser();
+
+        var arabic = await browser.GetAsync("/ar/Account/Login");
+        var cookie = arabic.Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("nexpos.lang="));
+
+        Assert.StartsWith("nexpos.lang=ar;", cookie);
+        Assert.DoesNotContain("httponly", cookie, StringComparison.OrdinalIgnoreCase); // the app has to read it
+
+        // The React app's own requests carry no language choice: they must not overwrite what the app (or a Razor page) set.
+        var spa = await browser.GetAsync("/app/login");
+        Assert.DoesNotContain(spa.Headers.TryGetValues("Set-Cookie", out var all) ? all : [], c => c.StartsWith("nexpos.lang="));
+    }
 }

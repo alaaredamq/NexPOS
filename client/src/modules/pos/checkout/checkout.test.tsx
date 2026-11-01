@@ -300,39 +300,32 @@ describe('checkout', () => {
     expect(useCartStore.getState().lines).toHaveLength(0)
   })
 
-  it('offers "sell anyway" on a stock refusal and resends with the same key', async () => {
+  it('sells an item the shelf says is gone without asking: no prompt, stock allowed to run out', async () => {
     open()
-    let refuse = true
-    api.routes['POST /api/v1/pos/sales/checkout'] = () => {
-      if (refuse) {
-        refuse = false
-        return problem(409, 'insufficient_stock', 'Not enough Cola in stock.')
-      }
-      return json(saleFor(bodies().at(-1)!))
+    // the price call reports the shortage; the sale must go through all the same
+    api.routes['POST /api/v1/pos/price'] = () => {
+      const body = api.calls.at(-1)!.body as { lines: { quantity: number }[] }
+      const quantity = body.lines[0]!.quantity
+      return json({
+        currencyId: 1,
+        currencyNotation: '$',
+        lines: [{ productId: 1, name: 'Cola', quantity, isCustomPrice: false, unitPrice: 2, lineTotal: 2 * quantity, minUnitPrice: 1, stockQuantity: 0, insufficientStock: true }],
+        subtotal: 2 * quantity,
+        discountAmount: 0,
+        discountPercentage: 0,
+        taxAmount: 0,
+        total: 2 * quantity,
+        hasInsufficientStock: true,
+      })
     }
     await pay()
 
     fireEvent.click(complete())
-    fireEvent.click(await screen.findByRole('button', { name: 'Sell anyway' }))
 
     await screen.findByText('Sale Complete!')
-    const sent = bodies()
-    expect(sent[0]!.allowInsufficientStock).toBe(false)
-    expect(sent[1]!.allowInsufficientStock).toBe(true)
-    expect(sent[1]!.idempotencyKey).toBe(sent[0]!.idempotencyKey)
-  })
-
-  it('goes back to the cart when the cashier declines "sell anyway"', async () => {
-    open()
-    api.routes['POST /api/v1/pos/sales/checkout'] = () => problem(409, 'insufficient_stock', 'Not enough Cola in stock.')
-    await pay()
-
-    fireEvent.click(complete())
-    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Not enough stock' })).getByRole('button', { name: 'Review cart' }))
-
-    await waitFor(() => expect(screen.queryAllByRole('dialog')).toHaveLength(0))
-    expect(useCartStore.getState().lines).toHaveLength(1)
+    expect(screen.queryByText('Not enough stock')).not.toBeInTheDocument()
     expect(bodies()).toHaveLength(1)
+    expect(bodies()[0]!.allowInsufficientStock).toBe(true)
   })
 
   it('shows the sales-stopped screen when the licence stops selling, and keeps the cart', async () => {
