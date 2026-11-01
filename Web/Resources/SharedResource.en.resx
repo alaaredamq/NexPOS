@@ -2429,4 +2429,8 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
+  <data name="Inv_InsufficientStock" xml:space="preserve"><value>Only {0} in stock, so {1} cannot be removed.</value></data>
+  <data name="Sup_HasBalance" xml:space="preserve"><value>There is an outstanding balance of {0} with this supplier. Settle it before deleting, or deactivate the supplier instead.</value></data>
+  <data name="Sup_InUse" xml:space="preserve"><value>This supplier is still used by products (including deleted ones kept for sales history) or debt records, so it can't be removed. Deactivate it instead.</value></data>
+  <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>Choose a currency from the list.</value></data>
 </root>

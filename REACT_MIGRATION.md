@@ -323,7 +323,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
-| C3 | Inventory + Suppliers | G0 | M–L | ☐ todo | | |
+| C3 | Inventory + Suppliers | G0 | M–L | ◐ in progress | Claude · `react/C3` | |
 | S1 | Orders + Receipts | G0 | L | ☐ todo | | |
 | S2 | Cash drawer | G0 | M | ☐ todo | | |
 | S3 | Customers + debt | G0 | M | ☐ todo | | |
