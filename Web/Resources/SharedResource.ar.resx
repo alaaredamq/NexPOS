@@ -2434,4 +2434,6 @@
   <data name="Drawer_SessionClosed" xml:space="preserve"><value>جلسة الصندوق مغلقة بالفعل.</value></data>
   <data name="Drawer_SessionStillOpen" xml:space="preserve"><value>تقرير Z متاح فقط بعد إغلاق الجلسة.</value></data>
   <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>أُغلقت هذه الجلسة بإصدار أقدم ولا تحتوي على إجماليات محفوظة، لذلك لا يمكن إنشاء تقرير Z.</value></data>
+  <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>هذا العميل مدين لك بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
+  <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>أنت مدين لهذا العميل بمبلغ {0}. سوِّ الرصيد قبل الحذف، أو عطّل العميل بدلاً من ذلك.</value></data>
 </root>

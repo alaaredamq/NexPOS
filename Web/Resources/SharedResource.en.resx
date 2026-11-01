@@ -2434,4 +2434,6 @@
   <data name="Drawer_SessionClosed" xml:space="preserve"><value>That cash drawer session is already closed.</value></data>
   <data name="Drawer_SessionStillOpen" xml:space="preserve"><value>The Z-Report is only available once the session is closed.</value></data>
   <data name="Drawer_ZReportUnavailable" xml:space="preserve"><value>This session was closed by an older version and has no stored totals, so no Z-Report can be produced.</value></data>
+  <data name="Cust_HasBalanceOwes" xml:space="preserve"><value>This customer owes you {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
+  <data name="Cust_HasBalanceOwed" xml:space="preserve"><value>You owe this customer {0}. Settle the balance before deleting, or deactivate the customer instead.</value></data>
 </root>

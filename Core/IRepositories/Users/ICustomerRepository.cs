@@ -13,6 +13,12 @@ public interface ICustomerRepository : IRepository<Customer>
     /// <paramref name="take"/> items plus whether more follow (fetches take + 1, so no COUNT query).
     /// </summary>
     Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take);
+
+    /// <summary>
+    /// Purchases per customer id, without loading any order: how many orders and their summed <c>TotalAmount</c>. Cancelled and
+    /// returned orders (a voided receipt) are no longer purchases and are left out. Customers without orders have no entry.
+    /// </summary>
+    Task<Dictionary<int, (int OrdersCount, decimal TotalSpent)>> GetPurchaseTotalsAsync();
 }
 
 

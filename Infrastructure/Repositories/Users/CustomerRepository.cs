@@ -40,6 +40,22 @@ public class CustomerRepository : Repository<Customer>, ICustomerRepository
         return (rows, hasMore);
     }
 
+    public async Task<Dictionary<int, (int OrdersCount, decimal TotalSpent)>> GetPurchaseTotalsAsync()
+    {
+        var cancelled = (int)Core.Enum.OrderStatus.Cancelled;
+        var returned = (int)Core.Enum.OrderStatus.Returned;
+
+        // Only the two columns needed. Summed here, not in SQL: SQLite stores decimals as text/real and cannot SUM them exactly.
+        var rows = await _Context.Set<Core.Entities.Sales.Order>()
+            .Where(o => o.CustomerId != null && o.Status != cancelled && o.Status != returned)
+            .Select(o => new { CustomerId = o.CustomerId!.Value, o.TotalAmount })
+            .ToListAsync();
+
+        return rows
+            .GroupBy(r => r.CustomerId)
+            .ToDictionary(g => g.Key, g => (g.Count(), g.Sum(r => r.TotalAmount)));
+    }
+
     public new async Task<Customer> GetByIdAsync(int id)
     {
         var customer = await GetAllQueryable()

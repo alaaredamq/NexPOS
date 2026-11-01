@@ -20,6 +20,7 @@ public static class SpaMigration
             ["CashDrawer"] = "/app/cash-drawer",
             ["Products"] = "/app/products",
             ["Categories"] = "/app/categories",
+            ["Customers"] = "/app/customers",
             ["ProductDisplayOrder"] = "/app/product-display-order",
         };
 
