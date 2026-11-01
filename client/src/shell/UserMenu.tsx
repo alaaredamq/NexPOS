@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { useSession } from '@/core/auth/useSession'
 import { useSignOut } from '@/core/auth/useSignOut'
-import { useLanguage } from '@/core/i18n'
-import { legacyAccountPath } from './nav'
 import styles from './TopBar.module.css'
 
-/** The signed-in identity and the way out. Profile / change-PIN are Razor pages until track A1 ships them. */
+/** The signed-in identity and the way out. Profile and change-PIN are the account pages of track A1. */
 export function UserMenu() {
   const { t } = useTranslation()
-  const { language } = useLanguage()
   const { user, role } = useSession()
   const signOut = useSignOut()
   const [open, setOpen] = useState(false)
@@ -54,12 +52,12 @@ export function UserMenu() {
               <bdi>{role.name}</bdi>
             </div>
           </div>
-          <a className={styles.menuLink} role="menuitem" href={legacyAccountPath(language, 'Profile')}>
+          <Link className={styles.menuLink} role="menuitem" to="/account/profile" onClick={() => setOpen(false)}>
             {t('Profile')}
-          </a>
-          <a className={styles.menuLink} role="menuitem" href={legacyAccountPath(language, 'ChangePin')}>
+          </Link>
+          <Link className={styles.menuLink} role="menuitem" to="/account/change-pin" onClick={() => setOpen(false)}>
             {t('Shell_ChangePin')}
-          </a>
+          </Link>
           <button type="button" className={styles.menuItem} role="menuitem" onClick={() => void signOut({ forget: true })}>
             {t('Logout')}
           </button>

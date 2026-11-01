@@ -1,0 +1,258 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  font-weight: 700;
+  color: var(--color-muted);
+  text-decoration: none;
+  border-block-end: 3px solid transparent;
+  margin-block-end: -1px;
+}
+
+.tab:hover {
+  color: var(--color-ink);
+}
+
+.tab[aria-current='page'] {
+  color: var(--color-primary);
+  border-block-end-color: var(--color-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 560px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.footerStart {
+  margin-inline-end: auto;
+}
+
+.lead {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.personName {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+}
+
+.muted {
+  color: var(--color-faint);
+}
+
+.clip {
+  display: block;
+  max-inline-size: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- text inputs used outside react-hook-form (reset PIN, role header) ---- */
+
+.pinField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.pinField label {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.pinField small {
+  color: var(--color-muted);
+}
+
+.textInput,
+.pinInput {
+  block-size: var(--control-h-md);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.pinInput {
+  letter-spacing: 0.4em;
+  font-variant-numeric: tabular-nums;
+  max-inline-size: 10ch;
+}
+
+.textInput:focus,
+.pinInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+.textInput:disabled {
+  background: var(--color-neutral-bg);
+}
+
+.textInput[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+/* ---- role editor ---- */
+
+.roleHead {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .roleHead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.matrixTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.matrix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  max-block-size: 46vh;
+  overflow: auto;
+  padding: var(--space-1);
+}
+
+@media (max-width: 760px) {
+  .matrix {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.group {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  min-inline-size: 0;
+}
+
+.groupHead,
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 36px;
+  cursor: pointer;
+}
+
+.groupHead {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.groupHead input,
+.check input {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--color-primary);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-inline-start: var(--space-4);
+}
+
+.srOnly {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.note,
+.warn {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+}
+
+.note {
+  background: var(--color-info-bg);
+  color: var(--color-ink);
+}
+
+.warn {
+  background: var(--color-warning-bg);
+  color: var(--color-ink);
+}

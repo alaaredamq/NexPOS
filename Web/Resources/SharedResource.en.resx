@@ -2446,4 +2446,17 @@
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>Receipt {0} is already void.</value></data>
   <data name="Rep_RangeBackwards" xml:space="preserve"><value>The end date must not be before the start date.</value></data>
   <data name="Rep_RangeTooLong" xml:space="preserve"><value>Choose a range of at most {0} days.</value></data>
+  <data name="Usr_UsernameTaken" xml:space="preserve"><value>That username is already taken.</value></data>
+  <data name="Usr_EmailTaken" xml:space="preserve"><value>That email address is already in use.</value></data>
+  <data name="Usr_PinRule" xml:space="preserve"><value>The PIN must be exactly 4 digits.</value></data>
+  <data name="Usr_UnknownRole" xml:space="preserve"><value>That role does not exist.</value></data>
+  <data name="Usr_InUse" xml:space="preserve"><value>This user has activity on record (sales, receipts or sessions), so they can't be removed. Deactivate them instead.</value></data>
+  <data name="Usr_UsernameInvalid" xml:space="preserve"><value>The username can't be empty.</value></data>
+  <data name="Role_NotFound" xml:space="preserve"><value>That role was not found.</value></data>
+  <data name="Role_SuperAdminLocked" xml:space="preserve"><value>The SuperAdmin role always holds every permission and cannot be edited.</value></data>
+  <data name="Role_SystemRole" xml:space="preserve"><value>Built-in roles cannot be deleted.</value></data>
+  <data name="Role_InUse" xml:space="preserve"><value>Users still hold this role. Move them to another role first.</value></data>
+  <data name="Role_NameRequired" xml:space="preserve"><value>The role needs a name.</value></data>
+  <data name="Role_NameTooLong" xml:space="preserve"><value>The role name can be at most 100 characters.</value></data>
+  <data name="Role_NameTaken" xml:space="preserve"><value>A role with that name already exists.</value></data>
 </root>
