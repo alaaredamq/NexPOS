@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-// Track P3 happy path, on the dev-only host of the cart (/app/_pos-cart, Vite dev server) against the isolated demo DB:
+// Track P3 happy path, on the dev-only host of the cart (/app/pos) against the isolated demo DB:
 //   BASE_URL=http://localhost:5175 npx playwright test e2e/pos-cart.spec.ts      (dev server proxying /api to the demo host)
 // Demo users (--seed-demo): layla / 1234 = Admin, sara / 1111 = Cashier.
 
@@ -14,12 +14,12 @@ async function signIn(page: Page, name: RegExp, pin: string, returnTo: string) {
 }
 
 test('cart: add, change quantity, discount, price check by the server, hold and retrieve', async ({ page }) => {
-  await signIn(page, /Sara/, '1111', '/_pos-cart')
+  await signIn(page, /Sara/, '1111', '/pos')
   const cart = page.getByRole('region', { name: 'Shopping Cart' })
   await expect(cart.getByText('Cart is Empty')).toBeVisible()
 
   // a counted product (the tiles show "<notation> <price>" without a unit)
-  await page.getByRole('list', { name: 'Products' }).getByRole('button').first().click()
+  await page.getByTestId('product-grid').getByRole('button').first().click()
   await expect(cart.getByRole('listitem')).toHaveCount(1)
 
   // the server prices it: checkout unlocks and the estimate marker goes away

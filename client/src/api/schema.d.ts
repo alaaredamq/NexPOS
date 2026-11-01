@@ -1397,6 +1397,11 @@ export interface components {
              * @description On hand, in the product's unit (pieces, or kg / L).
              */
             stockQuantity: number;
+            /**
+             * Format: double
+             * @description The level at or below which the tile says "low stock"; null means the till's default of 5.
+             */
+            minimumStock?: number | null;
             /** @description The product's own unit as stored (`piece`, `kg`, `liter` ...). Null means pieces. */
             unit?: string | null;
             /** @description `count`, `weight` or `volume`: whether the cashier types a weight/volume and `weightOrVolume` must be sent. */
