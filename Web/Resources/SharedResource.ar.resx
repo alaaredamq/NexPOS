@@ -2440,4 +2440,8 @@
   <data name="Sup_HasBalance" xml:space="preserve"><value>يوجد رصيد مستحق بقيمة {0} مع هذا المورد. قم بتسويته قبل الحذف، أو عطّل المورد بدلاً من ذلك.</value></data>
   <data name="Sup_InUse" xml:space="preserve"><value>لا يزال هذا المورد مرتبطاً بمنتجات (بما فيها المحذوفة المحتفظ بها لسجل المبيعات) أو بسجلات ديون، لذا لا يمكن حذفه. عطّله بدلاً من ذلك.</value></data>
   <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>اختر عملة من القائمة.</value></data>
+  <data name="Sales_ReceiptNotFound" xml:space="preserve"><value>لم يتم العثور على الإيصال.</value></data>
+  <data name="Sales_OrderClosed" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع بالفعل، فلا توجد عملية بيع لإلغائها.</value></data>
+  <data name="Sales_OrderCancelled" xml:space="preserve"><value>الطلب {0} ملغى ولا يمكن إعادة فتحه.</value></data>
+  <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>الإيصال {0} ملغى بالفعل.</value></data>
 </root>

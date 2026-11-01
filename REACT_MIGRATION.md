@@ -324,7 +324,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
 | C3 | Inventory + Suppliers | G0 | M–L | ◑ in review | Claude · `react/C3` | [C3.md](docs/react-migration/notes/C3.md) |
-| S1 | Orders + Receipts | G0 | L | ☐ todo | | |
+| S1 | Orders + Receipts | G0 | L | ◑ in review | Claude · `react/S1` | [S1.md](docs/react-migration/notes/S1.md) |
 | S2 | Cash drawer | G0 | M | ◑ in review | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
 | I1 | Dashboard + Reports | G0 | M–L | ☐ todo | | |
@@ -347,6 +347,7 @@ Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 
 
 - Offline/PWA mode, real-time push (SignalR), new reports, product-picture return to POS, dark theme, replacing SQLite.
 - Anything discovered that deserves its own change goes here, one line, with the ID that found it.
+- Emailing a receipt needs a real SMTP setting first; the old button only recorded "emailed" (S1). Decide what "Returned" should do to stock (S1 notes, item 1).
 
 ## 12. Prompt template for a session
 

@@ -223,6 +223,70 @@ public class ReceiptRepository : Repository<Receipt>, IReceiptRepository
         return $"{prefix}{highest + 1:D3}";
     }
 
+    public async Task<List<ReceiptListRow>> GetListRowsAsync(ReceiptListFilter filter)
+    {
+        var query = _Context.Set<Receipt>().AsNoTracking().Where(r => !r.IsDeleted);
+        if (filter.FromUtc.HasValue) query = query.Where(r => r.ReceiptDate >= filter.FromUtc.Value);
+        if (filter.ToUtc.HasValue) query = query.Where(r => r.ReceiptDate <= filter.ToUtc.Value);
+        if (filter.IsVoid.HasValue) query = query.Where(r => r.IsVoid == filter.IsVoid.Value);
+
+        var rows = await query
+            .Select(r => new
+            {
+                r.Id,
+                r.ReceiptNumber,
+                r.OrderId,
+                r.ReceiptDate,
+                r.CustomerName,
+                r.CustomerPhone,
+                CustomerFirst = r.Customer != null ? r.Customer.FirstName : null,
+                CustomerLast = r.Customer != null ? r.Customer.LastName : null,
+                CashierFirst = r.Cashier != null ? r.Cashier.FirstName : null,
+                CashierLast = r.Cashier != null ? r.Cashier.LastName : null,
+                VoiderFirst = r.VoidedByUser != null ? r.VoidedByUser.FirstName : null,
+                VoiderLast = r.VoidedByUser != null ? r.VoidedByUser.LastName : null,
+                Method = r.PaymentMethod != null ? r.PaymentMethod.Name : null,
+                r.TotalAmount,
+                r.CurrencyId,
+                Notation = r.Currency != null ? r.Currency.Notation : null,
+                r.IsVoid,
+                r.VoidDate,
+                r.VoidReason
+            })
+            .ToListAsync();
+
+        static string? Full(string? first, string? last)
+        {
+            var name = $"{first} {last}".Trim();
+            return name.Length == 0 ? null : name;
+        }
+
+        return rows
+            .OrderByDescending(r => r.ReceiptDate)
+            .ThenByDescending(r => r.Id)
+            .Select(r =>
+            {
+                var cashier = Full(r.CashierFirst, r.CashierLast) ?? "";
+                return new ReceiptListRow(
+                    r.Id,
+                    r.ReceiptNumber ?? "",
+                    r.OrderId,
+                    r.ReceiptDate,
+                    !string.IsNullOrEmpty(r.CustomerName) ? r.CustomerName : Full(r.CustomerFirst, r.CustomerLast),
+                    cashier,
+                    r.Method ?? "",
+                    r.TotalAmount,
+                    r.CurrencyId,
+                    r.Notation ?? "",
+                    r.IsVoid,
+                    r.VoidDate,
+                    r.VoidReason,
+                    r.IsVoid ? Full(r.VoiderFirst, r.VoiderLast) ?? (cashier.Length > 0 ? cashier : null) : null,
+                    r.CustomerPhone);
+            })
+            .ToList();
+    }
+
     public async Task<List<Receipt>> SearchReceiptsAsync(string searchTerm)
     {
         var term = searchTerm.ToLower();
