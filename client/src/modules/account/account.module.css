@@ -1,0 +1,157 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card,
+.pinCard {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  max-inline-size: 720px;
+}
+
+.pinCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-inline-size: 480px;
+}
+
+.cardTitle {
+  margin: 0 0 var(--space-4);
+  font-size: 16px;
+  color: var(--color-ink);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fact dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-muted);
+  margin-block-end: 4px;
+}
+
+.fact dd {
+  margin: 0;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.cardActions {
+  margin-block-start: var(--space-5);
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.linkButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.lead {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.pinFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pinField {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  min-block-size: 56px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control-lg);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.pinField[data-active='true'] {
+  border-color: var(--color-primary);
+  box-shadow: var(--ring);
+}
+
+.pinField[data-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.pinLabel {
+  font-weight: 600;
+}
+
+.dots {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.dot {
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+}
+
+.dot[data-filled='true'] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.fieldError {
+  flex-basis: 100%;
+  color: var(--color-danger);
+  font-size: 12.5px;
+}
+
+.rules {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.pinActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

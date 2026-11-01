@@ -48,8 +48,3 @@ export function landingPath(session: Session): string | null {
   const pos = items.find((item) => item.key === 'POS')
   return (pos ?? items[0])?.routerPath ?? null
 }
-
-/** A Razor page of the old app, in the user's current language (used for pages with no SPA version yet). */
-export function legacyAccountPath(language: string, page: 'ChangePin' | 'Profile'): string {
-  return `/${language}/Account/${page}`
-}

@@ -330,7 +330,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | I1 | Dashboard + Reports | G0 | M–L | ☐ todo | | |
 | I2 | Notifications + alerts | G0 | M | ☐ todo | | |
 | I3 | Audit logs | G0 | S–M | ☐ todo | | |
-| A1 | Users, roles, account | G0 | L | ◐ in progress | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
+| A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
@@ -346,12 +346,14 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 **Core change log** (post-G0 edits to frozen paths — one line each: date · ID · file · why):
 
 - 2026-11-01 · C3 · none (no frozen path edited; `Core/Auditing/AuditActions.cs` gained `StockAdjusted`, `SharedResource.*.resx` gained 4 `Inv_`/`Sup_` keys)
+- 2026-11-01 · A1 · `client/src/core/auth/RequireAuth.tsx`, `client/src/shell/{UserMenu.tsx,nav.ts}` · `mustChangePin` is enforced in the SPA (redirect to `/account/change-pin`) instead of a full navigation to the Razor page; Profile / Change PIN in the user menu are router links; `legacyAccountPath` removed. Also `Web/Services/RoleAccessService.cs` (`RoleResult.Code`, additive) and `Tests/Api/Infrastructure/ApiPipelineTests.cs` (unmigrated-page example is now Settings).
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 
 - Offline/PWA mode, real-time push (SignalR), new reports, product-picture return to POS, dark theme, replacing SQLite.
 - Anything discovered that deserves its own change goes here, one line, with the ID that found it.
+- Real session control (A1 dropped the "Active sessions" tab: `UserSession` rows are never validated, closed on sign-out or given an IP) needs a cookie-validation change in `Program.cs`.
 - Emailing a receipt needs a real SMTP setting first; the old button only recorded "emailed" (S1). Decide what "Returned" should do to stock (S1 notes, item 1).
 
 ## 12. Prompt template for a session

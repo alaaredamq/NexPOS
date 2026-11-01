@@ -4,6 +4,43 @@
  */
 
 export interface paths {
+    "/api/v1/account/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The account page: who you are, your role and when you last signed in. */
+        get: operations["getProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/change-pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Changes your own PIN. The current PIN is asked for, except right after an admin set or reset it (`mustChangePin` in the session).
+         *     A wrong current PIN, a PIN that does not change or a differing confirmation answers 400 `validation_failed` with the field in `errors`.
+         */
+        post: operations["changeOwnPin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/sign-in-options": {
         parameters: {
             query?: never;
@@ -1398,6 +1435,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of roles (also what the user forms offer to pick from; ask for `pageSize=200`). `sort`: `name` (default),
+         *     `userCount`, `permissionCount`, `createdAt`; `q` matches the name and description.
+         */
+        get: operations["listRoles"];
+        put?: never;
+        /** Creates a role holding exactly the permissions sent. */
+        post: operations["createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A role with the permission keys it grants (the whole catalogue for SuperAdmin). */
+        get: operations["getRole"];
+        /**
+         * Replaces the name, description and grants of a role. People who hold the role are affected on their next request.
+         *     409 `role_super_admin_locked` for SuperAdmin, which always holds everything.
+         */
+        put: operations["updateRole"];
+        post?: never;
+        /** Deletes a role. 409 `role_system` for a built-in role and `role_in_use` while users still hold it. */
+        delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/session": {
         parameters: {
             query?: never;
@@ -1519,6 +1599,100 @@ export interface paths {
         get: operations["exportSuppliers"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One page of users. `sort`: `name` (default), `username`, `email`, `role`, `isActive`, `lastLoginAt`, `createdAt`;
+         *     `q` matches the username, email, name and role name.
+         */
+        get: operations["listUsers"];
+        put?: never;
+        /**
+         * Creates a user with the PIN an admin chose; the user must change it at the first sign-in. A taken username or email,
+         *     or an unknown role, answers 400 `validation_failed` with the field in `errors`.
+         */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals for the tiles above the list (all users and roles, not just the current page). */
+        get: operations["getUserSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One user. */
+        get: operations["getUser"];
+        /** Changes the name, email, role and active flag. The role and the flag reach the user's open session on its next request. */
+        put: operations["updateUser"];
+        post?: never;
+        /** Deletes a user. 409 `user_in_use` for someone with sales, receipts or sessions on record: deactivate them instead. */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Enables or disables a user (the "toggle" button of the Razor page, without the guessing: you say which). */
+        put: operations["setUserActive"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/reset-pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sets a new PIN for the user, who must replace it at the next sign-in. */
+        post: operations["resetUserPin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1688,6 +1862,13 @@ export interface components {
              * @description Products across all categories.
              */
             products: number;
+        };
+        /** @description Body of "change my PIN". */
+        ChangePinRequest: {
+            /** @description Required, unless an admin set the PIN and it has not been changed yet (Web.Api.Account.Contracts.ProfileDto.MustChangePin): the user has just signed in with it. */
+            currentPin?: string | null;
+            newPin: string;
+            confirmPin: string;
         };
         /** @description Closes a session against what was counted. */
         CloseDrawerRequest: {
@@ -3116,6 +3297,26 @@ export interface components {
              */
             discountRate: number;
         };
+        /** @description The signed-in user's own account page. */
+        ProfileDto: {
+            /** Format: int32 */
+            id: number;
+            username: string;
+            email: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            fullName: string;
+            /** Format: int32 */
+            roleId: number;
+            roleName: string;
+            /**
+             * Format: date-time
+             * @description UTC; null if never.
+             */
+            lastLoginAt?: string | null;
+            /** @description An admin set the PIN: Web.Api.Account.Contracts.ChangePinRequest.CurrentPin is not asked for until it has been replaced. */
+            mustChangePin: boolean;
+        };
         /** @description What the quick-add form needs to fill its currency picker. */
         QuickAddOptionsDto: {
             currencies: components["schemas"]["CurrencyOptionDto"][];
@@ -3368,6 +3569,59 @@ export interface components {
             unitPrice: number;
             /** Format: int32 */
             currencyId: number;
+        };
+        /** @description A role with its grants, for the permission matrix. */
+        RoleDetailsDto: {
+            role: components["schemas"]["RoleDto"];
+            /** @description Granted permission keys (`Products.View`), in catalogue order. The catalogue is generated into `permissions.ts`. */
+            permissions: string[];
+        };
+        /** @description A role as the roles table lists it. */
+        RoleDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description?: string | null;
+            /** @description Shipped with the app: cannot be deleted. */
+            isSystemRole: boolean;
+            /** @description The one role that implicitly holds every permission: it can be neither edited nor deleted. */
+            isSuperAdmin: boolean;
+            /**
+             * Format: int32
+             * @description Users holding the role; above zero it cannot be deleted.
+             */
+            userCount: number;
+            /**
+             * Format: int32
+             * @description How many permissions are granted (the whole catalogue for SuperAdmin).
+             */
+            permissionCount: number;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+        };
+        /** @description What every list endpoint returns. */
+        RoleDtoPagedResult: {
+            items: components["schemas"]["RoleDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Body of create and update. The editor always sends the complete tick state: the stored grants are made to match it. */
+        RoleRequest: {
+            /** @description Trimmed; unique without regard to case. */
+            name: string;
+            description?: string | null;
+            /** @description Permission keys to grant. Unknown keys are dropped. */
+            permissions?: string[] | null;
         };
         /** @description What undoing a sale did. Shared by cancelling an order and voiding a receipt. */
         SaleReversalDto: {
@@ -3695,6 +3949,93 @@ export interface components {
              */
             withBalance: number;
         };
+        /** @description Body of "enable / disable a user". */
+        UserActiveRequest: {
+            isActive: boolean;
+        };
+        /** @description Body of "create a user". The PIN is the account's only credential and the user must change it at first sign-in. */
+        UserCreateRequest: {
+            /** @description Trimmed; no spaces. The sign-in screen picks users by this name. */
+            username: string;
+            /** Format: email */
+            email: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            /** Format: int32 */
+            roleId: number;
+            isActive?: boolean;
+            /** @description Exactly 4 digits (the sign-in keypad takes nothing else). */
+            pin: string;
+        };
+        /** @description A user as the Users page lists and edits them. Credentials (PIN, password hash) never leave the server. */
+        UserDto: {
+            /** Format: int32 */
+            id: number;
+            username: string;
+            email: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            /** @description First and last name, or the username while either is missing (the same rule as the rest of the app). */
+            fullName: string;
+            /** Format: int32 */
+            roleId: number;
+            roleName: string;
+            /** @description A disabled user cannot sign in, and a signed-in one is turned away on their next request. */
+            isActive: boolean;
+            /** @description The PIN was set by an admin and the user has not replaced it yet. */
+            mustChangePin: boolean;
+            /**
+             * Format: date-time
+             * @description UTC; null for someone who never signed in.
+             */
+            lastLoginAt?: string | null;
+            /**
+             * Format: date-time
+             * @description UTC.
+             */
+            createdAt: string;
+        };
+        /** @description What every list endpoint returns. */
+        UserDtoPagedResult: {
+            items: components["schemas"]["UserDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Body of "reset a user's PIN": the user must pick their own at the next sign-in. */
+        UserResetPinRequest: {
+            newPin: string;
+        };
+        /** @description The four tiles above the Users page (all users and roles, not just the current page). */
+        UserSummaryDto: {
+            /** Format: int32 */
+            totalUsers: number;
+            /** Format: int32 */
+            totalRoles: number;
+            /** Format: int32 */
+            activeUsers: number;
+            /**
+             * Format: int32
+             * @description Users whose role holds `Users.Manage`: "admin" is whoever can manage users and roles, role names are the store's to choose.
+             */
+            adminUsers: number;
+        };
+        /** @description Body of "edit a user". The username cannot be changed. */
+        UserUpdateRequest: {
+            /** Format: email */
+            email: string;
+            firstName?: string | null;
+            lastName?: string | null;
+            /** Format: int32 */
+            roleId: number;
+            isActive: boolean;
+        };
         /** @description The end-of-day report of a closed session (what the Z report page prints). */
         ZReportDto: {
             /** Format: int32 */
@@ -3768,6 +4109,111 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    changeOwnPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ChangePinRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getSignInOptions: {
         parameters: {
             query?: never;
@@ -8112,6 +8558,281 @@ export interface operations {
             };
         };
     };
+    listRoles: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RoleRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDetailsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDetailsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RoleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleDetailsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getSession: {
         parameters: {
             query?: never;
@@ -8649,6 +9370,414 @@ export interface operations {
                 };
                 content: {
                     "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getUserSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setUserActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserActiveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    resetUserPin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UserResetPinRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

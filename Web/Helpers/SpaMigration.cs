@@ -25,6 +25,7 @@ public static class SpaMigration
             ["Inventory"] = "/app/inventory",
             ["Suppliers"] = "/app/suppliers",
             ["Receipts"] = "/app/receipts",
+            ["Users"] = "/app/users",
         };
 
     public static bool IsMigrated(string controller) => Migrated.ContainsKey(controller);

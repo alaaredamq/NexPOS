@@ -2,15 +2,16 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { isApiError } from '@/api/http'
-import { getLanguage, seedLanguage, useLanguage } from '@/core/i18n'
+import { getLanguage, seedLanguage } from '@/core/i18n'
 import { IDLE_TIMEOUT_MS, useIdleTimeout } from '@/core/idle/useIdleTimeout'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
 import { StatusCard } from '@/shell/pages/StatusCard'
-import { legacyAccountPath } from '@/shell/nav'
 import { loginUrl } from './returnTo'
 import { useRefreshSession, useSessionQuery } from './useSession'
 import { useSignOut } from './useSignOut'
+
+const CHANGE_PIN_PATH = '/account/change-pin'
 
 /**
  * Everything behind the sign-in. Boots from `GET /api/v1/session`: while it loads the page is a spinner, a 401 sends the
@@ -20,7 +21,6 @@ import { useSignOut } from './useSignOut'
 export function RequireAuth() {
   const { t } = useTranslation()
   const location = useLocation()
-  const { language } = useLanguage()
   const { data, error, isPending, refetch, isFetching } = useSessionQuery()
   const signOut = useSignOut()
   const refreshSession = useRefreshSession()
@@ -35,11 +35,8 @@ export function RequireAuth() {
     })
   }, [serverLanguage, refreshSession])
 
-  // An admin set this PIN; it must be changed before anything else. Until track A1 ships the screen it is the Razor page.
+  // An admin set this PIN: until the user has chosen their own, every page but the change-PIN screen sends them there (track A1).
   const mustChangePin = data?.user.mustChangePin === true
-  useEffect(() => {
-    if (mustChangePin) window.location.assign(legacyAccountPath(language, 'ChangePin'))
-  }, [mustChangePin, language])
 
   useIdleTimeout(() => void signOut({ reason: 'idle' }), IDLE_TIMEOUT_MS)
 
@@ -47,7 +44,8 @@ export function RequireAuth() {
     return <Navigate to={loginUrl(`${location.pathname}${location.search}`)} replace />
   }
 
-  if (isPending || mustChangePin) return <Loader fullSection size="lg" />
+  if (isPending) return <Loader fullSection size="lg" />
+  if (mustChangePin && location.pathname !== CHANGE_PIN_PATH) return <Navigate to={CHANGE_PIN_PATH} replace />
 
   if (!data) {
     // The server did not answer (stopped, restarting). Not a sign-out: keep the URL and let them retry.

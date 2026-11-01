@@ -381,11 +381,11 @@ public sealed class ApiPipelineTests
         Assert.Equal(permissions.OrderBy(p => p, StringComparer.Ordinal), permissions);
 
         var items = session.GetProperty("nav").EnumerateArray().SelectMany(s => s.GetProperty("items").EnumerateArray()).ToList();
-        var users = items.Single(i => i.GetProperty("key").GetString() == "Users");
-        Assert.Equal("/app/users", users.GetProperty("spaPath").GetString());
-        Assert.Equal("/en/Users", users.GetProperty("legacyPath").GetString());
-        Assert.Equal("/en/Users", users.GetProperty("href").GetString());   // not migrated yet: a plain link to the Razor page
-        Assert.False(users.GetProperty("migrated").GetBoolean());
+        var page = items.Single(i => i.GetProperty("key").GetString() == "Settings");  // a page no track has migrated yet
+        Assert.Equal("/app/settings", page.GetProperty("spaPath").GetString());
+        Assert.Equal("/en/Settings", page.GetProperty("legacyPath").GetString());
+        Assert.Equal("/en/Settings", page.GetProperty("href").GetString());   // not migrated yet: a plain link to the Razor page
+        Assert.False(page.GetProperty("migrated").GetBoolean());
         Assert.Equal("/app/cash-drawer", items.Single(i => i.GetProperty("key").GetString() == "CashDrawer").GetProperty("spaPath").GetString());
 
         Assert.False(session.GetProperty("license").GetProperty("allowsSales").GetBoolean()); // no licence file in the test host
