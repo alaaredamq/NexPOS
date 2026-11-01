@@ -121,16 +121,16 @@ function PrintersForm({ initial }: { initial: PrintingSettings }) {
         <h2 id="receipt-printer" className={styles.cardTitle}>
           {t('Set_ReceiptPrinter', { ns: 'common' })}
         </h2>
-        <div className={styles.inline}>
-          <SelectField<FormValues, string>
-            control={form.control}
-            name="receiptPrinterName"
-            label={t('Set_ReceiptPrinter', { ns: 'common' })}
-            hint={t('Set_ReceiptPrinterHelp', { ns: 'common' })}
-            options={options}
-            placeholder={t('Set_SelectPrinter', { ns: 'common' })}
-            clearable
-          />
+        <SelectField<FormValues, string>
+          control={form.control}
+          name="receiptPrinterName"
+          label={t('Set_ReceiptPrinter', { ns: 'common' })}
+          hint={t('Set_ReceiptPrinterHelp', { ns: 'common' })}
+          options={options}
+          placeholder={t('Set_SelectPrinter', { ns: 'common' })}
+          clearable
+        />
+        <div className={styles.actions}>
           <Button onClick={() => void runTest()} loading={test.isPending} title={t('Set_TestTooltip', { ns: 'common' })}>
             {t('Set_Test', { ns: 'common' })}
           </Button>

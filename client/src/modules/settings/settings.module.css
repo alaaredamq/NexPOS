@@ -9,8 +9,8 @@
 .tabs {
   display: flex;
   gap: var(--space-2);
+  flex-wrap: wrap;
   border-block-end: 1px solid var(--color-border);
-  overflow-x: auto;
 }
 
 .tab {
@@ -87,17 +87,6 @@
   .row {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.inline {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-end;
-}
-
-.inline > :first-child {
-  flex: 1 1 auto;
-  min-inline-size: 0;
 }
 
 .actions {

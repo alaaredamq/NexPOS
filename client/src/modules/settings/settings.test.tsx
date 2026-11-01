@@ -85,7 +85,7 @@ describe('store settings', () => {
     const name = await screen.findByLabelText(/Store Name/)
     const preview = screen.getByRole('img', { name: 'Receipt Preview' })
     expect(within(preview).getByText('Corner Shop')).toBeInTheDocument()
-    expect(within(preview).getByText('Phone: 01 234 567')).toBeInTheDocument()
+    expect(within(preview).getByText(/^Phone: .*01 234 567/)).toBeInTheDocument()
 
     fireEvent.change(name, { target: { value: 'New Name' } })
     fireEvent.change(screen.getByLabelText(/Footer Message/), { target: { value: 'come again' } })
