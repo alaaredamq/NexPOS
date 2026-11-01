@@ -319,18 +319,18 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | **G0** | **Gate: foundation done** | 0A–0F | | ☑ 2026-10-31 | | |
 | P1 | POS API + contract | G0 | L | ☑ done | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☑ done | Claude · `react/P2` | [P2.md](docs/react-migration/notes/P2.md) |
-| P3 | POS cart / pricing | G0, P1 DTOs | L | ◑ in review | Claude · `react/P3` | [P3.md](docs/react-migration/notes/P3.md) |
+| P3 | POS cart / pricing | G0, P1 DTOs | L | ☑ done | Claude · `react/P3` | [P3.md](docs/react-migration/notes/P3.md) |
 | P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
-| C3 | Inventory + Suppliers | G0 | M–L | ◑ in review | Claude · `react/C3` | [C3.md](docs/react-migration/notes/C3.md) |
-| S1 | Orders + Receipts | G0 | L | ◑ in review | Claude · `react/S1` | [S1.md](docs/react-migration/notes/S1.md) |
-| S2 | Cash drawer | G0 | M | ◑ in review | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
+| C3 | Inventory + Suppliers | G0 | M–L | ☑ done | Claude · `react/C3` | [C3.md](docs/react-migration/notes/C3.md) |
+| S1 | Orders + Receipts | G0 | L | ☑ done | Claude · `react/S1` | [S1.md](docs/react-migration/notes/S1.md) |
+| S2 | Cash drawer | G0 | M | ☑ done | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
 | I1 | Dashboard + Reports | G0 | M–L | ☑ done | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
-| I2 | Notifications + alerts | G0 | M | ◑ in review | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
-| I3 | Audit logs | G0 | S–M | ◑ in review | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
-| A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
+| I2 | Notifications + alerts | G0 | M | ☑ done | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
+| I3 | Audit logs | G0 | S–M | ☑ done | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
+| A1 | Users, roles, account | G0 | L | ☑ done | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
 | A3 | Money configuration | G0 | M | ☐ todo | | |
 | A4 | Backup + licence | G0 | M | ☐ todo | | |
