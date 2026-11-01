@@ -1,0 +1,216 @@
+.page {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 760px) {
+  .tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--space-4);
+  font-weight: 700;
+  color: var(--color-muted);
+  text-decoration: none;
+  border-block-end: 3px solid transparent;
+  margin-block-end: -1px;
+}
+
+.tab:hover {
+  color: var(--color-ink);
+}
+
+.tab[aria-current='page'] {
+  color: var(--color-primary);
+  border-block-end-color: var(--color-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 560px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.footerStart {
+  margin-inline-end: auto;
+}
+
+.strong {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.muted {
+  color: var(--color-faint);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+}
+
+.note {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-info-bg);
+  color: var(--color-ink);
+}
+
+.warn {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-ink);
+}
+
+/* ---- converter / calculator cards under the tables ---- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.cardRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .cardRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.result {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 560px) {
+  .resultGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.resultCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resultLabel {
+  color: var(--color-muted);
+}
+
+.resultValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+/* ---- code list values dialog ---- */
+
+.valueTable {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.valueTable th,
+.valueTable td {
+  padding: var(--space-2) var(--space-3);
+  text-align: start;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.valueTable th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.valueActions {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.valueForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 700px) {
+  .valueForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.scroll {
+  max-block-size: 40vh;
+  overflow: auto;
+}
+
+/* The form wraps ModalBody + ModalFooter: let them stay direct flex children of the dialog card so a tall body scrolls and the footer stays in view. */
+.modalForm {
+  display: contents;
+}

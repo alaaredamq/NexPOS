@@ -2465,4 +2465,24 @@
   <data name="Set_NameTooLong" xml:space="preserve"><value>The app name can be at most {0} characters.</value></data>
   <data name="Set_FileTypeNotAllowed" xml:space="preserve"><value>Unsupported file type '{0}'. Allowed: {1}</value></data>
   <data name="Set_FileTooLarge" xml:space="preserve"><value>The file is too large (max {0} MB).</value></data>
+  <data name="Mny_CurrencyCodeRequired" xml:space="preserve"><value>The currency needs a code.</value></data>
+  <data name="Mny_CurrencyCodeTaken" xml:space="preserve"><value>A currency with that code already exists.</value></data>
+  <data name="Mny_CurrencyDefaultRequired" xml:space="preserve"><value>This is the default currency. Make another currency the default instead.</value></data>
+  <data name="Mny_CurrencyDefaultInactive" xml:space="preserve"><value>The default currency must be active.</value></data>
+  <data name="Mny_CurrencyDeleteDefault" xml:space="preserve"><value>The default currency can't be deleted. Make another currency the default first.</value></data>
+  <data name="Mny_CurrencyInUse" xml:space="preserve"><value>Suppliers, receipts or exchange rates still use this currency, so it can't be deleted. Mark it inactive instead.</value></data>
+  <data name="Mny_UnknownCurrency" xml:space="preserve"><value>That currency does not exist.</value></data>
+  <data name="Mny_UnknownSupplier" xml:space="preserve"><value>That supplier does not exist.</value></data>
+  <data name="Mny_RateSameCurrency" xml:space="preserve"><value>Choose two different currencies.</value></data>
+  <data name="Mny_RateExists" xml:space="preserve"><value>A rate for this pair of currencies (and supplier) already exists. Edit it instead.</value></data>
+  <data name="Mny_UnknownTax" xml:space="preserve"><value>That tax does not exist.</value></data>
+  <data name="Mny_UnknownCategory" xml:space="preserve"><value>That category does not exist.</value></data>
+  <data name="Mny_TaxDatesOrder" xml:space="preserve"><value>The end date can't be before the start date.</value></data>
+  <data name="Mny_DiscountInUse" xml:space="preserve"><value>Something still uses this discount, so it can't be deleted.</value></data>
+  <data name="Mny_PaymentMethodSystem" xml:space="preserve"><value>"Customer Debt" is how sales are put on a customer's account, so it can't be changed or deleted.</value></data>
+  <data name="Mny_PaymentMethodSystemName" xml:space="preserve"><value>"Customer Debt" is reserved for sales put on a customer's account. Choose another name.</value></data>
+  <data name="Mny_PaymentMethodNameTaken" xml:space="preserve"><value>A payment method with that name already exists.</value></data>
+  <data name="Mny_PaymentMethodInUse" xml:space="preserve"><value>Receipts were paid with this method, so it can't be deleted.</value></data>
+  <data name="Mny_CodeListKeyTaken" xml:space="preserve"><value>A code list with that key already exists.</value></data>
+  <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>This list already has that value.</value></data>
 </root>
