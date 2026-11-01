@@ -19,6 +19,7 @@ const FUNCTION_KEYS: Record<string, ShortcutAction> = {
   F3: { type: 'priceCheck' },
   F4: { type: 'command', command: 'retrieve' },
   F6: { type: 'command', command: 'hold' },
+  F7: { type: 'command', command: 'recentSales' },
   F8: { type: 'command', command: 'discount' },
   F9: { type: 'command', command: 'clear' },
 }
@@ -46,6 +47,7 @@ export const SHORTCUT_HELP: readonly ShortcutInfo[] = [
   { keys: 'F3', labelKey: 'PriceCheck' },
   { keys: 'F4', labelKey: 'RetrieveHeldCart' },
   { keys: 'F6', labelKey: 'holdCart' },
+  { keys: 'F7', labelKey: 'lastSales' },
   { keys: 'F8', labelKey: 'ApplyDiscount' },
   { keys: 'F9', labelKey: 'clearCart' },
   { keys: 'Ctrl + Enter', labelKey: 'Checkout' },

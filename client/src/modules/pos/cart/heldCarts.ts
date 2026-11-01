@@ -1,6 +1,7 @@
 import { i18n } from '@/core/i18n'
 import { fetchCurrencies, fetchHeldCart, fetchProduct, type ResumedLine } from './api'
 import { useCartStore, lineFromProduct, type CartDiscount, type CartLine, type LinePrice } from '../store/cartStore'
+import { rememberCustomer } from '../checkout/customerNames'
 import { cleanAmount } from './units'
 
 function priceOf(line: ResumedLine): LinePrice {
@@ -23,7 +24,7 @@ export interface ResumeResult {
  * unit, price list and stock are today's); how each line was priced is kept (default / stored price / custom) and the server re-prices
  * the cart as soon as it is on the screen. The held cart itself stays in the held list until it is deleted, as in the old till.
  */
-export async function resumeHeldCart(id: number): Promise<ResumeResult> {
+export async function resumeHeldCart(id: number, customerName?: string): Promise<ResumeResult> {
   const held = await fetchHeldCart(id)
   const products = await Promise.allSettled(held.lines.map((l) => fetchProduct(l.productId)))
 
@@ -54,6 +55,7 @@ export async function resumeHeldCart(id: number): Promise<ResumeResult> {
       ? { type: 'amount', value: held.discountAmount, currencyId, label }
       : null
 
+  rememberCustomer(held.customerId, customerName)
   useCartStore.getState().load({ lines, discount, customerId: held.customerId ?? null, notes: held.notes }, held.cartId)
   return { loaded: lines.length, skipped }
 }

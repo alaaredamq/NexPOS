@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import { Permissions } from '@/api/permissions'
+import { useCan } from '@/core/permissions/permissions'
 import { posBus, type PosCommand } from '../slots'
 import styles from './layout.module.css'
 
@@ -14,15 +16,17 @@ interface Action {
   run: () => void
 }
 
-/** The four buttons under the product grid. Price check is the catalog's own; the others are commands the cart (P3) answers. */
+/** The buttons under the product grid. Price check is the catalog's own; the others are commands the cart (P3) answers. */
 export function QuickActions({ onPriceCheck }: QuickActionsProps) {
   const { t } = useTranslation('pos')
+  const canSeeSales = useCan(Permissions.Orders_View)
   const command = (name: PosCommand) => () => void posBus.run(name)
 
   const actions: Action[] = [
     { id: 'retrieve', label: t('Retrieve'), hint: t('HeldCart'), keys: 'F4', run: command('retrieve') },
     { id: 'discount', label: t('Discount'), hint: t('Apply'), keys: 'F8', run: command('discount') },
     { id: 'price-check', label: t('PriceCheck'), hint: t('Check'), keys: 'F3', run: onPriceCheck },
+    ...(canSeeSales ? [{ id: 'recent', label: t('LastSales'), hint: t('Reprint'), keys: 'F7', run: command('recentSales') }] : []),
   ]
 
   return (

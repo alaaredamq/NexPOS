@@ -36,7 +36,7 @@ export function HeldCartsDialog({ notation, onClose }: Props) {
   const load = async (cart: HeldCart) => {
     setBusy(true)
     try {
-      const { loaded, skipped } = await resumeHeldCart(cart.id)
+      const { loaded, skipped } = await resumeHeldCart(cart.id, cart.customerName)
       toast.success(`${t('cartLoadedSuccessfully')} ${loaded} ${t('items')}`)
       for (const name of skipped) toast.warning(t('heldLineUnavailable', { name }))
       onClose()

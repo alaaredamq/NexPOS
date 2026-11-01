@@ -320,7 +320,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | P1 | POS API + contract | G0 | L | ☑ done | Claude · `react/P1` | [P1.md](docs/react-migration/notes/P1.md) |
 | P2 | POS screen / catalog / scan | G0, P1 DTOs | L | ☑ done | Claude · `react/P2` | [P2.md](docs/react-migration/notes/P2.md) |
 | P3 | POS cart / pricing | G0, P1 DTOs | L | ☑ done | Claude · `react/P3` | [P3.md](docs/react-migration/notes/P3.md) |
-| P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☐ todo | | |
+| P4 | POS checkout / post-sale | G0, P1 DTOs, P3 stub | L | ☑ done | Claude · `react/P4` | [P4.md](docs/react-migration/notes/P4.md) |
 | C1 | Products | G0 | L | ☑ done | Claude · `react/C1` | [C1.md](docs/react-migration/notes/C1.md) |
 | C2 | Categories / display order | G0 | M | ☑ done | Claude · `react/C2` | [C2.md](docs/react-migration/notes/C2.md) |
 | C3 | Inventory + Suppliers | G0 | M–L | ☑ done | Claude · `react/C3` | [C3.md](docs/react-migration/notes/C3.md) |
