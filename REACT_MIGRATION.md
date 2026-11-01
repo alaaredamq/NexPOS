@@ -327,7 +327,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | S1 | Orders + Receipts | G0 | L | ◑ in review | Claude · `react/S1` | [S1.md](docs/react-migration/notes/S1.md) |
 | S2 | Cash drawer | G0 | M | ◑ in review | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
-| I1 | Dashboard + Reports | G0 | M–L | ◑ in review | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
+| I1 | Dashboard + Reports | G0 | M–L | ☑ done | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
 | I2 | Notifications + alerts | G0 | M | ☐ todo | | |
 | I3 | Audit logs | G0 | S–M | ☐ todo | | |
 | A1 | Users, roles, account | G0 | L | ☐ todo | | |
@@ -338,7 +338,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
 
-**Integration state (2026-11-01):** every track branch so far is merged into `react/main`; all track worktrees and `react/<ID>` branches are removed, so the next
+**Integration state (2026-11-01):** every track branch so far (incl. I1) is merged into `react/main`; all track worktrees and `react/<ID>` branches are removed, so the next
 session starts from rule 4.1. ◑ rows (P3, C3, S1, S2) are merged but still wait for the by-hand check in their notes file. `react/main` has **not** been merged
 into `master` (that is the Cutover). The main checkout (`ERP/`) currently has `react/main` checked out. `client/src/api/schema.d.ts` was regenerated after the last
 merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pass (run with `--maxWorkers=2` — under full parallel load some `findBy*` tests time out spuriously).
