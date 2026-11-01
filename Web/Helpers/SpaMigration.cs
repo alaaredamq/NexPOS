@@ -24,6 +24,7 @@ public static class SpaMigration
             ["Customers"] = "/app/customers",
             ["ProductDisplayOrder"] = "/app/product-display-order",
             ["Inventory"] = "/app/inventory",
+            ["Notifications"] = "/app/notifications",
             ["Suppliers"] = "/app/suppliers",
             ["Receipts"] = "/app/receipts",
             ["Reports"] = "/app/reports",

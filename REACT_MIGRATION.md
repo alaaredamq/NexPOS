@@ -328,7 +328,7 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | S2 | Cash drawer | G0 | M | ◑ in review | Claude · `react/S2` | [S2.md](docs/react-migration/notes/S2.md) |
 | S3 | Customers + debt | G0 | M | ☑ done | Claude · `react/S3` | [S3.md](docs/react-migration/notes/S3.md) |
 | I1 | Dashboard + Reports | G0 | M–L | ☑ done | Claude · `react/I1` | [I1.md](docs/react-migration/notes/I1.md) |
-| I2 | Notifications + alerts | G0 | M | ☐ todo | | |
+| I2 | Notifications + alerts | G0 | M | ◑ in review | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
 | I3 | Audit logs | G0 | S–M | ☐ todo | | |
 | A1 | Users, roles, account | G0 | L | ◑ in review | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
 | A2 | Settings / branding / printers | G0 | M | ☐ todo | | |
@@ -348,6 +348,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · C3 · none (no frozen path edited; `Core/Auditing/AuditActions.cs` gained `StockAdjusted`, `SharedResource.*.resx` gained 4 `Inv_`/`Sup_` keys)
 - 2026-11-01 · I1 · none (no frozen path edited; `Core`/`Application` untouched except `SalesReportService` bug fix, `DashboardService` +`Dates`, `ReportDocuments.SalesReport`; `SharedResource.*.resx` gained 2 `Rep_` keys)
 - 2026-11-01 · A1 · `client/src/core/auth/RequireAuth.tsx`, `client/src/shell/{UserMenu.tsx,nav.ts}` · `mustChangePin` is enforced in the SPA (redirect to `/account/change-pin`) instead of a full navigation to the Razor page; Profile / Change PIN in the user menu are router links; `legacyAccountPath` removed. Also `Web/Services/RoleAccessService.cs` (`RoleResult.Code`, additive) and `Tests/Api/Infrastructure/ApiPipelineTests.cs` (unmigrated-page example is now Settings).
+- 2026-11-01 · I2 · `client/src/shell/NotificationBell.tsx` · now re-exports the bell of `modules/notifications/bell` (dropdown + toasts + feed poll); `NotificationBell.module.css` deleted. The shell only places it.
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)

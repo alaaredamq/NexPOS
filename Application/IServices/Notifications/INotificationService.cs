@@ -51,6 +51,14 @@ namespace Application.IServices.Notifications
         Task<IEnumerable<Notification>> GetFilteredNotificationsAsync(NotificationFilterRequest request);
         Task<IEnumerable<Alert>> GetFilteredAlertsAsync(AlertFilterRequest request);
 
+        // Lookups that answer null instead of throwing, and database-side paging/counts for the SPA's notifications page.
+        Task<Notification?> FindNotificationAsync(int id);
+        Task<Alert?> FindAlertAsync(int id);
+        Task<NotificationPage<Notification>> GetNotificationPageAsync(NotificationPageFilter filter);
+        Task<NotificationPage<Alert>> GetAlertPageAsync(AlertPageFilter filter);
+        /// <summary>Alert counts are zero unless includeAlerts (the caller checks the Alerts permission).</summary>
+        Task<NotificationCountsDTO> GetCountsAsync(bool includeAlerts);
+
         // Bulk operations
         Task BulkUpdateNotificationsAsync(BulkNotificationUpdateRequest request);
         Task BulkDeleteNotificationsAsync(List<int> ids);
