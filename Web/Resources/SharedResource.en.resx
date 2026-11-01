@@ -2444,4 +2444,6 @@
   <data name="Sales_OrderClosed" xml:space="preserve"><value>Order {0} has already been cancelled or returned, so there is no sale left to cancel.</value></data>
   <data name="Sales_OrderCancelled" xml:space="preserve"><value>Order {0} is cancelled and cannot be reopened.</value></data>
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>Receipt {0} is already void.</value></data>
+  <data name="Rep_RangeBackwards" xml:space="preserve"><value>The end date must not be before the start date.</value></data>
+  <data name="Rep_RangeTooLong" xml:space="preserve"><value>Choose a range of at most {0} days.</value></data>
 </root>

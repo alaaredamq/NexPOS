@@ -25,6 +25,8 @@ public class SalesAnalyticsDTO
     public List<string> Labels { get; set; } = new();
     public List<decimal> SalesData { get; set; } = new();
     public List<decimal> ProfitData { get; set; } = new();
+    /// <summary>First local day of each bucket, parallel to <see cref="Labels"/>.</summary>
+    public List<DateTime> Dates { get; set; } = new();
     public string Period { get; set; } = string.Empty;
 }
 

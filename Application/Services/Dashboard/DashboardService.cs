@@ -167,7 +167,7 @@ public class DashboardService : IDashboardService
 
     // Groups completed orders into ordered chart buckets, returning (label, revenue, cost) per bucket.
     // Revenue is Order.TotalAmount (what the customer actually paid, after discounts); cost is COGS.
-    private static List<(string Label, decimal Revenue, decimal Cost)> BuildTrendBuckets(
+    private static List<(DateTime Key, string Label, decimal Revenue, decimal Cost)> BuildTrendBuckets(
         IEnumerable<Core.Entities.Sales.Order> orders, string period)
     {
         var completed = orders.Where(IsCompletedSale);
@@ -178,6 +178,7 @@ public class DashboardService : IDashboardService
                 .GroupBy(o => { var d = o.OrderDate.UtcToLocal(); return new DateTime(d.Year, d.Month, 1); }) // local month
                 .OrderBy(g => g.Key)
                 .Select(g => (
+                    g.Key,
                     g.Key.ToString("MMM"),
                     g.Sum(o => o.TotalAmount),
                     g.SelectMany(o => o.Cart.CartItems).Sum(LineCost)))
@@ -188,6 +189,7 @@ public class DashboardService : IDashboardService
             .GroupBy(o => o.OrderDate.UtcToLocal().Date) // local day, not UTC day
             .OrderBy(g => g.Key)
             .Select(g => (
+                g.Key,
                 g.Key.ToString("MMM dd"),
                 g.Sum(o => o.TotalAmount),
                 g.SelectMany(o => o.Cart.CartItems).Sum(LineCost)))
@@ -208,6 +210,8 @@ public class DashboardService : IDashboardService
                 SalesData = buckets.Select(b => b.Revenue).ToList(),
                 // Real gross profit per bucket = revenue − COGS (from Product.CostPrice), no longer a flat 30% guess.
                 ProfitData = buckets.Select(b => b.Revenue - b.Cost).ToList(),
+                // The bucket's real local date, so a client can format the axis in its own language (Labels is server-culture text).
+                Dates = buckets.Select(b => b.Key).ToList(),
                 Period = period
             };
         }

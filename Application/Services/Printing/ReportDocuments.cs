@@ -7,6 +7,9 @@ namespace Application.Services.Printing;
 
 public record LowStockItem(string Name, string Category, decimal Stock, decimal Minimum);
 
+/// <summary>A titled block of label / value rows (money already formatted by the caller).</summary>
+public record ReportSection(string Title, IReadOnlyList<(string Label, string Value)> Rows);
+
 public record StockValueItem(string Name, string Category, decimal Quantity, string UnitCost, string Value);
 
 /// <summary>
@@ -115,6 +118,29 @@ public static class ReportDocuments
             lines.Add(PrintLine.Centered("All products have enough stock"));
 
         return new PrintDocument("Low-Stock-Report", lines);
+    }
+
+    /// <summary>The sales report of a range of days: the totals, then one block per breakdown. The caller formats the figures.</summary>
+    public static PrintDocument SalesReport(string from, string to, IReadOnlyList<(string Label, string Value)> totals, IReadOnlyList<ReportSection> sections)
+    {
+        var lines = new List<PrintLine>
+        {
+            PrintLine.Header("SALES REPORT"),
+            PrintLine.Centered(from == to ? from : $"{from} - {to}"),
+            PrintLine.Separator(),
+        };
+        lines.AddRange(totals.Select(t => PrintLine.Row(t.Label + ":", t.Value, bold: true)));
+
+        foreach (var section in sections.Where(s => s.Rows.Count > 0))
+        {
+            lines.Add(PrintLine.Separator());
+            lines.Add(PrintLine.Bold(section.Title));
+            lines.AddRange(section.Rows.Select(r => PrintLine.Row(r.Label, r.Value)));
+        }
+
+        lines.Add(PrintLine.Spacer());
+        lines.Add(PrintLine.Centered($"Generated {DateTime.Now.ToString("yyyy-MM-dd HH:mm", Inv)}"));
+        return new PrintDocument($"Sales-Report-{from}-{to}", lines);
     }
 
     public static PrintDocument StockValue(IReadOnlyCollection<StockValueItem> items, string totalValue)
