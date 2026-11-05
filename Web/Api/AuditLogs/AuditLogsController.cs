@@ -113,6 +113,10 @@ public sealed class AuditLogFilterQuery
     [FromQuery(Name = "category")]
     public string? Category { get; set; }
 
+    /// <summary>The part of the product: <c>Sales</c>, <c>Pos</c>, <c>Inventory</c>, <c>Customers</c>, <c>Account</c>, <c>Settings</c>, <c>Reports</c>, <c>System</c> or <c>Other</c>.</summary>
+    [FromQuery(Name = "area")]
+    public string? Area { get; set; }
+
     /// <summary><c>Success</c>, <c>Failure</c> or <c>Denied</c>.</summary>
     [FromQuery(Name = "outcome")]
     public string? Outcome { get; set; }
@@ -156,6 +160,7 @@ public sealed class AuditLogFilterQuery
             UserId = UserId,
             Username = Username,
             Category = Parse<AuditCategory>(Category, "category"),
+            Area = Parse<AuditArea>(Area, "area"),
             Outcome = Parse<AuditOutcome>(Outcome, "outcome"),
             MinSeverity = Parse<AuditLogSeverity>(MinSeverity, "minSeverity"),
             EntityType = EntityType,

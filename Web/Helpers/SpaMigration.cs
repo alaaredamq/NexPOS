@@ -23,6 +23,7 @@ public static class SpaMigration
             ["Orders"] = "/app/orders",
             ["POS"] = "/app/pos",
             ["Products"] = "/app/products",
+            ["Purchases"] = "/app/purchases",
             ["Categories"] = "/app/categories",
             ["AuditLogs"] = "/app/audit-logs",
             ["Customers"] = "/app/customers",

@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Web [http]",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/Web/bin/Debug/net9.0/Web.dll",
+      "cwd": "${workspaceFolder}/Web",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchSettingsProfile": "http",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "Web [Electron]",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/Web/bin/Debug/net9.0/Web.dll",
+      "cwd": "${workspaceFolder}/Web",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ELECTRON_MODE": "true"
+      },
+      "launchSettingsProfile": "Electron"
+    }
+  ]
+}

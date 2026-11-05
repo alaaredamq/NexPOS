@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { useCan } from '@/core/permissions/permissions'
 import { DataTable, type Column } from '@/ui/DataTable'
@@ -27,8 +27,10 @@ export const statusOf = (value: string): InventoryStatus => (value === 'out' || 
 
 /** `/app/inventory` - every product with its stock figures, the four tiles, adjust stock and set minimum. */
 export default function InventoryPage() {
-  const { t } = useTranslation(['inventory', 'common'])
+  const { t } = useTranslation(['inventory', 'common', 'products'])
   const canEdit = useCan(Permissions.Inventory_Edit)
+  const canSeeHistory = useCan(Permissions.Products_View)
+  const navigate = useNavigate()
 
   const { params, sort, update } = useListParams(DEFAULT_SORT)
   const list = useInventory(params)
@@ -107,11 +109,12 @@ export default function InventoryPage() {
         emptyTitle={params.q ? t('NoProductsMatch') : t('NoInventoryDataAvailable')}
         rowActionsLabel={t('Actions')}
         rowActions={
-          canEdit
+          canEdit || canSeeHistory
             ? (p) => (
                 <>
-                  <IconButton icon="plus" label={t('AdjustStock')} onClick={() => setAdjusting(p)} />
-                  <IconButton icon="warning" label={t('SetMinimumStock')} onClick={() => setMinimum(p)} />
+                  {canSeeHistory && <IconButton icon="history" label={t('history.button', { ns: 'products' })} onClick={() => navigate(`/products/${p.id}/history`)} />}
+                  {canEdit && <IconButton icon="plus" label={t('AdjustStock')} onClick={() => setAdjusting(p)} />}
+                  {canEdit && <IconButton icon="warning" label={t('SetMinimumStock')} onClick={() => setMinimum(p)} />}
                 </>
               )
             : undefined

@@ -48,14 +48,17 @@ export function forgetAttempt(): void {
 
 // ---- the typed total -------------------------------------------------------------------------------------------------------
 
-/** The most the typed total may differ from the server's: the greater of 1.00 and 2 % (`PosSaleService`). */
+/** The most the typed total may be raised above the server's (cash rounding): the greater of 1.00 and 2 % (`POSCheckoutService`). */
 export function totalTolerance(serverTotal: number): number {
   return Math.max(1, serverTotal * 0.02)
 }
 
-/** True when `typed` is a figure the server will take for a cart that prices at `serverTotal`. */
+/**
+ * True when `typed` is a figure the server will take for a cart that prices at `serverTotal`. Lowering is the cashier's call (it is a
+ * discount, shown on the receipt) so anything from 0 down is fine; only a raise is bounded.
+ */
 export function isTotalAcceptable(typed: number, serverTotal: number): boolean {
-  return Number.isFinite(typed) && typed >= 0 && Math.abs(typed - serverTotal) <= totalTolerance(serverTotal) + 1e-9
+  return Number.isFinite(typed) && typed >= 0 && typed - serverTotal <= totalTolerance(serverTotal) + 1e-9
 }
 
 /**

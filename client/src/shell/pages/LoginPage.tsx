@@ -177,9 +177,14 @@ export default function LoginPage() {
             {options.isPending || existing.isPending ? (
               <Loader fullSection />
             ) : options.isError ? (
-              <div className={styles.error} role="alert">
-                {options.error.message}
-              </div>
+              <section className={styles.step}>
+                <div className={styles.error} role="alert">
+                  {options.error.message}
+                </div>
+                <button type="button" className={styles.link} onClick={() => void options.refetch()} disabled={options.isFetching}>
+                  {t('TryAgain')}
+                </button>
+              </section>
             ) : person ? (
               <section className={styles.step} aria-live="polite">
                 <div className={styles.avatar}>{person.initials}</div>

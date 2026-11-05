@@ -23,6 +23,8 @@ const overview = {
   todayOrders: 4,
   monthProfit: 300,
   monthProfitChangePercent: 0,
+  allTimeSales: 98765.4,
+  allTimeProfit: 21000,
   customerCount: 17,
   productCount: 230,
   recentOrders: [
@@ -79,6 +81,9 @@ describe('dashboard', () => {
     expect(screen.getByText(/\+12\.5%/)).toBeInTheDocument()
     expect(screen.getByText(/−3\W+orders vs last month/)).toBeInTheDocument()
     expect(screen.getByText('4 orders today')).toBeInTheDocument()
+    expect(screen.getByText('Total revenue')).toBeInTheDocument()
+    expect(screen.getByText(/98,765\.40/)).toBeInTheDocument()
+    expect(screen.getByText(/21,000\.00\W+profit/)).toBeInTheDocument()
     expect(screen.getByText('230')).toBeInTheDocument()
     expect(screen.getByText('17')).toBeInTheDocument()
   })

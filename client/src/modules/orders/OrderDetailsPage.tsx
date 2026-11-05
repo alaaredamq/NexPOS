@@ -6,10 +6,12 @@ import { isApiError } from '@/api/http'
 import { useSession } from '@/core/auth/useSession'
 import { Can } from '@/core/permissions/permissions'
 import { flattenNav } from '@/shell/nav'
+import { BackLink } from '@/ui/BackLink'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { formatDateTime, formatMoney, formatPercent, formatQty } from '@/ui/format'
+import { ChangeCustomerDialog } from '../_shared/ChangeCustomerDialog'
 import { useReceiptPrinting } from '../_shared/receiptActions'
 import sales from '../_shared/sales.module.css'
 import { STATUS_KEYS, STATUS_TONES, useOrder, type OrderDetail } from './api'
@@ -47,10 +49,11 @@ function NotFound({ error }: { error?: unknown }) {
 
 function Details({ order: o }: { order: OrderDetail }) {
   const { t } = useTranslation('orders')
-  const navigate = useNavigate()
   const session = useSession()
   const printing = useReceiptPrinting()
+  const { t: tc } = useTranslation('common')
   const [changing, setChanging] = useState(false)
+  const [changingCustomer, setChangingCustomer] = useState(false)
   const money = (amount: number) => formatMoney(amount, o.currencyNotation)
   const customers = flattenNav(session.nav).find((item) => item.key === 'Customers')
   // The customers page is still the Razor one until S3 lands; follow whichever the session says is live.
@@ -59,7 +62,8 @@ function Details({ order: o }: { order: OrderDetail }) {
   return (
     <div className={`${sales.page} ${sales.narrow}`}>
       <div className={sales.top}>
-        <div>
+        <div className={sales.heading}>
+          <BackLink to="/orders">{t('BackToOrders')}</BackLink>
           <h1 className={sales.title}>
             <bdi>{o.orderNumber}</bdi>
           </h1>
@@ -72,6 +76,12 @@ function Details({ order: o }: { order: OrderDetail }) {
               <Button onClick={() => setChanging(true)}>{t('UpdateStatus')}</Button>
             </Can>
           )}
+          {/* The customer of a cancelled or returned sale is history: the server refuses it, so the button is not offered. */}
+          {o.status !== 4 && o.status !== 5 && (
+            <Can permission={Permissions.Sales_ChangeCustomer}>
+              <Button onClick={() => setChangingCustomer(true)}>{tc('SaleCustomer_Change')}</Button>
+            </Can>
+          )}
           <Button
             variant="primary"
             loading={printing.busy}
@@ -80,7 +90,6 @@ function Details({ order: o }: { order: OrderDetail }) {
             {t('PrintReceipt')}
           </Button>
           <Button onClick={() => void printing.downloadPdf(`/pos/sales/${o.id}/receipt.pdf`, `${o.orderNumber}.pdf`)}>{t('details.downloadPdf')}</Button>
-          <Button onClick={() => navigate('/orders')}>{t('BackToOrders')}</Button>
         </div>
       </div>
 
@@ -237,6 +246,16 @@ function Details({ order: o }: { order: OrderDetail }) {
         </div>
       </div>
 
+      {changingCustomer && (
+        <ChangeCustomerDialog
+          kind="orders"
+          id={o.id}
+          number={o.orderNumber}
+          customerId={o.customerId ?? null}
+          customerName={o.customerName ?? null}
+          onClose={() => setChangingCustomer(false)}
+        />
+      )}
       {changing && <OrderStatusDialog order={{ id: o.id, orderNumber: o.orderNumber, status: o.status }} onClose={() => setChanging(false)} />}
     </div>
   )

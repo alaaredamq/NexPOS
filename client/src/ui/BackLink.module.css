@@ -1,0 +1,25 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-block-size: 28px;
+  margin-inline-start: -8px;
+  padding-inline: 8px 10px;
+  border-radius: var(--radius-control);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.back:hover {
+  background: var(--color-neutral-bg);
+  color: var(--color-primary);
+}
+
+.back:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}

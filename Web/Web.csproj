@@ -51,10 +51,7 @@
         <BuildInfoFile>$(IntermediateOutputPath)BuildInfo.g.cs</BuildInfoFile>
         <BuildInfoDate>$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd'))</BuildInfoDate>
       </PropertyGroup>
-      <WriteLinesToFile File="$(BuildInfoFile)"
-                        Lines="namespace Web { internal static class BuildInfo { public const string BuildDate = &quot;$(BuildInfoDate)&quot;%3B } }"
-                        Overwrite="true"
-                        WriteOnlyWhenDifferent="true" />
+      <WriteLinesToFile File="$(BuildInfoFile)" Lines="namespace Web { internal static class BuildInfo { public const string BuildDate = &quot;$(BuildInfoDate)&quot;%3B } }" Overwrite="true" WriteOnlyWhenDifferent="true" />
       <ItemGroup>
         <Compile Include="$(BuildInfoFile)" />
         <FileWrites Include="$(BuildInfoFile)" />

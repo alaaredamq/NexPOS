@@ -88,6 +88,7 @@ public sealed class ReportsApiService : IReportsApiService
         return new SalesPeriodDto
         {
             Sales = await _report.GetTotalSalesAsync(start, end),
+            Profit = await _report.GetTotalProfitAsync(start, end),
             Orders = await _report.GetTotalOrdersAsync(start, end),
         };
     }
@@ -119,6 +120,7 @@ public sealed class ReportsApiService : IReportsApiService
             To = Iso(to),
             CurrencyNotation = await NotationAsync(),
             TotalSales = report.TotalSales,
+            TotalProfit = report.TotalProfit,
             TotalOrders = report.TotalOrders,
             AverageOrderValue = report.AverageOrderValue,
             TotalItemsSold = report.TotalItemsSold,
@@ -171,6 +173,7 @@ public sealed class ReportsApiService : IReportsApiService
         Row("Sales report", report.From, report.To);
         Row("Currency", report.CurrencyNotation);
         Row("Total sales", Number(report.TotalSales));
+        Row("Total profit", Number(report.TotalProfit));
         Row("Orders", report.TotalOrders.ToString(Inv));
         Row("Average order value", Number(report.AverageOrderValue));
         Row("Items sold", Number(report.TotalItemsSold));
@@ -205,6 +208,7 @@ public sealed class ReportsApiService : IReportsApiService
             new (string, string)[]
             {
                 ("Total sales", Money(report.TotalSales)),
+                ("Total profit", Money(report.TotalProfit)),
                 ("Orders", report.TotalOrders.ToString(Inv)),
                 ("Average order", Money(report.AverageOrderValue)),
                 ("Items sold", report.TotalItemsSold.ToString("0.###", Inv)),

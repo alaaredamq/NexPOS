@@ -14,6 +14,9 @@ public sealed class AuditLogFilter
     public int? UserId { get; set; }
     public string? Username { get; set; }
     public AuditCategory? Category { get; set; }
+
+    /// <summary>Only entries of this part of the product (see <see cref="AuditAreas"/>).</summary>
+    public AuditArea? Area { get; set; }
     public AuditOutcome? Outcome { get; set; }
 
     /// <summary>Only rows at this severity or worse.</summary>

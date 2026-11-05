@@ -161,6 +161,14 @@ describe('product form', () => {
     expect(calls.some((c) => c.init?.method === 'POST')).toBe(false)
   })
 
+  it('starts a new product with the supplier from ?supplier= (the purchase form window)', async () => {
+    handlers['/api/v1/products/lookups'] = () => json({ ...lookups, suppliers: [...lookups.suppliers, { id: 2, name: 'Acme', discountRate: 0 }] })
+    mount('/products/new?supplier=2', admin)
+    await screen.findByText('Product Information')
+
+    expect(screen.getByRole('combobox', { name: /Supplier/ })).toHaveValue('Acme')
+  })
+
   it("puts the server's barcode error on the barcode field", async () => {
     handlers['/api/v1/products'] = (init) =>
       init?.method === 'POST'

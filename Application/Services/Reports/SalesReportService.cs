@@ -45,6 +45,7 @@ namespace Application.Services.Reports
                 StartDate = DateTime.SpecifyKind(request.StartDate, DateTimeKind.Local),
                 EndDate = DateTime.SpecifyKind(request.EndDate, DateTimeKind.Local),
                 TotalSales = totalSales,
+                TotalProfit = allCartItems.Where(ci => ci.Product.CostPrice != null).Sum(ci => LineProfit(ci.UnitPrice, ci.Product.CostPrice!.Value, ci.Quantity, ci.WeightOrVolume)),
                 TotalOrders = totalOrders,
                 AverageOrderValue = averageOrderValue,
                 TotalItemsSold = allCartItems.Sum(ci => ci.Quantity),
@@ -153,6 +154,30 @@ namespace Application.Services.Reports
 
             return orders.Sum(o => o.TotalAmount);
         }
+
+        public async Task<decimal> GetTotalProfitAsync(DateTime startDate, DateTime endDate)
+        {
+            var cartIds = (await _orderRepository.GetAllAsync(o =>
+                o.OrderDate >= startDate &&
+                o.OrderDate <= endDate &&
+                !o.IsDeleted &&
+                o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned))
+                .Select(o => o.CartId)
+                .ToList();
+
+            // Summed here, not in SQL: SQLite cannot aggregate a decimal column.
+            var lines = await _cartRepository.GetAllQueryable(c => cartIds.Contains(c.Id))
+                .SelectMany(c => c.CartItems)
+                .Where(ci => ci.Product.CostPrice != null)
+                .Select(ci => new { ci.UnitPrice, Cost = ci.Product.CostPrice!.Value, ci.Quantity, ci.WeightOrVolume })
+                .ToListAsync();
+
+            return lines.Sum(l => LineProfit(l.UnitPrice, l.Cost, l.Quantity, l.WeightOrVolume));
+        }
+
+        /// <summary>Same rule as the dashboard's profit: a weighed line counts its weight or volume, a piece line its quantity.</summary>
+        private static decimal LineProfit(decimal unitPrice, decimal cost, int quantity, decimal? weightOrVolume)
+            => (unitPrice - cost) * (weightOrVolume is { } wv && wv > 0 ? wv : quantity);
 
         public async Task<int> GetTotalOrdersAsync(DateTime startDate, DateTime endDate)
         {

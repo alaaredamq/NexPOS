@@ -10,8 +10,8 @@ import { useGridColumns } from './useGridColumns'
 import styles from './catalog.module.css'
 
 /** Tile geometry. The row height is fixed (a tile is two lines of name plus a footer), which lets the virtualizer skip measuring. */
-const TILE_MIN_WIDTH = 132
-const TILE_HEIGHT = 80
+const TILE_MIN_WIDTH = 148
+const TILE_HEIGHT = 84
 const GAP = 8
 const FETCH_AHEAD_ROWS = 3
 

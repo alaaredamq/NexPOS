@@ -81,7 +81,7 @@
 }
 
 .table [data-align='end'] {
-  text-align: end;
+  text-align: start;
 }
 
 .table [data-align='center'] {

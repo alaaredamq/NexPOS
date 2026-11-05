@@ -171,4 +171,25 @@ public class ProductRepository : Repository<Product>, IProductRepository {
         await SaveChangesAsync();
     }
 
+
+    public async Task<decimal?> GetStockQuantityAsync(int productId)
+    {
+        // A projection, so it reads the database row rather than a tracked copy that ExecuteUpdate left stale.
+        return await _Entities
+            .AsNoTracking()
+            .Where(p => p.Id == productId)
+            .Select(p => (decimal?)p.StockQuantity)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<ProductSnapshot?> GetSnapshotAsync(int productId)
+    {
+        return await _Entities
+            .AsNoTracking()
+            .Where(p => p.Id == productId)
+            .Select(p => new ProductSnapshot(
+                p.Name, p.Description, p.Barcode, p.CostPrice, p.SellingPrice, p.StockQuantity,
+                p.MinimumStock, p.CategoryId, p.SupplierId, p.IsActive, p.Unit))
+            .FirstOrDefaultAsync();
+    }
 }

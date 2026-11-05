@@ -30,6 +30,13 @@ public sealed class AuditOptions
         "/AuditLogs/Details"
     ];
 
+    /// <summary>
+    /// Also record requests that only <i>read</i> something (opening a page, loading a list) and succeeded. Off by default:
+    /// they say little and are by far the most numerous rows, so they only make the audit database grow. Reads that
+    /// failed or were refused are always recorded, and so is everything that changes data.
+    /// </summary>
+    public bool LogReadRequests { get; set; }
+
     /// <summary>Record the (redacted) JSON body of API/AJAX posts, so "what exactly was submitted" is answerable.</summary>
     public bool CaptureRequestBody { get; set; } = true;
 

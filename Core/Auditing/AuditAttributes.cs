@@ -18,3 +18,12 @@ public sealed class AuditIgnoreAttribute : Attribute
 public sealed class AuditSensitiveAttribute : Attribute
 {
 }
+
+/// <summary>
+/// Keeps a whole record type out of the per-row data audit. For records that are themselves a log
+/// (a product's history): auditing every line of a log would just double the log.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class AuditIgnoreEntityAttribute : Attribute
+{
+}

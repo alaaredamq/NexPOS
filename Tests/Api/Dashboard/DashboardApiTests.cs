@@ -29,7 +29,7 @@ public sealed class DashboardApiTests
         using var scope = Host(_factory).Services.CreateScope();
         var cache = scope.ServiceProvider.GetRequiredService<ICacheService>();
         // Remove, not Clear(): Clear() only drops what the same (scoped) CacheService instance stored.
-        foreach (var key in new[] { CacheKeys.Dashboard("stats"), CacheKeys.Dashboard("recent-orders", "10"), CacheKeys.Dashboard("category-analytics") }.Concat(new[] { "week", "month", "quarter", "year" }.Select(p => CacheKeys.Dashboard("sales-analytics", p))))
+        foreach (var key in new[] { CacheKeys.Dashboard("stats"), CacheKeys.Dashboard("recent-orders", "10"), CacheKeys.Dashboard("category-analytics") }.Concat(new[] { "week", "month", "quarter", "year", "all" }.Select(p => CacheKeys.Dashboard("sales-analytics", p))))
             cache.Remove(key);
     }
 
@@ -127,6 +127,27 @@ public sealed class DashboardApiTests
         Assert.Equal(Sales(trendBefore, Today), Sales(await Trend(admin, "week"), Today));
     }
 
+    [Fact]
+    public async Task The_all_time_totals_move_by_a_sale_and_a_cancelled_sale_leaves()
+    {
+        var (admin, _) = await Admin();
+        var before = await Dashboard(admin);
+
+        var sale = await Sell(admin, quantity: 2);
+
+        var after = await Dashboard(admin);
+        Assert.Equal(before.GetProperty("allTimeSales").GetDecimal() + sale.Total, after.GetProperty("allTimeSales").GetDecimal());
+        Assert.True(after.GetProperty("allTimeSales").GetDecimal() >= after.GetProperty("monthSales").GetDecimal());
+        Assert.True(after.GetProperty("allTimeProfit").GetDecimal() >= before.GetProperty("allTimeProfit").GetDecimal());
+
+        var cancel = await admin.SendAsync(Json(HttpMethod.Put, $"/api/v1/orders/{sale.OrderId}/status", new { status = 4 }));
+        Assert.Equal(HttpStatusCode.OK, cancel.StatusCode);
+
+        var cancelled = await Dashboard(admin);
+        Assert.Equal(before.GetProperty("allTimeSales").GetDecimal(), cancelled.GetProperty("allTimeSales").GetDecimal());
+        Assert.Equal(before.GetProperty("allTimeProfit").GetDecimal(), cancelled.GetProperty("allTimeProfit").GetDecimal());
+    }
+
     private static decimal Sales(JsonElement trend, string date)
         => trend.GetProperty("points").EnumerateArray().Where(p => p.GetProperty("date").GetString() == date).Sum(p => p.GetProperty("sales").GetDecimal());
 
@@ -135,6 +156,7 @@ public sealed class DashboardApiTests
     [InlineData("month", "month")]
     [InlineData("quarter", "quarter")]
     [InlineData("year", "year")]
+    [InlineData("all", "all")]
     [InlineData("QUARTER", "quarter")]
     [InlineData("decade", "month")]
     [InlineData("", "month")]
@@ -152,7 +174,7 @@ public sealed class DashboardApiTests
         Assert.All(dates, d => Assert.Matches(@"^\d{4}-\d{2}-\d{2}$", d));
         Assert.Equal(dates.Order(StringComparer.Ordinal), dates);
         Assert.Equal(dates.Distinct(), dates);
-        // Quarter and year are monthly buckets: every date is the 1st.
-        if (expected is "quarter" or "year") Assert.All(dates, d => Assert.EndsWith("-01", d));
+        // Quarter, year and all are monthly buckets: every date is the 1st.
+        if (expected is "quarter" or "year" or "all") Assert.All(dates, d => Assert.EndsWith("-01", d));
     }
 }

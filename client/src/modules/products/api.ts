@@ -13,6 +13,11 @@ export type ProductPriceTier = Schemas['ProductPriceTierDto']
 export type ProductImportResult = Schemas['ProductImportResultDto']
 export type ProductOption = Schemas['ProductOptionDto']
 export type StickerSettings = Schemas['StickerSettingsDto']
+export type ProductHistory = Schemas['ProductHistoryDto']
+export type ProductHistoryItem = Schemas['ProductHistoryItemDto']
+
+/** Which lines of the history to show; the server answers `all` for anything else. */
+export type HistoryKind = 'all' | 'stock' | 'sales' | 'changes'
 
 export type StockLevel = 'out' | 'low' | 'ok'
 export type StatusFilter = 'all' | 'active' | 'inactive'
@@ -28,6 +33,8 @@ export interface ProductListParams {
   categoryId: number | null
   status: StatusFilter
   stock: StockFilter
+  /** Only this supplier's products (the purchase form's picker). */
+  supplierId?: number | null
 }
 
 export const productKeys = {
@@ -37,6 +44,7 @@ export const productKeys = {
   lookups: ['products', 'lookups'] as const,
   detail: (id: number) => ['products', 'detail', id] as const,
   stickerSettings: ['products', 'sticker-settings'] as const,
+  history: (id: number, params: { kind: HistoryKind; page: number; pageSize: number }) => ['products', 'history', id, params] as const,
 }
 
 export const productsApi = {
@@ -50,6 +58,7 @@ export const productsApi = {
         sort: params.sort,
         dir: params.dir,
         categoryId: params.categoryId,
+        supplierId: params.supplierId ?? null,
         status: params.status === 'all' ? null : params.status,
         stock: params.stock === 'all' ? null : params.stock,
       },
@@ -63,6 +72,11 @@ export const productsApi = {
   options: (q: string, signal?: AbortSignal) => http.get<ProductOption[]>('/products/options', { query: { q }, signal }),
   generateBarcode: () => http.get<{ barcode: string }>('/products/generate-barcode'),
   stickerSettings: (signal?: AbortSignal) => http.get<StickerSettings>('/products/sticker-settings', { signal }),
+  history: (id: number, params: { kind: HistoryKind; page: number; pageSize: number }, signal?: AbortSignal) =>
+    http.get<ProductHistory>(`/products/${id}/history`, {
+      signal,
+      query: { kind: params.kind === 'all' ? null : params.kind, page: params.page, pageSize: params.pageSize },
+    }),
   export: () => http.download('/products/export'),
   importTemplate: () => http.download('/products/import-template'),
   import: (file: File, apply: boolean) => {
@@ -137,4 +151,14 @@ export function saveDownload(file: Download, fallbackName: string) {
 /** The product's stock colour, from the level the server decided (never recomputed in the browser). */
 export function isStockLevel(value: string): value is StockLevel {
   return value === 'out' || value === 'low' || value === 'ok'
+}
+
+/** Everything that was done to one product, newest first. Stock adjustments and product saves invalidate it with the rest of `products`. */
+export function useProductHistory(id: number | null, params: { kind: HistoryKind; page: number; pageSize: number }) {
+  return useQuery({
+    queryKey: productKeys.history(id ?? 0, params),
+    queryFn: ({ signal }) => productsApi.history(id as number, params, signal),
+    enabled: id !== null,
+    placeholderData: keepPreviousData,
+  })
 }

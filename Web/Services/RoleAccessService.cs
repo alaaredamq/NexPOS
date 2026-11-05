@@ -121,6 +121,8 @@ public class RoleAccessService : IRoleAccessService
         }
         await _db.SaveChangesAsync();
 
+        await GrantEverythingToSuperAdminAsync(permissions);
+
         // The built-in roles used to get their grants from a dictionary in code. Copy that into the database
         // exactly once; after that the Users page owns them (re-seeding would undo every edit on restart).
         if (await _db.AppSettings.AnyAsync(s => s.Name == DefaultsSeededMarker))
@@ -148,6 +150,41 @@ public class RoleAccessService : IRoleAccessService
         _db.AppSettings.Add(new AppSetting(DefaultsSeededMarker, "true",
             "Built-in roles have been given their default permissions; the Users page manages them from here on.", "bool"));
         await _db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// SuperAdmin always holds every permission. Access is decided in code (<see cref="GetUserAccessAsync"/>), but the grants are also
+    /// kept in the database - on every start, so a permission added by a new version is ticked for it from the first launch and
+    /// anything reading the stored grants agrees with what the role editor shows.
+    /// </summary>
+    private async Task GrantEverythingToSuperAdminAsync(Dictionary<string, Permission> permissions)
+    {
+        var superAdmin = await _db.Roles
+            .Include(r => r.RolePermissions)
+            .FirstOrDefaultAsync(r => r.IsSystemRole && r.Name == PermissionHelper.Roles.SuperAdmin);
+        if (superAdmin is null) return;
+
+        var changed = false;
+        foreach (var permission in permissions.Values)
+        {
+            var existing = superAdmin.RolePermissions.FirstOrDefault(rp => rp.PermissionId == permission.Id);
+            if (existing is null)
+            {
+                _db.RolePermissions.Add(new RolePermission(superAdmin.Id, permission.Id));
+                changed = true;
+            }
+            else if (!existing.IsGranted)
+            {
+                existing.IsGranted = true;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _db.SaveChangesAsync();
+            _cache.Clear();
+        }
     }
 
     public async Task<UserAccess?> GetUserAccessAsync(int userId)

@@ -217,7 +217,7 @@
 .barValue {
   font-weight: 700;
   color: var(--color-ink);
-  text-align: end;
+  text-align: start;
 }
 
 .share {
@@ -233,7 +233,7 @@
 
 .shareText {
   min-inline-size: 3.6em;
-  text-align: end;
+  text-align: start;
   font-weight: 600;
 }
 

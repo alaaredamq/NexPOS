@@ -1,6 +1,8 @@
 using Application.IServices.Sales;
 using Application.IServices.Users;
 using Core.Auditing;
+using Application.IServices.Products;
+using Core.Entities.Products;
 using Core.Enum;
 using Core.ICache;
 using Core.IRepositories.Products;
@@ -14,6 +16,7 @@ public class SaleReversalService : ISaleReversalService
 {
     private readonly ErpDbContext _dbContext;
     private readonly IProductRepository _productRepository;
+    private readonly IProductHistoryService _history;
     private readonly ICustomerDebtService _customerDebtService;
     private readonly ICacheService _cache;
     private readonly IAuditTrail _auditTrail;
@@ -22,6 +25,7 @@ public class SaleReversalService : ISaleReversalService
     public SaleReversalService(
         ErpDbContext dbContext,
         IProductRepository productRepository,
+        IProductHistoryService history,
         ICustomerDebtService customerDebtService,
         ICacheService cache,
         IAuditTrail auditTrail,
@@ -29,6 +33,7 @@ public class SaleReversalService : ISaleReversalService
     {
         _dbContext = dbContext;
         _productRepository = productRepository;
+        _history = history;
         _customerDebtService = customerDebtService;
         _cache = cache;
         _auditTrail = auditTrail;
@@ -118,7 +123,10 @@ public class SaleReversalService : ISaleReversalService
                     // in WeightOrVolume, piece products in Quantity.
                     var quantity = item.WeightOrVolume is > 0 ? item.WeightOrVolume.Value : item.Quantity;
                     if (quantity > 0 && await _productRepository.RestoreStockAsync(item.ProductId, quantity))
+                    {
                         linesRestored++;
+                        await _history.RecordMovementAsync(item.ProductId, ProductHistoryType.SaleReturned, quantity, orderId: orderId, reason: reason);
+                    }
                 }
 
                 debtReversed = await _customerDebtService.ReverseSaleAsync(

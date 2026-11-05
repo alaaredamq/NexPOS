@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, dialog, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, Menu, Tray, nativeImage, shell, dialog, ipcMain, screen } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -8,12 +8,8 @@ const crypto = require('crypto');
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
-app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-  }
-});
+// Starting NexPos again (shortcut, taskbar) brings the window back, also when it is hidden in the tray.
+app.on('second-instance', () => showMainWindow());
 
 // The web app refuses to start without Jwt:SecretKey. An installed copy has no user-secrets,
 // so generate a random per-machine key on first launch and keep it in the user's app-data folder.
@@ -32,6 +28,13 @@ function getJwtSecretKey() {
 
 let mainWindow = null;
 let dotnetProcess = null;
+let tray = null;
+// True once the app is really shutting down (tray "Quit", Windows sign-out, app.quit()): only then may the window close.
+let quitting = false;
+let trayHintShown = false;
+// Closing the window hides it to the tray and keeps the app (and its server) running, so it is visible and controllable
+// from the notification area. NEXPOS_QUIT_ON_CLOSE=1 brings back "closing the window quits".
+const QUIT_ON_CLOSE = process.env.NEXPOS_QUIT_ON_CLOSE === '1';
 // NEXPOS_APP_URL lets a test run point the shell at a server on another port (e.g. an isolated demo DB).
 const APP_URL = process.env.NEXPOS_APP_URL || 'http://localhost:5000';
 // Page the main window opens. '/' is the Razor app; NEXPOS_START_PATH=/app opens the React client while it is
@@ -239,10 +242,84 @@ function createWindow() {
     mainWindow.focus();
   });
 
+  // The X button hides the window instead of ending the app; the tray icon says it is still running.
+  mainWindow.on('close', (event) => {
+    if (quitting || QUIT_ON_CLOSE || !tray) return;
+    event.preventDefault();
+    mainWindow.hide();
+    if (!trayHintShown) {
+      trayHintShown = true;
+      showTrayHint();
+    }
+  });
+
+  // Windows sign-out / shutdown must not be blocked by the hide-on-close above.
+  mainWindow.on('session-end', () => {
+    quitting = true;
+  });
+
   // Handle window closed
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+}
+
+// Brings the main window back (creating it if it was destroyed), from the tray, a second launch or a tray click.
+function showMainWindow() {
+  if (!mainWindow) {
+    createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+}
+
+function showTrayHint() {
+  if (!tray || process.platform !== 'win32') return;
+  tray.displayBalloon({
+    iconType: 'info',
+    title: 'NexPOS is still running',
+    content: 'It keeps running in the tray. Right-click the icon to open it or quit.\nالنظام ما زال يعمل. انقر بزر الماوس الأيمن على الأيقونة.',
+  });
+}
+
+// "Quit" is the one way to stop the app (and the server it started), so ask first: nothing can be sold or backed up afterwards.
+async function confirmQuit() {
+  const external = EXTERNAL_SERVER_PID > 0;
+  const { response } = await dialog.showMessageBox({
+    type: 'question',
+    buttons: ['Quit', 'Cancel'],
+    defaultId: 1,
+    cancelId: 1,
+    title: 'NexPOS',
+    message: 'Quit NexPOS?',
+    detail: external
+      ? 'The server was started by Visual Studio and keeps running until you stop debugging there.'
+      : 'Nothing can be sold, printed or backed up until NexPOS is opened again.',
+  });
+  if (response === 0) app.quit();
+}
+
+function createTray() {
+  const iconFile = path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
+  let image = nativeImage.createFromPath(iconFile);
+  if (image.isEmpty()) image = nativeImage.createFromPath(path.join(__dirname, 'assets', 'icon.png'));
+  if (process.platform !== 'win32') image = image.resize({ width: 16, height: 16 });
+
+  tray = new Tray(image);
+  tray.setToolTip('NexPOS - running');
+
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: 'NexPOS is running  |  النظام يعمل', enabled: false },
+      { type: 'separator' },
+      { label: 'Open NexPOS  |  فتح', click: () => showMainWindow() },
+      { type: 'separator' },
+      { label: 'Quit NexPOS  |  إغلاق', click: () => void confirmQuit() },
+    ]),
+  );
+  tray.on('click', () => showMainWindow());
 }
 
 const isAppUrl = (url) => {
@@ -427,6 +504,7 @@ app.whenReady().then(async () => {
     }
     await warmUp();
     console.log('Creating Electron window...');
+    createTray();
     createWindow();
   } catch (error) {
     console.error('Failed to start application:', error);
@@ -459,6 +537,11 @@ app.on('activate', () => {
 
 // Cleanup on quit
 app.on('before-quit', () => {
+  quitting = true;
+  if (tray) {
+    tray.destroy(); // otherwise the icon lingers in the tray until the mouse passes over it
+    tray = null;
+  }
   if (dotnetProcess) {
     console.log('Terminating .NET process...');
     dotnetProcess.kill();

@@ -331,9 +331,9 @@ Old: `BackupController` (673, 37 actions), `LicenseController`, `Views/Backup/In
 | I2 | Notifications + alerts | G0 | M | ☑ done | Claude · `react/I2` | [I2.md](docs/react-migration/notes/I2.md) |
 | I3 | Audit logs | G0 | S–M | ☑ done | Claude · `react/I3` | [I3.md](docs/react-migration/notes/I3.md) |
 | A1 | Users, roles, account | G0 | L | ☑ done | Claude · `react/A1` | [A1.md](docs/react-migration/notes/A1.md) |
-| A2 | Settings / branding / printers | G0 | M | ◑ in review | Claude · `react/A2` | [A2.md](docs/react-migration/notes/A2.md) |
-| A3 | Money configuration | G0 | M | ◑ in review | Claude · `react/A3` | [A3.md](docs/react-migration/notes/A3.md) |
-| A4 | Backup + licence | G0 | M | ◑ in review | Claude · `react/A4` | [A4.md](docs/react-migration/notes/A4.md) |
+| A2 | Settings / branding / printers | G0 | M | ☑ done | Claude · `react/A2` | [A2.md](docs/react-migration/notes/A2.md) |
+| A3 | Money configuration | G0 | M | ☑ done | Claude · `react/A3` | [A3.md](docs/react-migration/notes/A3.md) |
+| A4 | Backup + licence | G0 | M | ☑ done | Claude · `react/A4` | [A4.md](docs/react-migration/notes/A4.md) |
 | Z | Cutover | everything | L | ☐ todo | | |
 
 Status values: ☐ todo · ◐ in progress · ◑ in review · ☑ done (all of 4.8 ticked).
@@ -353,6 +353,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 - 2026-11-01 · C1 · `client/src/api/http.ts` · FormData bodies go out as multipart; added `http.download` / `http.downloadPost` (blob + file name) for CSV import/export and PDF labels. Additive.
 - 2026-11-01 · A3 · none (no frozen path edited; `Application/Services/Sales/POSCheckoutService.cs` `DebtPaymentMethodName` private → public; `SharedResource.*.resx` gained 20 `Mny_` keys)
 - 2026-11-01 · A4 · `client/src/ui/Icon.tsx` · two glyphs added (`download`, `play`), additive. No other frozen path edited (`Application/Services/Backup/BackupService.cs` fixes are listed in A4.md; `SharedResource.*.resx` gained 2 `Backup_Err_` keys).
+- 2026-11-05 · product history · `client/src/ui/Icon.tsx` · one glyph added (`history`), additive. New `ProductHistories` table (migration `AddProductHistory`), `GET api/v1/products/{id}/history`, `/products/:id/history` page; `Core/Auditing/AuditAttributes.cs` gained `[AuditIgnoreEntity]` (a log is not audited line by line). Every stock-moving path now records history: `ProductService`, `OrderService`, `SaleReversalService`, `ProductImportExportService` take `IProductHistoryService`.
 
 ## 11. Parking lot (explicitly *not* in scope — don't do during the migration)
 

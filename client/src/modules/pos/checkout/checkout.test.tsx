@@ -221,13 +221,23 @@ describe('checkout', () => {
     expect(bodies()[0]?.totalAmount).toBe(5.5)
   })
 
-  it('will not offer to sell for a total the server would refuse', async () => {
+  it('lets the cashier lower the total as far as they choose', async () => {
     open()
     await pay()
 
     fireEvent.change(within(dialog()).getByLabelText('Total Amount (Editable)'), { target: { value: '1' } })
 
-    expect(plain(dialog())).toMatch(/can differ from \$ 6\.00 by at most/)
+    expect(plain(dialog())).toMatch(/Discount \(.*\): -\$ 5\.00/)
+    expect(complete()).toBeEnabled()
+  })
+
+  it('will not offer to sell for a raised total the server would refuse', async () => {
+    open()
+    await pay()
+
+    fireEvent.change(within(dialog()).getByLabelText('Total Amount (Editable)'), { target: { value: '9' } })
+
+    expect(plain(dialog())).toMatch(/can be raised above \$ 6\.00 by at most/)
     expect(complete()).toBeDisabled()
   })
 
@@ -384,6 +394,24 @@ describe('checkout', () => {
 
     fireEvent.click(within(dialog()).getByRole('button', { name: 'Try printing again' }))
     await waitFor(() => expect(api.calls.some((c) => c.method === 'POST' && c.url === '/api/v1/pos/sales/77/print')).toBe(true))
+    // The retry worked: the popup has nothing left to say, so it closes.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('keeps the popup and its warning when the retry still cannot print', async () => {
+    open()
+    api.routes['POST /api/v1/pos/sales/checkout'] = () => json(saleFor(bodies().at(-1)!, { receiptPrinted: false }))
+    api.routes['POST /api/v1/pos/sales/77/print'] = () => json({ printed: false, message: 'Printer unavailable.', pdfUrl: '/api/v1/pos/sales/77/receipt.pdf' })
+    await pay()
+
+    fireEvent.click(complete())
+    await screen.findByRole('alert')
+
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Try printing again' }))
+    // The "download instead" question is itself a dialog; decline it and the sale-complete popup must still be there.
+    fireEvent.click(await screen.findByRole('button', { name: /Cancel|Close|No/i }))
+    await waitFor(() => expect(api.calls.filter((c) => c.url === '/api/v1/pos/sales/77/print')).toHaveLength(1))
+    expect(await screen.findByText(/could not be printed/i)).toBeInTheDocument()
   })
 
   it('does nothing but say so when the cart is empty', async () => {

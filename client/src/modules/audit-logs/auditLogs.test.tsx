@@ -15,6 +15,7 @@ const entry = (id: number, overrides = {}) => ({
   userId: 7,
   user: 'layla',
   role: 'Admin',
+  area: 'Inventory',
   category: 'Data',
   action: 'Update',
   entityType: 'Product',
@@ -129,6 +130,23 @@ describe('audit log list', () => {
     await waitFor(() => expect(router.state.location.search).toBe(''))
     expect(screen.getByRole('combobox', { name: /^Type$/ })).toHaveValue('')
     expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+  })
+
+  it('the section chips filter by part of the product, and "All sections" clears it', async () => {
+    const router = open()
+    await screen.findByText('Changed the price of Milk 1L')
+    const sections = within(screen.getByRole('group', { name: 'Section' }))
+    await waitFor(() => expect(sections.getByRole('button', { name: 'All sections' })).toHaveAttribute('aria-pressed', 'true'))
+
+    fireEvent.click(sections.getByRole('button', { name: 'Inventory' }))
+
+    await waitFor(() => expect(router.state.location.search).toBe('?area=Inventory'))
+    await waitFor(() => expect(lastList()).toContain('area=Inventory'))
+    await waitFor(() => expect(sections.getByRole('button', { name: 'Inventory' })).toHaveAttribute('aria-pressed', 'true'))
+
+    fireEvent.click(sections.getByRole('button', { name: 'All sections' }))
+    await waitFor(() => expect(router.state.location.search).toBe(''))
+    await waitFor(() => expect(sections.getByRole('button', { name: 'All sections' })).toHaveAttribute('aria-pressed', 'true'))
   })
 
   it('the severity filter means "this bad or worse" and is sent as minSeverity', async () => {
@@ -318,7 +336,7 @@ describe('entry drawer', () => {
 
 describe('URL state and query building', () => {
   const base: AuditParams = {
-    page: 1, pageSize: 50, dir: 'desc', q: '', from: '', to: '', user: '', category: '', outcome: '', severity: '',
+    page: 1, pageSize: 50, dir: 'desc', q: '', from: '', to: '', user: '', area: '', category: '', outcome: '', severity: '',
     entityType: '', entityId: '', action: '', request: '', entry: null,
   }
 
@@ -336,7 +354,7 @@ describe('URL state and query building', () => {
   })
 
   it('round-trips through the URL and leaves defaults out', () => {
-    const p: AuditParams = { ...base, page: 3, pageSize: 100, dir: 'asc', q: 'milk', category: 'Data', user: 'name:System', entityType: 'Product', entityId: '5', entry: 9 }
+    const p: AuditParams = { ...base, page: 3, pageSize: 100, dir: 'asc', q: 'milk', category: 'Data', area: 'Pos', user: 'name:System', entityType: 'Product', entityId: '5', entry: 9 }
 
     const url = writeParams(p)
 
@@ -345,7 +363,7 @@ describe('URL state and query building', () => {
   })
 
   it('ignores values it does not know instead of sending them to the API', () => {
-    const p = readParams(new URLSearchParams('page=-2&size=7&dir=sideways&category=Banana&outcome=Maybe&severity=Info&record=abc&user=x&from=yesterday&entry=0'))
+    const p = readParams(new URLSearchParams('page=-2&size=7&dir=sideways&category=Banana&area=Kitchen&outcome=Maybe&severity=Info&record=abc&user=x&from=yesterday&entry=0'))
 
     expect(p).toEqual(base)
     expect(hasFilters(p)).toBe(false)

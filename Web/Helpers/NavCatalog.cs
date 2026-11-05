@@ -57,6 +57,7 @@ public static class NavCatalog
         new NavPage("ProductDisplayOrder", "ProductDisplayOrder", "fa-sort-amount-down", NavSection.Catalog, P(PermissionHelper.Permissions.MainScreenProducts_Manage)),
         new NavPage("Inventory", "Inventory", "fa-warehouse", NavSection.Catalog, P(PermissionHelper.Permissions.Inventory_View)),
         new NavPage("Suppliers", "Suppliers", "fa-truck", NavSection.Catalog, P(PermissionHelper.Permissions.Suppliers_View)),
+        new NavPage("Purchases", "Purchases", "fa-file-invoice", NavSection.Catalog, P(PermissionHelper.Permissions.Purchases_View)),
         new NavPage("Customers", "Customers", "fa-users", NavSection.Catalog, P(PermissionHelper.Permissions.Customers_View)),
 
         // Insights

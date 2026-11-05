@@ -345,7 +345,7 @@ public sealed class PosCheckoutRequest
     public bool AddToDebt { get; set; }
 
     /// <summary>What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
-    /// slightly (cash rounding). More than the greater of 1.00 or 2 % away from the server's total is refused (<c>total_mismatch</c>).</summary>
+    /// (cash rounding). No limit is enforced.</summary>
     [Range(0, 1_000_000_000)]
     public decimal TotalAmount { get; set; }
 

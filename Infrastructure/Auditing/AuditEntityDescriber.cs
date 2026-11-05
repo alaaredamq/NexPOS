@@ -56,6 +56,10 @@ internal static class AuditEntityDescriber
         if (entry.State is not (EntityState.Added or EntityState.Modified or EntityState.Deleted))
             return null;
 
+        // A record type that is itself a log (a product's history) isn't audited line by line.
+        if (entry.Metadata.ClrType.IsDefined(typeof(AuditIgnoreEntityAttribute), inherit: true))
+            return null;
+
         var change = new PendingChange
         {
             Entry = entry,

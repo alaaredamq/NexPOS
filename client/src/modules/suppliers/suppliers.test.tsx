@@ -34,7 +34,7 @@ let api: FakeApi
 
 beforeAll(async () => {
   stubMatchMedia()
-  await loadNamespaces('common', 'suppliers')
+  await loadNamespaces('common', 'suppliers', 'purchases')
 })
 
 beforeEach(async () => {
@@ -58,7 +58,8 @@ describe('suppliers list', () => {
   it('shows who is owed what, with the sign the server stored', async () => {
     open('/suppliers', ...ADMIN)
 
-    expect(await screen.findByRole('link', { name: 'Acme' })).toHaveAttribute('href', '/suppliers/1')
+    // The first test of the file pays for the cold start of the whole app, which can pass the default 1 s on a busy machine.
+    expect(await screen.findByRole('link', { name: 'Acme' }, { timeout: 5000 })).toHaveAttribute('href', '/suppliers/1')
     const table = screen.getByRole('table')
     const owed = within(table).getByText(/40\.00/)
     expect(owed).toHaveAttribute('data-sign', 'owe') // the shop owes this supplier

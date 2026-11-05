@@ -12,12 +12,14 @@ public class ProductService : IProductService
     private readonly IProductRepository _repo;
     private readonly ICurrencyConversionService _currencyService;
     private readonly ICacheService _cache;
+    private readonly IProductHistoryService _history;
 
-    public ProductService(IProductRepository repo, ICurrencyConversionService currencyService, ICacheService cache)
+    public ProductService(IProductRepository repo, ICurrencyConversionService currencyService, ICacheService cache, IProductHistoryService history)
     {
         _repo = repo;
         _currencyService = currencyService;
         _cache = cache;
+        _history = history;
     }
 
     public async Task<List<Product>> GetAllAsync()
@@ -48,12 +50,16 @@ public class ProductService : IProductService
     public async Task<Product> CreateAsync(Product product)
     {
         var created = await _repo.SaveAsync(product);
+        await _history.RecordCreatedAsync(created);
         await _cache.ClearPOSCachesAsync();
         return created;
     }
 
-    public async Task UpdateAsync(int id, Product product)
+    public async Task UpdateAsync(int id, Product product, ProductChangeContext? context = null)
     {
+        // Callers edit the tracked product and pass it back, so "before" has to come from the row itself.
+        var before = await _repo.GetSnapshotAsync(id);
+
         var existing = await _repo.GetByIdAsync(id);
         existing.Name = product.Name;
         existing.Description = product.Description;
@@ -69,6 +75,7 @@ public class ProductService : IProductService
         existing.Unit = product.Unit;
         existing.UpdatedAt = DateTime.UtcNow;
         await _repo.SaveAsync(existing);
+        if (before != null) await _history.RecordChangesAsync(before, existing, context);
         await _cache.ClearPOSCachesAsync();
     }
 
@@ -79,6 +86,7 @@ public class ProductService : IProductService
         {
             // Use soft delete instead of hard delete
             await _repo.SoftDeleteAsync(product);
+            await _history.RecordDeletedAsync(id);
             await _cache.ClearPOSCachesAsync();
         }
     }
@@ -154,6 +162,7 @@ public class ProductService : IProductService
         };
         
         var created = await _repo.SaveAsync(productToSave);
+        await _history.RecordCreatedAsync(created);
         await _cache.ClearPOSCachesAsync();
         return created;
     }

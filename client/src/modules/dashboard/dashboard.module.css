@@ -13,14 +13,9 @@
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  /* Seven tiles: let the row fill itself instead of leaving one alone on a second line. */
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
   gap: var(--space-3);
-}
-
-@media (max-width: 1280px) {
-  .tiles {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 700px) {

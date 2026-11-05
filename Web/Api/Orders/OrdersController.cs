@@ -71,4 +71,19 @@ public sealed class OrdersController : PosControllerBase
     [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
     public async Task<OrderStatusResultDto> UpdateStatus(int id, [FromBody] OrderStatusRequest request)
         => await _orders.UpdateStatusAsync(id, request.Status, CurrentUserId);
+
+    /// <summary>Changes the order's customer (null = walk-in). The order's receipts follow it, and a sale on the customer's account moves its debt along.</summary>
+    /// <remarks>
+    /// Same operation as <c>PUT receipts/{id}/customer</c>. 409 <c>order_closed</c>: cancelled or returned orders keep their customer;
+    /// 409 <c>customer_not_found</c>; 400 <c>debt_requires_customer</c>: a sale on a customer's account cannot go back to walk-in.
+    /// </remarks>
+    [HttpPut("{id:int}/customer")]
+    [RequirePermission(PermissionHelper.Permissions.Sales_ChangeCustomer)]
+    [SwaggerOperation(OperationId = "updateOrderCustomer")]
+    [ProducesResponseType<SaleCustomerResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
+    public async Task<SaleCustomerResultDto> UpdateCustomer(int id, [FromBody] SaleCustomerRequest request)
+        => await _orders.ChangeCustomerAsync(id, request.CustomerId, CurrentUserId);
 }

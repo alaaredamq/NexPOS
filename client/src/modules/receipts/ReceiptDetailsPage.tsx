@@ -4,10 +4,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { isApiError } from '@/api/http'
 import { Can } from '@/core/permissions/permissions'
+import { BackLink } from '@/ui/BackLink'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { formatDateTime, formatMoney, formatNumber, formatPercent, formatQty } from '@/ui/format'
+import { ChangeCustomerDialog } from '../_shared/ChangeCustomerDialog'
 import { useReceiptPrinting } from '../_shared/receiptActions'
 import sales from '../_shared/sales.module.css'
 import { useReceipt, type ReceiptDetail } from './api'
@@ -45,9 +47,10 @@ function NotFound({ error }: { error?: unknown }) {
 
 function Details({ receipt: r }: { receipt: ReceiptDetail }) {
   const { t } = useTranslation('receipts')
-  const navigate = useNavigate()
   const printing = useReceiptPrinting()
+  const { t: tc } = useTranslation('common')
   const [voiding, setVoiding] = useState(false)
+  const [changingCustomer, setChangingCustomer] = useState(false)
   const money = (amount: number) => formatMoney(amount, r.currencyNotation)
   const statusBadge = r.isVoid ? (
     <StatusBadge tone="danger" label={t('Void')} />
@@ -60,7 +63,8 @@ function Details({ receipt: r }: { receipt: ReceiptDetail }) {
   return (
     <div className={`${sales.page} ${sales.narrow}`}>
       <div className={sales.top}>
-        <div>
+        <div className={sales.heading}>
+          <BackLink to="/receipts">{t('BackToReceipts')}</BackLink>
           <h1 className={sales.title}>
             <bdi>{r.receiptNumber}</bdi>
           </h1>
@@ -72,13 +76,13 @@ function Details({ receipt: r }: { receipt: ReceiptDetail }) {
           </Button>
           <Button onClick={() => void printing.downloadPdf(`/receipts/${r.id}/pdf`, `${r.receiptNumber}.pdf`)}>{t('DownloadPDF')}</Button>
           {!r.isVoid && (
-            <Can permission={Permissions.Sales_Edit}>
+            <Can permission={Permissions.Sales_ChangeCustomer}>
+              <Button onClick={() => setChangingCustomer(true)}>{tc('SaleCustomer_Change')}</Button>
               <Button variant="danger" onClick={() => setVoiding(true)}>
                 {t('VoidReceipt')}
               </Button>
             </Can>
           )}
-          <Button onClick={() => navigate('/receipts')}>{t('BackToReceipts')}</Button>
         </div>
       </div>
 
@@ -306,6 +310,16 @@ function Details({ receipt: r }: { receipt: ReceiptDetail }) {
         </div>
       </div>
 
+      {changingCustomer && (
+        <ChangeCustomerDialog
+          kind="receipts"
+          id={r.id}
+          number={r.receiptNumber}
+          customerId={r.customerId ?? null}
+          customerName={r.customerName ?? null}
+          onClose={() => setChangingCustomer(false)}
+        />
+      )}
       {voiding && <VoidReceiptDialog receipt={{ id: r.id, receiptNumber: r.receiptNumber }} onClose={() => setVoiding(false)} />}
     </div>
   )

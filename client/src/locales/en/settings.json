@@ -44,6 +44,8 @@
   "SectionsLabel": "Settings sections",
   "SettingsResetSuccessfully": "Settings reset successfully",
   "SettingsSavedSuccessfully": "Settings saved successfully",
+  "ShowSaleComplete": "Show the \"Sale Complete!\" popup after each sale",
+  "ShowSaleCompleteHint": "When off, the till goes straight back to the next sale and shows a short message instead. The change to hand back is still in that message.",
   "ShowTaxBreakdown": "Show Tax Breakdown",
   "SocialMedia": "Social Media",
   "StickerHeightRange": "Enter a height from {{min}} to {{max}} mm.",
@@ -55,5 +57,7 @@
   "StoreSettingsDescription": "Configure your store information and receipt settings",
   "TaxId": "Tax ID",
   "TaxIdHint": "VAT/Tax registration number",
+  "TillPreferenceSaved": "Saved for this computer",
+  "TillThisComputer": "Till (this computer only)",
   "Website": "Website"
 }

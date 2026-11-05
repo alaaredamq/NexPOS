@@ -48,7 +48,7 @@
     <nav class="navbar navbar-expand-md navbar-dark pos-nav">
         <div class="container-fluid">
             <!-- Brand/Logo -->
-            <a class="navbar-brand" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")">
+            <a class="navbar-brand" href="@Url.PageWithCurrentLanguage("Dashboard")">
                 <img src="~/branding/logo?variant=light&v=@Brand.Version" alt="@Brand.AppName" />
             </a>
 
@@ -64,7 +64,7 @@
                 <ul class="navbar-nav pos-nav-start">
                     <!-- Management Link -->
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.ActionWithCurrentLanguage("Index", "Dashboard")" title="@Localizer["GoToManagement"]">
+                        <a class="nav-link" href="@Url.PageWithCurrentLanguage("Dashboard")" title="@Localizer["GoToManagement"]">
                             <i class="fas fa-cog" aria-hidden="true"></i>@Localizer["Management"]
                         </a>
                     </li>
@@ -114,7 +114,7 @@
                             </a></li>
                             @if (User.HasClaim("Permission", "Settings.Manage"))
                             {
-                                <li><a class="dropdown-item" href="@Url.ActionWithCurrentLanguage("Index", "Settings")"><i class="fas fa-cog" aria-hidden="true"></i>@SharedLocalizer["Settings"]</a></li>
+                                <li><a class="dropdown-item" href="@Url.PageWithCurrentLanguage("Settings")"><i class="fas fa-cog" aria-hidden="true"></i>@SharedLocalizer["Settings"]</a></li>
                             }
                             <li><hr class="dropdown-divider"></li>
                             <li>
@@ -373,22 +373,22 @@
             // Alt + D for Dashboard
             if (e.altKey && e.key === 'd') {
                 e.preventDefault();
-                window.location.href = '@Url.ActionWithCurrentLanguage("Index", "Dashboard")';
+                window.location.href = '@Url.PageWithCurrentLanguage("Dashboard")';
             }
             // Alt + I for Inventory
             else if (e.altKey && e.key === 'i') {
                 e.preventDefault();
-                window.location.href = '@Url.ActionWithCurrentLanguage("Index", "Inventory")';
+                window.location.href = '@Url.PageWithCurrentLanguage("Inventory")';
             }
             // Alt + O for Orders
             else if (e.altKey && e.key === 'o') {
                 e.preventDefault();
-                window.location.href = '@Url.ActionWithCurrentLanguage("Index", "Orders")';
+                window.location.href = '@Url.PageWithCurrentLanguage("Orders")';
             }
             // Alt + P for Products
             else if (e.altKey && e.key === 'p') {
                 e.preventDefault();
-                window.location.href = '@Url.ActionWithCurrentLanguage("Index", "Products")';
+                window.location.href = '@Url.PageWithCurrentLanguage("Products")';
             }
         });
 

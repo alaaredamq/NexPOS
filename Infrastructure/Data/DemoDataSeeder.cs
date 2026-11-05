@@ -408,6 +408,8 @@ public static class DemoDataSeeder
         var debtCustomers = customers.Skip(1).Take(4).ToList();
         var ledger = new List<(Customer C, decimal Amount, CustomerDebtTransactionType T, string? Note, Order? O, DateTime When, User U)>();
 
+        // Seeding into a database that already has real sales: skip receipt numbers that are taken.
+        var takenReceiptNumbers = (await db.Receipts.Select(r => r.ReceiptNumber).ToListAsync()).ToHashSet();
         var receiptCounter = new Dictionary<DateTime, int>();
 
         for (var d = HistoryDays; d >= 0; d--)
@@ -524,9 +526,11 @@ public static class DemoDataSeeder
                 db.Orders.Add(order);
                 await db.SaveChangesAsync();
 
-                var seq = receiptCounter.GetValueOrDefault(day.Date) + 1;
+                var seq = receiptCounter.GetValueOrDefault(day.Date);
+                string receiptNumber;
+                do { receiptNumber = $"RCP-{day:yyyyMMdd}-{++seq:D3}"; } while (!takenReceiptNumbers.Add(receiptNumber));
                 receiptCounter[day.Date] = seq;
-                var receipt = new Receipt($"RCP-{day:yyyyMMdd}-{seq:D3}", order.Id, customer?.Id, cashier.Id,
+                var receipt = new Receipt(receiptNumber, order.Id, customer?.Id, cashier.Id,
                     total, 0m, discount, finalTotal, method.Id, 1)
                 {
                     ReceiptDate = when,

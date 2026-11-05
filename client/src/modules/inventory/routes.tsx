@@ -4,7 +4,7 @@ import { loadNamespaces } from '@/core/i18n'
 import { RequirePermission } from '@/core/permissions/permissions'
 
 async function loadInventoryStrings() {
-  await loadNamespaces('inventory', 'print')
+  await loadNamespaces('inventory', 'print', 'products')
   return null
 }
 

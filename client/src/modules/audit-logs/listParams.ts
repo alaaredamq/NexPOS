@@ -1,13 +1,14 @@
-import { CATEGORIES, OUTCOMES, SEVERITIES, type AuditParams } from './api'
+import { AREAS, CATEGORIES, OUTCOMES, SEVERITIES, type AuditParams } from './api'
 
 export const PAGE_SIZES = [25, 50, 100, 200]
 export const DEFAULT_PAGE_SIZE = 50
 
-export const EMPTY_FILTERS: Pick<AuditParams, 'q' | 'from' | 'to' | 'user' | 'category' | 'outcome' | 'severity' | 'entityType' | 'entityId' | 'action' | 'request'> = {
+export const EMPTY_FILTERS: Pick<AuditParams, 'q' | 'from' | 'to' | 'user' | 'area' | 'category' | 'outcome' | 'severity' | 'entityType' | 'entityId' | 'action' | 'request'> = {
   q: '',
   from: '',
   to: '',
   user: '',
+  area: '',
   category: '',
   outcome: '',
   severity: '',
@@ -35,6 +36,7 @@ export function readParams(search: URLSearchParams): AuditParams {
     from: isLocalDateTime(search.get('from')) ? (search.get('from') as string) : '',
     to: isLocalDateTime(search.get('to')) ? (search.get('to') as string) : '',
     user: /^\d+$/.test(user) || /^name:.+/.test(user) ? user : '',
+    area: oneOf(AREAS, search.get('area')),
     category: oneOf(CATEGORIES, search.get('category')),
     outcome: oneOf(OUTCOMES, search.get('outcome')),
     severity: oneOf(SEVERITIES, search.get('severity')),
@@ -56,6 +58,7 @@ export function writeParams(p: AuditParams): URLSearchParams {
   if (p.from) out.set('from', p.from)
   if (p.to) out.set('to', p.to)
   if (p.user) out.set('user', p.user)
+  if (p.area) out.set('area', p.area)
   if (p.category) out.set('category', p.category)
   if (p.outcome) out.set('outcome', p.outcome)
   if (p.severity) out.set('severity', p.severity)

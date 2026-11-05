@@ -27,6 +27,16 @@ public static class UrlHelperExtensions
     }
 
     /// <summary>
+    /// The link to a page's Index: its React page once <see cref="SpaMigration"/> lists the controller, otherwise the Razor page
+    /// in the current language. Use this (not <see cref="ActionWithCurrentLanguage"/>) for links to whole pages from Razor views,
+    /// so migrated pages stop sending people to the old version.
+    /// </summary>
+    public static string PageWithCurrentLanguage(this IUrlHelper urlHelper, string controller)
+        => SpaMigration.TryGetPath(controller, out var path)
+            ? path
+            : urlHelper.ActionWithCurrentLanguage("Index", controller);
+
+    /// <summary>
     /// Generates a URL for the same page but with a different language
     /// </summary>
     public static string ActionWithCurrentLanguage(this IUrlHelper urlHelper, string action, string controller, object? routeValues = null)

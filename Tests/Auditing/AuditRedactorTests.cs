@@ -155,6 +155,19 @@ public class AuditRequestRulesTests
     public void SeverityFor_MapsStatus(int status, bool threw, Core.Entities.Logging.AuditLogSeverity expected)
         => Assert.Equal(expected, AuditRequestRules.SeverityFor(status, threw));
 
+    [Theory]
+    [InlineData("GET", 200, false, false, false)]   // opening a page
+    [InlineData("get", 302, false, false, false)]   // a redirect after it
+    [InlineData("HEAD", 200, false, false, false)]
+    [InlineData("GET", 401, false, false, true)]    // refused
+    [InlineData("GET", 404, false, false, true)]
+    [InlineData("GET", 200, true, false, true)]     // threw
+    [InlineData("POST", 200, false, false, true)]   // changes something
+    [InlineData("DELETE", 204, false, false, true)]
+    [InlineData("GET", 200, false, true, true)]     // reads switched on
+    public void ShouldRecord_SkipsOnlySuccessfulReads(string method, int status, bool threw, bool logReads, bool expected)
+        => Assert.Equal(expected, AuditRequestRules.ShouldRecord(method, status, threw, logReads));
+
     [Fact]
     public void ActionName_UsesControllerAndAction_WhenKnown()
     {

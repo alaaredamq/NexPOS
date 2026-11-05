@@ -10,8 +10,9 @@ import styles from './ImportDialog.module.css'
 type Stage = 'check' | 'import' | 'done'
 
 /**
- * CSV import in two steps, like the old dialog: the first click checks the file (nothing is saved), the second one imports it.
- * Rows with errors are skipped and listed; existing barcodes are updated, new ones created.
+ * Excel import in two steps, like the old dialog: the first click checks the file (nothing is saved), the second one imports it.
+ * Rows with errors are skipped and listed; existing barcodes are updated, new ones created. The workbook's Custom Prices
+ * sheet carries each product's extra prices, one row per price.
  */
 export function ImportDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('products')
@@ -53,7 +54,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
 
   const downloadTemplate = async () => {
     try {
-      saveDownload(await productsApi.importTemplate(), 'products_import_template.csv')
+      saveDownload(await productsApi.importTemplate(), 'products_import_template.xlsx')
     } catch (e) {
       toast.error(isApiError(e) ? e.message : t('Prod_ImportFailed'))
     }
@@ -70,7 +71,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
           ref={input}
           type="file"
           className={styles.file}
-          accept=".csv,.txt,text/csv"
+          accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           aria-label={t('Prod_ImportTitle')}
           onChange={(e) => {
             setFile(e.target.files?.[0] ?? null)
@@ -91,6 +92,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
                 <Stat label={t('Prod_ImportUnchanged')} value={result.unchanged} />
                 <Stat label={t('Prod_ImportSkipped')} value={result.failed} tone={result.failed ? 'danger' : undefined} />
                 {result.newCategories > 0 && <Stat label={t('Prod_ImportNewCategories')} value={result.newCategories} />}
+                {result.customPrices > 0 && <Stat label={t('Prod_ImportCustomPrices')} value={result.customPrices} />}
               </div>
               <p className={styles.note} data-kind={result.applied ? 'success' : changes === 0 ? 'warning' : 'info'}>
                 {result.applied
@@ -102,8 +104,8 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
               {result.issues.length > 0 && (
                 <ul className={styles.issues}>
                   {result.issues.map((issue) => (
-                    <li key={`${issue.row}-${issue.message}`}>
-                      <strong>{`${t('Prod_ImportRow')} ${issue.row}: `}</strong>
+                    <li key={`${issue.sheet ?? ''}-${issue.row}-${issue.message}`}>
+                      <strong>{`${issue.sheet ? `${issue.sheet} · ` : ''}${t('Prod_ImportRow')} ${issue.row}: `}</strong>
                       {issue.message}
                     </li>
                   ))}

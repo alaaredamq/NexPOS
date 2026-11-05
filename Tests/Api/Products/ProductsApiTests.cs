@@ -1,4 +1,5 @@
 using Xunit;
+using ClosedXML.Excel;
 using Microsoft.Extensions.DependencyInjection;
 using Web.Helpers;
 using Web.Services;
@@ -480,28 +481,84 @@ public sealed class ProductsApiTests
     }
 
     [Fact]
-    public async Task Export_returns_a_csv_with_the_products_and_the_template_has_the_headers()
+    public async Task Export_returns_a_workbook_with_the_products_and_their_custom_prices_and_the_template_has_both_sheets()
     {
         var admin = await Admin();
         var created = await Create(admin, await ValidRequest(admin, name: "Exported one"));
+        var barcode = created.GetProperty("barcode").GetString()!;
 
         var export = await admin.GetAsync("/api/v1/products/export");
         var template = await admin.GetAsync("/api/v1/products/import-template");
 
-        Assert.Equal("text/csv", export.Content.Headers.ContentType?.MediaType);
-        Assert.Contains(created.GetProperty("barcode").GetString()!, await export.Content.ReadAsStringAsync());
+        Assert.Equal(XlsxType, export.Content.Headers.ContentType?.MediaType);
+        using (var book = new XLWorkbook(await export.Content.ReadAsStreamAsync()))
+        {
+            Assert.Contains(book.Worksheet("Products").Column(1).CellsUsed(), c => c.GetString() == barcode);
+            var price = Assert.Single(book.Worksheet("Custom Prices").RowsUsed().Skip(1), r => r.Cell(1).GetString() == barcode);
+            Assert.Equal("Wholesale", price.Cell(2).GetString());
+            Assert.Equal(6.0, price.Cell(3).GetDouble());
+        }
+
         Assert.Contains("import_template", template.Content.Headers.ContentDisposition?.FileName ?? "");
-        Assert.Contains("Barcode", await template.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        using var templateBook = new XLWorkbook(await template.Content.ReadAsStreamAsync());
+        Assert.Equal("Barcode", templateBook.Worksheet("Products").Cell(1, 1).GetString());
+        Assert.Equal("PriceName", templateBook.Worksheet("Custom Prices").Cell(1, 2).GetString());
     }
 
+    private const string XlsxType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
     private static HttpRequestMessage ImportRequest(string csv, bool apply)
+        => ImportRequest(Encoding.UTF8.GetBytes(csv), "products.csv", "text/csv", apply);
+
+    private static HttpRequestMessage ImportRequest(byte[] bytes, string fileName, string contentType, bool apply)
     {
-        var file = new ByteArrayContent(Encoding.UTF8.GetBytes(csv));
-        file.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
-        var form = new MultipartFormDataContent { { file, "file", "products.csv" }, { new StringContent(apply ? "true" : "false"), "apply" } };
+        var file = new ByteArrayContent(bytes);
+        file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        var form = new MultipartFormDataContent { { file, "file", fileName }, { new StringContent(apply ? "true" : "false"), "apply" } };
         var request = Json(HttpMethod.Post, "/api/v1/products/import");
         request.Content = form;
         return request;
+    }
+
+    [Fact]
+    public async Task Import_workbook_gives_a_product_exactly_the_custom_prices_listed_for_it()
+    {
+        var admin = await Admin();
+        var created = await Create(admin, await ValidRequest(admin, name: "Several prices")); // purchase 4.5, Wholesale 6
+        var barcode = created.GetProperty("barcode").GetString()!;
+        var untouched = await Create(admin, await ValidRequest(admin, name: "Not in the file"));
+
+        using var book = new XLWorkbook();
+        var products = book.AddWorksheet("Products");
+        products.Cell(1, 1).Value = "Barcode";
+        products.Cell(2, 1).Value = barcode;
+        var prices = book.AddWorksheet("Custom Prices");
+        prices.Cell(1, 1).Value = "Barcode";
+        prices.Cell(1, 2).Value = "PriceName";
+        prices.Cell(1, 3).Value = "Price";
+        string[][] rows = [[barcode, "Wholesale", "6.5"], [barcode, "Staff", "5"], [barcode, "VIP", "7"]];
+        for (var i = 0; i < rows.Length; i++)
+        for (var c = 0; c < 3; c++)
+            prices.Cell(i + 2, c + 1).Value = rows[i][c];
+        using var bytes = new MemoryStream();
+        book.SaveAs(bytes);
+
+        var preview = await Body(await admin.SendAsync(ImportRequest(bytes.ToArray(), "products.xlsx", XlsxType, apply: false)));
+        Assert.Equal(1, preview.GetProperty("updated").GetInt32());
+        Assert.Equal(3, preview.GetProperty("customPrices").GetInt32());
+        Assert.Equal(0, preview.GetProperty("failed").GetInt32());
+        Assert.Single((await Body(await admin.GetAsync($"/api/v1/products/{created.GetProperty("id").GetInt32()}"))).GetProperty("priceTiers").EnumerateArray());
+
+        var applied = await Body(await admin.SendAsync(ImportRequest(bytes.ToArray(), "products.xlsx", XlsxType, apply: true)));
+        Assert.True(applied.GetProperty("applied").GetBoolean());
+
+        var tiers = (await Body(await admin.GetAsync($"/api/v1/products/{created.GetProperty("id").GetInt32()}")))
+            .GetProperty("priceTiers").EnumerateArray()
+            .Select(t => (t.GetProperty("name").GetString(), t.GetProperty("price").GetDecimal())).ToList();
+        Assert.Equal(new[] { ("Wholesale", 6.5m), ("Staff", 5m), ("VIP", 7m) }, tiers);
+
+        var other = (await Body(await admin.GetAsync($"/api/v1/products/{untouched.GetProperty("id").GetInt32()}"))).GetProperty("priceTiers");
+        Assert.Equal("Wholesale", Assert.Single(other.EnumerateArray()).GetProperty("name").GetString());
     }
 
     [Fact]

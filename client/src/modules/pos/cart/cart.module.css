@@ -88,35 +88,28 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  /* One grid for the whole list; every row is a subgrid of it, so quantity, price and delete line up in columns. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-content: start;
+  column-gap: 4px;
+  row-gap: var(--space-2);
   flex: 1 1 auto;
   min-block-size: 0;
   overflow-y: auto;
 }
 
+/* One compact line: name | quantity | price | delete. The name takes what is left and is cut with an ellipsis. */
 .row {
+  --step-btn: 26px; /* smaller than the touch scale on purpose: the cart is narrow and the name needs the room */
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  column-gap: var(--space-2);
-  row-gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: 4px 6px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control-lg);
   background: var(--color-card);
-}
-
-/* Narrow cart: the name takes the first line, quantity + price + delete share the second. */
-@container (max-inline-size: 440px) {
-  .row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
-  .rowName {
-    grid-column: 1 / -1;
-  }
 }
 
 .panel {
@@ -126,33 +119,37 @@
 .rowName {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   min-inline-size: 0;
 }
 
 .name {
+  min-inline-size: 0;
   font-weight: 700;
+  line-height: 1.25;
   color: var(--color-ink);
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .each {
   font-size: 12px;
+  line-height: 1.2;
   color: var(--color-faint);
+  white-space: nowrap;
 }
 
-.stockWarning {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-warning);
-}
 
+
+/* The stepper and the amount button fill the column, so they share one width down the list. */
 .rowQty {
   display: flex;
   align-items: center;
+}
+
+.rowQty > * {
+  flex: 1 1 auto;
+  justify-content: center;
 }
 
 .stepper {
@@ -179,8 +176,9 @@
 }
 
 .qtyInput {
+  flex: 1 1 auto;
   inline-size: 3.2ch;
-  min-inline-size: 44px;
+  min-inline-size: 30px;
   block-size: var(--step-btn);
   border: 0;
   background: var(--color-card);
@@ -220,11 +218,10 @@
 
 .priceBtn {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
+  align-items: center;
+  gap: 4px;
   min-block-size: var(--step-btn);
-  padding: 4px var(--space-2);
+  padding: 2px var(--space-2);
   border: 1px solid transparent;
   border-radius: var(--radius-control);
   background: transparent;
@@ -253,13 +250,16 @@
   white-space: nowrap;
 }
 
+/* A price that cannot be changed has no tier label or chevron: keep their room so the totals still line up. */
 .priceText {
   padding-inline: var(--space-2);
+  padding-inline-end: calc(var(--space-2) + 4px + 52px);
 }
 
 .priceTier {
   display: inline-flex;
   align-items: center;
+  min-inline-size: 52px;
   gap: 3px;
   font-size: 11px;
   font-weight: 700;
@@ -287,6 +287,38 @@
 .row[data-estimate] .priceTotal,
 .row[data-estimate] .priceText {
   opacity: 0.6;
+}
+
+/* Narrow cart: the name may use two lines (still cut with an ellipsis), the "each" price moves to the tooltip, and the price drops its tier
+   label (the colour and the chevron still say it is tappable) so the name keeps as much room as possible. */
+@container (max-inline-size: 399px) {
+  .name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+  }
+
+  .each,
+  .priceTier > span {
+    display: none;
+  }
+
+  .priceBtn {
+    padding-inline: 2px;
+  }
+
+  .priceTier {
+    min-inline-size: 0;
+  }
+
+  .priceText {
+    padding-inline: 2px;
+    padding-inline-end: calc(2px + 4px + 11px);
+  }
 }
 
 .empty {
@@ -372,7 +404,6 @@
   opacity: 0.6;
 }
 
-.pricing,
 .others {
   margin: 0;
   font-size: 12px;
@@ -396,6 +427,37 @@
 
 .actions > * {
   flex: 1 1 0;
+}
+
+/* Small registers: a lighter cart so the lines get the room. */
+@media (max-width: 1440px), (max-height: 800px) {
+  .panel {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .total {
+    font-size: 20px;
+  }
+
+  .summary {
+    padding-block-start: var(--space-2);
+  }
+
+  .actions {
+    gap: 4px;
+  }
+
+  .actions > * {
+    min-inline-size: 0;
+    padding-inline: 4px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .panel .checkout[data-size] {
+    min-block-size: 46px;
+  }
 }
 
 /* ---- dialogs ---- */

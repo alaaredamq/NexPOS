@@ -135,7 +135,8 @@ public sealed class InventoryApiService : IInventoryApiService
         if (next < 0) throw new InsufficientStockException(previous, request.Quantity);
 
         product.StockQuantity = next;
-        await _products.UpdateAsync(productId, product);
+        await _products.UpdateAsync(productId, product,
+            new ProductChangeContext(add ? ProductHistoryType.StockAdded : ProductHistoryType.StockRemoved, request.Reason));
 
         _audit.LogBusiness(
             AuditActions.StockAdjusted,

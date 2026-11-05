@@ -40,7 +40,9 @@ public enum CustomerDebtTransactionType
     /// <summary>A manual correction entered by staff (either sign).</summary>
     ManualAdjustment = 2,
     /// <summary>A sale that was voided/cancelled: cancels out its Sale entry (negative amount).</summary>
-    SaleReversal = 3
+    SaleReversal = 3,
+    /// <summary>A debt sale moved to another customer: negative on the old customer, positive on the new one.</summary>
+    SaleTransfer = 4
 }
 
 /// <summary>

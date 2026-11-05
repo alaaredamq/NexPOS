@@ -6,11 +6,13 @@ import { isApiError } from '@/api/http'
 import { Button } from '@/ui/Button'
 import { confirm } from '@/ui/confirm'
 import { FormError } from '@/ui/form/FormError'
+import { Switch } from '@/ui/form/SwitchField'
 import { TextField } from '@/ui/form/TextField'
 import { applyServerErrors } from '@/ui/form/serverErrors'
 import { Loader } from '@/ui/Loader'
 import { toast } from '@/ui/toast'
 import { zodResolver } from '../_shared/zodResolver'
+import { getShowSaleComplete, setShowSaleComplete } from '../pos/checkout/saleCompletePref'
 import { useResetStoreSettings, useSaveStoreSettings, useStoreSettings, type StoreSettings } from './api'
 import { ReceiptPreview } from './ReceiptPreview'
 import { SettingsLayout } from './SettingsLayout'
@@ -28,6 +30,30 @@ export default function StoreSettingsPage() {
       {query.isError && <p className={styles.error}>{query.error.message}</p>}
       {query.data && <StoreForm initial={query.data} />}
     </SettingsLayout>
+  )
+}
+
+/** Per-computer till preferences: kept in this browser's storage and applied the moment they are flipped (the Save button above is for the store). */
+function TillPreferences() {
+  const { t } = useTranslation('settings')
+  const [showSaleComplete, setShow] = useState(getShowSaleComplete)
+
+  return (
+    <section className={styles.card} aria-labelledby="till-prefs">
+      <h2 id="till-prefs" className={styles.cardTitle}>
+        {t('TillThisComputer')}
+      </h2>
+      <Switch
+        checked={showSaleComplete}
+        onChange={(next) => {
+          setShowSaleComplete(next)
+          setShow(next)
+          toast.success(t('TillPreferenceSaved'))
+        }}
+        label={t('ShowSaleComplete')}
+        hint={t('ShowSaleCompleteHint')}
+      />
+    </section>
   )
 }
 
@@ -129,6 +155,8 @@ function StoreForm({ initial }: { initial: StoreSettings }) {
             {t('SaveChanges', { ns: 'settings' })}
           </Button>
         </div>
+
+        <TillPreferences />
       </div>
 
       <section className={`${styles.card} ${styles.previewCard}`} aria-labelledby="receipt-preview">

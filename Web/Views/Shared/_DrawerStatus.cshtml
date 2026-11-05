@@ -35,7 +35,7 @@
        data-status-url="@Url.Action("GetOpenSession", "CashDrawer")"
        data-label-open="@openTemplate"
        data-label-closed="@closedLabel"
-       href="@Url.ActionWithCurrentLanguage("Index", "CashDrawer")"
+       href="@Url.PageWithCurrentLanguage("CashDrawer")"
        title="@(isOpen == true ? string.Format(CultureInfo.InvariantCulture, openTemplate, amountText) : closedLabel)"
        @(isOpen == null ? "hidden" : "")>
         <span class="drawer-dot" aria-hidden="true"></span>

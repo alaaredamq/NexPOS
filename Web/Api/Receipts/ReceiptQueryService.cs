@@ -43,6 +43,9 @@ public interface IReceiptQueryService
     /// <summary>Throws <see cref="PosRuleException"/>: 404 <c>receipt_not_found</c>, 409 <c>receipt_already_void</c>.</summary>
     Task<SaleReversalDto> VoidAsync(int id, string reason, int userId);
 
+    /// <summary>Changes the customer of the sale behind the receipt. Throws <see cref="PosRuleException"/>: 404 <c>receipt_not_found</c>, 409 <c>receipt_already_void</c> / <c>order_closed</c> / <c>customer_not_found</c>, 400 <c>debt_requires_customer</c>.</summary>
+    Task<SaleCustomerResultDto> ChangeCustomerAsync(int id, int? customerId, int userId);
+
     Task<ReceiptPrintResultDto> PrintAsync(int id);
 
     Task<(byte[] Pdf, string FileName)> GetPdfAsync(int id);
@@ -55,17 +58,19 @@ public sealed class ReceiptQueryService : IReceiptQueryService
     private readonly IReceiptRepository _receiptRepo;
     private readonly IReceiptService _receipts;
     private readonly ISaleReversalService _reversal;
+    private readonly ISaleCustomerService _saleCustomer;
     private readonly IThermalPrinterService _printer;
     private readonly IAuditTrail _audit;
     private readonly IStringLocalizer<SharedResource> _text;
 
     public ReceiptQueryService(
-        IReceiptRepository receiptRepo, IReceiptService receipts, ISaleReversalService reversal,
+        IReceiptRepository receiptRepo, IReceiptService receipts, ISaleReversalService reversal, ISaleCustomerService saleCustomer,
         IThermalPrinterService printer, IAuditTrail audit, IStringLocalizer<SharedResource> text)
     {
         _receiptRepo = receiptRepo;
         _receipts = receipts;
         _reversal = reversal;
+        _saleCustomer = saleCustomer;
         _printer = printer;
         _audit = audit;
         _text = text;
@@ -239,6 +244,15 @@ public sealed class ReceiptQueryService : IReceiptQueryService
             var receipt = await FindAsync(id);
             throw new PosRuleException(StatusCodes.Status409Conflict, SalesCodes.ReceiptAlreadyVoid, "Sales_ReceiptAlreadyVoid", null, receipt.ReceiptNumber);
         }
+    }
+
+    public async Task<SaleCustomerResultDto> ChangeCustomerAsync(int id, int? customerId, int userId)
+    {
+        var receipt = await FindAsync(id);
+        if (receipt.IsVoid)
+            throw new PosRuleException(StatusCodes.Status409Conflict, SalesCodes.ReceiptAlreadyVoid, "Sales_ReceiptAlreadyVoid", null, receipt.ReceiptNumber);
+
+        return await SaleCustomer.ChangeAsync(_saleCustomer, receipt.OrderId, customerId, userId);
     }
 
     public async Task<ReceiptPrintResultDto> PrintAsync(int id)

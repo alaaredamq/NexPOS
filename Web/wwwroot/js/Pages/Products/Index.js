@@ -156,7 +156,7 @@
                 var $list = $('<ul class="list-unstyled small mb-0"></ul>');
                 res.issues.forEach(function(issue) {
                     $list.append($('<li class="text-danger mb-1"></li>')
-                        .append($('<strong></strong>').text(strings.importRow + ' ' + issue.row + ': '))
+                        .append($('<strong></strong>').text((issue.sheet ? issue.sheet + ' · ' : '') + strings.importRow + ' ' + issue.row + ': '))
                         .append(document.createTextNode(issue.message)));
                 });
                 $out.append($('<div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;"></div>').append($list));

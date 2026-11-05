@@ -24,6 +24,7 @@ export const ICON_PATHS = {
   'chevron-end': 'M9.5 6l6 6-6 6',
   'chevron-start': 'M14.5 6l-6 6 6 6',
   'arrow-end': 'M5 12h14 M13 6l6 6-6 6',
+  'arrow-start': 'M19 12H5 M11 6l-6 6 6 6',
   'sort-asc': 'M12 19V6 M6.5 11.5L12 6l5.5 5.5',
   'sort-desc': 'M12 5v13 M6.5 12.5L12 18l5.5-5.5',
   columns: 'M4 5h16v14H4z M9.5 5v14 M14.5 5v14',
@@ -34,12 +35,13 @@ export const ICON_PATHS = {
   more: 'M5 12h.01 M12 12h.01 M19 12h.01',
   download: 'M12 4v11 M7 10.5l5 5 5-5 M5 19.5h14',
   play: 'M8 5.5v13l10-6.5z',
+  history: 'M3.5 12a8.5 8.5 0 108.5-8.5A8.5 8.5 0 005.8 6.2 M3.5 4v4.2h4.2 M12 7.5V12l3 1.8',
 } as const
 
 export type IconName = keyof typeof ICON_PATHS
 
 /** Glyphs that point along the reading direction and therefore mirror in RTL. */
-const DIRECTIONAL = new Set<IconName>(['chevron-end', 'chevron-start', 'arrow-end'])
+const DIRECTIONAL = new Set<IconName>(['chevron-end', 'chevron-start', 'arrow-end', 'arrow-start'])
 
 interface IconProps {
   name: IconName

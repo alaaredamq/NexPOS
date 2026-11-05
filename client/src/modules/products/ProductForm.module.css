@@ -2,17 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-5) var(--space-6);
-  max-inline-size: 1180px;
-  margin-inline: auto;
-}
-
-.top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
+  padding: var(--space-5);
+  min-inline-size: 0;
 }
 
 .title {
@@ -20,12 +11,6 @@
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 800;
-}
-
-.subtitle {
-  margin: 2px 0 0;
-  color: var(--color-muted);
-  font-size: 13px;
 }
 
 .layout {
@@ -44,8 +29,9 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-5);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  min-inline-size: 0;
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -54,8 +40,11 @@
 
 .cardTitle {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
 .row {

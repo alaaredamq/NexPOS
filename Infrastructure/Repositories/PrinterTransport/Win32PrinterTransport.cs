@@ -152,10 +152,21 @@ public class Win32PrinterTransport : IPrinterTransport
 
             Console.WriteLine($"[PRINTER TRANSPORT] ✅ Printer opened successfully");
 
+            // Windows keeps an unplugged USB printer's queue installed, so the open above and the
+            // spooling below both "succeed" and the receipt would just sit in the queue. Ask the
+            // spooler whether the device is really there, and report a failure if it is not.
+            if (IsOffline(hPrinter, out var reason))
+            {
+                _logger.LogWarning("Printer '{Printer}' is offline ({Reason}); job '{Job}' was not sent.", printerName, reason, jobName);
+                Console.WriteLine($"[PRINTER TRANSPORT] ❌ Printer '{printerName}' is offline ({reason}) - nothing sent");
+                return false;
+            }
+
             var doc = new DOCINFOA { pDocName = jobName };
 
             Console.WriteLine($"[PRINTER TRANSPORT] Starting document...");
-            if (!StartDocPrinter(hPrinter, 1, doc))
+            var jobId = StartDocPrinter(hPrinter, 1, doc);
+            if (jobId <= 0)
             {
                 var error = Marshal.GetLastWin32Error();
                 Console.WriteLine($"[PRINTER TRANSPORT] ❌ Failed to start document. Win32 Error: {error}");
@@ -179,8 +190,20 @@ public class Win32PrinterTransport : IPrinterTransport
             EndDocPrinter(hPrinter);
 
             var success = ok && written == data.Length;
+
+            // Spooling the job only means Windows accepted it. Follow it until the spooler has handed it
+            // to the device; a job that stays stuck (printer unplugged, powered off) is cancelled so it
+            // cannot come out later as a duplicate once the cashier retries.
+            if (success && !WaitForJobToLeave(hPrinter, jobId, out var stuckReason))
+            {
+                _logger.LogWarning("Print job '{Job}' to '{Printer}' did not reach the device ({Reason}); cancelled.", jobName, printerName, stuckReason);
+                Console.WriteLine($"[PRINTER TRANSPORT] ❌ Job did not reach the printer ({stuckReason}) - cancelled");
+                SetJob(hPrinter, jobId, 0, IntPtr.Zero, JOB_CONTROL_DELETE);
+                success = false;
+            }
+
             Console.WriteLine($"[PRINTER TRANSPORT] Print job result: {(success ? "✅ SUCCESS" : "❌ FAILED")}");
-            
+
             return success;
         }
         catch (Exception ex)
@@ -193,6 +216,78 @@ public class Win32PrinterTransport : IPrinterTransport
         {
             if (pBytes != IntPtr.Zero) Marshal.FreeCoTaskMem(pBytes);
             if (hPrinter != IntPtr.Zero) ClosePrinter(hPrinter);
+        }
+    }
+
+    /// <summary>
+    /// True when the spooler says the device cannot take a job: switched to "Use Printer Offline",
+    /// unplugged (offline / not available / port unavailable) or in an error state. If the status
+    /// cannot be read, the printer is given the benefit of the doubt.
+    /// </summary>
+    private static bool IsOffline(IntPtr hPrinter, out string reason)
+    {
+        reason = string.Empty;
+
+        GetPrinter(hPrinter, 2, IntPtr.Zero, 0, out var needed);
+        if (needed <= 0) return false;
+
+        var buffer = Marshal.AllocCoTaskMem(needed);
+        try
+        {
+            if (!GetPrinter(hPrinter, 2, buffer, needed, out _)) return false;
+
+            var info = Marshal.PtrToStructure<PRINTER_INFO_2>(buffer);
+            if ((info.Attributes & PRINTER_ATTRIBUTE_WORK_OFFLINE) != 0) reason = "set to work offline";
+            else if ((info.Status & PRINTER_STATUS_OFFLINE) != 0) reason = "status offline";
+            else if ((info.Status & PRINTER_STATUS_NOT_AVAILABLE) != 0) reason = "status not available";
+            else if ((info.Status & PRINTER_STATUS_PORT_UNAVAILABLE) != 0) reason = "port unavailable";
+            else if ((info.Status & PRINTER_STATUS_ERROR) != 0) reason = "status error";
+
+            return reason.Length > 0;
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Waits for the spooler to finish with a job. A job that is gone from the queue (or marked
+    /// printed/complete) went to the device; one that reports an error or is still queued after
+    /// <see cref="JobWait"/> did not, which is what an unplugged printer looks like.
+    /// </summary>
+    private static bool WaitForJobToLeave(IntPtr hPrinter, int jobId, out string reason)
+    {
+        reason = "still queued";
+        var deadline = DateTime.UtcNow + JobWait;
+
+        while (true)
+        {
+            GetJob(hPrinter, jobId, 1, IntPtr.Zero, 0, out var needed);
+            if (needed <= 0) return true; // no longer in the queue
+
+            var buffer = Marshal.AllocCoTaskMem(needed);
+            try
+            {
+                if (!GetJob(hPrinter, jobId, 1, buffer, needed, out _)) return true;
+
+                var status = Marshal.PtrToStructure<JOB_INFO_1>(buffer).Status;
+                if ((status & (JOB_STATUS_PRINTED | JOB_STATUS_COMPLETE)) != 0) return true;
+                if ((status & JOB_STATUS_OFFLINE) != 0) { reason = "printer offline"; return false; }
+                if ((status & JOB_STATUS_PAPEROUT) != 0) { reason = "paper out"; return false; }
+                if ((status & JOB_STATUS_ERROR) != 0) { reason = "printer error"; return false; }
+                if ((status & JOB_STATUS_USER_INTERVENTION) != 0) { reason = "printer needs attention"; return false; }
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(buffer);
+            }
+
+            // The queue's own status can flip to offline a moment after the job was spooled: fail as soon as it does.
+            if (IsOffline(hPrinter, out var printerReason)) { reason = printerReason; return false; }
+
+            if (DateTime.UtcNow >= deadline) return false;
+            Thread.Sleep(50);
         }
     }
 
@@ -214,7 +309,51 @@ public class Win32PrinterTransport : IPrinterTransport
     private static extern bool ClosePrinter(IntPtr hPrinter);
 
     [DllImport("winspool.drv", SetLastError = true)]
-    private static extern bool StartDocPrinter(IntPtr hPrinter, int level, [In] DOCINFOA di);
+    private static extern bool GetPrinter(IntPtr hPrinter, int level, IntPtr pPrinter, int cbBuf, out int pcbNeeded);
+
+    private const uint PRINTER_ATTRIBUTE_WORK_OFFLINE = 0x00000400;
+    private const uint PRINTER_STATUS_ERROR = 0x00000002;
+    private const uint PRINTER_STATUS_OFFLINE = 0x00000080;
+    private const uint PRINTER_STATUS_NOT_AVAILABLE = 0x00001000;
+    private const uint PRINTER_STATUS_PORT_UNAVAILABLE = 0x00200000;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PRINTER_INFO_2
+    {
+        public IntPtr pServerName, pPrinterName, pShareName, pPortName, pDriverName, pComment, pLocation;
+        public IntPtr pDevMode, pSepFile, pPrintProcessor, pDatatype, pParameters, pSecurityDescriptor;
+        public uint Attributes, Priority, DefaultPriority, StartTime, UntilTime, Status, cJobs, AveragePPM;
+    }
+
+    /// <summary>Returns the spooler job id, or 0 when the document could not be started.</summary>
+    [DllImport("winspool.drv", SetLastError = true)]
+    private static extern int StartDocPrinter(IntPtr hPrinter, int level, [In] DOCINFOA di);
+
+    [DllImport("winspool.drv", SetLastError = true)]
+    private static extern bool GetJob(IntPtr hPrinter, int jobId, int level, IntPtr pJob, int cbBuf, out int pcbNeeded);
+
+    [DllImport("winspool.drv", SetLastError = true)]
+    private static extern bool SetJob(IntPtr hPrinter, int jobId, int level, IntPtr pJob, int command);
+
+    private const int JOB_CONTROL_DELETE = 5;
+    private const uint JOB_STATUS_ERROR = 0x00000002;
+    private const uint JOB_STATUS_OFFLINE = 0x00000020;
+    private const uint JOB_STATUS_PAPEROUT = 0x00000040;
+    private const uint JOB_STATUS_PRINTED = 0x00000080;
+    private const uint JOB_STATUS_USER_INTERVENTION = 0x00000400;
+    private const uint JOB_STATUS_COMPLETE = 0x00001000;
+
+    /// <summary>How long a receipt may stay in the spooler before it counts as not delivered (a receipt normally leaves within a second).</summary>
+    private static readonly TimeSpan JobWait = TimeSpan.FromSeconds(3);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JOB_INFO_1
+    {
+        public uint JobId;
+        public IntPtr pPrinterName, pMachineName, pUserName, pDocument, pDatatype, pStatus;
+        public uint Status, Priority, Position, TotalPages, PagesPrinted;
+        public ushort Year, Month, DayOfWeek, Day, Hour, Minute, Second, Milliseconds;
+    }
 
     [DllImport("winspool.drv")]
     private static extern bool EndDocPrinter(IntPtr hPrinter);

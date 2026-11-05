@@ -28,7 +28,7 @@ type Failure = { kind: 'refused' | 'unsure'; message: string; addToDebt: boolean
 /**
  * The payment dialog (the old "Complete Checkout" popup, plus the change calculator). One tender: the API takes a single payment method,
  * so a split payment is not offered. The cashier may type a lower total (that becomes a discount on the receipt) or nudge it for cash
- * rounding; the server decides what is acceptable and answers `total_mismatch` otherwise.
+ * rounding; the server puts no limit on it.
  *
  * Never loses the cart: it is plain store state and this dialog only reads it. A refusal leaves it open with the reason; a lost connection
  * keeps the same idempotency key so "Try again" cannot sell twice.

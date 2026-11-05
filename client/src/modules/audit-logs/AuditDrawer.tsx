@@ -7,7 +7,7 @@ import { IconButton } from '@/ui/IconButton'
 import { Skeleton } from '@/ui/Skeleton'
 import { toast } from '@/ui/toast'
 import { useAuditEntry, type AuditEntryDetails, type AuditParams } from './api'
-import { CategoryBadge, formatStamp, OutcomeBadges } from './badges'
+import { AreaBadge, CategoryBadge, formatStamp, OutcomeBadges } from './badges'
 import styles from './auditLogs.module.css'
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -130,6 +130,7 @@ function EntryBody({ details, onDrill }: { details: AuditEntryDetails; onDrill: 
       <div className={styles.drawerBody}>
         <div className={styles.summary}>
           <div className={styles.badges}>
+            <AreaBadge area={e.area} />
             <CategoryBadge category={e.category} />
             <code className={styles.action}>{e.action}</code>
             <OutcomeBadges outcome={e.outcome} severity={e.severity} />
@@ -210,6 +211,7 @@ const CLEAR: Partial<AuditParams> = {
   from: '',
   to: '',
   user: '',
+  area: '',
   category: '',
   outcome: '',
   severity: '',

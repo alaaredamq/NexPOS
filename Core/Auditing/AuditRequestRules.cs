@@ -52,6 +52,13 @@ public static class AuditRequestRules
         return path;
     }
 
+    /// <summary>
+    /// Is this finished request worth a row? Anything that is not a plain read always is; a read (GET / HEAD) only when it
+    /// failed, was refused or threw - or when the installation asked for reads too (<see cref="AuditOptions.LogReadRequests"/>).
+    /// </summary>
+    public static bool ShouldRecord(string method, int statusCode, bool threw, bool logReads)
+        => logReads || threw || statusCode >= 400 || !(string.Equals(method, "GET", StringComparison.OrdinalIgnoreCase) || string.Equals(method, "HEAD", StringComparison.OrdinalIgnoreCase));
+
     public static AuditOutcome OutcomeFor(int statusCode, bool threw)
     {
         if (threw) return AuditOutcome.Failure;

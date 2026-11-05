@@ -2419,7 +2419,6 @@
   <data name="Pos_PrintFailed" xml:space="preserve"><value>تعذّرت الطباعة. تأكد من توصيل طابعة الإيصالات واختيارها في الإعدادات &gt; الطابعات.</value></data>
   <data name="Pos_PrintOk" xml:space="preserve"><value>تم الإرسال إلى طابعة الإيصالات</value></data>
   <data name="Pos_ProductNotFound" xml:space="preserve"><value>المنتج {0} غير موجود.</value></data>
-  <data name="Pos_TotalMismatch" xml:space="preserve"><value>الإجمالي {0} يختلف عن الإجمالي المحسوب {1} بأكثر من تعديل التقريب المسموح ({2}).</value></data>
   <data name="Prod_NameRequired" xml:space="preserve"><value>اسم المنتج مطلوب</value></data>
   <data name="Prod_NameLength" xml:space="preserve"><value>يجب أن يتراوح اسم المنتج بين 2 و255 حرفاً</value></data>
   <data name="Prod_BarcodeExists" xml:space="preserve"><value>يوجد منتج بهذا الباركود بالفعل.</value></data>
@@ -2440,10 +2439,24 @@
   <data name="Sup_HasBalance" xml:space="preserve"><value>يوجد رصيد مستحق بقيمة {0} مع هذا المورد. قم بتسويته قبل الحذف، أو عطّل المورد بدلاً من ذلك.</value></data>
   <data name="Sup_InUse" xml:space="preserve"><value>لا يزال هذا المورد مرتبطاً بمنتجات (بما فيها المحذوفة المحتفظ بها لسجل المبيعات) أو بسجلات ديون، لذا لا يمكن حذفه. عطّله بدلاً من ذلك.</value></data>
   <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>اختر عملة من القائمة.</value></data>
+  <data name="Purchases" xml:space="preserve"><value>المشتريات</value></data>
+  <data name="Pur_no_lines" xml:space="preserve"><value>أضف منتجاً واحداً على الأقل إلى المشتريات.</value></data>
+  <data name="Pur_duplicate_product" xml:space="preserve"><value>هناك منتج مكرر في المشتريات. ضع الكمية الإجمالية في سطر واحد.</value></data>
+  <data name="Pur_unknown_product" xml:space="preserve"><value>أحد منتجات هذه المشتريات لم يعد موجوداً. احذفه وحاول مرة أخرى.</value></data>
+  <data name="Pur_unknown_supplier" xml:space="preserve"><value>هذا المورد لم يعد موجوداً.</value></data>
+  <data name="Pur_inactive_supplier" xml:space="preserve"><value>المورد {0} معطّل. فعّله قبل الشراء منه.</value></data>
+  <data name="Pur_future_date" xml:space="preserve"><value>لا يمكن أن يكون تاريخ الشراء في المستقبل.</value></data>
+  <data name="Pur_paid_exceeds_total" xml:space="preserve"><value>المبلغ المدفوع أكبر من إجمالي المشتريات.</value></data>
+  <data name="Pur_bad_amount" xml:space="preserve"><value>يجب أن تكون الكميات أكبر من صفر ولا يمكن أن تكون المبالغ سالبة.</value></data>
+  <data name="Pur_already_cancelled" xml:space="preserve"><value>عملية الشراء {0} ملغاة بالفعل.</value></data>
+  <data name="Pur_drawer_not_open" xml:space="preserve"><value>افتح درج النقد أولاً للدفع منه، أو ألغِ خيار "خصم المبلغ المدفوع من درج النقد".</value></data>
+  <data name="Pur_stock_already_sold" xml:space="preserve"><value>تم بيع جزء من {0} من هذه المشتريات، لذلك لا يمكن سحبه من المخزون. عدّل المخزون يدوياً بدلاً من ذلك.</value></data>
   <data name="Sales_ReceiptNotFound" xml:space="preserve"><value>لم يتم العثور على الإيصال.</value></data>
   <data name="Sales_OrderClosed" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع بالفعل، فلا توجد عملية بيع لإلغائها.</value></data>
   <data name="Sales_OrderCancelled" xml:space="preserve"><value>الطلب {0} ملغى ولا يمكن إعادة فتحه.</value></data>
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>الإيصال {0} ملغى بالفعل.</value></data>
+  <data name="Sales_OrderClosedCustomer" xml:space="preserve"><value>الطلب {0} ملغى أو مُرجع، فلا يمكن تغيير عميله بعد الآن.</value></data>
+  <data name="Sales_DebtSaleNeedsCustomer" xml:space="preserve"><value>الطلب {0} مسجّل على حساب عميل، لذا يلزمه عميل. اختر عميلًا أو أبطل عملية البيع.</value></data>
   <data name="Rep_RangeBackwards" xml:space="preserve"><value>يجب ألا يسبق تاريخ النهاية تاريخ البداية.</value></data>
   <data name="Rep_RangeTooLong" xml:space="preserve"><value>اختر نطاقاً لا يتجاوز {0} يوماً.</value></data>
   <data name="Usr_UsernameTaken" xml:space="preserve"><value>اسم المستخدم هذا مستخدم بالفعل.</value></data>

@@ -68,6 +68,7 @@ export function useAfterSale() {
     void client.invalidateQueries({ queryKey: ['orders'] })
     void client.invalidateQueries({ queryKey: ['receipts'] })
     void client.invalidateQueries({ queryKey: ['products'] })
+    void client.invalidateQueries({ queryKey: ['cash-drawer'] })
     void refreshSession()
   }
 }

@@ -38,6 +38,7 @@ public class SaleReversalServiceTests : IDisposable
     private SaleReversalService CreateSut(ErpDbContext context, ICustomerDebtService? debtService = null) =>
         new(context,
             new ProductRepository(context, _services),
+            TestProductHistory.Create(context),
             debtService ?? new CustomerDebtService(
                 new CustomerDebtTransactionRepository(context, _services),
                 new CustomerRepository(context, _services)),
@@ -96,6 +97,15 @@ public class SaleReversalServiceTests : IDisposable
         Assert.True(result.OrderCancelled);
         Assert.Equal(1, result.ReceiptsVoided);
         Assert.Equal(1, result.StockLinesRestored);
+
+        // The product's history says the units came back, why, and what the stock was before and after.
+        var line = Assert.Single(await check.ProductHistories.Where(h => h.ProductId == product.Id).ToListAsync());
+        Assert.Equal(ProductHistoryType.SaleReturned, line.Type);
+        Assert.Equal(3m, line.QuantityChange);
+        Assert.Equal(7m, line.StockBefore);
+        Assert.Equal(10m, line.StockAfter);
+        Assert.Equal(order.Id, line.OrderId);
+        Assert.Equal("Customer changed their mind", line.Reason);
     }
 
     [Fact]
@@ -266,6 +276,7 @@ public class OrderStatusGuardTests
             Mock.Of<Core.IRepositories.Inventory.ICartItemRepository>(),
             Mock.Of<Core.IRepositories.Products.IProductRepository>(),
             Mock.Of<Application.IServices.Notifications.IStockAlertService>(),
+            Mock.Of<Application.IServices.Products.IProductHistoryService>(),
             Mock.Of<Application.IServices.Licensing.ILicenseService>(),
             NullLogger<OrderService>.Instance);
     }

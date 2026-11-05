@@ -966,7 +966,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The sales chart. `period` is `week`, `month` (default), `quarter` or `year`; an unknown value means the month. */
+        /** The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month. */
         get: operations["getSalesTrend"];
         put?: never;
         post?: never;
@@ -1590,6 +1590,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/{id}/customer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes the order's customer (null = walk-in). The order's receipts follow it, and a sale on the customer's account moves its debt along.
+         * @description Same operation as `PUT receipts/{id}/customer`. 409 `order_closed`: cancelled or returned orders keep their customer;
+         *     409 `customer_not_found`; 400 `debt_requires_customer`: a sale on a customer's account cannot go back to walk-in.
+         */
+        put: operations["updateOrderCustomer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payment-methods": {
         parameters: {
             query?: never;
@@ -1840,11 +1861,11 @@ export interface paths {
         /**
          * Completes a sale: stock, order, receipt, drawer, debt - all or nothing - then prints the receipt if asked.
          * @description Send the cart (never prices), the customer, how it is paid, the total the customer pays and a fresh `idempotencyKey`. The server prices the cart itself;
-         *     `totalAmount` may differ from its total only by a cashier's discount or cash rounding (more than the greater of 1.00 / 2 % is `total_mismatch`).
+         *     `totalAmount` is what the customer pays: the cashier may lower it (a discount) or nudge it (cash rounding), with no limit.
          *
          *     <b>Network failure:</b> retry with the <b>same</b> key. If the first attempt did go through you get that sale back (`replayed: true`); nothing is sold twice. Nothing is lost client-side until you get a success.
          *     Refusals (409 unless noted): `insufficient_stock` (offer "sell anyway": resend with `allowInsufficientStock`), `drawer_not_open` (only with `requireOpenDrawer`),
-         *     `total_mismatch`, `customer_not_found`, `idempotency_key_reused` (same key, different cart), `checkout_failed` (any other rule of the checkout service; `detail` says which),
+         *     `customer_not_found`, `idempotency_key_reused` (same key, different cart), `checkout_failed` (any other rule of the checkout service; `detail` says which),
          *     403 `license_sales_stopped`; 400 `payment_method_invalid`, `debt_requires_customer` and the pricing codes of `pos/price`.
          *     A refused sale leaves nothing behind.
          */
@@ -2028,6 +2049,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The product's history, newest first, with its lifetime totals.
+         * @description `kind` narrows it to `stock`, `sales` or `changes`. Only the history since the feature was introduced exists for older products.
+         */
+        get: operations["getProductHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products": {
         parameters: {
             query?: never;
@@ -2181,7 +2222,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The whole catalogue as a CSV, in the layout the import reads. */
+        /** The whole catalogue as an Excel workbook (Products and Custom Prices sheets), in the layout the import reads. */
         get: operations["exportProducts"];
         put?: never;
         post?: never;
@@ -2198,7 +2239,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** An empty import file: the column headers and one example row. */
+        /** An empty import workbook: dropdowns for category, supplier and unit, a Custom Prices sheet and example rows. */
         get: operations["getProductImportTemplate"];
         put?: never;
         post?: never;
@@ -2218,10 +2259,130 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Reads a CSV. With `apply=false` it only reports what would happen; with `true` it saves the valid rows.
-         * @description A row whose barcode exists updates that product (blank cells stay unchanged); any other row creates one. A file that cannot be read at all answers 200 with `fileError`.
+         * Reads a workbook (or CSV). With `apply=false` it only reports what would happen; with `true` it saves the valid rows.
+         * @description A row whose barcode exists updates that product (blank cells stay unchanged); any other row creates one. Products listed on the Custom Prices sheet get exactly those extra prices. A file that cannot be read at all answers 200 with `fileError`.
          */
         post: operations["importProducts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of purchases, newest first. `sort`: `date` (default), `number`, `supplier`, `reference`, `total`, `status`. `q` matches the number, the supplier and the supplier's reference; `from` / `to` are local days. */
+        get: operations["listPurchases"];
+        put?: never;
+        /** Saves a purchase: adds the quantities to stock, optionally updates cost prices, moves the supplier's balance and, with `payFromDrawer`, takes the paid amount out of the cash drawer. All or nothing. 400 with a `code` when a rule is broken; 409 `drawer_not_open` when paying from a drawer that is not open. */
+        post: operations["createPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tiles: how many purchases and how much was bought, per currency, for the same supplier / date / search filter (the status filter is ignored). */
+        get: operations["getPurchasesSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The filtered purchases, one CSV row per product line. */
+        get: operations["exportPurchases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One purchase with its lines. */
+        get: operations["getPurchase"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels a purchase: takes its stock back out and removes it from the supplier's balance. 409 `stock_already_sold` when part of the goods was sold since; 409 `already_cancelled`. */
+        post: operations["cancelPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sends the purchase receipt to the receipt printer. Answers 200 with `printed: false` when the printer is unavailable. */
+        post: operations["printPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/purchases/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The purchase receipt as an A4 PDF. */
+        get: operations["downloadPurchasePdf"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2302,6 +2463,27 @@ export interface paths {
          *     409 `receipt_already_void`. A reason is required.
          */
         post: operations["voidReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{id}/customer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes the customer on the receipt (null = walk-in). The order behind it follows, and a sale on the customer's account moves its debt along.
+         * @description Same operation as `PUT orders/{id}/customer`. 409 `receipt_already_void` / `order_closed`: a voided receipt keeps its customer;
+         *     409 `customer_not_found`; 400 `debt_requires_customer`: a sale on a customer's account cannot go back to walk-in.
+         */
+        put: operations["updateReceiptCustomer"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3020,6 +3202,8 @@ export interface components {
             role?: string | null;
             /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
             category: string;
+            /** @description The part of the product it happened in: `Sales`, `Pos`, `Inventory`, `Customers`, `Account`, `Settings`, `Reports`, `System` or `Other`. */
+            area: string;
             /** @description Verb or event name, e.g. `Update`, `Login`, `POST Api.Pos/Checkout`. */
             action: string;
             /** @description The table for data changes, otherwise the subsystem (`Http`, `Auth`, `Backup` ...). */
@@ -3850,6 +4034,16 @@ export interface components {
              * @description Change of Web.Api.Dashboard.Contracts.DashboardDto.MonthProfit against last month, in percent; 0 when last month had no profit.
              */
             monthProfitChangePercent: number;
+            /**
+             * Format: double
+             * @description Revenue of every completed order since the first sale (cancelled and returned orders excluded).
+             */
+            allTimeSales: number;
+            /**
+             * Format: double
+             * @description Gross profit since the first sale, counted like Web.Api.Dashboard.Contracts.DashboardDto.MonthProfit.
+             */
+            allTimeProfit: number;
             /** Format: int32 */
             customerCount: number;
             /** Format: int32 */
@@ -4771,7 +4965,7 @@ export interface components {
             /**
              * Format: double
              * @description What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
-             *                 slightly (cash rounding). More than the greater of 1.00 or 2 % away from the server's total is refused (`total_mismatch`).
+             *                 (cash rounding). No limit is enforced.
              */
             totalAmount?: number;
             notes?: string | null;
@@ -5252,6 +5446,88 @@ export interface components {
             updatedAt?: string | null;
             stockLevel: string;
         };
+        /** @description A product's history: the product, lifetime totals and one page of lines, newest first. */
+        ProductHistoryDto: {
+            /** Format: int32 */
+            productId: number;
+            productName: string;
+            unit?: string | null;
+            /** @description The product's currency, for the price lines (empty when it has none). */
+            currencyNotation: string;
+            /** Format: double */
+            currentStock: number;
+            /**
+             * Format: double
+             * @description Units sold over the product's life (returns not taken off).
+             */
+            totalSold: number;
+            /**
+             * Format: double
+             * @description Units that came back from cancelled sales.
+             */
+            totalReturned: number;
+            /**
+             * Format: double
+             * @description Units added by hand or received from suppliers.
+             */
+            totalAdded: number;
+            items: components["schemas"]["ProductHistoryItemDtoPagedResult"];
+        };
+        /** @description One line of a product's history. The page builds the sentence from these fields, in the user's language. */
+        ProductHistoryItemDto: {
+            /** Format: int32 */
+            id: number;
+            /**
+             * Format: date-time
+             * @description When it happened (UTC).
+             */
+            createdAt: string;
+            /** @description One of Web.Api.Products.Contracts.ProductHistoryKind. */
+            type: string;
+            /**
+             * Format: double
+             * @description Signed units moved: negative took stock away. Null when the event did not touch stock.
+             */
+            quantityChange?: number | null;
+            /** Format: double */
+            stockBefore?: number | null;
+            /** Format: double */
+            stockAfter?: number | null;
+            /** Format: int32 */
+            orderId?: number | null;
+            /** @description `ORD-000042`, for a sale or a return. */
+            orderNumber?: string | null;
+            /** Format: int32 */
+            purchaseId?: number | null;
+            /** @description What the person typed as the reason. */
+            reason?: string | null;
+            /**
+             * Format: double
+             * @description Before / after of a price or minimum-stock change; null when there was no value (no purchase price set).
+             */
+            oldValue?: number | null;
+            /** Format: double */
+            newValue?: number | null;
+            /** @description For `updated`: which fields changed (`name`, `description`, `barcode`, `category`, `supplier`, `unit`, `activated`, `deactivated`). */
+            fields: string[];
+            /** @description The line came from an import file. */
+            fromImport: boolean;
+            /** @description Who did it; null for work nobody was signed in for. */
+            userName?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        ProductHistoryItemDtoPagedResult: {
+            items: components["schemas"]["ProductHistoryItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
         ProductImportIssueDto: {
             /**
              * Format: int32
@@ -5259,6 +5535,8 @@ export interface components {
              */
             row: number;
             message: string;
+            /** @description The sheet the row is on when it isn't the products sheet (e.g. "Custom Prices"). */
+            sheet?: string | null;
         };
         /** @description What an import did, or - for a preview - would do. */
         ProductImportResultDto: {
@@ -5281,7 +5559,12 @@ export interface components {
             newCategories: number;
             /**
              * Format: int32
-             * @description Rows skipped because of an error.
+             * @description Extra prices (Wholesale, ...) that are or would be saved from the Custom Prices sheet.
+             */
+            customPrices: number;
+            /**
+             * Format: int32
+             * @description Rows of either sheet skipped because of an error.
              */
             failed: number;
             /** @description The first problems found (capped). */
@@ -5443,6 +5726,186 @@ export interface components {
             lastLoginAt?: string | null;
             /** @description An admin set the PIN: Web.Api.Account.Contracts.ChangePinRequest.CurrentPin is not asked for until it has been replaced. */
             mustChangePin: boolean;
+        };
+        /** @description Body of a cancellation. */
+        PurchaseCancelRequest: {
+            reason?: string | null;
+        };
+        /** @description Totals of one currency in the tiles. */
+        PurchaseCurrencyTotalDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            paid: number;
+            /** Format: double */
+            due: number;
+        };
+        /** @description A purchase with its lines: the screen and the receipt. */
+        PurchaseDetailDto: {
+            /** Format: int32 */
+            id: number;
+            number: string;
+            /** Format: date-time */
+            purchaseDate: string;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName: string;
+            supplierPhone?: string | null;
+            supplierEmail?: string | null;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            supplierReference?: string | null;
+            notes?: string | null;
+            /** Format: double */
+            subtotal: number;
+            /** Format: double */
+            discountPercent: number;
+            /** Format: double */
+            discountAmount: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            amountPaid: number;
+            /** Format: double */
+            amountDue: number;
+            /** @description What was paid came out of the cash drawer (it is a cash drop on the drawer session). */
+            paidFromDrawer: boolean;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Who entered it. */
+            createdBy?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            cancelledBy?: string | null;
+            cancelReason?: string | null;
+            items: components["schemas"]["PurchaseItemDto"][];
+        };
+        /** @description One product line of a purchase. */
+        PurchaseItemDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            productId: number;
+            productName: string;
+            barcode?: string | null;
+            unit?: string | null;
+            /** Format: double */
+            quantity: number;
+            /** Format: double */
+            unitCost: number;
+            /** Format: double */
+            lineTotal: number;
+            /** @description This line also set the product's cost price. */
+            updatedCostPrice: boolean;
+        };
+        /** @description One product line of a new purchase. */
+        PurchaseLineRequest: {
+            /** Format: int32 */
+            productId: number;
+            /**
+             * Format: double
+             * @description In the product's unit; above zero.
+             */
+            quantity: number;
+            /**
+             * Format: double
+             * @description Per unit, in the supplier's currency.
+             */
+            unitCost: number;
+            /** @description Also make this the product's cost price (default: yes). */
+            updateCostPrice?: boolean;
+        };
+        /** @description One row of the purchases list. */
+        PurchaseListItemDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description `PUR-000012`. */
+            number: string;
+            /**
+             * Format: date-time
+             * @description UTC instant; shown as a day.
+             */
+            purchaseDate: string;
+            /** Format: int32 */
+            supplierId: number;
+            supplierName: string;
+            /** @description The number on the supplier's own invoice or delivery note. */
+            supplierReference?: string | null;
+            currencyNotation: string;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: double */
+            total: number;
+            /** Format: double */
+            amountPaid: number;
+            /**
+             * Format: double
+             * @description Total minus what was paid at the time: what went on the supplier's account.
+             */
+            amountDue: number;
+            /** @description See Web.Api.Purchases.Contracts.PurchaseStatusNames. */
+            status: string;
+        };
+        /** @description What every list endpoint returns. */
+        PurchaseListItemDtoPagedResult: {
+            items: components["schemas"]["PurchaseListItemDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+        };
+        /** @description Answer of the print endpoint: the printer being unavailable is an answer, not an error. */
+        PurchasePrintResultDto: {
+            printed: boolean;
+            message: string;
+            pdfUrl: string;
+        };
+        /** @description Body of a new purchase ("goods received"). */
+        PurchaseRequest: {
+            /** Format: int32 */
+            supplierId: number;
+            /**
+             * Format: date
+             * @description The local day the goods arrived (`yyyy-MM-dd`); defaults to today.
+             */
+            purchaseDate?: string | null;
+            supplierReference?: string | null;
+            notes?: string | null;
+            /**
+             * Format: double
+             * @description Percent off the lines' subtotal, 0 to 100.
+             */
+            discountPercent?: number;
+            /**
+             * Format: double
+             * @description Paid to the supplier now. The rest is added to what the shop owes them.
+             */
+            amountPaid?: number;
+            /** @description Take the paid amount out of the cash drawer (a cash drop). 409 `drawer_not_open` when the signed-in user has no open drawer. */
+            payFromDrawer?: boolean;
+            lines: components["schemas"]["PurchaseLineRequest"][];
+        };
+        /** @description The tiles above the list; follows the list's supplier, date and search filters but always counts both statuses. */
+        PurchaseSummaryDto: {
+            /**
+             * Format: int32
+             * @description Received purchases.
+             */
+            count: number;
+            /** Format: int32 */
+            cancelledCount: number;
+            /** @description Received purchases only, one entry per currency. */
+            totals: components["schemas"]["PurchaseCurrencyTotalDto"][];
         };
         /** @description What the quick-add form needs to fill its currency picker. */
         QuickAddOptionsDto: {
@@ -5763,6 +6226,37 @@ export interface components {
             /** @description Permission keys to grant. Unknown keys are dropped. */
             permissions?: string[] | null;
         };
+        /** @description The customer a sale should belong to. Shared by the order and the receipt endpoints: they are the same sale. */
+        SaleCustomerRequest: {
+            /**
+             * Format: int32
+             * @description The customer's id; omitted or `null` = walk-in. A sale put on a customer's account cannot go back to walk-in.
+             */
+            customerId?: number | null;
+        };
+        /** @description What changing a sale's customer did. */
+        SaleCustomerResultDto: {
+            /** Format: int32 */
+            orderId: number;
+            orderNumber: string;
+            /**
+             * Format: int32
+             * @description The sale's customer now; `null` = walk-in.
+             */
+            customerId?: number | null;
+            /** @description False when the sale already belonged to that customer: nothing was touched. */
+            changed: boolean;
+            /**
+             * Format: int32
+             * @description Receipts of the order that now name the new customer.
+             */
+            receiptsUpdated: number;
+            /**
+             * Format: double
+             * @description Amount of debt moved from the old customer's account to the new one (0 unless the sale was on debt).
+             */
+            debtMoved: number;
+        };
         /** @description What undoing a sale did. Shared by cancelling an order and voiding a receipt. */
         SaleReversalDto: {
             /** @description False when the order had already been cancelled or returned: only the receipt was voided and stock and balances were left alone. */
@@ -5780,10 +6274,15 @@ export interface components {
              */
             debtReversed: number;
         };
-        /** @description Sales and order count of one period (cancelled and returned orders are not counted). */
+        /** @description Sales, profit and order count of one period (cancelled and returned orders are not counted). */
         SalesPeriodDto: {
             /** Format: double */
             sales: number;
+            /**
+             * Format: double
+             * @description Selling price minus cost price of the lines sold; products without a cost price are left out.
+             */
+            profit: number;
             /** Format: int32 */
             orders: number;
         };
@@ -5818,6 +6317,11 @@ export interface components {
             currencyNotation: string;
             /** Format: double */
             totalSales: number;
+            /**
+             * Format: double
+             * @description Selling price minus cost price of the lines sold in the range; products without a cost price are left out (as on the dashboard).
+             */
+            totalProfit: number;
             /** Format: int32 */
             totalOrders: number;
             /** Format: double */
@@ -6609,6 +7113,8 @@ export interface operations {
                 username?: string;
                 /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
                 category?: string;
+                /** @description The part of the product: `Sales`, `Pos`, `Inventory`, `Customers`, `Account`, `Settings`, `Reports`, `System` or `Other`. */
+                area?: string;
                 /** @description `Success`, `Failure` or `Denied`. */
                 outcome?: string;
                 /** @description Only entries at this severity or worse: `Warning`, `Error` or `Critical`. */
@@ -6800,6 +7306,8 @@ export interface operations {
                 username?: string;
                 /** @description `Data`, `Request`, `Security`, `Business`, `System` or `Diagnostic`. */
                 category?: string;
+                /** @description The part of the product: `Sales`, `Pos`, `Inventory`, `Customers`, `Account`, `Settings`, `Reports`, `System` or `Other`. */
+                area?: string;
                 /** @description `Success`, `Failure` or `Denied`. */
                 outcome?: string;
                 /** @description Only entries at this severity or worse: `Warning`, `Error` or `Critical`. */
@@ -12223,6 +12731,77 @@ export interface operations {
             };
         };
     };
+    updateOrderCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SaleCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleCustomerResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     listPaymentMethods: {
         parameters: {
             query?: {
@@ -13566,6 +14145,67 @@ export interface operations {
             };
         };
     };
+    getProductHistory: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                /** @description `stock` (opening stock, adds, removals, corrections, purchases), `sales` (sold / returned) or `changes` (prices, details, delete); anything else = all. */
+                kind?: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductHistoryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     listProducts: {
         parameters: {
             query?: {
@@ -14063,7 +14703,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                     "application/json": string;
                 };
             };
@@ -14073,7 +14713,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -14083,7 +14723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "text/csv": components["schemas"]["ApiProblemDetails"];
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -14092,6 +14732,269 @@ export interface operations {
     getProductImportTemplate: {
         parameters: {
             query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    importProducts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description The Excel workbook (.xlsx) or a UTF-8 CSV, at most 10 MB.
+                     */
+                    File?: string;
+                    /** @description False = only check the file and report (the preview step). True = save the valid rows. */
+                    Apply?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductImportResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listPurchases: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                supplierId?: number;
+                /** @description `received` or `cancelled`; omitted = both. */
+                status?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseListItemDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PurchaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseDetailDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getPurchasesSummary: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                supplierId?: number;
+                /** @description `received` or `cancelled`; omitted = both. */
+                status?: string;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseSummaryDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    exportPurchases: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                supplierId?: number;
+                /** @description `received` or `cancelled`; omitted = both. */
+                status?: string;
+                from?: string;
+                to?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -14130,26 +15033,16 @@ export interface operations {
             };
         };
     };
-    importProducts: {
+    getPurchase: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: number;
+            };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description The CSV file (UTF-8), at most 10 MB.
-                     */
-                    File?: string;
-                    /** @description False = only check the file and report (the preview step). True = save the valid rows. */
-                    Apply?: boolean;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -14157,7 +15050,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProductImportResultDto"];
+                    "application/json": components["schemas"]["PurchaseDetailDto"];
                 };
             };
             /** @description Unauthorized */
@@ -14175,6 +15068,179 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    cancelPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PurchaseCancelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseDetailDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printPurchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchasePrintResultDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    downloadPurchasePdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["ApiProblemDetails"];
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -14344,6 +15410,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SaleReversalDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateReceiptCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SaleCustomerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleCustomerResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
             /** @description Unauthorized */

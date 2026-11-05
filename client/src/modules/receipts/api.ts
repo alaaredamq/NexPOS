@@ -78,6 +78,7 @@ export function useVoidReceipt() {
       void client.invalidateQueries({ queryKey: receiptKeys.all })
       void client.invalidateQueries({ queryKey: ['orders'] })
       void client.invalidateQueries({ queryKey: ['products'] })
+      void client.invalidateQueries({ queryKey: ['cash-drawer'] })
     },
   })
 }

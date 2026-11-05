@@ -2,7 +2,9 @@ using Application.Exceptions;
 using Application.IServices.Licensing;
 using Application.IServices.Sales;
 using Application.IServices.Notifications;
+using Application.IServices.Products;
 using Core.Entities.Inventory;
+using Core.Entities.Products;
 using Core.Entities.Sales;
 using Core.IRepositories.Sales;
 using Core.IRepositories.Inventory;
@@ -18,6 +20,7 @@ public class OrderService : IOrderService
     private readonly ICartItemRepository _cartItemRepo;
     private readonly IProductRepository _productRepo;
     private readonly IStockAlertService _stockAlertService;
+    private readonly IProductHistoryService _history;
     private readonly ILicenseService _licenseService;
     private readonly ILogger<OrderService> _logger;
 
@@ -27,6 +30,7 @@ public class OrderService : IOrderService
         ICartItemRepository cartItemRepo,
         IProductRepository productRepo,
         IStockAlertService stockAlertService,
+        IProductHistoryService history,
         ILicenseService licenseService,
         ILogger<OrderService> logger)
     {
@@ -35,6 +39,7 @@ public class OrderService : IOrderService
         _cartItemRepo = cartItemRepo;
         _productRepo = productRepo;
         _stockAlertService = stockAlertService;
+        _history = history;
         _licenseService = licenseService;
         _logger = logger;
     }
@@ -63,6 +68,9 @@ public class OrderService : IOrderService
         // Track product IDs for alert checking after all saves are done
         var productIdsToCheck = new List<int>();
 
+        // What each sale line did to stock, kept until the order has an id to point the history at.
+        var soldLines = new List<(int ProductId, decimal Quantity, decimal? StockBefore, decimal? StockAfter)>();
+
         // Deduct inventory for each item. cartItems already carry their Product (included by the
         // cart/cart-item repositories), so there's no per-item product round trip here.
         foreach (var cartItem in cartItems)
@@ -82,6 +90,9 @@ public class OrderService : IOrderService
             // Atomic check-and-decrement (single UPDATE ... WHERE StockQuantity >= quantity) so two
             // concurrent sales of the same product can't both pass a stale in-memory stock check.
             var deducted = await _productRepo.TryDeductStockAsync(product.Id, quantityToDeduct);
+            // A normal sale takes exactly what was sold, so the history derives "before" from the stock after it;
+            // a sale past the available stock floors at zero, so there "before" is what was on the shelf.
+            decimal? stockBefore = null;
             if (!deducted)
             {
                 if (!allowInsufficientStock)
@@ -93,8 +104,11 @@ public class OrderService : IOrderService
 
                 _logger.LogWarning("Selling product {ProductId} ({ProductName}) past available stock by cashier override. Requested: {Requested}, available: {Available}",
                     product.Id, product.Name, quantityToDeduct, product.StockQuantity);
+                stockBefore = await _productRepo.GetStockQuantityAsync(product.Id);
                 await _productRepo.ForceDeductStockAsync(product.Id, quantityToDeduct);
             }
+
+            soldLines.Add((product.Id, quantityToDeduct, stockBefore, await _productRepo.GetStockQuantityAsync(product.Id)));
 
             _logger.LogDebug("Deducted {Quantity} {Unit} of product {ProductId} ({ProductName})",
                 quantityToDeduct, product.Unit ?? "units", product.Id, product.Name);
@@ -113,6 +127,10 @@ public class OrderService : IOrderService
         }
 
         var createdOrder = await _orderRepo.SaveAsync(order);
+
+        // Checkout runs this inside its transaction, so a sale that rolls back takes its history lines with it.
+        foreach (var line in soldLines)
+            await _history.RecordMovementAsync(line.ProductId, ProductHistoryType.Sold, -line.Quantity, orderId: createdOrder.Id, stockBefore: line.StockBefore, stockAfter: line.StockAfter);
 
         // Deactivate the cart after creating order
         cart.IsActive = false;
@@ -154,6 +172,8 @@ public class OrderService : IOrderService
     {
         return await _orderRepo.GetByDateRangeAsync(startDate, endDate);
     }
+
+    public Task<LifetimeSalesTotals> GetLifetimeTotalsAsync() => _orderRepo.GetLifetimeTotalsAsync();
 
     public async Task<Order> UpdateOrderStatusAsync(int orderId, int status)
     {

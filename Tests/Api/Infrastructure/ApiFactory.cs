@@ -49,8 +49,6 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Development");
         builder.UseSetting("Jwt:SecretKey", "api-tests-only-secret-key-0123456789abcdef");
         builder.UseSetting("IpRateLimiting:GeneralRules:0:Limit", _loginLimitPerMinute.ToString());
-        builder.UseSetting("IpRateLimiting:GeneralRules:1:Limit", "100000");
-        builder.UseSetting("IpRateLimiting:GeneralRules:2:Limit", "100000");
 
         builder.ConfigureTestServices(services =>
             services.AddControllers().AddApplicationPart(typeof(FakeApiController).Assembly));

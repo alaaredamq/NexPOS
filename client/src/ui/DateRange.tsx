@@ -14,21 +14,24 @@ interface DateRangeProps {
   onChange: (value: DateRangeValue) => void
   /** Show Today / 7 days / 30 days / This month quick picks. */
   presets?: boolean
+  /** Add a "This year" quick pick (1 Jan to today) after the others. */
+  yearPreset?: boolean
   disabled?: boolean
 }
 
-function presetRange(kind: 'today' | '7d' | '30d' | 'month'): DateRangeValue {
+function presetRange(kind: 'today' | '7d' | '30d' | 'month' | 'year'): DateRangeValue {
   const today = new Date()
   const to = toDateInputValue(today)
   const start = new Date(today)
   if (kind === '7d') start.setDate(start.getDate() - 6)
   else if (kind === '30d') start.setDate(start.getDate() - 29)
   else if (kind === 'month') start.setDate(1)
+  else if (kind === 'year') start.setMonth(0, 1)
   return { from: toDateInputValue(start), to }
 }
 
 /** From/to pair for report and list filters. Keeps `from <= to` by bounding each input with the other. */
-export function DateRange({ value, onChange, presets = true, disabled }: DateRangeProps) {
+export function DateRange({ value, onChange, presets = true, yearPreset = false, disabled }: DateRangeProps) {
   const { t } = useTranslation()
   const id = useId()
 
@@ -47,6 +50,7 @@ export function DateRange({ value, onChange, presets = true, disabled }: DateRan
     { kind: '7d', label: t('common.last7Days', '7 days') },
     { kind: '30d', label: t('common.last30Days', '30 days') },
     { kind: 'month', label: t('common.thisMonth', 'This month') },
+    ...(yearPreset ? ([{ kind: 'year', label: t('common.thisYear', 'This year') }] as const) : []),
   ] as const
 
   return (

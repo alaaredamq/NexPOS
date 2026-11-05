@@ -2,9 +2,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { useSession } from '@/core/auth/useSession'
-import { Can } from '@/core/permissions/permissions'
+import { Can, useCan } from '@/core/permissions/permissions'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
+import { PageHeader } from '@/ui/PageHeader'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { confirm } from '@/ui/confirm'
 import { formatDate, formatMoney, formatPercent, formatQty } from '@/ui/format'
@@ -35,6 +36,7 @@ function Details({ product: p }: { product: ProductDetail }) {
   const remove = useDeleteProduct()
   const label = useStickerLabel()
   const money = (amount: number) => formatMoney(amount, p.currencyNotation)
+  const canEdit = useCan(Permissions.Products_Edit)
   const inventory = flattenNav(session.nav).find((item) => item.key === 'Inventory')
 
   const onDelete = async () => {
@@ -58,27 +60,19 @@ function Details({ product: p }: { product: ProductDetail }) {
 
   return (
     <div className={styles.page}>
-      <div className={styles.top}>
-        <div>
-          <h1 className={styles.title}>{p.name}</h1>
-          <p className={styles.subtitle}>{t('details.title')}</p>
-        </div>
-        <div className={styles.buttons}>
-          {p.barcode && (
-            <Button
-              onClick={() => void label.open({ name: p.name, code: p.barcode, price: formatStickerPrice(p.sellingPrice, p.currencyNotation) })}
-            >
-              {t('details.printLabel')}
-            </Button>
-          )}
-          <Can permission={Permissions.Products_Edit}>
-            <Button variant="primary" onClick={() => navigate(`/products/${p.id}/edit`)}>
-              {t('details.edit')}
-            </Button>
-          </Can>
-          <Button onClick={() => navigate('/products')}>{t('Prod_BackToProducts', { ns: 'common' })}</Button>
-        </div>
-      </div>
+      <PageHeader
+        title={p.name}
+        back={{ to: '/products', label: t('Prod_BackToProducts', { ns: 'common' }) }}
+        primaryActionLabel={canEdit ? t('details.edit') : undefined}
+        onPrimaryAction={canEdit ? () => navigate(`/products/${p.id}/edit`) : undefined}
+      >
+        <Button onClick={() => navigate(`/products/${p.id}/history`)}>{t('history.button')}</Button>
+        {p.barcode && (
+          <Button onClick={() => void label.open({ name: p.name, code: p.barcode, price: formatStickerPrice(p.sellingPrice, p.currencyNotation) })}>
+            {t('details.printLabel')}
+          </Button>
+        )}
+      </PageHeader>
 
       <div className={styles.layout}>
         <section className={styles.card} aria-label={t('details.information')}>
@@ -167,11 +161,11 @@ function Details({ product: p }: { product: ProductDetail }) {
             </dl>
           </section>
 
-          <section className={styles.card} aria-label={t('details.actions')}>
-            <h2 className={styles.cardTitle}>{t('details.actions')}</h2>
+          <section className={styles.card} aria-label={t('QuickActions', { ns: 'common' })}>
+            <h2 className={styles.cardTitle}>{t('QuickActions', { ns: 'common' })}</h2>
             <div className={styles.actions}>
               <Can permission={Permissions.Products_Edit}>
-                <Button variant="primary" block onClick={() => navigate(`/products/${p.id}/edit`)}>
+                <Button block onClick={() => navigate(`/products/${p.id}/edit`)}>
                   {t('details.edit')}
                 </Button>
               </Can>
@@ -181,7 +175,7 @@ function Details({ product: p }: { product: ProductDetail }) {
                 </Button>
               </Can>
               {inventory && (
-                <a className={styles.link} href={`${inventory.href}?productId=${p.id}`}>
+                <a className={styles.actionLink} href={`${inventory.href}?productId=${p.id}`}>
                   {t('details.viewInventory')}
                 </a>
               )}

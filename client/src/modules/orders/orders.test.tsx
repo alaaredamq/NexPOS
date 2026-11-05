@@ -236,6 +236,16 @@ describe('order details', () => {
     expect(screen.getByRole('link', { name: 'RCP-20261031-001' })).toHaveAttribute('href', '/receipts/7')
   })
 
+  it('offers to change the customer only to someone holding the change-customer permission', async () => {
+    // Editing orders is not enough: the permission is separate because it moves money between accounts.
+    open('/orders/42', ...ADMIN)
+    await screen.findByRole('heading', { name: 'ORD-000042' })
+    expect(screen.queryByRole('button', { name: 'Change customer' })).not.toBeInTheDocument()
+
+    open('/orders/42', ...ADMIN, Permissions.Sales_ChangeCustomer)
+    expect(await screen.findByRole('button', { name: 'Change customer' })).toBeInTheDocument()
+  })
+
   it('shows the not-found card for an order that does not exist', async () => {
     open('/orders/99', ...ADMIN)
     api.routes['GET /api/v1/orders/99'] = () => problem(404, 'order_not_found')

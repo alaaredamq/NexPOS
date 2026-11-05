@@ -154,6 +154,7 @@ public sealed class AuditLogsApiTests : CatalogApiTestBase
         Assert.Equal("Tester", item.GetProperty("role").GetString());
         Assert.Equal(9001, item.GetProperty("userId").GetInt32());
         Assert.Equal("Business", item.GetProperty("category").GetString());
+        Assert.Equal("Other", item.GetProperty("area").GetString());
         Assert.Equal("SeedThing", item.GetProperty("entityType").GetString());
         Assert.Equal(42, item.GetProperty("entityId").GetInt32());
         Assert.Equal("Milk 1L", item.GetProperty("label").GetString());
@@ -213,6 +214,10 @@ public sealed class AuditLogsApiTests : CatalogApiTestBase
         var category = await admin.GetAsync("/api/v1/audit-logs?category=Banana");
         await AssertProblem(category, HttpStatusCode.BadRequest, "validation_failed");
         Assert.True((await Body(category)).GetProperty("errors").TryGetProperty("category", out _));
+
+        var area = await admin.GetAsync("/api/v1/audit-logs?area=Kitchen");
+        await AssertProblem(area, HttpStatusCode.BadRequest, "validation_failed");
+        Assert.True((await Body(area)).GetProperty("errors").TryGetProperty("area", out _));
 
         await AssertProblem(await admin.GetAsync("/api/v1/audit-logs?outcome=Maybe"), HttpStatusCode.BadRequest, "validation_failed");
         await AssertProblem(await admin.GetAsync("/api/v1/audit-logs?minSeverity=Loud"), HttpStatusCode.BadRequest, "validation_failed");

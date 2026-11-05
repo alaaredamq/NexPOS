@@ -4,8 +4,8 @@ import { Button } from '@/ui/Button'
 import { ChipGroup } from '@/ui/ChipGroup'
 import { SearchBox } from '@/ui/SearchBox'
 import { Select, type SelectOption } from '@/ui/Select'
-import { CATEGORIES, OUTCOMES, SEVERITIES, useAuditOptions, type AuditParams } from './api'
-import { categoryKey, outcomeKey, severityKey, toLocalInput } from './badges'
+import { AREAS, CATEGORIES, OUTCOMES, SEVERITIES, useAuditOptions, type AuditParams } from './api'
+import { areaKey, categoryKey, outcomeKey, severityKey, toLocalInput } from './badges'
 import { hasFilters } from './listParams'
 import styles from './auditLogs.module.css'
 
@@ -58,6 +58,7 @@ export function AuditFilters({ params, onChange, onReset }: FiltersProps) {
     value: u.userId ? String(u.userId) : `name:${u.username}`,
     label: u.username === 'System' ? t('Msg_System') : u.username,
   }))
+  const areas = [{ value: '', label: t('Filter_AllAreas') }, ...AREAS.map((a) => ({ value: a, label: t(areaKey(a) as string) }))]
   const categories = CATEGORIES.map((c) => ({ value: c, label: t(categoryKey(c) as string) }))
   const outcomes = OUTCOMES.map((o) => ({ value: o, label: t(outcomeKey(o) as string) }))
   const severities = SEVERITIES.map((s) => ({ value: s, label: `${t(severityKey(s) as string)}${s === 'Critical' ? '' : ' +'}` }))
@@ -78,6 +79,10 @@ export function AuditFilters({ params, onChange, onReset }: FiltersProps) {
 
   return (
     <section className={styles.filters} aria-label={t('Filters')}>
+      <div className={styles.filterRow}>
+        <ChipGroup size="sm" aria-label={t('Filter_Area')} options={areas} value={params.area} onChange={(area) => onChange({ area })} />
+      </div>
+
       <div className={styles.filterRow}>
         <div className={styles.search}>
           <SearchBox value={params.q} onSearch={(q) => onChange({ q })} placeholder={t('Filter_SearchPlaceholder')} aria-label={t('Filter_Search')} />

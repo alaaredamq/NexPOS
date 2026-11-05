@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { useCan } from '@/core/permissions/permissions'
 import { DataTable, type Column } from '@/ui/DataTable'
@@ -81,11 +80,8 @@ export default function LowStockPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('LowStockReport')} count={report.data ? formatNumber(report.data.items.total, 0) : undefined}>
+      <PageHeader title={t('LowStockReport')} back={{ to: '/inventory', label: t('BackToInventory') }} count={report.data ? formatNumber(report.data.items.total, 0) : undefined}>
         <PrintButtons printing={printing} />
-        <Link className={styles.link} to="/inventory">
-          {t('BackToInventory')}
-        </Link>
       </PageHeader>
       <PrintFailure printing={printing} />
 

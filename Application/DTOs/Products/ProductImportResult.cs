@@ -1,7 +1,10 @@
 namespace Application.DTOs.Products;
 
-/// <summary>One problem found in an import file; <see cref="Row"/> is the row number as a spreadsheet shows it (header = 1).</summary>
-public record ProductImportIssue(int Row, string Message);
+/// <summary>
+/// One problem found in an import file; <see cref="Row"/> is the row number as a spreadsheet shows it (header = 1).
+/// <see cref="Sheet"/> names the sheet when it isn't the products one.
+/// </summary>
+public record ProductImportIssue(int Row, string Message, string? Sheet = null);
 
 public class ProductImportResult
 {
@@ -19,7 +22,13 @@ public class ProductImportResult
     /// <summary>Categories named in the file that don't exist yet and are (or would be) created.</summary>
     public int NewCategories { get; set; }
 
-    /// <summary>Rows that were skipped because of an error.</summary>
+    /// <summary>Rows read from the Custom Prices sheet.</summary>
+    public int TotalPriceRows { get; set; }
+
+    /// <summary>Extra prices that are (or would be) saved, counting every price of a product whose set changes.</summary>
+    public int CustomPrices { get; set; }
+
+    /// <summary>Rows (of either sheet) that were skipped because of an error.</summary>
     public int Failed { get; set; }
 
     /// <summary>The first problems found, capped so a bad file can't produce a huge response.</summary>

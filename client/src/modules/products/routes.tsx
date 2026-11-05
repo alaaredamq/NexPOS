@@ -23,6 +23,7 @@ const routes: RouteObject[] = [
         children: [{ path: 'new', lazy: page(() => import('./ProductFormPage')) }],
       },
       { path: ':id', lazy: page(() => import('./ProductDetailsPage')) },
+      { path: ':id/history', lazy: page(() => import('./ProductHistoryPage')) },
       {
         element: <RequirePermission permission={Permissions.Products_Edit} />,
         children: [{ path: ':id/edit', lazy: page(() => import('./ProductFormPage')) }],

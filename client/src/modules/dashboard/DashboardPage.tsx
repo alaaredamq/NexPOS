@@ -63,6 +63,11 @@ function Tiles({ data }: { data: Dashboard | undefined }) {
         tone={data ? toneOf(data.monthProfitChangePercent) : 'default'}
         sub={data ? t('VsLastMonthPercent', { value: signedPercent(data.monthProfitChangePercent) }) : undefined}
       />
+      <StatTile
+        label={t('AllTimeRevenue')}
+        value={data ? formatMoney(data.allTimeSales, notation) : dash}
+        sub={data ? t('AllTimeProfitSub', { value: formatMoney(data.allTimeProfit, notation) }) : undefined}
+      />
       <StatTile label={t('TotalCustomers')} value={data ? formatNumber(data.customerCount, 0) : dash} />
       <StatTile label={t('TotalProducts')} value={data ? formatNumber(data.productCount, 0) : dash} />
     </div>
@@ -81,7 +86,7 @@ function SalesChart() {
     return fillTrend(trend.data.points, shown).map((row) => ({ label: pointLabel(row.date, shown), values: [row.sales, row.profit] }))
   }, [trend.data, period])
 
-  const options = PERIODS.map((p) => ({ value: p, label: t(p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : 'Year') }))
+  const options = PERIODS.map((p) => ({ value: p, label: t(p === 'month' ? 'Month' : p === 'quarter' ? 'Quarter' : p === 'year' ? 'Year' : 'AllTime') }))
 
   return (
     <section className={styles.card} aria-label={t('SalesAnalytics')}>

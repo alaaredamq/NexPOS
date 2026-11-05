@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { DataTable, type Column } from '@/ui/DataTable'
 import { formatMoney, formatNumber, formatPercent, formatQty } from '@/ui/format'
 import { PageHeader } from '@/ui/PageHeader'
@@ -97,11 +96,8 @@ export default function StockValuePage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title={t('StockValueReport')} count={data ? formatNumber(data.items.total, 0) : undefined}>
+      <PageHeader title={t('StockValueReport')} back={{ to: '/inventory', label: t('BackToInventory') }} count={data ? formatNumber(data.items.total, 0) : undefined}>
         <PrintButtons printing={printing} />
-        <Link className={styles.link} to="/inventory">
-          {t('BackToInventory')}
-        </Link>
       </PageHeader>
       <PrintFailure printing={printing} />
 

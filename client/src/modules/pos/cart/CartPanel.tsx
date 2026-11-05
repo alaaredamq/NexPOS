@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/ui/Button'
 import { confirm } from '@/ui/confirm'
@@ -59,6 +60,15 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
     }
   }
 
+  // Told once, as a toast (a banner would eat room on small screens): when the cart first holds an item past its stock, and again only after
+  // that has cleared. The sale itself is allowed, the stock count stops at zero.
+  const stockShort = totals.hasInsufficientStock && totals.status === 'ready'
+  const toldStockShort = useRef(false)
+  useEffect(() => {
+    if (stockShort && !toldStockShort.current) toast.warning(t('cartStockWarning'), 6000)
+    if (stockShort || totals.status === 'ready') toldStockShort.current = stockShort
+  }, [stockShort, totals.status, t])
+
   const priceDialogLine = dialog?.kind === 'price' ? lines.find((l) => l.productId === dialog.productId) : undefined
 
   return (
@@ -104,11 +114,6 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
           </Button>
         </div>
       )}
-      {totals.hasInsufficientStock && totals.status === 'ready' && (
-        <div className={styles.notice} data-tone="warning" role="status">
-          <Icon name="warning" size={16} /> <span>{t('cartStockWarning')}</span>
-        </div>
-      )}
 
       <div className={styles.summary} aria-live="polite">
         {discount && totals.discountAmount > 0 && (
@@ -139,11 +144,6 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
             {money(totals.total, notation)}
           </strong>
         </div>
-        {!empty && !totals.isServer && totals.status !== 'error' && (
-          <p className={styles.pricing} role="status">
-            {t('cartPricing')}
-          </p>
-        )}
         {!empty && otherCurrencies.length > 0 && (
           <div className={styles.others} dir="ltr">
             {otherCurrencies.map((c) => (
@@ -168,7 +168,7 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
         )}
       </div>
 
-      <Button variant="primary" size="lg" block onClick={onCheckout} disabled={!totals.canCheckout}>
+      <Button variant="primary" size="lg" block className={styles.checkout} onClick={onCheckout} disabled={!totals.canCheckout}>
         {checkoutLabel ?? t('Checkout')}
       </Button>
 

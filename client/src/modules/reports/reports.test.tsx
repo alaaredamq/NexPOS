@@ -8,9 +8,9 @@ import routes from './routes'
 
 const summary = {
   currencyNotation: '$',
-  today: { sales: 80, orders: 4 },
-  thisMonth: { sales: 900, orders: 30 },
-  thisYear: { sales: 9000, orders: 300 },
+  today: { sales: 80, profit: 20, orders: 4 },
+  thisMonth: { sales: 900, profit: 250, orders: 30 },
+  thisYear: { sales: 9000, profit: 2345, orders: 300 },
   averageOrderValue: 30,
 }
 
@@ -19,6 +19,7 @@ const report = {
   to: '2026-10-05',
   currencyNotation: '$',
   totalSales: 150,
+  totalProfit: 61.5,
   totalOrders: 5,
   averageOrderValue: 30,
   totalItemsSold: 12.5,
@@ -66,6 +67,28 @@ describe('reports', () => {
     expect(screen.getByText('12.5')).toBeInTheDocument()
   })
 
+  it("shows this year's profit and the profit of the range", async () => {
+    open()
+
+    expect(await screen.findByText(/2,345\.00/)).toBeInTheDocument()
+    expect(screen.getByText("This Year's Profit")).toBeInTheDocument()
+    expect(await screen.findByText(/61\.50/)).toBeInTheDocument()
+    expect(screen.getByText('Total Profit')).toBeInTheDocument()
+  })
+
+  it('sets the range to 1 January through today with the This year chip', async () => {
+    open()
+    await screen.findByText('Total Sales')
+
+    fireEvent.click(screen.getByRole('button', { name: 'This year' }))
+
+    await waitFor(() => {
+      const call = api.calls.filter((c) => c.url.includes('/reports/sales')).at(-1)!
+      const params = new URL(call.url, 'http://x').searchParams
+      expect(params.get('from')).toBe(`${new Date().getFullYear()}-01-01`)
+    })
+  })
+
   it('asks the API for exactly the days in the URL', async () => {
     open()
     await screen.findByText('Total Sales')
@@ -111,7 +134,7 @@ describe('reports', () => {
   it('shows the server message when the range is refused', async () => {
     open()
     api.routes['GET /api/v1/reports/sales'] = () => problem(400, 'validation_failed', 'Choose a range of at most 3660 days.')
-    fireEvent.click(await screen.findByRole('button', { name: 'This Year' }).catch(() => screen.getByRole('button', { name: /year/i })))
+    fireEvent.click(await screen.findByRole('button', { name: 'This year' }))
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
@@ -119,7 +142,7 @@ describe('reports', () => {
   it('says so, instead of drawing empty charts, when nothing was sold', async () => {
     open()
     api.routes['GET /api/v1/reports/sales'] = () => json({ ...report, totalSales: 0, totalOrders: 0, totalItemsSold: 0, averageOrderValue: 0, topProducts: [], categories: [], paymentMethods: [] })
-    fireEvent.click(await screen.findByRole('button', { name: /year/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'This year' }))
 
     expect((await screen.findAllByText('No sales in this range.')).length).toBeGreaterThan(0)
     expect(screen.queryByRole('table', { name: 'Top Products' })).not.toBeInTheDocument()

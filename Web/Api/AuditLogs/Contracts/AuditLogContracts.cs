@@ -19,6 +19,9 @@ public sealed record AuditLogDto
     /// <summary><c>Data</c>, <c>Request</c>, <c>Security</c>, <c>Business</c>, <c>System</c> or <c>Diagnostic</c>.</summary>
     public required string Category { get; init; }
 
+    /// <summary>The part of the product it happened in: <c>Sales</c>, <c>Pos</c>, <c>Inventory</c>, <c>Customers</c>, <c>Account</c>, <c>Settings</c>, <c>Reports</c>, <c>System</c> or <c>Other</c>.</summary>
+    public required string Area { get; init; }
+
     /// <summary>Verb or event name, e.g. <c>Update</c>, <c>Login</c>, <c>POST Api.Pos/Checkout</c>.</summary>
     public required string Action { get; init; }
 

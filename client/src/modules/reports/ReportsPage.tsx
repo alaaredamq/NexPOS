@@ -42,6 +42,8 @@ function useRange() {
   return [range, setRange] as const
 }
 
+const profitTone = (profit: number) => (profit < 0 ? 'danger' : profit > 0 ? 'success' : 'default')
+
 function SummaryTiles() {
   const { t } = useTranslation('reports')
   const query = useReportsSummary()
@@ -54,6 +56,7 @@ function SummaryTiles() {
       <StatTile label={t('TodaysSales')} value={money(data?.today.sales ?? 0)} sub={orders(data?.today.orders ?? 0)} />
       <StatTile label={t('ThisMonth')} value={money(data?.thisMonth.sales ?? 0)} sub={orders(data?.thisMonth.orders ?? 0)} />
       <StatTile label={t('ThisYear')} value={money(data?.thisYear.sales ?? 0)} sub={orders(data?.thisYear.orders ?? 0)} />
+      <StatTile label={t('ThisYearProfit')} value={money(data?.thisYear.profit ?? 0)} tone={profitTone(data?.thisYear.profit ?? 0)} sub={orders(data?.thisYear.orders ?? 0)} />
       <StatTile label={t('AverageOrder')} value={money(data?.averageOrderValue ?? 0)} sub={data ? t('ThisMonthPerOrder') : undefined} />
     </div>
   )
@@ -101,12 +104,13 @@ function Results({ report, refreshing }: { report: SalesReport; refreshing: bool
     <div className={styles.results} data-refreshing={refreshing || undefined}>
       <div className={styles.tiles}>
         <StatTile label={t('TotalSales')} value={formatMoney(report.totalSales, notation)} tone="success" />
+        <StatTile label={t('TotalProfit')} value={formatMoney(report.totalProfit, notation)} tone={profitTone(report.totalProfit)} />
         <StatTile label={t('TotalOrders')} value={formatNumber(report.totalOrders, 0)} />
         <StatTile label={t('AverageOrderValue')} value={formatMoney(report.averageOrderValue, notation)} />
         <StatTile label={t('ItemsSold')} value={formatQty(report.totalItemsSold)} />
       </div>
 
-      {noSales && <p className={styles.empty}>{t('NoSalesInRange')}</p>}
+      {noSales ? <p className={styles.empty}>{t('NoSalesInRange')}</p> : <p className={styles.muted}>{t('ProfitNote')}</p>}
 
       <section className={styles.card} aria-label={t('DailySalesTrend')}>
         <h2 className={styles.cardTitle}>{t('DailySalesTrend')}</h2>
@@ -167,11 +171,6 @@ export default function ReportsPage() {
   const report = useSalesReport(range)
   const [exporting, setExporting] = useState<'csv' | 'pdf' | null>(null)
 
-  const thisYear = () => {
-    const now = new Date()
-    setRange({ from: `${now.getFullYear()}-01-01`, to: toDateInputValue(now) })
-  }
-
   const download = async (kind: 'csv' | 'pdf') => {
     setExporting(kind)
     try {
@@ -199,10 +198,7 @@ export default function ReportsPage() {
       <section className={styles.filters} aria-label={t('SalesReport')}>
         <h2 className={styles.cardTitle}>{t('SalesReport')}</h2>
         <div className={styles.filterRow}>
-          <DateRange value={range} onChange={setRange} />
-          <Button onClick={thisYear}>
-            {t('ThisYear')}
-          </Button>
+          <DateRange value={range} onChange={setRange} yearPreset />
         </div>
       </section>
 

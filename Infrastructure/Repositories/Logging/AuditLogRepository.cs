@@ -109,6 +109,7 @@ public class AuditLogRepository : IAuditLogRepository
         if (filter.ToUtc is { } to) query = query.Where(x => x.CreatedAt < to);
         if (filter.UserId is { } userId) query = query.Where(x => x.UserId == userId);
         if (filter.Category is { } category) query = query.Where(x => x.Category == category);
+        if (filter.Area is { } area) query = query.Where(AuditAreas.Matches(area));
         if (filter.Outcome is { } outcome) query = query.Where(x => x.Outcome == outcome);
         if (filter.EntityId is { } entityId) query = query.Where(x => x.EntityId == entityId);
 

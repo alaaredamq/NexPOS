@@ -32,9 +32,12 @@ public static class AuditActions
     public const string ReceiptFailed = "ReceiptFailed";
     public const string ReceiptVoided = "ReceiptVoided";
     public const string OrderCancelled = "OrderCancelled";
+    public const string SaleCustomerChanged = "SaleCustomerChanged";
     public const string ProductsImported = "ProductsImported";
     public const string ProductsExported = "ProductsExported";
     public const string StockAdjusted = "StockAdjusted";
+    public const string PurchaseReceived = "PurchaseReceived";
+    public const string PurchaseCancelled = "PurchaseCancelled";
     public const string Print = "Print";
     public const string PrintFailed = "PrintFailed";
     public const string PdfGenerated = "PdfGenerated";

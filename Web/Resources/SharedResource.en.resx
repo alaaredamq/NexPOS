@@ -2419,7 +2419,6 @@
   <data name="Pos_PrintFailed" xml:space="preserve"><value>Could not print. Check that the receipt printer is connected and selected in Settings &gt; Printers.</value></data>
   <data name="Pos_PrintOk" xml:space="preserve"><value>Sent to the receipt printer</value></data>
   <data name="Pos_ProductNotFound" xml:space="preserve"><value>Product {0} was not found.</value></data>
-  <data name="Pos_TotalMismatch" xml:space="preserve"><value>The total {0} differs from the calculated total {1} by more than the allowed rounding adjustment ({2}).</value></data>
   <data name="Prod_NameRequired" xml:space="preserve"><value>Product name is required</value></data>
   <data name="Prod_NameLength" xml:space="preserve"><value>Product name must be between 2 and 255 characters</value></data>
   <data name="Prod_BarcodeExists" xml:space="preserve"><value>A product with this barcode already exists.</value></data>
@@ -2440,10 +2439,24 @@
   <data name="Sup_HasBalance" xml:space="preserve"><value>There is an outstanding balance of {0} with this supplier. Settle it before deleting, or deactivate the supplier instead.</value></data>
   <data name="Sup_InUse" xml:space="preserve"><value>This supplier is still used by products (including deleted ones kept for sales history) or debt records, so it can't be removed. Deactivate it instead.</value></data>
   <data name="Sup_CurrencyInvalid" xml:space="preserve"><value>Choose a currency from the list.</value></data>
+  <data name="Purchases" xml:space="preserve"><value>Purchases</value></data>
+  <data name="Pur_no_lines" xml:space="preserve"><value>Add at least one product to the purchase.</value></data>
+  <data name="Pur_duplicate_product" xml:space="preserve"><value>A product is on the purchase twice. Put its total quantity on one line.</value></data>
+  <data name="Pur_unknown_product" xml:space="preserve"><value>A product on this purchase no longer exists. Remove it and try again.</value></data>
+  <data name="Pur_unknown_supplier" xml:space="preserve"><value>That supplier no longer exists.</value></data>
+  <data name="Pur_inactive_supplier" xml:space="preserve"><value>{0} is inactive. Activate the supplier before buying from them.</value></data>
+  <data name="Pur_future_date" xml:space="preserve"><value>The purchase date cannot be in the future.</value></data>
+  <data name="Pur_paid_exceeds_total" xml:space="preserve"><value>The amount paid is more than the purchase total.</value></data>
+  <data name="Pur_bad_amount" xml:space="preserve"><value>Quantities must be above zero and amounts cannot be negative.</value></data>
+  <data name="Pur_already_cancelled" xml:space="preserve"><value>Purchase {0} is already cancelled.</value></data>
+  <data name="Pur_drawer_not_open" xml:space="preserve"><value>Open your cash drawer first to pay from it, or untick "Take the payment from the cash drawer".</value></data>
+  <data name="Pur_stock_already_sold" xml:space="preserve"><value>Part of {0} from this purchase has already been sold, so it cannot be taken back out of stock. Adjust the stock by hand instead.</value></data>
   <data name="Sales_ReceiptNotFound" xml:space="preserve"><value>That receipt was not found.</value></data>
   <data name="Sales_OrderClosed" xml:space="preserve"><value>Order {0} has already been cancelled or returned, so there is no sale left to cancel.</value></data>
   <data name="Sales_OrderCancelled" xml:space="preserve"><value>Order {0} is cancelled and cannot be reopened.</value></data>
   <data name="Sales_ReceiptAlreadyVoid" xml:space="preserve"><value>Receipt {0} is already void.</value></data>
+  <data name="Sales_OrderClosedCustomer" xml:space="preserve"><value>Order {0} was cancelled or returned, so its customer can no longer be changed.</value></data>
+  <data name="Sales_DebtSaleNeedsCustomer" xml:space="preserve"><value>Order {0} is on a customer's account, so it needs a customer. Pick one, or void the sale.</value></data>
   <data name="Rep_RangeBackwards" xml:space="preserve"><value>The end date must not be before the start date.</value></data>
   <data name="Rep_RangeTooLong" xml:space="preserve"><value>Choose a range of at most {0} days.</value></data>
   <data name="Usr_UsernameTaken" xml:space="preserve"><value>That username is already taken.</value></data>

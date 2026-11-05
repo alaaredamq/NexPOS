@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { isApiError } from '@/api/http'
 import { useSession } from '@/core/auth/useSession'
@@ -139,11 +139,10 @@ export default function CustomerDetailsPage() {
     <div className={styles.page}>
       <PageHeader
         title={name}
+        back={{ to: '/customers', label: t('Cust_BackToCustomers', { ns: 'common' }) }}
         primaryActionLabel={canEdit ? t('Cust_EditTitle', { ns: 'common' }) : undefined}
         onPrimaryAction={canEdit ? () => setEditing(true) : undefined}
-      >
-        <Link className={styles.link} to="/customers">{t('Cust_BackToCustomers', { ns: 'common' })}</Link>
-      </PageHeader>
+      />
 
       <div className={styles.details}>
         <div className={styles.column}>

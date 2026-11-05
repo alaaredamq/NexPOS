@@ -45,15 +45,20 @@ describe('idempotency key', () => {
 })
 
 describe('typed total', () => {
-  it('allows the greater of 1.00 and 2 % either way', () => {
+  it('lets the cashier raise it by the greater of 1.00 and 2 %', () => {
     expect(totalTolerance(10)).toBe(1)
     expect(totalTolerance(100)).toBe(2)
-    expect(isTotalAcceptable(9, 10)).toBe(true)
-    expect(isTotalAcceptable(8.99, 10)).toBe(false)
+    expect(isTotalAcceptable(11, 10)).toBe(true)
+    expect(isTotalAcceptable(11.01, 10)).toBe(false)
     expect(isTotalAcceptable(102, 100)).toBe(true)
     expect(isTotalAcceptable(102.01, 100)).toBe(false)
-    expect(isTotalAcceptable(859_200 - 17_000, 859_200)).toBe(true)
-    expect(isTotalAcceptable(859_200 - 17_300, 859_200)).toBe(false)
+  })
+
+  it('lets the cashier lower it as far as they like, down to nothing', () => {
+    expect(isTotalAcceptable(9, 10)).toBe(true)
+    expect(isTotalAcceptable(1, 10)).toBe(true)
+    expect(isTotalAcceptable(0, 10)).toBe(true)
+    expect(isTotalAcceptable(859_200 - 100_000, 859_200)).toBe(true)
   })
 
   it('refuses a negative or non-numeric total', () => {

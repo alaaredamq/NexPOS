@@ -50,6 +50,8 @@ public sealed class DashboardApiService : IDashboardApiService
             TodayOrders = stats.TodayOrders,
             MonthProfit = stats.Profit,
             MonthProfitChangePercent = stats.ProfitChange,
+            AllTimeSales = stats.AllTimeSales,
+            AllTimeProfit = stats.AllTimeProfit,
             CustomerCount = stats.TotalCustomers,
             ProductCount = stats.TotalProducts,
             RecentOrders = recent.Select(o => new DashboardOrderDto

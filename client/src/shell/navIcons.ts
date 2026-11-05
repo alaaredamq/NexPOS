@@ -14,6 +14,7 @@ const NAV_ICON_PATHS: Record<string, string> = {
   'fa-tags': 'M3 12V4h8l9 9-8 8z M7.5 8h.01',
   'fa-sort-amount-down': 'M4 6h10 M4 12h7 M4 18h4 M17 5v14 M14 16l3 3 3-3',
   'fa-warehouse': 'M3 10l9-6 9 6v10H3z M8 20v-6h8v6',
+  'fa-file-invoice': 'M6 3h9l4 4v14H6z M15 3v4h4 M9 12h6 M9 16h6 M9 8h2',
   'fa-truck': 'M2 6h11v10H2z M13 9h4l3 3v4h-7 M6 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3 M16 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3',
   'fa-users': 'M9 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7 M2.5 20a6.5 6.5 0 0113 0 M16 4.5a3.5 3.5 0 010 6.5 M18 14.5a6.5 6.5 0 013.5 5.5',
   'fa-chart-bar': 'M4 20V4 M4 20h16 M8 16v-5 M12 16V8 M16 16v-3',

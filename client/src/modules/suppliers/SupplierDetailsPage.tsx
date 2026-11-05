@@ -8,18 +8,20 @@ import { NotFoundPage } from '@/shell/pages/pages'
 import { Button } from '@/ui/Button'
 import { confirm } from '@/ui/confirm'
 import { DataTable, type Column } from '@/ui/DataTable'
-import { formatDateTime, formatMoney, formatNumber, formatPercent, ltrIsolate } from '@/ui/format'
+import { formatDate, formatDateTime, formatMoney, formatNumber, formatPercent, ltrIsolate } from '@/ui/format'
 import { Loader } from '@/ui/Loader'
 import { PageHeader } from '@/ui/PageHeader'
 import { Pagination } from '@/ui/Pagination'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { toast } from '@/ui/toast'
+import { usePurchaseList, type PurchaseListItem, type PurchaseListParams } from '../purchases/api'
 import { SupplierDebtDialog } from './SupplierDebtDialog'
 import { SupplierFormModal } from './SupplierFormModal'
 import { balanceSign, useDeleteSupplier, useSupplier, useSupplierLedger, type DebtEntry, type DebtKind } from './api'
 import styles from './suppliers.module.css'
 
 const LEDGER_PAGE_SIZE = 20
+const RECENT_PURCHASES: PurchaseListParams = { q: '', page: 1, pageSize: 5, sort: 'date', dir: 'desc', status: '', from: '', to: '', supplierId: null }
 const KIND_LABEL: Record<DebtKind, string> = { purchase: 'TypePurchase', payment: 'TypePayment', adjustment: 'TypeAdjustment' }
 const kindOf = (value: string): DebtKind => (value === 'purchase' || value === 'payment' ? value : 'adjustment')
 
@@ -34,6 +36,9 @@ export default function SupplierDetailsPage() {
   const remove = useDeleteSupplier()
   const [page, setPage] = useState(1)
   const ledger = useSupplierLedger(id, page, LEDGER_PAGE_SIZE)
+  const canViewPurchases = useCan(Permissions.Purchases_View)
+  const canBuy = useCan(Permissions.Purchases_Create)
+  const purchases = usePurchaseList({ ...RECENT_PURCHASES, supplierId: Number.isInteger(id) && id > 0 ? id : null }, canViewPurchases && Number.isInteger(id) && id > 0)
   const [editing, setEditing] = useState(false)
   const [addingDebt, setAddingDebt] = useState(false)
 
@@ -97,17 +102,20 @@ export default function SupplierDetailsPage() {
     <div className={styles.page}>
       <PageHeader
         title={supplier.name}
+        back={{ to: '/suppliers', label: t('BackToSuppliers') }}
         primaryActionLabel={canEdit ? t('EditSupplier') : undefined}
         onPrimaryAction={canEdit ? () => setEditing(true) : undefined}
       >
+        {canBuy && supplier.isActive && (
+          <Button variant="primary" onClick={() => void navigate(`/purchases/new?supplier=${supplier.id}`)}>
+            {t('NewPurchase', { ns: 'purchases' })}
+          </Button>
+        )}
         {canDelete && (
           <Button variant="danger" onClick={() => void askDelete()}>
             {t('DeleteSupplier')}
           </Button>
         )}
-        <Link className={styles.link} to="/suppliers">
-          {t('BackToSuppliers')}
-        </Link>
       </PageHeader>
 
       <div className={styles.details}>
@@ -145,6 +153,59 @@ export default function SupplierDetailsPage() {
               </div>
             </dl>
           </section>
+
+          {canViewPurchases && (
+            <section className={styles.card}>
+              <div className={styles.cardHead}>
+                <h2 className={styles.cardTitle}>{t('RecentPurchases', { ns: 'purchases' })}</h2>
+                {(purchases.data?.total ?? 0) > 0 && (
+                  <Link className={styles.link} to={`/purchases?supplier=${supplier.id}`}>
+                    {t('ViewAllPurchases', { ns: 'purchases' })} ({formatNumber(purchases.data?.total ?? 0, 0)})
+                  </Link>
+                )}
+              </div>
+              {purchases.isPending ? null : !purchases.data || purchases.data.items.length === 0 ? (
+                <p className={styles.muted}>{t('NoPurchasesYet', { ns: 'purchases' })}</p>
+              ) : (
+                <DataTable<PurchaseListItem>
+                  caption={t('Purchases', { ns: 'purchases' })}
+                  columns={[
+                    {
+                      key: 'number',
+                      header: t('Number', { ns: 'purchases' }),
+                      required: true,
+                      mono: true,
+                      cell: (p) => (
+                        <Link className={styles.link} to={`/purchases/${p.id}`}>
+                          {p.number}
+                        </Link>
+                      ),
+                    },
+                    { key: 'date', header: t('Date', { ns: 'purchases' }), cell: (p) => formatDate(p.purchaseDate) },
+                    {
+                      key: 'total',
+                      header: t('Total', { ns: 'purchases' }),
+                      align: 'end',
+                      cell: (p) => <strong className="tabular-nums">{formatMoney(p.total, p.currencyNotation)}</strong>,
+                    },
+                    {
+                      key: 'status',
+                      header: t('Status', { ns: 'purchases' }),
+                      align: 'center',
+                      cell: (p) => (
+                        <StatusBadge
+                          tone={p.status === 'cancelled' ? 'danger' : 'success'}
+                          label={p.status === 'cancelled' ? t('StatusCancelled', { ns: 'purchases' }) : t('StatusReceived', { ns: 'purchases' })}
+                        />
+                      ),
+                    },
+                  ]}
+                  rows={purchases.data.items as PurchaseListItem[]}
+                  rowKey={(p) => p.id}
+                />
+              )}
+            </section>
+          )}
 
           <section className={styles.card}>
             <div className={styles.cardHead}>

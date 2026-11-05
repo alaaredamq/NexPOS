@@ -44,6 +44,8 @@
   "SectionsLabel": "أقسام الإعدادات",
   "SettingsResetSuccessfully": "تمت إعادة تعيين الإعدادات بنجاح",
   "SettingsSavedSuccessfully": "تم حفظ الإعدادات بنجاح",
+  "ShowSaleComplete": "إظهار نافذة «اكتمال البيع!» بعد كل بيعة",
+  "ShowSaleCompleteHint": "عند الإيقاف تعود الشاشة مباشرة إلى بيعة جديدة وتظهر رسالة قصيرة بدلاً من النافذة. يبقى مبلغ الباقي للزبون ظاهراً في الرسالة.",
   "ShowTaxBreakdown": "إظهار تفاصيل الضريبة",
   "SocialMedia": "وسائل التواصل الاجتماعي",
   "StickerHeightRange": "أدخل ارتفاعًا بين {{min}} و{{max}} ملم.",
@@ -55,5 +57,7 @@
   "StoreSettingsDescription": "قم بتكوين معلومات المتجر وإعدادات الإيصالات",
   "TaxId": "الرقم الضريبي",
   "TaxIdHint": "رقم تسجيل ضريبة القيمة المضافة",
+  "TillPreferenceSaved": "تم الحفظ لهذا الجهاز",
+  "TillThisComputer": "نقطة البيع (هذا الجهاز فقط)",
   "Website": "الموقع الإلكتروني"
 }

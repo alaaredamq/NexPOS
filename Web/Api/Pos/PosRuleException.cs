@@ -83,7 +83,6 @@ public static class PosCodes
     public const string InvalidAmount = "invalid_amount";
     public const string PaymentMethodInvalid = "payment_method_invalid";
     public const string DebtRequiresCustomer = "debt_requires_customer";
-    public const string TotalMismatch = "total_mismatch";
     public const string InsufficientStock = "insufficient_stock";
     public const string DrawerNotOpen = "drawer_not_open";
     public const string IdempotencyKeyReused = "idempotency_key_reused";

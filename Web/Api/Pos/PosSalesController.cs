@@ -18,13 +18,13 @@ public sealed class PosSalesController : PosControllerBase
     /// <summary>Completes a sale: stock, order, receipt, drawer, debt - all or nothing - then prints the receipt if asked.</summary>
     /// <remarks>
     /// Send the cart (never prices), the customer, how it is paid, the total the customer pays and a fresh <c>idempotencyKey</c>. The server prices the cart itself;
-    /// <c>totalAmount</c> may differ from its total only by a cashier's discount or cash rounding (more than the greater of 1.00 / 2 % is <c>total_mismatch</c>).
+    /// <c>totalAmount</c> is what the customer pays: the cashier may lower it (a discount) or nudge it (cash rounding), with no limit.
     /// <para>
     /// <b>Network failure:</b> retry with the <b>same</b> key. If the first attempt did go through you get that sale back (<c>replayed: true</c>); nothing is sold twice. Nothing is lost client-side until you get a success.
     /// </para>
     /// <para>
     /// Refusals (409 unless noted): <c>insufficient_stock</c> (offer "sell anyway": resend with <c>allowInsufficientStock</c>), <c>drawer_not_open</c> (only with <c>requireOpenDrawer</c>),
-    /// <c>total_mismatch</c>, <c>customer_not_found</c>, <c>idempotency_key_reused</c> (same key, different cart), <c>checkout_failed</c> (any other rule of the checkout service; <c>detail</c> says which),
+    /// <c>customer_not_found</c>, <c>idempotency_key_reused</c> (same key, different cart), <c>checkout_failed</c> (any other rule of the checkout service; <c>detail</c> says which),
     /// 403 <c>license_sales_stopped</c>; 400 <c>payment_method_invalid</c>, <c>debt_requires_customer</c> and the pricing codes of <c>pos/price</c>.
     /// A refused sale leaves nothing behind.
     /// </para>

@@ -137,7 +137,7 @@
     <value>Import products</value>
   </data>
   <data name="Prod_ImportHelp" xml:space="preserve">
-    <value>Upload a CSV file. A row whose barcode already exists updates that product (blank cells are left unchanged); any other row adds a new product. Only the Barcode column is required in the header.</value>
+    <value>Download the template and fill it in: category, supplier and unit are dropdowns, and the Custom Prices sheet takes one row per extra price (a product can have several). A row whose barcode already exists updates that product (blank cells are left unchanged); any other row adds a new product. A product listed on the Custom Prices sheet gets exactly those prices; one that isn't keeps its own.</value>
   </data>
   <data name="Prod_ImportTemplate" xml:space="preserve">
     <value>Download a template</value>

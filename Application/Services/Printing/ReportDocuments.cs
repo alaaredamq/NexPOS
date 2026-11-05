@@ -12,6 +12,9 @@ public record ReportSection(string Title, IReadOnlyList<(string Label, string Va
 
 public record StockValueItem(string Name, string Category, decimal Quantity, string UnitCost, string Value);
 
+/// <summary>One product line of a purchase receipt; everything already formatted.</summary>
+public record PurchaseReceiptLine(string Name, string Quantity, string UnitCost, string Total);
+
 /// <summary>
 /// Report pages as printable lines, so a report can go to the receipt printer or be saved as a
 /// PDF from one definition. Receipt-paper reports are laid out as lists (a name line followed by
@@ -141,6 +144,69 @@ public static class ReportDocuments
         lines.Add(PrintLine.Spacer());
         lines.Add(PrintLine.Centered($"Generated {DateTime.Now.ToString("yyyy-MM-dd HH:mm", Inv)}"));
         return new PrintDocument($"Sales-Report-{from}-{to}", lines);
+    }
+
+    /// <summary>
+    /// The paper that goes with a purchase: who it was bought from, what came in, what it cost and what is still owed.
+    /// Quantities and money are formatted by the caller.
+    /// </summary>
+    public static PrintDocument PurchaseReceipt(
+        string storeName,
+        IReadOnlyList<string> storeLines,
+        string number,
+        string date,
+        string supplier,
+        string? supplierReference,
+        string? enteredBy,
+        IReadOnlyList<PurchaseReceiptLine> items,
+        IReadOnlyList<(string Label, string Value)> totals,
+        string? notes,
+        string? cancelledNote)
+    {
+        var lines = new List<PrintLine> { PrintLine.Header(storeName.ToUpperInvariant()) };
+        lines.AddRange(storeLines.Where(l => !string.IsNullOrWhiteSpace(l)).Select(PrintLine.Centered));
+        lines.Add(PrintLine.Separator());
+        lines.Add(PrintLine.Header("PURCHASE RECEIPT"));
+        if (cancelledNote is not null)
+            lines.Add(PrintLine.Header("*** CANCELLED ***"));
+        lines.Add(PrintLine.Row("No:", number, bold: true));
+        lines.Add(PrintLine.Row("Date:", date));
+        lines.Add(PrintLine.Row("Supplier:", supplier));
+        if (!string.IsNullOrWhiteSpace(supplierReference))
+            lines.Add(PrintLine.Row("Supplier ref:", supplierReference));
+        if (!string.IsNullOrWhiteSpace(enteredBy))
+            lines.Add(PrintLine.Row("Received by:", enteredBy));
+        lines.Add(PrintLine.Separator());
+
+        foreach (var item in items)
+        {
+            lines.Add(PrintLine.Bold(item.Name));
+            lines.Add(PrintLine.Row($"  {item.Quantity} x {item.UnitCost}", item.Total));
+        }
+
+        lines.Add(PrintLine.Separator());
+        lines.AddRange(totals.Select((t, i) => PrintLine.Row(t.Label + ":", t.Value, bold: i == totals.Count - 1 || t.Label == "TOTAL")));
+
+        if (!string.IsNullOrWhiteSpace(notes))
+        {
+            lines.Add(PrintLine.Separator());
+            lines.Add(PrintLine.Bold("NOTES"));
+            lines.Add(PrintLine.Plain(notes));
+        }
+
+        if (cancelledNote is not null)
+        {
+            lines.Add(PrintLine.Separator());
+            lines.Add(PrintLine.Plain(cancelledNote));
+        }
+
+        lines.Add(PrintLine.Spacer());
+        lines.Add(PrintLine.Plain("Received by: ______________________"));
+        lines.Add(PrintLine.Spacer());
+        lines.Add(PrintLine.Plain("Supplier:    ______________________"));
+        lines.Add(PrintLine.Spacer());
+        lines.Add(PrintLine.Centered($"Printed {DateTime.Now.ToString("yyyy-MM-dd HH:mm", Inv)}"));
+        return new PrintDocument($"Purchase-{number}", lines);
     }
 
     public static PrintDocument StockValue(IReadOnlyCollection<StockValueItem> items, string totalValue)

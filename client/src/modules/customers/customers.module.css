@@ -173,7 +173,7 @@
   margin: 0;
   font-weight: 700;
   color: var(--color-ink);
-  text-align: end;
+  text-align: start;
 }
 
 .link {

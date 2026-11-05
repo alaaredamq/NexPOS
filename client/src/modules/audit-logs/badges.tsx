@@ -10,10 +10,22 @@ const CATEGORY_KEYS: Record<string, string> = {
   System: 'Cat_System',
   Diagnostic: 'Cat_Diagnostic',
 }
+const AREA_KEYS: Record<string, string> = {
+  Sales: 'Area_Sales',
+  Pos: 'Area_Pos',
+  Inventory: 'Area_Inventory',
+  Customers: 'Area_Customers',
+  Account: 'Area_Account',
+  Settings: 'Area_Settings',
+  Reports: 'Area_Reports',
+  System: 'Area_System',
+  Other: 'Area_Other',
+}
 const OUTCOME_KEYS: Record<string, string> = { Success: 'Out_Success', Failure: 'Out_Failure', Denied: 'Out_Denied' }
 const SEVERITY_KEYS: Record<string, string> = { Info: 'Sev_Info', Warning: 'Sev_Warning', Error: 'Sev_Error', Critical: 'Sev_Critical' }
 
 export const categoryKey = (category: string) => CATEGORY_KEYS[category]
+export const areaKey = (area: string) => AREA_KEYS[area]
 export const outcomeKey = (outcome: string) => OUTCOME_KEYS[outcome]
 export const severityKey = (severity: string) => SEVERITY_KEYS[severity]
 
@@ -31,6 +43,12 @@ const OUTCOME_TONES: Record<string, 'success' | 'danger' | 'warning'> = { Succes
 export function CategoryBadge({ category }: { category: string }) {
   const { t } = useTranslation('auditLogs')
   return <StatusBadge tone={CATEGORY_TONES[category] ?? 'neutral'} label={categoryKey(category) ? t(categoryKey(category) as string) : category} />
+}
+
+/** Which part of the product an entry belongs to (sales, the till, stock ...). Plain text: the colours are kept for outcomes. */
+export function AreaBadge({ area }: { area: string }) {
+  const { t } = useTranslation('auditLogs')
+  return <StatusBadge tone="neutral" label={areaKey(area) ? t(areaKey(area) as string) : area} />
 }
 
 /** The result, plus the severity when it is worse than routine. */

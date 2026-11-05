@@ -38,7 +38,7 @@ function toText(value: number | null, decimals: number, pad: boolean): string {
 /**
  * Number input that never shows `1e-7`, groups nothing while typing, accepts Arabic-Indic digits and
  * `٫`, refuses more fractional digits than `decimals`, and rounds half-to-even like the C# services.
- * Emits `null` for empty. Always LTR and end-aligned (see field.module.css `.numeric`).
+ * Emits `null` for empty. Always LTR and left-aligned (see field.module.css `.numeric`).
  */
 export function NumericInput({
   value,

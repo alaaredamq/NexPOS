@@ -687,17 +687,17 @@ public class ProductsController : BaseController
     }
 
     /// <summary>
-    /// The whole catalog as a CSV, in the column layout <see cref="ImportProducts"/> reads.
+    /// The whole catalog as an Excel workbook, in the layout <see cref="ImportProducts"/> reads.
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> ExportProducts()
     {
         try
         {
-            var csvData = await _importExportService.ExportAsync();
-            _auditTrail.LogBusiness(AuditActions.ProductsExported, "Products exported to CSV", "Product");
+            var data = await _importExportService.ExportAsync();
+            _auditTrail.LogBusiness(AuditActions.ProductsExported, "Products exported to Excel", "Product");
 
-            return File(csvData, "text/csv", $"products_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+            return File(data, IProductImportExportService.FileContentType, $"products_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
         }
         catch (Exception ex)
         {
@@ -708,12 +708,12 @@ public class ProductsController : BaseController
     }
 
     /// <summary>
-    /// An empty import file: the column headers and one example row.
+    /// An empty import workbook with dropdowns and example rows.
     /// </summary>
     [HttpGet]
-    public IActionResult ImportTemplate()
+    public async Task<IActionResult> ImportTemplate()
     {
-        return File(_importExportService.BuildTemplate(), "text/csv", "products_import_template.csv");
+        return File(await _importExportService.BuildTemplateAsync(), IProductImportExportService.FileContentType, "products_import_template.xlsx");
     }
 
     /// <summary>
@@ -738,9 +738,9 @@ public class ProductsController : BaseController
             if (result is { Applied: true, Success: true })
             {
                 _auditTrail.LogBusiness(AuditActions.ProductsImported,
-                    $"Products imported from CSV: {result.Created} created, {result.Updated} updated, {result.Failed} skipped",
+                    $"Products imported from file: {result.Created} created, {result.Updated} updated, {result.CustomPrices} custom prices, {result.Failed} skipped",
                     "Product",
-                    details: new { fileName = file.FileName, result.TotalRows, result.Created, result.Updated, result.Unchanged, result.NewCategories, result.Failed });
+                    details: new { fileName = file.FileName, result.TotalRows, result.Created, result.Updated, result.Unchanged, result.NewCategories, result.CustomPrices, result.Failed });
             }
 
             return Json(result);

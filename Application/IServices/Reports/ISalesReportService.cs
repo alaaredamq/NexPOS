@@ -12,6 +12,7 @@ namespace Application.IServices.Reports
         Task<List<TopProductDTO>> GetTopProductsAsync(DateTime startDate, DateTime endDate, int limit = 10);
         Task<List<CategorySalesDTO>> GetCategorySalesAsync(DateTime startDate, DateTime endDate);
         Task<decimal> GetTotalSalesAsync(DateTime startDate, DateTime endDate);
+        Task<decimal> GetTotalProfitAsync(DateTime startDate, DateTime endDate);
         Task<int> GetTotalOrdersAsync(DateTime startDate, DateTime endDate);
         Task<decimal> GetAverageOrderValueAsync(DateTime startDate, DateTime endDate);
     }

@@ -71,9 +71,10 @@ textarea.control {
   cursor: not-allowed;
 }
 
-/* Numeric inputs: figures are LTR and right-aligned in both directions, like table cells. */
+/* Numeric inputs: figures are always LTR (the input is dir="ltr"), so `start` is the left edge in both directions: it lines up with the
+   other fields and sits next to the currency prefix. */
 .numeric {
-  text-align: end;
+  text-align: start;
   font-variant-numeric: tabular-nums;
 }
 

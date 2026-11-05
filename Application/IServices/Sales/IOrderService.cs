@@ -1,6 +1,7 @@
 using Application.IServices.Base;
 using Core.Entities.Inventory;
 using Core.Entities.Sales;
+using Core.IRepositories.Sales;
 
 namespace Application.IServices.Sales;
 
@@ -19,5 +20,7 @@ public interface IOrderService : IBaseService
     Task<Order> GetByIdAsync(int id);
     Task<List<Order>> GetByCustomerIdAsync(int? customerId);
     Task<List<Order>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
+    /// <summary>Revenue and gross profit of every completed order ever made.</summary>
+    Task<LifetimeSalesTotals> GetLifetimeTotalsAsync();
     Task<Order> UpdateOrderStatusAsync(int orderId, int status);
 }

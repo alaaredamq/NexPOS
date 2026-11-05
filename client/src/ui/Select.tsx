@@ -22,6 +22,11 @@ interface SelectProps<V extends string | number> {
   options?: SelectOption<V>[]
   /** Async options (replaces select2's ajax): called with the typed text, debounced. Wins over `options`. */
   loadOptions?: (query: string) => Promise<SelectOption<V>[]>
+  /**
+   * Async options in pages, loaded lazily: page 1 when the list opens or the text changes, the next page when the list is scrolled
+   * near its end (`hasMore`). Wins over `loadOptions`. Keep the function stable (`useCallback`) - a new one reloads the list.
+   */
+  loadPage?: (query: string, page: number) => Promise<{ items: SelectOption<V>[]; hasMore: boolean }>
   placeholder?: string
   clearable?: boolean
   disabled?: boolean
@@ -45,6 +50,7 @@ export function Select<V extends string | number = string | number>({
   onChange,
   options,
   loadOptions,
+  loadPage,
   placeholder,
   clearable = false,
   disabled,
@@ -68,36 +74,62 @@ export function Select<V extends string | number = string | number>({
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const [rect, setRect] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null)
-  const [remote, setRemote] = useState<{ query: string; items: SelectOption<V>[]; failed: boolean } | null>(null)
+  const [remote, setRemote] = useState<{ query: string; items: SelectOption<V>[]; failed: boolean; page: number; hasMore: boolean } | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const moreRef = useRef(false)
+  const isAsync = !!(loadOptions || loadPage)
 
-  const debouncedQuery = useDebouncedValue(query, loadOptions ? 250 : 0)
+  const debouncedQuery = useDebouncedValue(query, isAsync ? 250 : 0)
 
   // Async loading: one request per settled query while the popup is open; stale responses are dropped.
   useEffect(() => {
-    if (!open || !loadOptions) return
+    if (!open || !isAsync) return
     let cancelled = false
-    loadOptions(debouncedQuery)
-      .then((items) => {
-        if (!cancelled) setRemote({ query: debouncedQuery, items, failed: false })
+    moreRef.current = false
+    const first = loadPage ? loadPage(debouncedQuery, 1) : loadOptions!(debouncedQuery).then((items) => ({ items, hasMore: false }))
+    first
+      .then(({ items, hasMore }) => {
+        if (!cancelled) setRemote({ query: debouncedQuery, items, failed: false, page: 1, hasMore })
       })
       .catch(() => {
-        if (!cancelled) setRemote({ query: debouncedQuery, items: [], failed: true })
+        if (!cancelled) setRemote({ query: debouncedQuery, items: [], failed: true, page: 1, hasMore: false })
       })
     return () => {
       cancelled = true
     }
-  }, [open, debouncedQuery, loadOptions])
+  }, [open, debouncedQuery, loadOptions, loadPage, isAsync])
+
+  // The next page, when the list is scrolled near its end. One request at a time; a stale answer (the text changed) is dropped.
+  const loadMore = () => {
+    if (!loadPage || !remote || !remote.hasMore || moreRef.current || remote.query !== debouncedQuery) return
+    moreRef.current = true
+    setLoadingMore(true)
+    const { query: forQuery, page } = remote
+    loadPage(forQuery, page + 1)
+      .then(({ items, hasMore }) =>
+        setRemote((current) => {
+          if (!current || current.query !== forQuery || current.page !== page) return current
+          const known = new Set(current.items.map((o) => o.value))
+          return { ...current, items: [...current.items, ...items.filter((o) => !known.has(o.value))], page: page + 1, hasMore }
+        }),
+      )
+      .catch(() => setRemote((current) => (current && current.query === forQuery ? { ...current, hasMore: false } : current)))
+      .finally(() => {
+        moreRef.current = false
+        setLoadingMore(false)
+      })
+  }
 
   // Loading = the latest typed text hasn't been answered yet (covers the debounce gap too).
-  const loading = !!loadOptions && open && (query !== debouncedQuery || remote?.query !== debouncedQuery)
+  const loading = isAsync && open && (query !== debouncedQuery || remote?.query !== debouncedQuery)
   const failed = !loading && !!remote?.failed
 
   const items = useMemo<SelectOption<V>[]>(() => {
-    if (loadOptions) return remote?.items ?? []
+    if (isAsync) return remote?.items ?? []
     const q = query.trim().toLowerCase()
     const all = options ?? []
     return q ? all.filter((o) => `${o.label} ${o.hint ?? ''}`.toLowerCase().includes(q)) : all
-  }, [loadOptions, remote, options, query])
+  }, [isAsync, remote, options, query])
 
   const place = useCallback(() => {
     const el = wrapRef.current
@@ -243,6 +275,10 @@ export function Select<V extends string | number = string | number>({
             // Fixed viewport coordinates from getBoundingClientRect are physical, correct in both directions.
             style={{ left: rect.left, top: rect.top, inlineSize: rect.width, maxBlockSize: rect.maxHeight }}
             onMouseDown={(e) => e.preventDefault()}
+            onScroll={(e) => {
+              const el = e.currentTarget
+              if (el.scrollHeight - el.scrollTop - el.clientHeight < 48) loadMore()
+            }}
           >
             {items.map((opt, i) => (
               <li
@@ -261,6 +297,11 @@ export function Select<V extends string | number = string | number>({
                 {opt.hint && <span className={styles.optionHint}><bdi>{opt.hint}</bdi></span>}
               </li>
             ))}
+            {items.length > 0 && loadingMore && (
+              <li className={styles.status} role="presentation">
+                {t('common.loading', 'Loading')}
+              </li>
+            )}
             {items.length === 0 && (
               <li className={styles.status} role="presentation">
                 {failed

@@ -29,3 +29,10 @@
 .spacer {
   flex: 1;
 }
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { isApiError } from '@/api/http'
 import { useSession } from '@/core/auth/useSession'
@@ -78,11 +78,10 @@ export default function CategoryDetailsPage() {
     <div className={styles.page}>
       <PageHeader
         title={category.name}
+        back={{ to: '/categories', label: t('BackToCategories', { ns: 'categories' }) }}
         primaryActionLabel={canEdit ? t('EditCategory', { ns: 'categories' }) : undefined}
         onPrimaryAction={canEdit ? () => setEditing(true) : undefined}
-      >
-        <Link className={styles.link} to="/categories">{t('BackToCategories', { ns: 'categories' })}</Link>
-      </PageHeader>
+      />
 
       <div className={styles.details}>
         <div className={styles.column}>

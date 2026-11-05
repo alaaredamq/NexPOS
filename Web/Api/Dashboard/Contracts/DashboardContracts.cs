@@ -17,7 +17,10 @@ public static class DashboardPeriod
     /// <summary>From 1 January, one point per month.</summary>
     public const string Year = "year";
 
-    public static readonly string[] All = { Week, Month, Quarter, Year };
+    /// <summary>Everything since the first sale, one point per month.</summary>
+    public const string AllTime = "all";
+
+    public static readonly string[] All = { Week, Month, Quarter, Year, AllTime };
 }
 
 /// <summary>Everything the dashboard page shows except the chart: the tiles, the latest orders and the category split.</summary>
@@ -46,6 +49,12 @@ public sealed record DashboardDto
 
     /// <summary>Change of <see cref="MonthProfit"/> against last month, in percent; 0 when last month had no profit.</summary>
     public required decimal MonthProfitChangePercent { get; init; }
+
+    /// <summary>Revenue of every completed order since the first sale (cancelled and returned orders excluded).</summary>
+    public required decimal AllTimeSales { get; init; }
+
+    /// <summary>Gross profit since the first sale, counted like <see cref="MonthProfit"/>.</summary>
+    public required decimal AllTimeProfit { get; init; }
 
     public required int CustomerCount { get; init; }
 

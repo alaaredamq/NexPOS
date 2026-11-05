@@ -4,6 +4,7 @@ import { Permissions } from '@/api/permissions'
 import { http } from '@/api/http'
 import { useCan } from '@/core/permissions/permissions'
 import { toast } from '@/ui/toast'
+import { money } from '../cart/cartUi'
 import { useCartTotals, type CartTotals } from '../cart/useCartTotals'
 import { RecentSalesDialog } from '../receipt/RecentSalesDialog'
 import { SaleCompleteDialog } from '../receipt/SaleCompleteDialog'
@@ -12,6 +13,7 @@ import { resetCart, useCartStore } from '../store/cartStore'
 import { useAfterSale, type PosSale } from './api'
 import { useCheckoutUi, type CheckoutSnapshot } from './checkoutUi'
 import { PaymentDialog } from './PaymentDialog'
+import { getShowSaleComplete } from './saleCompletePref'
 import { forgetAttempt } from './tender'
 
 /** What the dialog sells: the cart as the server priced it (`totals.input`) with the figures the cashier saw. Null while there is nothing safe to sell. */
@@ -96,7 +98,17 @@ export default function CheckoutSlot() {
         .catch(() => undefined)
         .then(() => latest.current.afterSale())
     }
-    useCheckoutUi.getState().open({ kind: 'done', finished: { sale, received, change } })
+    if (getShowSaleComplete()) {
+      useCheckoutUi.getState().open({ kind: 'done', finished: { sale, received, change } })
+      return
+    }
+    // The popup is switched off on this computer: close the payment dialog and say it in a toast. What the popup would have flagged
+    // (change to hand back, a receipt that did not print) still reaches the cashier.
+    const { t: tr } = latest.current
+    const notation = sale.currencyNotation
+    close()
+    toast.success(change > 0 ? tr('saleCompleteToastChange', { total: money(sale.total, notation), change: money(change, notation) }) : tr('saleCompleteToast', { total: money(sale.total, notation) }))
+    if (sale.receiptPrinted === false) toast.warning(tr('receiptNotPrinted'), 8000)
   }
 
   if (!dialog) return null

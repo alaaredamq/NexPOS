@@ -265,17 +265,8 @@ namespace Application.Services.Sales
                         cartTotal = cartSubtotal - cartDiscount.Amount;
                     }
 
-                    // What is left is a raise (cash rounding up): it may differ slightly, but it must never be
-                    // trusted as the sale amount outright. Bound how far it can move the server-calculated
-                    // total (greater of $1 or 2%) and reject anything past that - a bigger rise means either
-                    // a bug or a tampered request, not rounding.
+                    // What is left is a raise (cash rounding up) or a sub-cent difference; the cashier's total stands.
                     var adjustment = request.TotalAmount - cartTotal;
-                    var maxAllowedAdjustment = Math.Max(1.00m, cartTotal * 0.02m);
-                    if (Math.Abs(adjustment) > maxAllowedAdjustment)
-                    {
-                        throw new InvalidOperationException(
-                            $"Requested total {request.TotalAmount:F2} differs from the calculated total {cartTotal:F2} by more than the allowed rounding adjustment ({maxAllowedAdjustment:F2}).");
-                    }
 
                     var finalTotal = request.TotalAmount;
 

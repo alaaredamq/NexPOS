@@ -181,7 +181,7 @@
 }
 
 .lines [data-align='end'] {
-  text-align: end;
+  text-align: start;
 }
 
 .lines [data-align='center'] {
@@ -340,7 +340,7 @@
 }
 
 .bar > strong {
-  text-align: end;
+  text-align: start;
 }
 
 .bar > span:nth-child(2) {
@@ -387,4 +387,11 @@
 
 .muted {
   color: var(--color-muted);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
 }

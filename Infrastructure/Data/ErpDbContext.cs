@@ -3,6 +3,7 @@ using Core.Entities.Configuration;
 using Core.Entities.Inventory;
 using Core.Entities.Notifications;
 using Core.Entities.Products;
+using Core.Entities.Purchasing;
 using Core.Entities.Sales;
 using Core.Entities.Users;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,8 @@ public class ErpDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<CustomerDebtTransaction> CustomerDebtTransactions { get; set; }
     public DbSet<SupplierDebtTransaction> SupplierDebtTransactions { get; set; }
+    public DbSet<Purchase> Purchases { get; set; }
+    public DbSet<PurchaseItem> PurchaseItems { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
@@ -29,6 +32,7 @@ public class ErpDbContext : DbContext
     public DbSet<MainScreenProduct> MainScreenProducts { get; set; }
         public DbSet<ProductDisplayOrder> ProductDisplayOrders { get; set; }
     public DbSet<ProductPrice> ProductPrices { get; set; }
+    public DbSet<ProductHistory> ProductHistories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<SystemSettings> SystemSettings { get; set; }
         public DbSet<StoreSettings> StoreSettings { get; set; }
@@ -217,6 +221,30 @@ public class ErpDbContext : DbContext
             .HasForeignKey(t => t.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // A supplier with purchases cannot be deleted (the purchase papers must stay readable); Restrict everywhere.
+        modelBuilder.Entity<Purchase>(entity =>
+        {
+            entity.HasOne(p => p.Supplier).WithMany().HasForeignKey(p => p.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.Currency).WithMany().HasForeignKey(p => p.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(p => p.Items).WithOne(i => i.Purchase).HasForeignKey(i => i.PurchaseId).OnDelete(DeleteBehavior.Cascade);
+            entity.Property(p => p.SupplierReference).HasMaxLength(100);
+            entity.Property(p => p.Notes).HasMaxLength(500);
+            entity.Property(p => p.CancelReason).HasMaxLength(500);
+            entity.HasIndex(p => new { p.SupplierId, p.PurchaseDate });
+            entity.HasIndex(p => p.PurchaseDate);
+            entity.Ignore(p => p.Number);
+        });
+
+        modelBuilder.Entity<PurchaseItem>(entity =>
+        {
+            entity.HasOne(i => i.Product).WithMany().HasForeignKey(i => i.ProductId).OnDelete(DeleteBehavior.Restrict);
+            entity.Property(i => i.ProductName).HasMaxLength(200);
+            entity.Property(i => i.Barcode).HasMaxLength(100);
+            entity.Property(i => i.Unit).HasMaxLength(50);
+            entity.HasIndex(i => i.ProductId);
+        });
+
         modelBuilder.Entity<CustomerCart>()
             .HasOne(cc => cc.Customer)
             .WithMany(c => c.CustomerCarts)
@@ -355,6 +383,23 @@ public class ErpDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(e => new { e.ProductId, e.SortOrder });
+        });
+
+        modelBuilder.Entity<ProductHistory>(entity =>
+        {
+            entity.ToTable("ProductHistories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.QuantityChange).HasPrecision(18, 3);
+            entity.Property(e => e.StockBefore).HasPrecision(18, 3);
+            entity.Property(e => e.StockAfter).HasPrecision(18, 3);
+
+            entity.HasOne<Product>()
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // The history page reads one product's rows, newest first.
+            entity.HasIndex(e => new { e.ProductId, e.CreatedAt });
         });
 
         modelBuilder.Entity<SystemSettings>(entity =>

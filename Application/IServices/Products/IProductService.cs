@@ -12,7 +12,8 @@ public interface IProductService : IBaseService
     Task<List<Product>> SearchAsync(string? term, int? categoryId, int? supplierId, bool onlyActive = true);
     Task<List<Product>> SearchAvailableForDisplayOrderAsync(string? term, int skip, int take);
     Task<Product> CreateAsync(Product product);
-    Task UpdateAsync(int id, Product product);
+    /// <summary>Saves the product. The change is recorded in its history; <paramref name="context"/> says how a changed stock figure should read there.</summary>
+    Task UpdateAsync(int id, Product product, ProductChangeContext? context = null);
     Task DeleteAsync(int id);
     List<ProductDTO>? GetCachedProducts();
     Task<decimal> GetProductPriceInCurrencyAsync(int productId, int targetCurrencyId);

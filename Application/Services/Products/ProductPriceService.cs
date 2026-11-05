@@ -47,9 +47,31 @@ public class ProductPriceService : IProductPriceService
             .ToListAsync();
     }
 
-    public async Task ReplaceTiersAsync(int productId, IEnumerable<ProductPriceInput> tiers)
+    public async Task<Dictionary<int, List<ProductPrice>>> GetAllTiersAsync()
     {
-        var existing = await _db.ProductPrices.Where(t => t.ProductId == productId).ToListAsync();
+        var all = await _db.ProductPrices.AsNoTracking()
+            .OrderBy(t => t.SortOrder).ThenBy(t => t.Id)
+            .ToListAsync();
+        return all.GroupBy(t => t.ProductId).ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    public Task ReplaceTiersAsync(int productId, IEnumerable<ProductPriceInput> tiers)
+        => ReplaceTiersAsync(new Dictionary<int, List<ProductPriceInput>> { [productId] = tiers.ToList() });
+
+    public async Task ReplaceTiersAsync(IReadOnlyDictionary<int, List<ProductPriceInput>> tiersByProduct)
+    {
+        var ids = tiersByProduct.Keys.ToList();
+        var existing = (await _db.ProductPrices.Where(t => ids.Contains(t.ProductId)).ToListAsync())
+            .ToLookup(t => t.ProductId);
+
+        foreach (var (productId, tiers) in tiersByProduct)
+            Stage(productId, existing[productId], tiers);
+
+        await _db.SaveChangesAsync();
+    }
+
+    private void Stage(int productId, IEnumerable<ProductPrice> existing, IEnumerable<ProductPriceInput> tiers)
+    {
         _db.ProductPrices.RemoveRange(existing);
 
         var order = 0;
@@ -65,7 +87,5 @@ public class ProductPriceService : IProductPriceService
                 SortOrder = order++
             });
         }
-
-        await _db.SaveChangesAsync();
     }
 }

@@ -151,13 +151,6 @@ public sealed class PosSaleService : IPosSaleService
         if (request.RequireOpenDrawer && drawerSessionId is null)
             throw new PosRuleException(StatusCodes.Status409Conflict, PosCodes.DrawerNotOpen, "Pos_DrawerNotOpen");
 
-        // The cashier may lower the total (a discount) or nudge it for cash rounding, but not by more than the checkout service itself
-        // allows (greater of 1.00 or 2 %). Saying so here gives the UI a stable code instead of a message to parse.
-        var allowed = Math.Max(1.00m, cart.Total * 0.02m);
-        if (Math.Abs(request.TotalAmount - cart.Total) > allowed)
-            throw new PosRuleException(StatusCodes.Status409Conflict, PosCodes.TotalMismatch, "Pos_TotalMismatch", "totalAmount",
-                request.TotalAmount.ToString("N2"), cart.Total.ToString("N2"), allowed.ToString("N2"));
-
         // 2. Build the cart the old till built (it created one per sale too), then let the unchanged checkout service sell it.
         var cartEntity = await _carts.CreateCartAsync(customerId);
         try

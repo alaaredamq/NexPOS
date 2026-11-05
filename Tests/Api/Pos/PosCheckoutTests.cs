@@ -84,17 +84,14 @@ public sealed class PosCheckoutTests
     }
 
     [Fact]
-    public async Task A_total_far_from_the_priced_one_is_refused_before_anything_is_written()
+    public async Task A_total_far_below_the_priced_one_is_a_discount_and_is_kept()
     {
         var (till, _) = await Till();
-        var before = await StockOf(till, 36);
+        var priced = (await Price(till, Cart(Usd, [Line(36, quantity: 4)]))).GetProperty("total").GetDecimal();
 
-        var tooLow = await Sell(till, Checkout(Cart(Usd, [Line(36, quantity: 4)]), 0.10m, Cash));
-        var tooHigh = await Sell(till, Checkout(Cart(Usd, [Line(36, quantity: 4)]), 999m, Cash));
+        var sale = await Sold(await Sell(till, Checkout(Cart(Usd, [Line(36, quantity: 4)]), priced / 2, Cash)));
 
-        await AssertProblem(tooLow, HttpStatusCode.Conflict, "total_mismatch");
-        await AssertProblem(tooHigh, HttpStatusCode.Conflict, "total_mismatch");
-        Assert.Equal(before, await StockOf(till, 36));
+        Assert.Equal(priced / 2, sale.GetProperty("total").GetDecimal());
     }
 
     // ---- idempotency --------------------------------------------------------------------------------------------------

@@ -50,8 +50,8 @@ export function useSupplierOptions() {
   return useQuery({ queryKey: supplierKeys.options, queryFn: ({ signal }) => http.get<SupplierOptions>('/suppliers/options', { signal }), staleTime: 5 * 60_000 })
 }
 
-export function useSupplier(id: number) {
-  return useQuery({ queryKey: supplierKeys.detail(id), queryFn: ({ signal }) => http.get<Supplier>(`/suppliers/${id}`, { signal }) })
+export function useSupplier(id: number, enabled = true) {
+  return useQuery({ queryKey: supplierKeys.detail(id), queryFn: ({ signal }) => http.get<Supplier>(`/suppliers/${id}`, { signal }), enabled })
 }
 
 export function useSupplierLedger(id: number, page: number, pageSize: number) {

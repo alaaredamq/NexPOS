@@ -44,4 +44,10 @@ public interface IProductRepository : IRepository<Product>
     /// all in one SaveChanges (one transaction), so a bulk import is all-or-nothing.
     /// </summary>
     Task SaveRangeAsync(IEnumerable<Product> added);
+
+    /// <summary>The stock figure as the database holds it right now (null when there is no such product).</summary>
+    Task<decimal?> GetStockQuantityAsync(int productId);
+
+    /// <summary>The fields of a product as the database holds them right now (null when there is no such product). Reads the row, not a tracked copy.</summary>
+    Task<ProductSnapshot?> GetSnapshotAsync(int productId);
 }

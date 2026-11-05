@@ -5,6 +5,7 @@ using Application.IServices.Sales;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Tests.Api.Infrastructure;
+using Perm = Web.Helpers.PermissionHelper.Permissions;
 using Xunit;
 using static Tests.Api.Pos.PosTestKit;
 
@@ -690,6 +691,125 @@ public sealed class OrdersReceiptsApiTests
     }
 
     // ---- printing --------------------------------------------------------------------------------------------------------
+
+    // ---- changing the customer of a sale ---------------------------------------------------------------------------------
+
+    private static Task<HttpResponseMessage> SetCustomer(HttpClient browser, string kind, int id, int? customerId)
+        => browser.SendAsync(Json(HttpMethod.Put, $"/api/v1/{kind}/{id}/customer", new { customerId }));
+
+    private static async Task<decimal> AccountOf(HttpClient browser, int customerId)
+        => (await Ok(await browser.GetAsync($"/api/v1/customers/{customerId}"))).GetProperty("customer").GetProperty("balance").GetDecimal();
+
+    [Fact]
+    public async Task A_cashier_cannot_change_the_customer_of_a_sale()
+    {
+        var (admin, _) = await Admin();
+        var sale = await Sell(admin);
+        var (cashier, _) = await CashierBrowser();
+
+        await AssertProblem(await SetCustomer(cashier, "orders", sale.OrderId, 8), HttpStatusCode.Forbidden, "forbidden");
+        await AssertProblem(await SetCustomer(cashier, "receipts", sale.ReceiptId!.Value, 8), HttpStatusCode.Forbidden, "forbidden");
+        Assert.Equal(JsonValueKind.Null, (await Ok(await admin.GetAsync($"/api/v1/orders/{sale.OrderId}"))).GetProperty("customerId").ValueKind);
+    }
+
+    [Fact]
+    public async Task Changing_the_customer_needs_its_own_permission_that_editing_orders_and_sales_does_not_give()
+    {
+        var (admin, _) = await Admin();
+        var sale = await Sell(admin);
+
+        async Task<HttpClient> SignInWith(params string[] permissions)
+        {
+            var name = $"r{Guid.NewGuid():N}"[..12];
+            var role = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/roles", new { name, description = "test role", permissions }));
+            Assert.Equal(HttpStatusCode.Created, role.StatusCode);
+            var roleId = JsonDocument.Parse(await role.Content.ReadAsStringAsync()).RootElement.GetProperty("role").GetProperty("id").GetInt32();
+            var user = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/users", new
+            {
+                username = name, email = $"{name}@example.com", firstName = "Test", lastName = "User", roleId, isActive = true, pin = "4321",
+            }));
+            Assert.Equal(HttpStatusCode.Created, user.StatusCode);
+            return (await SignedIn(Host, name, "4321")).Browser;
+        }
+
+        var editor = await SignInWith(Perm.Orders_View, Perm.Orders_Edit, Perm.Sales_View, Perm.Sales_Edit);
+        await AssertProblem(await SetCustomer(editor, "orders", sale.OrderId, 8), HttpStatusCode.Forbidden, "forbidden");
+        await AssertProblem(await SetCustomer(editor, "receipts", sale.ReceiptId!.Value, 8), HttpStatusCode.Forbidden, "forbidden");
+
+        var changer = await SignInWith(Perm.Orders_View, Perm.Sales_View, Perm.Sales_ChangeCustomer);
+        Assert.Equal(8, (await Ok(await SetCustomer(changer, "orders", sale.OrderId, 8))).GetProperty("customerId").GetInt32());
+        Assert.Equal(9, (await Ok(await SetCustomer(changer, "receipts", sale.ReceiptId!.Value, 9))).GetProperty("customerId").GetInt32());
+    }
+
+    [Fact]
+    public async Task Changing_the_customer_from_the_receipt_moves_the_order_and_the_receipt_together()
+    {
+        var (admin, _) = await Admin();
+        var sale = await Sell(admin); // a walk-in cash sale
+
+        var result = await Ok(await SetCustomer(admin, "receipts", sale.ReceiptId!.Value, 8));
+
+        Assert.True(result.GetProperty("changed").GetBoolean());
+        Assert.Equal(8, result.GetProperty("customerId").GetInt32());
+        Assert.Equal(1, result.GetProperty("receiptsUpdated").GetInt32());
+        Assert.Equal(0m, result.GetProperty("debtMoved").GetDecimal());
+        var order = await Ok(await admin.GetAsync($"/api/v1/orders/{sale.OrderId}"));
+        Assert.Equal(8, order.GetProperty("customerId").GetInt32());
+        var receipt = await Ok(await admin.GetAsync($"/api/v1/receipts/{sale.ReceiptId}"));
+        Assert.Equal(8, receipt.GetProperty("customerId").GetInt32());
+        Assert.Equal(order.GetProperty("customerName").GetString(), receipt.GetProperty("customerName").GetString());
+        Assert.Equal(JsonValueKind.Null, (await Ok(await SetCustomer(admin, "orders", sale.OrderId, null))).GetProperty("customerId").ValueKind);
+        Assert.Equal(JsonValueKind.Null, (await Ok(await admin.GetAsync($"/api/v1/receipts/{sale.ReceiptId}"))).GetProperty("customerId").ValueKind);
+    }
+
+    [Fact]
+    public async Task Changing_the_customer_of_a_debt_sale_moves_the_debt_and_a_later_void_clears_it_from_the_new_customer()
+    {
+        var (admin, _) = await Admin();
+        var oldBefore = await AccountOf(admin, 9);
+        var newBefore = await AccountOf(admin, 8);
+        var sale = await Sell(admin, quantity: 2, customerId: 9, onAccount: true);
+        Assert.Equal(oldBefore + sale.Total, await AccountOf(admin, 9));
+
+        var result = await Ok(await SetCustomer(admin, "orders", sale.OrderId, 8));
+
+        Assert.Equal(sale.Total, result.GetProperty("debtMoved").GetDecimal());
+        Assert.Equal(oldBefore, await AccountOf(admin, 9));
+        Assert.Equal(newBefore + sale.Total, await AccountOf(admin, 8));
+
+        await Ok(await Void(admin, sale.ReceiptId!.Value));
+        Assert.Equal(oldBefore, await AccountOf(admin, 9));
+        Assert.Equal(newBefore, await AccountOf(admin, 8));
+    }
+
+    [Fact]
+    public async Task A_debt_sale_cannot_go_back_to_walk_in()
+    {
+        var (admin, _) = await Admin();
+        var balance = await AccountOf(admin, 9);
+        var sale = await Sell(admin, quantity: 2, customerId: 9, onAccount: true);
+
+        await AssertProblem(await SetCustomer(admin, "orders", sale.OrderId, null), HttpStatusCode.BadRequest, "debt_requires_customer");
+
+        Assert.Equal(9, (await Ok(await admin.GetAsync($"/api/v1/orders/{sale.OrderId}"))).GetProperty("customerId").GetInt32());
+        Assert.Equal(balance + sale.Total, await AccountOf(admin, 9));
+    }
+
+    [Fact]
+    public async Task The_customer_of_a_cancelled_sale_cannot_be_changed_and_an_unknown_customer_or_order_is_refused()
+    {
+        var (admin, _) = await Admin();
+        var open = await Sell(admin);
+        var closed = await Sell(admin);
+        await Ok(await SetStatus(admin, closed.OrderId, 4));
+
+        await AssertProblem(await SetCustomer(admin, "orders", closed.OrderId, 8), HttpStatusCode.Conflict, "order_closed");
+        await AssertProblem(await SetCustomer(admin, "receipts", closed.ReceiptId!.Value, 8), HttpStatusCode.Conflict, "receipt_already_void");
+        await AssertProblem(await SetCustomer(admin, "orders", open.OrderId, 999999), HttpStatusCode.Conflict, "customer_not_found");
+        await AssertProblem(await SetCustomer(admin, "orders", 999999, 8), HttpStatusCode.NotFound, "order_not_found");
+        await AssertProblem(await SetCustomer(admin, "receipts", 999999, 8), HttpStatusCode.NotFound, "receipt_not_found");
+        await AssertProblem(await SetCustomer(admin, "orders", open.OrderId, 0), HttpStatusCode.BadRequest, "validation_failed");
+    }
 
     [Fact]
     public async Task A_reprint_answers_even_when_no_printer_is_there_and_the_pdf_is_a_pdf()

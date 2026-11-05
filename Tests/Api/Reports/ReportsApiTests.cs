@@ -79,6 +79,7 @@ public sealed class ReportsApiTests
         Assert.Equal("2000-01-01", report.GetProperty("from").GetString());
         Assert.Equal("2000-01-03", report.GetProperty("to").GetString());
         Assert.Equal(0, report.GetProperty("totalSales").GetDecimal());
+        Assert.Equal(0, report.GetProperty("totalProfit").GetDecimal());
         Assert.Equal(0, report.GetProperty("totalOrders").GetInt32());
         Assert.Equal(0, report.GetProperty("averageOrderValue").GetDecimal());
         Assert.Equal(["2000-01-01", "2000-01-02", "2000-01-03"], report.GetProperty("daily").EnumerateArray().Select(d => d.GetProperty("date").GetString()));
@@ -104,6 +105,9 @@ public sealed class ReportsApiTests
         Assert.Equal(before.GetProperty("totalOrders").GetInt32() + 1, after.GetProperty("totalOrders").GetInt32());
         Assert.Equal(before.GetProperty("totalItemsSold").GetDecimal() + 3, after.GetProperty("totalItemsSold").GetDecimal());
         Assert.Equal(after.GetProperty("totalSales").GetDecimal() / after.GetProperty("totalOrders").GetInt32(), after.GetProperty("averageOrderValue").GetDecimal());
+        // Profit is price minus cost of the lines sold: it can only grow with a sale and can never exceed the sale itself.
+        var profitGain = after.GetProperty("totalProfit").GetDecimal() - before.GetProperty("totalProfit").GetDecimal();
+        Assert.InRange(profitGain, 0, sale.Total);
         var today = after.GetProperty("daily").EnumerateArray().Single();
         Assert.Equal(Today, today.GetProperty("date").GetString());
         Assert.Equal(after.GetProperty("totalSales").GetDecimal(), today.GetProperty("sales").GetDecimal());
@@ -113,6 +117,7 @@ public sealed class ReportsApiTests
         {
             Assert.Equal(beforeSummary.GetProperty(period).GetProperty("sales").GetDecimal() + sale.Total, summary.GetProperty(period).GetProperty("sales").GetDecimal());
             Assert.Equal(beforeSummary.GetProperty(period).GetProperty("orders").GetInt32() + 1, summary.GetProperty(period).GetProperty("orders").GetInt32());
+            Assert.Equal(beforeSummary.GetProperty(period).GetProperty("profit").GetDecimal() + profitGain, summary.GetProperty(period).GetProperty("profit").GetDecimal());
         }
 
         var month = summary.GetProperty("thisMonth");
@@ -125,6 +130,7 @@ public sealed class ReportsApiTests
         var cancelled = await TodayReport(admin);
         Assert.Equal(before.GetProperty("totalSales").GetDecimal(), cancelled.GetProperty("totalSales").GetDecimal());
         Assert.Equal(before.GetProperty("totalOrders").GetInt32(), cancelled.GetProperty("totalOrders").GetInt32());
+        Assert.Equal(before.GetProperty("totalProfit").GetDecimal(), cancelled.GetProperty("totalProfit").GetDecimal());
         var summaryAfterCancel = await Ok(await admin.GetAsync("/api/v1/reports/summary"));
         Assert.Equal(beforeSummary.GetProperty("today").GetProperty("sales").GetDecimal(), summaryAfterCancel.GetProperty("today").GetProperty("sales").GetDecimal());
     }
@@ -191,7 +197,7 @@ public sealed class ReportsApiTests
         Assert.Equal([0xEF, 0xBB, 0xBF], bytes.Take(3));
         var text = Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
         Assert.StartsWith($"\"Sales report\",\"{Today}\",\"{Today}\"", text);
-        foreach (var heading in new[] { "\"Total sales\"", "\"Date\",\"Sales\",\"Orders\"", "\"Product\",\"Quantity sold\"", "\"Category\",\"Sales\"", "\"Payment method\",\"Sales\"" })
+        foreach (var heading in new[] { "\"Total sales\"", "\"Total profit\"", "\"Date\",\"Sales\",\"Orders\"", "\"Product\",\"Quantity sold\"", "\"Category\",\"Sales\"", "\"Payment method\",\"Sales\"" })
             Assert.Contains(heading, text);
     }
 

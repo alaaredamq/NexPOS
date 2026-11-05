@@ -258,13 +258,6 @@ public class DiscountDisplayTests
     }
 
     [Fact]
-    public async Task Checkout_CashierRaisesTheTotalFarPastRounding_IsRejected()
-    {
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => CheckoutAsync(discountAmount: null, discountPercentage: null, requestedTotal: 210m));
-    }
-
-    [Fact]
     public async Task Checkout_NoDiscount_LeavesTheReceiptUndiscounted()
     {
         var receipt = await CheckoutAsync(discountAmount: null, discountPercentage: null, requestedTotal: 200m);

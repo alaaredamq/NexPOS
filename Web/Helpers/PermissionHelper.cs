@@ -48,12 +48,19 @@ public static class PermissionHelper
         public const string Suppliers_Delete = "Suppliers.Delete";
         public const string Suppliers_Manage = "Suppliers.Manage";
 
+        // Purchases (goods bought from suppliers; saving one adds to stock)
+        public const string Purchases_View = "Purchases.View";
+        public const string Purchases_Create = "Purchases.Create";
+        public const string Purchases_Cancel = "Purchases.Cancel";
+
         // Sales Management
         public const string Sales_View = "Sales.View";
         public const string Sales_Create = "Sales.Create";
         public const string Sales_Edit = "Sales.Edit";
         public const string Sales_Delete = "Sales.Delete";
         public const string Sales_Manage = "Sales.Manage";
+        /// <summary>Move a completed sale (receipt and order) to another customer, or to walk-in. Kept apart from Sales.Edit because it moves money between accounts.</summary>
+        public const string Sales_ChangeCustomer = "Sales.ChangeCustomer";
 
         // Orders Management
         public const string Orders_View = "Orders.View";
@@ -209,6 +216,9 @@ public static class PermissionHelper
             Permissions.Categories_Manage,
             Permissions.Customers_Manage,
             Permissions.Suppliers_Manage,
+            Permissions.Purchases_View,
+            Permissions.Purchases_Create,
+            Permissions.Purchases_Cancel,
             Permissions.Sales_Manage,
             Permissions.Orders_Manage,
             Permissions.Inventory_Edit,
@@ -265,6 +275,7 @@ public static class PermissionHelper
             Permissions.Sales_Delete,
             Permissions.Sales_Edit,
             Permissions.Sales_Manage,
+            Permissions.Sales_ChangeCustomer,
             Permissions.Discounts_View,
             Permissions.Discounts_Manage,
             Permissions.PaymentMethods_View,
@@ -283,6 +294,9 @@ public static class PermissionHelper
             Permissions.Categories_Manage,
             Permissions.Customers_Manage,
             Permissions.Suppliers_Manage,
+            Permissions.Purchases_View,
+            Permissions.Purchases_Create,
+            Permissions.Purchases_Cancel,
             Permissions.Sales_Manage,
             Permissions.Orders_Manage,
             Permissions.Inventory_View,

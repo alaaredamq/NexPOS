@@ -158,32 +158,32 @@ public sealed class ProductsController : ApiControllerBase
         return File(_labels.Build(label), "application/pdf", $"Labels-{label.Code}.pdf");
     }
 
-    // ---- CSV import / export ----------------------------------------------------------------------
+    // ---- Excel import / export --------------------------------------------------------------------
 
-    /// <summary>The whole catalogue as a CSV, in the layout the import reads.</summary>
+    /// <summary>The whole catalogue as an Excel workbook (Products and Custom Prices sheets), in the layout the import reads.</summary>
     [HttpGet("export")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "exportProducts")]
-    [Produces("text/csv", "application/json")]
-    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "text/csv")]
+    [Produces(IProductImportExportService.FileContentType, "application/json")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, IProductImportExportService.FileContentType)]
     public async Task<IActionResult> Export()
     {
-        var csv = await _importExport.ExportAsync();
-        _audit.LogBusiness(AuditActions.ProductsExported, "Products exported to CSV", "Product");
-        return File(csv, "text/csv", $"products_{DateTime.Now:yyyyMMdd_HHmmss}.csv");
+        var file = await _importExport.ExportAsync();
+        _audit.LogBusiness(AuditActions.ProductsExported, "Products exported to Excel", "Product");
+        return File(file, IProductImportExportService.FileContentType, $"products_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
     }
 
-    /// <summary>An empty import file: the column headers and one example row.</summary>
+    /// <summary>An empty import workbook: dropdowns for category, supplier and unit, a Custom Prices sheet and example rows.</summary>
     [HttpGet("import-template")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "getProductImportTemplate")]
-    [Produces("text/csv", "application/json")]
-    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, "text/csv")]
-    public IActionResult ImportTemplate()
-        => File(_importExport.BuildTemplate(), "text/csv", "products_import_template.csv");
+    [Produces(IProductImportExportService.FileContentType, "application/json")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK, IProductImportExportService.FileContentType)]
+    public async Task<IActionResult> ImportTemplate()
+        => File(await _importExport.BuildTemplateAsync(), IProductImportExportService.FileContentType, "products_import_template.xlsx");
 
-    /// <summary>Reads a CSV. With <c>apply=false</c> it only reports what would happen; with <c>true</c> it saves the valid rows.</summary>
-    /// <remarks>A row whose barcode exists updates that product (blank cells stay unchanged); any other row creates one. A file that cannot be read at all answers 200 with <c>fileError</c>.</remarks>
+    /// <summary>Reads a workbook (or CSV). With <c>apply=false</c> it only reports what would happen; with <c>true</c> it saves the valid rows.</summary>
+    /// <remarks>A row whose barcode exists updates that product (blank cells stay unchanged); any other row creates one. Products listed on the Custom Prices sheet get exactly those extra prices. A file that cannot be read at all answers 200 with <c>fileError</c>.</remarks>
     [HttpPost("import")]
     [RequireAllPermissions(PermissionHelper.Permissions.Products_Create, PermissionHelper.Permissions.Products_Edit)]
     [Consumes("multipart/form-data")]
@@ -201,9 +201,9 @@ public sealed class ProductsController : ApiControllerBase
         if (result is { Applied: true, Success: true })
         {
             _audit.LogBusiness(AuditActions.ProductsImported,
-                $"Products imported from CSV: {result.Created} created, {result.Updated} updated, {result.Failed} skipped",
+                $"Products imported from file: {result.Created} created, {result.Updated} updated, {result.CustomPrices} custom prices, {result.Failed} skipped",
                 "Product",
-                details: new { fileName = file.FileName, result.TotalRows, result.Created, result.Updated, result.Unchanged, result.NewCategories, result.Failed });
+                details: new { fileName = file.FileName, result.TotalRows, result.Created, result.Updated, result.Unchanged, result.NewCategories, result.CustomPrices, result.Failed });
         }
 
         return new ProductImportResultDto
@@ -215,8 +215,9 @@ public sealed class ProductsController : ApiControllerBase
             Updated = result.Updated,
             Unchanged = result.Unchanged,
             NewCategories = result.NewCategories,
+            CustomPrices = result.CustomPrices,
             Failed = result.Failed,
-            Issues = result.Issues.Select(i => new ProductImportIssueDto { Row = i.Row, Message = i.Message }).ToList(),
+            Issues = result.Issues.Select(i => new ProductImportIssueDto { Row = i.Row, Message = i.Message, Sheet = i.Sheet }).ToList(),
         };
     }
 

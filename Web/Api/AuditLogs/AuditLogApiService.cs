@@ -108,6 +108,7 @@ public sealed class AuditLogApiService : IAuditLogApiService
         User = e.Username,
         Role = e.UserRole,
         Category = e.Category.ToString(),
+        Area = AuditAreas.Classify(e.Action, e.EntityType, e.RequestPath).ToString(),
         Action = e.Action,
         EntityType = e.EntityType,
         EntityId = e.EntityId,

@@ -42,15 +42,16 @@ export function useReceiptPrinting() {
     }
   }
 
-  const print = async (printPath: string, pdfPath: string, fallbackName?: string) => {
-    if (running.current) return
+  /** Resolves to whether the receipt reached the printer. */
+  const print = async (printPath: string, pdfPath: string, fallbackName?: string): Promise<boolean> => {
+    if (running.current) return false
     running.current = true
     setBusy(true)
     try {
       const result = await http.post<PrintResult>(printPath)
       if (result.printed) {
         toast.success(result.message, 2500)
-        return
+        return true
       }
       const download = await confirm({
         title: t('title', 'Printing'),
@@ -58,9 +59,11 @@ export function useReceiptPrinting() {
         confirmLabel: t('downloadInstead', 'Download PDF instead'),
       })
       if (download) await downloadPdf(pdfPath, fallbackName)
+      return false
     } catch (error) {
       // 404 (the receipt is gone) and the like: the http client has already raised its toast; only a network failure needs saying here.
       if (!isApiError(error)) toast.error(t('failed', 'Could not print. Check that the receipt printer is connected and selected in Settings.'))
+      return false
     } finally {
       running.current = false
       setBusy(false)

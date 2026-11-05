@@ -2,7 +2,7 @@ import { isApiError } from '@/api/http'
 import { i18n } from '@/core/i18n'
 import { toast } from '@/ui/toast'
 import { useCartStore, type PosProduct } from '../store/cartStore'
-import { fetchCurrencies, fetchProduct } from './api'
+import { fetchCurrencies } from './api'
 import { requestAmount } from './cartUi'
 import { convertAmount } from './pricing'
 
@@ -34,21 +34,14 @@ async function addSingle(product: PosProduct, quantity: number, name?: string): 
 /**
  * Puts a catalogue product on the cart — the one entry point for tiles, search results and scans (P2).
  *  - a product sold by weight or volume asks for the amount first (cancel = nothing added);
- *  - a pack is sold as its single product ("Cola (from 6-pack)"), like the old till;
+ *  - a pack is its own product: its own line, price and stock (it is not redirected to the single product it contains);
  *  - `quantity` is the scanner's `3*` prefix.
  * Resolves true when something was added. Needs `<CartPanel />` mounted (it renders the amount prompt).
  */
 export async function addToCart(product: PosProduct, options: { quantity?: number } = {}): Promise<boolean> {
   const quantity = Math.max(1, Math.floor(options.quantity ?? 1))
   try {
-    if (!product.isPack) return await addSingle(product, quantity)
-
-    if (!product.singleProductId) {
-      toast.error(i18n.t('packHasNoSingleProduct', { ns: 'pos', name: product.name }))
-      return false
-    }
-    const single = await fetchProduct(product.singleProductId)
-    return await addSingle(single, quantity, i18n.t('fromPack', { ns: 'pos', name: single.name, pack: product.name }))
+    return await addSingle(product, quantity)
   } catch (error) {
     toast.error(isApiError(error) ? error.message : i18n.t('errorAddingToCart', { ns: 'pos' }))
     return false

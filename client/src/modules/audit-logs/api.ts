@@ -10,6 +10,8 @@ export type AuditStats = Schemas['AuditLogStatsDto']
 export type AuditOptions = Schemas['AuditLogOptionsDto']
 
 export const CATEGORIES = ['Data', 'Request', 'Security', 'Business', 'System', 'Diagnostic'] as const
+/** The sections of the product an entry can belong to, in the order the page lists them (same names as the API). */
+export const AREAS = ['Sales', 'Pos', 'Inventory', 'Customers', 'Account', 'Settings', 'Reports', 'System', 'Other'] as const
 export const OUTCOMES = ['Success', 'Failure', 'Denied'] as const
 /** The severities worth filtering on: the filter means "this bad or worse", so Info would be "everything". */
 export const SEVERITIES = ['Warning', 'Error', 'Critical'] as const
@@ -28,6 +30,8 @@ export interface AuditParams {
   to: string
   /** `''`, a user id (`'7'`) or `name:<username>` for actors without an account (`System`, a failed sign-in). */
   user: string
+  /** `''` (every section) or one of {@link AREAS}. */
+  area: string
   category: string
   outcome: string
   severity: string
@@ -57,6 +61,7 @@ export function toQuery(p: AuditParams): Record<string, string | number | undefi
     to: localToIso(p.to, 60),
     userId: p.user && !named ? Number(p.user) : undefined,
     username: named ? p.user.slice(5) : undefined,
+    area: p.area || undefined,
     category: p.category || undefined,
     outcome: p.outcome || undefined,
     minSeverity: p.severity || undefined,

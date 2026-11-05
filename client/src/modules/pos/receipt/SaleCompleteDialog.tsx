@@ -29,8 +29,14 @@ export function SaleCompleteDialog({ finished, onClose }: Props) {
   const paths = salePaths(sale.orderId)
   const notation = sale.currencyNotation
 
+  // The retry after a receipt that did not print: once it works there is nothing left to say, so the popup closes (a plain extra copy keeps it open).
+  const printReceipt = async () => {
+    const printed = await printing.print(paths.print, paths.pdf)
+    if (printed && sale.receiptPrinted === false) onClose()
+  }
+
   return (
-    <Modal onClose={onClose} width={440} title={t('saleComplete')} hideClose>
+    <Modal onClose={onClose} width={520} title={t('saleComplete')} hideClose>
       <ModalBody>
         <div className={styles.dialogForm}>
           <div className={styles.success} aria-live="polite">
@@ -87,7 +93,7 @@ export function SaleCompleteDialog({ finished, onClose }: Props) {
             <Button variant="ghost" onClick={() => void printing.downloadPdf(paths.pdf, `${sale.receiptNumber ?? sale.orderNumber}.pdf`)} disabled={printing.busy}>
               {t('downloadPdf')}
             </Button>
-            <Button variant="secondary" onClick={() => void printing.print(paths.print, paths.pdf)} loading={printing.busy}>
+            <Button variant="secondary" onClick={() => void printReceipt()} loading={printing.busy}>
               {sale.receiptPrinted === false ? t('printRetry') : t('printReceipt')}
             </Button>
           </>

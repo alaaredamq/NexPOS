@@ -26,4 +26,11 @@ public interface ICustomerDebtService : IBaseService
     /// (or was already reversed), so calling it twice is harmless.
     /// </summary>
     Task<decimal> ReverseSaleAsync(int orderId, int userId, string? note = null);
+
+    /// <summary>
+    /// Moves an order placed on debt to another customer: takes the amount off whoever holds it now and puts it on
+    /// <paramref name="newCustomerId"/>, as two <c>SaleTransfer</c> entries. Returns the amount moved, or 0 when the order is
+    /// not an open debt sale or already sits on that customer. A later reversal takes it off the new customer.
+    /// </summary>
+    Task<decimal> MoveSaleAsync(int orderId, int newCustomerId, int userId, string? note = null);
 }

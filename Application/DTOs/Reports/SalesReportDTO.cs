@@ -5,6 +5,8 @@ namespace Application.DTOs.Reports
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public decimal TotalSales { get; set; }
+        /// <summary>Selling price minus cost price over the lines sold; a product without a cost price is left out (same rule as the dashboard).</summary>
+        public decimal TotalProfit { get; set; }
         public int TotalOrders { get; set; }
         public decimal AverageOrderValue { get; set; }
         public decimal TotalItemsSold { get; set; }

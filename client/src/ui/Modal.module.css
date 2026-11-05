@@ -47,6 +47,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap; /* a long label (Arabic) wraps the buttons to a second row instead of spilling out of the dialog */
   gap: 10px;
   padding: var(--space-4) var(--space-6);
   border-block-start: 1px solid var(--color-neutral-bg);

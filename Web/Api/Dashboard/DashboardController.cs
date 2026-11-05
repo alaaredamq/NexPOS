@@ -27,7 +27,7 @@ public sealed class DashboardController : ApiControllerBase
     [SwaggerOperation(OperationId = "getDashboard")]
     public async Task<DashboardDto> Get() => await _dashboard.GetAsync();
 
-    /// <summary>The sales chart. <c>period</c> is <c>week</c>, <c>month</c> (default), <c>quarter</c> or <c>year</c>; an unknown value means the month.</summary>
+    /// <summary>The sales chart. <c>period</c> is <c>week</c>, <c>month</c> (default), <c>quarter</c>, <c>year</c> or <c>all</c> (since the first sale); an unknown value means the month.</summary>
     [HttpGet("sales-trend")]
     [RequirePermission(PermissionHelper.Permissions.Dashboard_View)]
     [ProducesResponseType<SalesTrendDto>(StatusCodes.Status200OK)]

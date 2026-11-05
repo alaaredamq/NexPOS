@@ -18,10 +18,13 @@ public sealed record ReportsSummaryDto
     public required decimal AverageOrderValue { get; init; }
 }
 
-/// <summary>Sales and order count of one period (cancelled and returned orders are not counted).</summary>
+/// <summary>Sales, profit and order count of one period (cancelled and returned orders are not counted).</summary>
 public sealed record SalesPeriodDto
 {
     public required decimal Sales { get; init; }
+
+    /// <summary>Selling price minus cost price of the lines sold; products without a cost price are left out.</summary>
+    public required decimal Profit { get; init; }
 
     public required int Orders { get; init; }
 }
@@ -38,6 +41,9 @@ public sealed record SalesReportDto
     public required string CurrencyNotation { get; init; }
 
     public required decimal TotalSales { get; init; }
+
+    /// <summary>Selling price minus cost price of the lines sold in the range; products without a cost price are left out (as on the dashboard).</summary>
+    public required decimal TotalProfit { get; init; }
 
     public required int TotalOrders { get; init; }
 

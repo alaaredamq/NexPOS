@@ -177,7 +177,9 @@ public class InventoryController : BaseController
 
             // Update stock
             product.StockQuantity = newStock;
-            await _productService.UpdateAsync(model.ProductId, product);
+            await _productService.UpdateAsync(model.ProductId, product, new ProductChangeContext(
+                model.AdjustmentType == StockAdjustmentType.Add ? ProductHistoryType.StockAdded : ProductHistoryType.StockRemoved,
+                model.Reason));
 
             TempData["SuccessMessage"] = $"Stock adjusted successfully! New stock level: {newStock}";
             return RedirectToAction("Index");

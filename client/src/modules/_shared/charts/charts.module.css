@@ -184,7 +184,7 @@
 .donutAmount {
   color: var(--color-muted);
   min-inline-size: 7ch;
-  text-align: end;
+  text-align: start;
 }
 
 /* ---- panel (chart / table switch) ---- */
@@ -261,7 +261,7 @@
 }
 
 .table .num {
-  text-align: end;
+  text-align: start;
 }
 
 .srOnly {

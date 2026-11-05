@@ -170,6 +170,34 @@ public sealed record SaleReversalDto
     public required decimal DebtReversed { get; init; }
 }
 
+/// <summary>The customer a sale should belong to. Shared by the order and the receipt endpoints: they are the same sale.</summary>
+public sealed class SaleCustomerRequest
+{
+    /// <summary>The customer's id; omitted or <c>null</c> = walk-in. A sale put on a customer's account cannot go back to walk-in.</summary>
+    [Range(1, int.MaxValue)]
+    public int? CustomerId { get; set; }
+}
+
+/// <summary>What changing a sale's customer did.</summary>
+public sealed record SaleCustomerResultDto
+{
+    public required int OrderId { get; init; }
+
+    public required string OrderNumber { get; init; }
+
+    /// <summary>The sale's customer now; <c>null</c> = walk-in.</summary>
+    public int? CustomerId { get; init; }
+
+    /// <summary>False when the sale already belonged to that customer: nothing was touched.</summary>
+    public required bool Changed { get; init; }
+
+    /// <summary>Receipts of the order that now name the new customer.</summary>
+    public required int ReceiptsUpdated { get; init; }
+
+    /// <summary>Amount of debt moved from the old customer's account to the new one (0 unless the sale was on debt).</summary>
+    public required decimal DebtMoved { get; init; }
+}
+
 /// <summary>The order after a status change.</summary>
 public sealed record OrderStatusResultDto
 {

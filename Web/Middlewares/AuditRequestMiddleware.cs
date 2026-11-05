@@ -86,6 +86,9 @@ public sealed class AuditRequestMiddleware
             var action = http.Request.RouteValues["action"]?.ToString();
             var status = failure is not null ? StatusCodes.Status500InternalServerError : http.Response.StatusCode;
 
+            // Opening a page or loading a list is the bulk of the traffic and says nothing worth keeping.
+            if (!AuditRequestRules.ShouldRecord(method, status, failure is not null, options.LogReadRequests)) return;
+
             var description = $"{method} {path} → {status} ({elapsedMs} ms)";
             if (failure is not null) description += $" – {failure.GetType().Name}";
 

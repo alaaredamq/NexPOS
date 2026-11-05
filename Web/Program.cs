@@ -281,6 +281,8 @@ builder.Services.AddScoped<Core.IRepositories.Products.ISupplierRepository, Infr
 builder.Services.AddScoped<Application.IServices.Products.ISupplierService, Application.Services.Products.SupplierService>();
 builder.Services.AddScoped<Core.IRepositories.Products.ISupplierDebtTransactionRepository, Infrastructure.Repositories.Products.SupplierDebtTransactionRepository>();
 builder.Services.AddScoped<Application.IServices.Products.ISupplierDebtService, Application.Services.Products.SupplierDebtService>();
+builder.Services.AddScoped<Core.IRepositories.Products.IProductHistoryRepository, Infrastructure.Repositories.Products.ProductHistoryRepository>();
+builder.Services.AddScoped<Application.IServices.Products.IProductHistoryService, Application.Services.Products.ProductHistoryService>();
 builder.Services.AddScoped<Application.IServices.Products.IProductService, Application.Services.Products.ProductService>();
 builder.Services.AddScoped<Application.IServices.Products.IProductImportExportService, Application.Services.Products.ProductImportExportService>();
 builder.Services.AddScoped<Application.IServices.Products.IMainScreenProductService, Application.Services.Products.MainScreenProductService>();
@@ -347,6 +349,8 @@ builder.Services.AddScoped<Application.IServices.Dashboard.IDashboardService, Ap
 builder.Services.AddScoped<Core.IRepositories.Sales.IReceiptRepository, Infrastructure.Repositories.Sales.ReceiptRepository>();
 builder.Services.AddScoped<Application.IServices.Sales.IReceiptService, Application.Services.Sales.ReceiptService>();
 builder.Services.AddScoped<Application.IServices.Sales.ISaleReversalService, Application.Services.Sales.SaleReversalService>();
+builder.Services.AddScoped<Application.IServices.Purchasing.IPurchaseService, Application.Services.Purchasing.PurchaseService>();
+builder.Services.AddScoped<Application.IServices.Sales.ISaleCustomerService, Application.Services.Sales.SaleCustomerService>();
 
 // Thermal Printer
 // NEXPOS_DEMO=1 swaps in a no-op printer so demos/recordings never print on real hardware.

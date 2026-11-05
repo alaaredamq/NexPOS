@@ -1,4 +1,5 @@
 using Core.Entities.Sales;
+using Core.Enum;
 using Core.IRepositories.Sales;
 using Infrastructure.Data;
 using Infrastructure.Repositories.Classes.Base;
@@ -69,6 +70,24 @@ public class OrderRepository : Repository<Order>, IOrderRepository
                 r.Notation ?? "",
                 r.ItemCount))
             .ToList();
+    }
+
+    public async Task<LifetimeSalesTotals> GetLifetimeTotalsAsync()
+    {
+        var completed = _Context.Set<Order>().AsNoTracking()
+            .Where(o => !o.IsDeleted && o.Status != (int)OrderStatus.Cancelled && o.Status != (int)OrderStatus.Returned);
+
+        // Summed here, not in SQL: SQLite cannot aggregate a decimal column.
+        var totals = await completed.Select(o => o.TotalAmount).ToListAsync();
+        var lines = await completed
+            .SelectMany(o => o.Cart.CartItems)
+            .Where(ci => ci.Product.CostPrice != null)
+            .Select(ci => new { ci.UnitPrice, Cost = ci.Product.CostPrice!.Value, ci.Quantity, ci.WeightOrVolume })
+            .ToListAsync();
+
+        // Same rule as the dashboard's monthly profit: a weighed line counts its weight or volume, a piece line its quantity.
+        var profit = lines.Sum(l => (l.UnitPrice - l.Cost) * (l.WeightOrVolume is { } wv && wv > 0 ? wv : l.Quantity));
+        return new LifetimeSalesTotals(totals.Sum(), profit);
     }
 
     public async Task<HashSet<int>> GetSoldCartIdsAsync(IReadOnlyCollection<int> cartIds)

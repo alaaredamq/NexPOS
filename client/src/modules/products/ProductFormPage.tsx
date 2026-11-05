@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useHref, useNavigate, useParams } from 'react-router-dom'
+import { Link, useHref, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { isApiError } from '@/api/http'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
+import { PageHeader } from '@/ui/PageHeader'
 import { formatMoney, ltrIsolate } from '@/ui/format'
 import { FormError } from '@/ui/form/FormError'
 import { MoneyField } from '@/ui/form/MoneyField'
@@ -53,6 +54,9 @@ function ProductForm({ lookups, product }: { lookups: ProductLookups; product: P
   const save = useSaveProduct(product?.id ?? null)
   const label = useStickerLabel()
   const newProductHref = useHref('/products/new')
+  // `?supplier=ID` (the purchase form's "Add product" window) starts a new product with that supplier chosen.
+  const [search] = useSearchParams()
+  const presetSupplier = Number(search.get('supplier'))
   const [formErrors, setFormErrors] = useState<string[]>([])
   const [generating, setGenerating] = useState(false)
 
@@ -77,7 +81,12 @@ function ProductForm({ lookups, product }: { lookups: ProductLookups; product: P
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema(messages, editing ? 'edit' : 'create')),
-    defaultValues: editing ? formFromProduct(product) : emptyProductForm(lookups),
+    defaultValues: editing
+      ? formFromProduct(product)
+      : {
+          ...emptyProductForm(lookups),
+          ...(lookups.suppliers.some((s) => s.id === presetSupplier) ? { supplierId: presetSupplier } : {}),
+        },
   })
   const { control, handleSubmit, setValue, getValues, clearErrors } = form
   const [currencyId, purchase, selling, isPack] = useWatch({ control, name: ['currencyId', 'purchasePrice', 'sellingPrice', 'isPack'] })
@@ -137,13 +146,10 @@ function ProductForm({ lookups, product }: { lookups: ProductLookups; product: P
 
   return (
     <div className={styles.page}>
-      <div className={styles.top}>
-        <div>
-          <h1 className={styles.title}>{editing ? t('form.editTitle') : t('Prod_CreateTitle', { ns: 'common' })}</h1>
-          <p className={styles.subtitle}>{editing ? product.name : t('Prod_CreateSubtitle', { ns: 'common' })}</p>
-        </div>
-        <Button onClick={() => navigate('/products')}>{t('Prod_BackToProducts', { ns: 'common' })}</Button>
-      </div>
+      <PageHeader
+        title={editing ? t('form.editTitle') : t('Prod_CreateTitle', { ns: 'common' })}
+        back={{ to: '/products', label: t('Prod_BackToProducts', { ns: 'common' }) }}
+      />
 
       <FormProvider {...form}>
         <form className={styles.layout} onSubmit={onSubmit} noValidate>
@@ -191,7 +197,27 @@ function ProductForm({ lookups, product }: { lookups: ProductLookups; product: P
 
             {editing ? (
               product.isPack && (
-                <p className={styles.muted}>{t('form.packReadOnly', { size: product.packSize ?? 0, name: product.singleProductName ?? '' })}</p>
+                <div className={styles.packBox}>
+                  <div className={styles.row}>
+                    <div>
+                      <span className={styles.muted}>{t('Pack Size', { ns: 'common' })}</span>
+                      <div>{product.packSize ?? 0}</div>
+                    </div>
+                    <div>
+                      <span className={styles.muted}>{t('Single Product', { ns: 'common' })}</span>
+                      <div>
+                        {product.singleProductId ? (
+                          <Link className={styles.link} to={`/products/${product.singleProductId}`}>
+                            {product.singleProductName || `#${product.singleProductId}`}
+                          </Link>
+                        ) : (
+                          '—'
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className={styles.muted}>{t('form.packReadOnlyHint')}</p>
+                </div>
               )
             ) : (
               <>

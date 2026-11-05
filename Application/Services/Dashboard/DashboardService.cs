@@ -88,8 +88,9 @@ public class DashboardService : IDashboardService
             // rather than a guessed margin.
             var ordersThisMonth = await _orderService.GetByDateRangeAsync(thisMonthStart, todayEnd);
             var ordersLastMonth = await _orderService.GetByDateRangeAsync(lastMonthStart, lastMonthComparableEnd);
-            var profit = CalculateProfit(ordersThisMonth);
-            var lastMonthProfit = CalculateProfit(ordersLastMonth);
+            var profit = CalculateProfit(ordersThisMonth.Where(IsCompletedSale));
+            var lastMonthProfit = CalculateProfit(ordersLastMonth.Where(IsCompletedSale));
+            var allTime = await _orderService.GetLifetimeTotalsAsync();
             var profitChange = lastMonthProfit > 0 ? Math.Round((profit - lastMonthProfit) / lastMonthProfit * 100, 1) : 0m;
 
             return new DashboardStatsDTO
@@ -111,6 +112,8 @@ public class DashboardService : IDashboardService
                 Profit = profit,
                 ProfitFormatted = FormatCurrency(profit, currencyNotation),
                 ProfitChange = profitChange,
+                AllTimeSales = allTime.Revenue,
+                AllTimeProfit = allTime.Profit,
                 CurrencyNotation = currencyNotation
             };
         }
@@ -157,13 +160,14 @@ public class DashboardService : IDashboardService
             "week" => now.AddDays(-7),
             "quarter" => new DateTime(local.Year, ((local.Month - 1) / 3) * 3 + 1, 1).LocalToUtc(),
             "year" => new DateTime(local.Year, 1, 1).LocalToUtc(),
+            "all" => DateTime.SpecifyKind(new DateTime(2000, 1, 1), DateTimeKind.Utc),
             _ => new DateTime(local.Year, local.Month, 1).LocalToUtc(),
         };
         return (start, now);
     }
 
     private static bool UsesMonthlyBuckets(string period) =>
-        (period ?? "month").ToLowerInvariant() is "quarter" or "year";
+        (period ?? "month").ToLowerInvariant() is "quarter" or "year" or "all";
 
     // Groups completed orders into ordered chart buckets, returning (label, revenue, cost) per bucket.
     // Revenue is Order.TotalAmount (what the customer actually paid, after discounts); cost is COGS.

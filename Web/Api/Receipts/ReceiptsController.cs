@@ -66,6 +66,21 @@ public sealed class ReceiptsController : PosControllerBase
     public async Task<SaleReversalDto> Void(int id, [FromBody] ReceiptVoidRequest request)
         => await _receipts.VoidAsync(id, request.Reason.Trim(), CurrentUserId);
 
+    /// <summary>Changes the customer on the receipt (null = walk-in). The order behind it follows, and a sale on the customer's account moves its debt along.</summary>
+    /// <remarks>
+    /// Same operation as <c>PUT orders/{id}/customer</c>. 409 <c>receipt_already_void</c> / <c>order_closed</c>: a voided receipt keeps its customer;
+    /// 409 <c>customer_not_found</c>; 400 <c>debt_requires_customer</c>: a sale on a customer's account cannot go back to walk-in.
+    /// </remarks>
+    [HttpPut("{id:int}/customer")]
+    [RequirePermission(PermissionHelper.Permissions.Sales_ChangeCustomer)]
+    [SwaggerOperation(OperationId = "updateReceiptCustomer")]
+    [ProducesResponseType<SaleCustomerResultDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
+    public async Task<SaleCustomerResultDto> UpdateCustomer(int id, [FromBody] SaleCustomerRequest request)
+        => await _receipts.ChangeCustomerAsync(id, request.CustomerId, CurrentUserId);
+
     /// <summary>Reprints the receipt on the receipt printer. Never fails because of the printer: <c>printed: false</c> comes with a message and the PDF link.</summary>
     [HttpPost("{id:int}/print")]
     [RequirePermission(PermissionHelper.Permissions.Sales_View)]

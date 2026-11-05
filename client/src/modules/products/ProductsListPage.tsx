@@ -76,7 +76,7 @@ export default function ProductsListPage() {
   const onExport = async () => {
     setExporting(true)
     try {
-      saveDownload(await productsApi.export(), 'products.csv')
+      saveDownload(await productsApi.export(), 'products.xlsx')
     } catch (e) {
       toast.error(isApiError(e) ? e.message : t('list.exportFailed'))
     } finally {
@@ -222,6 +222,7 @@ export default function ProductsListPage() {
         }
         rowActions={(p) => (
           <>
+            <IconButton icon="history" label={t('history.button')} onClick={() => navigate(`/products/${p.id}/history`)} />
             {canEdit && <IconButton icon="edit" label={t('details.edit')} onClick={() => navigate(`/products/${p.id}/edit`)} />}
             <IconButton
               icon="print"

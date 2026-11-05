@@ -293,10 +293,10 @@ public sealed class StickerPdfRequest
     public bool ShowPrice { get; set; } = true;
 }
 
-/// <summary>The multipart body of the import: the CSV and whether to save it.</summary>
+/// <summary>The multipart body of the import: the workbook and whether to save it.</summary>
 public sealed class ProductImportForm
 {
-    /// <summary>The CSV file (UTF-8), at most 10 MB.</summary>
+    /// <summary>The Excel workbook (.xlsx) or a UTF-8 CSV, at most 10 MB.</summary>
     public IFormFile? File { get; set; }
 
     /// <summary>False = only check the file and report (the preview step). True = save the valid rows.</summary>
@@ -323,7 +323,10 @@ public sealed record ProductImportResultDto
     /// <summary>Categories in the file that do not exist yet and are (or would be) created.</summary>
     public required int NewCategories { get; init; }
 
-    /// <summary>Rows skipped because of an error.</summary>
+    /// <summary>Extra prices (Wholesale, ...) that are or would be saved from the Custom Prices sheet.</summary>
+    public required int CustomPrices { get; init; }
+
+    /// <summary>Rows of either sheet skipped because of an error.</summary>
     public required int Failed { get; init; }
 
     /// <summary>The first problems found (capped).</summary>
@@ -336,4 +339,7 @@ public sealed record ProductImportIssueDto
     public required int Row { get; init; }
 
     public required string Message { get; init; }
+
+    /// <summary>The sheet the row is on when it isn't the products sheet (e.g. "Custom Prices").</summary>
+    public string? Sheet { get; init; }
 }

@@ -1,7 +1,7 @@
 import { toDateInputValue } from '@/ui/format'
 
-export type Period = 'week' | 'month' | 'quarter' | 'year'
-export const PERIODS: Period[] = ['month', 'quarter', 'year']
+export type Period = 'week' | 'month' | 'quarter' | 'year' | 'all'
+export const PERIODS: Period[] = ['month', 'quarter', 'year', 'all']
 
 export interface TrendRow {
   /** `yyyy-MM-dd` - the day, or the 1st of the month for quarter / year. */
@@ -10,10 +10,17 @@ export interface TrendRow {
   profit: number
 }
 
-const monthly = (period: Period) => period === 'quarter' || period === 'year'
+const monthly = (period: Period) => period === 'quarter' || period === 'year' || period === 'all'
 
-/** First bucket of the period, the same windows `DashboardService.ResolvePeriodWindow` uses (local calendar). */
-function periodStart(period: Period, today: Date): Date {
+/**
+ * First bucket of the period, the same windows `DashboardService.ResolvePeriodWindow` uses (local calendar). "All" starts at the month of the
+ * first sale the server sent (`firstDate`), or this month when there is none.
+ */
+function periodStart(period: Period, today: Date, firstDate?: string): Date {
+  if (period === 'all') {
+    const [y, m] = (firstDate ?? '').split('-').map(Number)
+    return y && m ? new Date(y, m - 1, 1) : new Date(today.getFullYear(), today.getMonth(), 1)
+  }
   if (period === 'week') return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
   if (period === 'quarter') return new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1)
   if (period === 'year') return new Date(today.getFullYear(), 0, 1)
@@ -26,7 +33,7 @@ function periodStart(period: Period, today: Date): Date {
  */
 export function fillTrend(rows: readonly TrendRow[], period: Period, today: Date = new Date()): TrendRow[] {
   const byDate = new Map(rows.map((r) => [r.date, r]))
-  const start = periodStart(period, today)
+  const start = periodStart(period, today, rows.map((r) => r.date).sort()[0])
   const out: TrendRow[] = []
 
   for (let cursor = new Date(start); cursor <= today; ) {

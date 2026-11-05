@@ -44,6 +44,9 @@ public interface IOrderQueryService
     /// <summary>Throws <see cref="PosRuleException"/>: 404 <c>order_not_found</c>, 409 <c>order_closed</c> / <c>order_cancelled</c>.</summary>
     Task<OrderStatusResultDto> UpdateStatusAsync(int id, int status, int userId);
 
+    /// <summary>Throws <see cref="PosRuleException"/>: 404 <c>order_not_found</c>, 409 <c>order_closed</c> / <c>customer_not_found</c>, 400 <c>debt_requires_customer</c>.</summary>
+    Task<SaleCustomerResultDto> ChangeCustomerAsync(int id, int? customerId, int userId);
+
     /// <summary>The filtered list (every page) as a CSV that opens in Excel.</summary>
     Task<byte[]> ExportAsync(PagedQuery query, OrderListQuery filter);
 }
@@ -56,13 +59,15 @@ public sealed class OrderQueryService : IOrderQueryService
     private readonly IOrderService _orders;
     private readonly IReceiptRepository _receipts;
     private readonly ISaleReversalService _reversal;
+    private readonly ISaleCustomerService _saleCustomer;
 
-    public OrderQueryService(IOrderRepository orderRepo, IOrderService orders, IReceiptRepository receipts, ISaleReversalService reversal)
+    public OrderQueryService(IOrderRepository orderRepo, IOrderService orders, IReceiptRepository receipts, ISaleReversalService reversal, ISaleCustomerService saleCustomer)
     {
         _orderRepo = orderRepo;
         _orders = orders;
         _receipts = receipts;
         _reversal = reversal;
+        _saleCustomer = saleCustomer;
     }
 
     public async Task<PagedResult<OrderListItemDto>> ListAsync(PagedQuery query, OrderListQuery filter)
@@ -185,6 +190,9 @@ public sealed class OrderQueryService : IOrderQueryService
         }
     }
 
+    public async Task<SaleCustomerResultDto> ChangeCustomerAsync(int id, int? customerId, int userId)
+        => await SaleCustomer.ChangeAsync(_saleCustomer, id, customerId, userId);
+
     public async Task<byte[]> ExportAsync(PagedQuery query, OrderListQuery filter)
     {
         var rows = await FilteredAsync(query, filter);
@@ -290,6 +298,38 @@ public static class SalesCodes
     public const string OrderCancelled = "order_cancelled";
 
     public const string ReceiptAlreadyVoid = "receipt_already_void";
+}
+
+/// <summary>Changing a sale's customer, shared by the orders and receipts APIs: the Application service's refusals as the API's rule answers.</summary>
+internal static class SaleCustomer
+{
+    public static async Task<SaleCustomerResultDto> ChangeAsync(ISaleCustomerService service, int orderId, int? customerId, int userId)
+    {
+        try
+        {
+            var result = await service.ChangeCustomerAsync(orderId, customerId, userId);
+            return new SaleCustomerResultDto
+            {
+                OrderId = result.OrderId,
+                OrderNumber = result.OrderNumber,
+                CustomerId = result.CustomerId,
+                Changed = result.Changed,
+                ReceiptsUpdated = result.ReceiptsUpdated,
+                DebtMoved = result.DebtMoved,
+            };
+        }
+        catch (SaleCustomerException ex)
+        {
+            var number = $"ORD-{orderId:D6}";
+            throw ex.Failure switch
+            {
+                SaleCustomerFailure.OrderNotFound => new PosRuleException(StatusCodes.Status404NotFound, PosCodes.OrderNotFound, "Pos_OrderNotFound"),
+                SaleCustomerFailure.CustomerNotFound => new PosRuleException(StatusCodes.Status409Conflict, PosCodes.CustomerNotFound, "Pos_CustomerNotFound", "customerId"),
+                SaleCustomerFailure.OrderClosed => new PosRuleException(StatusCodes.Status409Conflict, SalesCodes.OrderClosed, "Sales_OrderClosedCustomer", null, number),
+                _ => new PosRuleException(StatusCodes.Status400BadRequest, PosCodes.DebtRequiresCustomer, "Sales_DebtSaleNeedsCustomer", "customerId", number),
+            };
+        }
+    }
 }
 
 /// <summary>Picked LOCAL calendar days to UTC bounds for comparing with stored timestamps.</summary>

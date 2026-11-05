@@ -22,6 +22,9 @@ public sealed record OrderListRow(
     string CurrencyNotation,
     int ItemCount);
 
+/// <summary>Revenue and gross profit over every completed (not cancelled or returned) order ever made.</summary>
+public sealed record LifetimeSalesTotals(decimal Revenue, decimal Profit);
+
 /// <summary>Which receipts a list asks for.</summary>
 /// <param name="FromUtc">Inclusive lower bound of <c>ReceiptDate</c> (UTC), or null.</param>
 /// <param name="ToUtc">Inclusive upper bound of <c>ReceiptDate</c> (UTC), or null.</param>

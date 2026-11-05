@@ -96,7 +96,7 @@ function open(path: string, ...permissions: string[]) {
   return mountModule(path, routes)
 }
 
-const ADMIN = [Permissions.Sales_View, Permissions.Sales_Edit]
+const ADMIN = [Permissions.Sales_View, Permissions.Sales_Edit, Permissions.Sales_ChangeCustomer]
 
 describe('url state', () => {
   it('round-trips the filters and leaves the defaults out of the URL', () => {
@@ -240,6 +240,54 @@ describe('receipt details', () => {
     await screen.findByRole('heading', { name: 'RCP-20261031-001' })
 
     expect(screen.queryByRole('button', { name: 'Void Receipt' })).not.toBeInTheDocument()
+  })
+
+  it('offers to change the customer only on a live receipt, and only to someone allowed to change customers', async () => {
+    open('/receipts/1', Permissions.Sales_View)
+    await screen.findByRole('heading', { name: 'RCP-20261031-001' })
+    expect(screen.queryByRole('button', { name: 'Change customer' })).not.toBeInTheDocument()
+
+    // Editing sales (voiding) is not enough: changing the customer is its own permission.
+    open('/receipts/1', Permissions.Sales_View, Permissions.Sales_Edit)
+    await screen.findByRole('heading', { name: 'RCP-20261031-001' })
+    expect(screen.queryByRole('button', { name: 'Change customer' })).not.toBeInTheDocument()
+
+    open('/receipts/1', ...ADMIN)
+    api.routes['GET /api/v1/receipts/1'] = () => json({ ...detail, isVoid: true, voidReason: 'Wrong item', voidDate: '2026-10-31T11:00:00Z', voidedBy: 'Layla Admin' })
+    await screen.findByText('This receipt has been voided.')
+    expect(screen.queryByRole('button', { name: 'Change customer' })).not.toBeInTheDocument()
+  })
+
+  it('moves the sale to the customer picked in the dialog', async () => {
+    open('/receipts/1', ...ADMIN)
+    api.routes['GET /api/v1/pos/customers'] = () => json({ items: [{ id: 3, name: 'Rana Haddad', email: null, balance: 12 }], page: 1, pageSize: 30, hasMore: false })
+    api.routes['PUT /api/v1/receipts/1/customer'] = () => json({ orderId: 41, orderNumber: 'ORD-000041', customerId: 3, changed: true, receiptsUpdated: 1, debtMoved: 0 })
+    fireEvent.click(await screen.findByRole('button', { name: 'Change customer' }))
+    const dialog = await screen.findByRole('dialog')
+    const submit = within(dialog).getByRole('button', { name: 'Change customer' })
+    expect(submit).toBeDisabled() // still Elias Sfeir
+
+    fireEvent.click(within(dialog).getByRole('combobox', { name: 'New customer' }))
+    fireEvent.click(await screen.findByRole('option', { name: /Rana Haddad/ })) // the list is portalled out of the dialog
+    fireEvent.click(submit)
+
+    await waitFor(() => expect(api.calls.find((c) => c.method === 'PUT')?.body).toEqual({ customerId: 3 }))
+    expect(await screen.findByText('The customer was changed.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('clearing the customer sends walk-in, and a refusal stays in the dialog', async () => {
+    open('/receipts/1', ...ADMIN)
+    api.routes['PUT /api/v1/receipts/1/customer'] = () => problem(400, 'debt_requires_customer', 'Order ORD-000041 is on a customer\'s account, so it needs a customer.')
+    fireEvent.click(await screen.findByRole('button', { name: 'Change customer' }))
+    const dialog = await screen.findByRole('dialog')
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Clear selection' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Change customer' }))
+
+    await waitFor(() => expect(api.calls.find((c) => c.method === 'PUT')?.body).toEqual({ customerId: null }))
+    expect(await within(dialog).findByText(/so it needs a customer/)).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('shows the not-found card for a receipt that does not exist', async () => {

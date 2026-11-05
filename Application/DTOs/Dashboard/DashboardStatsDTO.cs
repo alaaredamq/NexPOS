@@ -17,6 +17,8 @@ public class DashboardStatsDTO
     public decimal Profit { get; set; }
     public string ProfitFormatted { get; set; } = string.Empty;
     public decimal ProfitChange { get; set; }
+    public decimal AllTimeSales { get; set; }
+    public decimal AllTimeProfit { get; set; }
     public string CurrencyNotation { get; set; } = "$";
 }
 

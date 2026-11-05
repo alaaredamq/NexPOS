@@ -96,15 +96,12 @@ export function CartLineRow({ line, view, notation, currencyId, settled }: Props
   return (
     <li className={styles.row} data-estimate={settled ? undefined : true}>
       <div className={styles.rowName}>
-        <span className={styles.name}>{line.name}</span>
+        <span className={styles.name} title={each ? `${line.name} - ${each}` : line.name}>
+          {line.name}
+        </span>
         {each && (
           <span className={styles.each} dir="ltr">
             {each}
-          </span>
-        )}
-        {view?.insufficientStock && (
-          <span className={styles.stockWarning} role="status">
-            <Icon name="warning" size={13} /> {t('cartLowStock', { stock: formatQty(view.stockQuantity ?? 0) })}
           </span>
         )}
       </div>

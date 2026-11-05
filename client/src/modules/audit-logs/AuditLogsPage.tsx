@@ -14,7 +14,7 @@ import { saveDownload } from '../_shared/saveDownload'
 import { AuditDrawer } from './AuditDrawer'
 import { AuditFilters } from './AuditFilters'
 import { auditApi, auditKeys, useAuditEntries, useAuditSummary, type AuditEntry, type AuditParams } from './api'
-import { CategoryBadge, formatStamp, OutcomeBadges } from './badges'
+import { AreaBadge, CategoryBadge, formatStamp, OutcomeBadges } from './badges'
 import { EMPTY_FILTERS, hasFilters, PAGE_SIZES, readParams, writeParams } from './listParams'
 import styles from './auditLogs.module.css'
 
@@ -79,6 +79,7 @@ export default function AuditLogsPage() {
           <span className={styles.muted}>—</span>
         ),
     },
+    { key: 'area', header: t('Col_Area'), hideBelow: 800, cell: (e) => <AreaBadge area={e.area} /> },
     { key: 'category', header: t('Col_Type'), hideBelow: 900, cell: (e) => <CategoryBadge category={e.category} /> },
     { key: 'action', header: t('Col_Action'), hideBelow: 1100, cell: (e) => <code className={styles.action}>{e.action}</code> },
     {
