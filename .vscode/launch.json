@@ -29,6 +29,31 @@
         "ELECTRON_MODE": "true"
       },
       "launchSettingsProfile": "Electron"
+    },
+    {
+      "name": "Cloud",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-cloud",
+      "program": "${workspaceFolder}/Cloud/bin/Debug/net9.0/Cloud.dll",
+      "cwd": "${workspaceFolder}/Cloud",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Cloud__AdminUser": "owner",
+        "Cloud__AdminPassword": "dev-password-123"
+      },
+      "launchSettingsProfile": "Cloud",
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(http://\\S+)"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Web + Cloud",
+      "configurations": ["Web [http]", "Cloud"],
+      "stopAll": true
     }
   ]
 }
