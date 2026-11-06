@@ -61,6 +61,10 @@ client/test-results/
 client/playwright-report/
 
 # NexPOS Cloud runtime data and secrets (never commit)
-Cloud/data/
+# Runtime files only. NOT the whole folder: on Windows Cloud/data is the same folder as the source folder Cloud/Data,
+# and ignoring it hid the entities, DbContext and migrations from git.
+Cloud/data/control.db*
+Cloud/data/sites/
+Cloud/data/keys/
 Cloud/design-time.db
 .env
