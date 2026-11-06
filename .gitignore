@@ -59,3 +59,8 @@ Web/wwwroot/app/
 client/node_modules/
 client/test-results/
 client/playwright-report/
+
+# NexPOS Cloud runtime data and secrets (never commit)
+Cloud/data/
+Cloud/design-time.db
+.env

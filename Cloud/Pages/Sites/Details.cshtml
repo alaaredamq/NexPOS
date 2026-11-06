@@ -1,0 +1,319 @@
+@page "{id:guid}"
+@model SiteDetailsModel
+@{
+    ViewData["Title"] = Model.Site?.Name ?? "Till";
+    ViewData["Nav"] = "clients";
+}
+
+@if (Model.Site is null)
+{
+    <div class="list"><div class="empty"><h3>Till not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
+    return;
+}
+
+@{
+    var (healthTone, healthLabel) = Pills.Health(Model.Health);
+    var (planTone, planLabel) = Pills.Plan(Model.State);
+}
+
+<div class="page-head">
+    <div>
+        <a class="crumb" href="/Clients/Details/@Model.Site.ClientId"><svg class="icon"><use href="#i-back"/></svg>@Model.Site.Client.Name</a>
+        <h1>@Model.Site.Name
+            <span class="pill @SiteInsight.Tone(Model.Connection)" style="vertical-align:middle;margin-inline-start:6px">@Model.ConnectionLabel</span>
+            @if (Model.Site.IsDisabled) { <span class="pill bad" style="vertical-align:middle">disabled</span> }
+        </h1>
+        <p class="sub">@Model.ConnectionHelp</p>
+    </div>
+</div>
+
+@if (Model.NewLink is not null)
+{
+    <div class="slip-area">
+        <div class="slip">
+            <div class="head">NexPOS Online</div>
+            <div class="store">@Model.Site.Client.Name</div>
+            <hr />
+            <div class="label">Connection link</div>
+            <div class="link" id="enroll-link">@Model.NewLink</div>
+            <hr />
+            <div class="terms">SINGLE USE<br />VALID UNTIL @Model.NewLinkExpires</div>
+        </div>
+        <div class="slip-copy">
+            <h2>Send this link to the shop owner</h2>
+            <p>It works once and expires on @Model.NewLinkExpires. It is shown only now; if you lose it, make a new one.</p>
+            <ol>
+                <li>The owner opens NexPOS on the shop PC.</li>
+                <li>Settings, then the Online tab: paste the link.</li>
+                <li>Press Connect. That is all.</li>
+            </ol>
+            <div class="row">
+                <button type="button" class="btn tag" data-copy="#enroll-link"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy link</span></button>
+                <a class="btn secondary" target="_blank" rel="noopener" href="@Model.WhatsAppUrl"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
+            </div>
+        </div>
+    </div>
+}
+
+<section class="card" aria-labelledby="contact">
+    <h2 id="contact">Contact</h2>
+    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px">
+        <div>
+            <span class="pill @healthTone">@healthLabel</span>
+            <span class="muted" style="margin-inline-start:6px">@(Model.Site.LastSeenAt is null ? "This till has not contacted the cloud yet." : "Last contact " + Fmt.Ago(Model.Site.LastSeenAt) + " (" + Fmt.Clock(Model.Site.LastSeenAt.Value) + ")")</span>
+        </div>
+    </div>
+    @if (Model.Site.LastSeenAt is not null || Model.Connection == ConnectionState.Connected)
+    {
+        <partial name="_Pulse" model="@(new PulseView(Model.Pulse, true, Fmt))" />
+    }
+    else
+    {
+        <p class="help" style="margin:0">The 24-hour strip appears here once this till has contacted the cloud.</p>
+    }
+</section>
+
+<section class="card" aria-labelledby="connection">
+    <h2 id="connection">Connection</h2>
+    <div class="row">
+        <form method="post" asp-page-handler="NewLink" asp-route-id="@Model.Site.Id">
+            <button type="submit" class="btn @(Model.Connection == ConnectionState.Connected ? "secondary" : "tag")">@(Model.Connection == ConnectionState.Connected ? "Reconnect this till (new link)" : "Create connection link")</button>
+        </form>
+        @if (Model.Connection is ConnectionState.Connected or ConnectionState.WaitingForTill)
+        {
+            <form method="post" asp-page-handler="Disconnect" asp-route-id="@Model.Site.Id"
+                  data-confirm-title="Disconnect this till?" data-confirm-yes="Disconnect"
+                  data-confirm="Its access is removed at once and any unused link stops working. The shop keeps selling; it only stops sending data. To connect it again you create a new link.">
+                <button type="submit" class="btn danger">Disconnect</button>
+            </form>
+        }
+    </div>
+</section>
+
+<div class="grid2 gap">
+    <section class="card" aria-labelledby="sync">
+        <h2 id="sync">Sync</h2>
+        <dl class="facts">
+            <dt>Last data</dt><dd>@(Model.Site.LastSyncAt is null ? "none yet" : Fmt.Clock(Model.Site.LastSyncAt.Value) + " · " + Fmt.Ago(Model.Site.LastSyncAt))</dd>
+            <dt>Online plan</dt><dd><span class="pill @planTone">@planLabel</span></dd>
+            <dt>Machine ID</dt><dd class="mono">@(Model.Site.MachineId ?? "-")</dd>
+            <dt>Till version</dt><dd class="mono" style="font-weight:400">@(Model.Site.LastSchemaVersion ?? "-")</dd>
+        </dl>
+        <div class="row" style="margin-top:16px">
+            <form method="post" asp-page-handler="Resync" asp-route-id="@Model.Site.Id">
+                <button type="submit" class="btn secondary sm" @(Model.Site.ResyncRequested ? "disabled" : null)>@(Model.Site.ResyncRequested ? "Resync requested" : "Request full resync")</button>
+            </form>
+            <form method="post" asp-page-handler="ToggleDisabled" asp-route-id="@Model.Site.Id"
+                  data-confirm-title="@(Model.Site.IsDisabled ? "Enable this till?" : "Disable this till?")" data-confirm-yes="@(Model.Site.IsDisabled ? "Enable" : "Disable")"
+                  data-confirm="@(Model.Site.IsDisabled ? "It can send data again." : "It is blocked from the cloud until you enable it. The shop keeps selling.")">
+                <button type="submit" class="btn sm @(Model.Site.IsDisabled ? "secondary" : "danger")">@(Model.Site.IsDisabled ? "Enable" : "Disable")</button>
+            </form>
+        </div>
+        <p class="help">A full resync wipes this till's cloud copy and uploads everything again. Use it after the till restored a backup.</p>
+    </section>
+
+    <section class="card" aria-labelledby="mirror">
+        <h2 id="mirror">What the cloud holds</h2>
+        @if (Model.Counts.Count == 0)
+        {
+            <p class="muted">No data received yet.</p>
+        }
+        else
+        {
+            <div class="ledger">
+                @foreach (var c in Model.Counts) { <div><b>@c.Value.ToString("N0")</b><span>@c.Key</span></div> }
+            </div>
+            <p class="help">These should match the till.</p>
+        }
+    </section>
+</div>
+
+<section class="card">
+    <details class="fold">
+        <summary>Recent uploads <span class="muted" style="font-weight:400;font-size:14px">(@Model.Logs.Count)</span></summary>
+        @if (Model.Logs.Count == 0)
+        {
+            <p class="muted">Nothing uploaded yet.</p>
+        }
+        else
+        {
+            <table class="t">
+                <thead><tr><th>When</th><th>Changes</th><th>Result</th><th>Took</th></tr></thead>
+                <tbody>
+                @foreach (var l in Model.Logs)
+                {
+                    <tr>
+                        <td>@Fmt.Clock(l.ReceivedAt)</td>
+                        <td>@l.Changes.ToString("N0") @(l.Initial ? "(first upload)" : "")</td>
+                        <td><span class="pill @(l.Outcome == "applied" ? "ok" : "bad")">@l.Outcome</span> @l.Error</td>
+                        <td>@l.DurationMs ms</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </details>
+</section>
+
+<section class="card">
+    <details class="fold" open="@(Model.NewToken is not null)">
+        <summary>Advanced: device tokens and manual set-up</summary>
+        <table class="t">
+            <tbody>
+            @foreach (var t in Model.Site.Tokens.OrderByDescending(x => x.CreatedAt))
+            {
+                <tr>
+                    <td><code>@t.Prefix&hellip;</code></td>
+                    <td>@(t.RevokedAt is null ? "active" : "revoked")</td>
+                    <td class="muted">@(t.LastUsedAt is null ? "never used" : "used " + Fmt.Ago(t.LastUsedAt))</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        @if (Model.NewToken is not null)
+        {
+            <div class="notice">
+                <strong>Copy this device token now. It is shown only once.</strong>
+                <div class="token">@Model.NewToken</div>
+                <p>Manual alternative to the link: create <code>%LocalAppData%\NexPOS\online.json</code> on the till and restart NexPOS:</p>
+<pre>{
+  "Online": {
+    "Enabled": true,
+    "CloudUrl": "@Model.BaseUrl",
+    "DeviceToken": "@Model.NewToken"
+  }
+}</pre>
+            </div>
+        }
+        <form method="post" asp-page-handler="IssueToken" asp-route-id="@Model.Site.Id"
+              data-confirm-title="Issue a raw token?" data-confirm-yes="Issue token"
+              data-confirm="The current device token stops working at once. The till must be given the new one by hand.">
+            <button type="submit" class="btn secondary sm">Issue a raw device token (revokes the current one)</button>
+        </form>
+        <p class="help">Normally you never need this: the connection link does it for you.</p>
+    </details>
+</section>
+
+@functions {
+    public class SiteDetailsModel(
+        ControlDbContext db, MirrorStore mirrors, EnrollmentService enrollment, PortalFormat fmt, TimeProvider time,
+        Microsoft.Extensions.Options.IOptions<CloudOptions> options) : PageModel
+    {
+        private static readonly string[] SummaryTables = ["Products", "Customers", "Suppliers", "Orders", "Purchases", "Receipts"];
+
+        public Site? Site { get; private set; }
+        public SubscriptionState State { get; private set; }
+        public SyncHealth Health { get; private set; }
+        public ConnectionState Connection { get; private set; }
+        public PulseData Pulse { get; private set; } = PulseData.Build([], DateTime.UtcNow);
+        public IReadOnlyDictionary<string, long> Counts { get; private set; } = new Dictionary<string, long>();
+        public List<SyncBatchLog> Logs { get; private set; } = [];
+        public string? NewToken { get; private set; }
+        public string? NewLink { get; private set; }
+        public string? NewLinkExpires { get; private set; }
+
+        public string BaseUrl => string.IsNullOrWhiteSpace(options.Value.PublicUrl)
+            ? $"{Request.Scheme}://{Request.Host}"
+            : options.Value.PublicUrl.TrimEnd('/');
+
+        public string WhatsAppUrl => "https://wa.me/?text=" + Uri.EscapeDataString(
+            "NexPOS Online: open NexPOS > Settings > Online, paste this link and press Connect.\n" +
+            "لتفعيل NexPOS Online: افتح الإعدادات ثم Online والصق هذا الرابط واضغط Connect.\n" + NewLink);
+
+        public string ConnectionLabel => SiteInsight.Label(Connection);
+        public string ConnectionHelp => SiteInsight.Help(Connection);
+
+        public async Task<IActionResult> OnGetAsync(Guid id)
+        {
+            Site = await db.Sites.Include(s => s.Client).ThenInclude(c => c.Subscription)
+                .Include(s => s.Tokens).Include(s => s.EnrollmentCodes)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (Site is null) return NotFound();
+
+            var now = fmt.Now;
+            State = SubscriptionRules.Evaluate(Site.Client.Subscription, now);
+            Health = SyncHealthRules.Classify(Site.LastSeenAt, now);
+            Connection = SiteInsight.Connection(Site, now);
+
+            var since = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc).AddHours(-23);
+            Pulse = PulseData.Build(await db.SiteHeartbeats.AsNoTracking().Where(h => h.SiteId == id && h.Hour >= since).ToListAsync(), now);
+
+            Counts = mirrors.CountRows(id, SummaryTables);
+            Logs = await db.SyncBatchLogs.AsNoTracking().Where(l => l.SiteId == id).OrderByDescending(l => l.Id).Take(20).ToListAsync();
+            NewToken = TempData["NewToken"] as string;
+            NewLink = TempData["NewLink"] as string;
+            // TempData hands back anything that looks like a date as a DateTime, so a plain `as string` would read null.
+            NewLinkExpires = TempData["NewLinkExpires"] switch { DateTime d => d.ToString("yyyy-MM-dd"), string s => s, _ => null };
+            return Page();
+        }
+
+        private Task<Site?> TrackedAsync(Guid id)
+            => db.Sites.Include(s => s.Tokens).FirstOrDefaultAsync(s => s.Id == id);
+
+        private void Log(Site site, string text)
+            => db.ClientEvents.Add(new ClientEvent { ClientId = site.ClientId, At = time.GetUtcNow().UtcDateTime, Text = $"[{site.Name}] {text}" });
+
+        public async Task<IActionResult> OnPostNewLinkAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            var issued = await enrollment.IssueAsync(id);
+            TempData["NewLink"] = $"{BaseUrl}/enroll/{issued.Display}";
+            TempData["NewLinkExpires"] = issued.ExpiresAt.ToString("yyyy-MM-dd");
+            Log(site, "Connection link created.");
+            await db.SaveChangesAsync();
+            this.Flash("Connection link created");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostDisconnectAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            var now = time.GetUtcNow().UtcDateTime;
+            foreach (var t in site.Tokens.Where(t => t.RevokedAt == null)) t.RevokedAt = now;
+            await enrollment.CancelOpenCodesAsync(id);
+            Log(site, "Disconnected.");
+            await db.SaveChangesAsync();
+            this.Flash("Disconnected");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostIssueTokenAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            var now = time.GetUtcNow().UtcDateTime;
+            foreach (var old in site.Tokens.Where(t => t.RevokedAt == null)) old.RevokedAt = now;
+            var (token, hash, prefix) = DeviceTokens.Generate();
+            site.Tokens.Add(new DeviceToken { TokenHash = hash, Prefix = prefix, CreatedAt = now });
+            Log(site, "Device token issued manually.");
+            await db.SaveChangesAsync();
+            TempData["NewToken"] = token;
+            this.Flash("Device token issued");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostResyncAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            site.ResyncRequested = true;
+            Log(site, "Full resync requested.");
+            await db.SaveChangesAsync();
+            this.Flash("Full resync requested. It starts at the till's next contact");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostToggleDisabledAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            site.IsDisabled = !site.IsDisabled;
+            Log(site, site.IsDisabled ? "Installation disabled." : "Installation enabled.");
+            await db.SaveChangesAsync();
+            this.Flash(site.IsDisabled ? "Till disabled" : "Till enabled");
+            return RedirectToPage(new { id });
+        }
+    }
+}

@@ -145,6 +145,11 @@ builder.Services.AddDbContext<ErpDbContext>(options =>
 builder.Services.AddDbContextFactory<ErpDbContext>(options =>
     options.UseSqlite(sqliteConnectionString), ServiceLifetime.Scoped);
 
+// ✅ Online mirror (optional paid service). Off unless the owner connects it (Settings > Online, which writes
+// online.json beside the database): until then the hosted service leaves the database untouched and makes no request.
+// See docs/online/PLATFORM.md.
+builder.Services.AddOnlineSync(builder.Configuration, AppDataPathProvider.GetOnlineSettingsFilePath());
+
 builder.Services.AddMemoryCache();
 // Backs ISession (DistributedSessionStore). In-process only — CacheService no longer
 // uses IDistributedCache, so nothing here pays a serialization cost.
@@ -459,8 +464,33 @@ using (auditContext.SuppressDataChanges("schema migration"))
     var dbContext = migrationScope.ServiceProvider.GetRequiredService<ErpDbContext>();
     try
     {
+        // A power cut or crash in the middle of an earlier upgrade leaves a half-upgraded database. Put the copy made before it back
+        // first, so the upgrade below starts from a clean state.
+        var interruptedUpgrade = Infrastructure.Data.PreUpgradeGuard.RecoverInterruptedUpgrade(AppDataPathProvider.GetDatabaseFilePath());
+        if (interruptedUpgrade is not null)
+            Log.Warning("A previous database upgrade was interrupted (power cut or crash). The database was put back from {Backup} and the upgrade will run again", interruptedUpgrade);
+
         var pendingMigrations = dbContext.Database.GetPendingMigrations().ToList();
-        dbContext.Database.Migrate();
+
+        // Data safety first (docs/online/STORE-SERVER.md, step 1): copy the database and prove the copy is sound BEFORE changing
+        // anything, check the result AFTER, and put the copy back if either the upgrade or the check fails. If the copy cannot be
+        // made (disk full ...) the upgrade does not run at all.
+        var guard = Infrastructure.Data.PreUpgradeGuard.Begin(AppDataPathProvider.GetDatabaseFilePath(), pendingMigrations);
+        try
+        {
+            dbContext.Database.Migrate();
+            guard?.VerifyAfterUpgrade();
+        }
+        catch (Exception upgradeFailure) when (guard is not null)
+        {
+            Log.Fatal(upgradeFailure, "The database upgrade failed or its result did not check out; restoring the copy made just before it ({Backup})", guard.BackupPath);
+            dbContext.Database.CloseConnection();
+            guard.Restore();
+            throw new InvalidOperationException(
+                $"The database upgrade did not succeed and your data was put back exactly as it was ({guard.BackupPath}). " +
+                $"Reason: {upgradeFailure.Message}", upgradeFailure);
+        }
+        guard?.Commit();
 
         // Permission rows for everything the code can check, plus the one-time default grants for built-in roles.
         await migrationScope.ServiceProvider.GetRequiredService<Web.Services.IRoleAccessService>().EnsureCatalogAsync();
@@ -469,7 +499,7 @@ using (auditContext.SuppressDataChanges("schema migration"))
         {
             auditTrail.LogSystem(AuditActions.MigrationsApplied,
                 $"Applied {pendingMigrations.Count} database migration(s): {string.Join(", ", pendingMigrations)}",
-                "Database", details: new { migrations = pendingMigrations });
+                "Database", details: new { migrations = pendingMigrations, safetyCopy = guard?.BackupPath });
         }
     }
     catch (Exception ex)

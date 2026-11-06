@@ -1,0 +1,136 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Clients";
+    ViewData["Nav"] = "clients";
+}
+
+<div class="page-head">
+    <div>
+        <h1>Clients</h1>
+        <p class="sub">@Model.Summary</p>
+    </div>
+    <a class="btn tag" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>New client</a>
+</div>
+
+@if (Model.Attention.Count > 0)
+{
+    <section class="card attention" aria-labelledby="needs">
+        <h2 id="needs">Needs you <span class="count">@Model.Attention.Count</span></h2>
+        @foreach (var a in Model.Attention)
+        {
+            <div class="attn @(a.Severity == AttentionSeverity.Bad ? "bad" : "")">
+                <i aria-hidden="true"></i>
+                <div><b>@a.Client</b> <span>@a.Reason</span></div>
+                <a class="btn sm secondary" href="@a.Href">@a.Action</a>
+            </div>
+        }
+    </section>
+}
+
+@if (Model.Rows.Count == 0)
+{
+    <div class="list"><div class="empty">
+        <h3>No clients yet</h3>
+        <p>Add the first shop. You get a link to send the owner; they paste it on the shop PC and the shop connects.</p>
+        <a class="btn tag" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>Add the first client</a>
+    </div></div>
+}
+else
+{
+    <div class="toolbar">
+        <div class="search">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input type="text" data-search placeholder="Search clients" aria-label="Search clients" autocomplete="off" />
+        </div>
+        <div class="chips" role="group" aria-label="Filter clients">
+            <button type="button" class="chip" data-chip="all" aria-pressed="true">All<span class="n">@Model.Rows.Count</span></button>
+            <button type="button" class="chip" data-chip="connected" aria-pressed="false">Connected<span class="n">@Model.Rows.Count(r => r.Tags.Contains("connected"))</span></button>
+            <button type="button" class="chip" data-chip="waiting" aria-pressed="false">Waiting for a link<span class="n">@Model.Rows.Count(r => r.Tags.Contains("waiting"))</span></button>
+            <button type="button" class="chip" data-chip="attention" aria-pressed="false">Needs you<span class="n">@Model.Rows.Count(r => r.Tags.Contains("attention"))</span></button>
+        </div>
+    </div>
+
+    <div class="list" data-list>
+        <div class="list-head"><span>Client</span><span>Online plan</span><span>Last 24 hours</span><span>Last contact</span><span></span></div>
+        @foreach (var r in Model.Rows)
+        {
+            var (tone, label) = Pills.Plan(r.State);
+            <a class="item" href="/Clients/Details/@r.Id" data-row data-name="@r.Name.ToLowerInvariant()" data-tags="@string.Join(' ', r.Tags)">
+                <span>
+                    <span class="name">@r.Name @if (!r.IsActive) { <span class="pill none plain">inactive</span> }</span>
+                    <span class="sub">@r.Sub</span>
+                </span>
+                <span class="plan">
+                    <span class="pill @tone">@label</span>
+                    <small>@r.PlanNote</small>
+                </span>
+                <partial name="_Pulse" model="@(new PulseView(r.Pulse, false, Fmt))" />
+                <span class="seen">@r.Seen</span>
+                <svg class="icon chev" aria-hidden="true"><use href="#i-chev"/></svg>
+            </a>
+        }
+        <div class="empty" data-none hidden><h3>No match</h3><p>No client matches that search and filter.</p></div>
+    </div>
+}
+
+@functions {
+    public sealed record ClientRow(
+        int Id, string Name, bool IsActive, string Sub, SubscriptionState State, string PlanNote,
+        PulseData Pulse, string Seen, string[] Tags);
+
+    public class IndexModel(ControlDbContext db, PortalFormat fmt) : PageModel
+    {
+        public List<ClientRow> Rows { get; private set; } = [];
+        public List<AttentionItem> Attention { get; private set; } = [];
+        public string Summary { get; private set; } = "";
+
+        public async Task OnGetAsync()
+        {
+            var now = fmt.Now;
+            var clients = await db.Clients.AsNoTracking()
+                .Include(c => c.Subscription)
+                .Include(c => c.Sites).ThenInclude(s => s.Tokens)
+                .Include(c => c.Sites).ThenInclude(s => s.EnrollmentCodes)
+                .OrderBy(c => c.Name).ToListAsync();
+
+            var since = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc).AddHours(-23);
+            var beats = (await db.SiteHeartbeats.AsNoTracking().Where(h => h.Hour >= since).ToListAsync())
+                .ToLookup(h => h.SiteId);
+
+            var attention = new List<(AttentionItem Item, int ClientId)>();
+            Rows = clients.Select(c =>
+            {
+                var items = AttentionRules.For(c, now, fmt);
+                attention.AddRange(items.Select(i => (i, c.Id)));
+
+                var states = c.Sites.Where(s => !s.IsDisabled).Select(s => SiteInsight.Connection(s, now)).ToList();
+                var tags = new List<string>();
+                if (states.Contains(ConnectionState.Connected)) tags.Add("connected");
+                if (states.Any(s => s is ConnectionState.WaitingForTill or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0) tags.Add("waiting");
+                if (items.Count > 0) tags.Add("attention");
+
+                // A client with several tills is one strip: an hour is lit when any of its tills was heard from.
+                var pulse = PulseData.Build(c.Sites.SelectMany(s => beats[s.Id]), now);
+                var seenAt = c.Sites.Where(s => s.LastSeenAt != null).Select(s => s.LastSeenAt).DefaultIfEmpty().Max();
+                var state = SubscriptionRules.Evaluate(c.Subscription, now);
+
+                var sub = c.Sites.Count switch { 0 => "No till yet", 1 => "1 till", var n => $"{n} tills" };
+                if (!string.IsNullOrWhiteSpace(c.Phone)) sub += " · " + c.Phone;
+
+                return new ClientRow(c.Id, c.Name, c.IsActive, sub, state,
+                    c.Subscription is null ? "" : state is SubscriptionState.Active or SubscriptionState.Grace
+                        ? $"ends {fmt.Until(c.Subscription.ExpiresAt)} · {fmt.Day(c.Subscription.ExpiresAt)}"
+                        : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
+                    pulse,
+                    seenAt is null ? (c.Sites.Count == 0 ? "No till yet" : "Not connected yet") : fmt.Ago(seenAt),
+                    tags.ToArray());
+            }).ToList();
+
+            Attention = attention.OrderByDescending(a => a.Item.Severity).ThenBy(a => a.Item.Client).Select(a => a.Item).ToList();
+            var connected = Rows.Count(r => r.Tags.Contains("connected"));
+            Summary = Rows.Count == 0 ? "Nobody yet."
+                : $"{Rows.Count} client{(Rows.Count == 1 ? "" : "s")} · {connected} connected" + (Attention.Count > 0 ? $" · {Attention.Count} need{(Attention.Count == 1 ? "s" : "")} you" : "");
+        }
+    }
+}

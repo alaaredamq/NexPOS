@@ -799,6 +799,7 @@
   "Set_LogoHelp": "PNG, JPG, SVG or WebP, up to 2 MB. A wide logo on a transparent background works best.",
   "Set_NameTooLong": "The app name can be at most {{0}} characters.",
   "Set_NotDetected": "(not detected)",
+  "Set_Online": "Online",
   "Set_PrintersLabels": "Printers & Labels",
   "Set_PrintersLabelsDesc": "Receipt printer and barcode sticker printer and size.",
   "Set_PrintersSubtitle": "Choose the receipt printer and set up barcode stickers",

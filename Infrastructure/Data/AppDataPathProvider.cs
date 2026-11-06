@@ -80,6 +80,23 @@ public static class AppDataPathProvider
             : Path.Combine(GetAppDataDirectory(), "license.nxl");
     }
 
+    /// <summary>
+    /// The Online (cloud mirror) settings file. Like the audit file it follows a redirected demo/test database into that
+    /// database's folder, so a developer's real enrolment is never picked up by a demo run.
+    /// </summary>
+    public static string GetOnlineSettingsFilePath()
+    {
+        var redirectedDb = Environment.GetEnvironmentVariable(DatabasePathEnvVar);
+        if (!string.IsNullOrWhiteSpace(redirectedDb))
+        {
+            var folder = Path.GetDirectoryName(Path.GetFullPath(redirectedDb))!;
+            Directory.CreateDirectory(folder);
+            return Path.Combine(folder, "online.json");
+        }
+
+        return Path.Combine(GetAppDataDirectory(), "online.json");
+    }
+
     /// <summary>The per-user NexPOS folder (%LocalAppData%\NexPOS), created on first use.</summary>
     public static string GetAppDataDirectory()
     {

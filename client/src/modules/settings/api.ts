@@ -17,6 +17,7 @@ export const settingsKeys = {
   printing: [...root, 'printing'] as const,
   printers: [...root, 'printers'] as const,
   branding: [...root, 'branding'] as const,
+  online: [...root, 'online'] as const,
 }
 
 export function useStoreSettings() {
@@ -94,5 +95,44 @@ export function useSaveBranding() {
       client.setQueryData(settingsKeys.branding, saved)
       return client.invalidateQueries({ queryKey: queryKeys.session })
     },
+  })
+}
+
+// ---- Online (cloud mirror) ----
+
+export type OnlineStatus = Schemas['OnlineStatusDto']
+
+export function useOnlineStatus() {
+  return useQuery({
+    queryKey: settingsKeys.online,
+    queryFn: ({ signal }) => http.get<OnlineStatus>('/online', { signal }),
+    // The background sync reports its progress here; checking every few seconds keeps "last synced" honest without a manual refresh.
+    refetchInterval: 10_000,
+  })
+}
+
+export function useConnectOnline() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (link: string) => http.post<OnlineStatus>('/online/connect', { link }),
+    onSuccess: (status) => client.setQueryData(settingsKeys.online, status),
+  })
+}
+
+export function useDisconnectOnline() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => http.post<OnlineStatus>('/online/disconnect'),
+    onSuccess: (status) => client.setQueryData(settingsKeys.online, status),
+  })
+}
+
+export function useSyncOnlineNow() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => http.post<OnlineStatus>('/online/sync-now'),
+    onSuccess: (status) => client.setQueryData(settingsKeys.online, status),
+    // The push happens in the background; look again shortly for its result.
+    onSettled: () => window.setTimeout(() => void client.invalidateQueries({ queryKey: settingsKeys.online }), 2500),
   })
 }

@@ -1,0 +1,15 @@
+**/bin
+**/obj
+**/node_modules
+client
+dist
+publish
+logs
+docs
+assets
+Web/wwwroot
+*.db
+*.db-shm
+*.db-wal
+.git
+.vs

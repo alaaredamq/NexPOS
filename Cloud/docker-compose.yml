@@ -1,0 +1,43 @@
+# One small server is enough to start: NexPOS Cloud behind Caddy, which gets and renews the HTTPS certificate by itself.
+#
+#   1. Point a DNS name (for example cloud.yourdomain.com) at the server.
+#   2. Create a .env file next to this one:
+#        CLOUD_DOMAIN=cloud.yourdomain.com
+#        CLOUD_ADMIN_USER=owner
+#        CLOUD_ADMIN_PASSWORD=<at least 12 characters>
+#   3. From the repository root:  docker compose -f Cloud/docker-compose.yml up -d --build
+#
+# Back up the cloud-data volume (control.db, sites/*.db, keys/). It is everything.
+services:
+  cloud:
+    build:
+      context: ..
+      dockerfile: Cloud/Dockerfile
+    restart: unless-stopped
+    environment:
+      Cloud__AdminUser: ${CLOUD_ADMIN_USER:?set CLOUD_ADMIN_USER in .env}
+      Cloud__AdminPassword: ${CLOUD_ADMIN_PASSWORD:?set CLOUD_ADMIN_PASSWORD in .env}
+      # Connection links are built from this, so they carry your real https address whatever the portal was opened on.
+      Cloud__PublicUrl: https://${CLOUD_DOMAIN}
+    volumes:
+      - cloud-data:/data
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CLOUD_DOMAIN: ${CLOUD_DOMAIN:?set CLOUD_DOMAIN in .env}
+    command: caddy reverse-proxy --from ${CLOUD_DOMAIN} --to cloud:8080
+    volumes:
+      - caddy-data:/data
+    depends_on:
+      - cloud
+
+volumes:
+  cloud-data:
+  caddy-data:

@@ -1,0 +1,25 @@
+@model PulseView
+@{
+    var cells = Model.Data.Cells;
+    var lit = Model.Data.LitHours;
+    var last = cells.Count - 1;
+}
+<div class="pulse-wrap">
+    <ol class="pulse @(Model.Large ? "lg" : "")" aria-label="Contact in each of the last 24 hours: @lit of 24 hours">
+        @for (var i = 0; i < cells.Count; i++)
+        {
+            var c = cells[i];
+            var cls = (c.Contacts > 0 ? "on" : "off") + (c.Contacts >= 6 ? " busy" : "") + (i == last ? " now" : "");
+            <li class="@cls" title="@Model.Fmt.Local(c.HourUtc).ToString("ddd HH:00") · @(c.Contacts == 0 ? "no contact" : c.Contacts + " contact" + (c.Contacts == 1 ? "" : "s"))"></li>
+        }
+    </ol>
+    @if (Model.Large)
+    {
+        <div class="pulse-axis" aria-hidden="true"><span>24 h ago</span><span>12 h</span><span>now</span></div>
+        <p class="pulse-sum">
+            @if (lit == 0) { <text>No contact in the last 24 hours.</text> }
+            else if (lit == 24) { <text>In contact every hour of the last 24.</text> }
+            else { <text>In contact in <b>@lit of the last 24 hours</b>. Grey hours are when the till's PC could not be reached: switched off, no power or no internet.</text> }
+        </p>
+    }
+</div>

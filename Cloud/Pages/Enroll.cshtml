@@ -1,0 +1,42 @@
+@page "/enroll/{code?}"
+@model EnrollModel
+@{
+    ViewData["Title"] = "Connect your till";
+    ViewData["Bare"] = true;
+}
+
+@* Public on purpose, so a link sent on WhatsApp opens to instructions instead of an error. It never looks the code up or shows who it belongs to. *@
+<div class="auth">
+    <section class="side">
+        <a class="brand" href="#" aria-label="NexPOS Online">
+            <span class="mark" aria-hidden="true">N</span>
+            <span><b>NexPOS</b><span>Online</span></span>
+        </a>
+        <div>
+            <h1>Connect your <em>till.</em></h1>
+            <p>Three steps, once. After that your shop copies itself to the cloud, all day, by itself.</p>
+        </div>
+        <small class="muted" style="color:var(--rail-ink);opacity:.7">Selling never waits for Online. If the internet drops, sales are kept on your PC and sent later.</small>
+    </section>
+    <section class="form">
+        <div class="box" style="max-width:460px">
+            <h2>What to do</h2>
+            <ol class="steps">
+                <li><span>Open <b>NexPOS</b> on the shop computer and sign in.</span></li>
+                <li><span>Go to <b>Settings</b>, then the <b>Online</b> tab.</span></li>
+                <li><span>Paste the <b>address of this page</b> and press <b>Connect</b>.</span></li>
+            </ol>
+            <div class="token" id="page-link" dir="ltr"></div>
+            <p><button type="button" class="btn" data-copy="#page-link"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy this page's address</span></button></p>
+            <p class="help">The link works once and expires after a week. If it stops working, ask your provider for a new one.</p>
+            <p dir="rtl" class="help">افتح NexPOS ثم الإعدادات ثم Online، والصق عنوان هذه الصفحة واضغط Connect.</p>
+        </div>
+    </section>
+</div>
+<script>document.getElementById('page-link').textContent = window.location.href;</script>
+
+@functions {
+    public class EnrollModel : PageModel
+    {
+    }
+}

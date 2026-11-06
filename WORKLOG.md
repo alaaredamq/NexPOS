@@ -124,6 +124,68 @@ Caveat recorded at proposal time: React will not fix the things that make the PO
 
 ## Session Log
 
+### 2026-11-06 — O3: store-server design, upgrade safety net, portal redesign (branch `online/platform`)
+
+Why: the owner wants stores with several PCs, nothing lost or broken for clients, and a portal that no longer looks like
+"basic cshtml pages". Design agreed: each store has ONE main database on one PC in the store (store server), tills use it over
+the shop network, only the store server talks to the cloud. No GUID migration (one database per store keeps integer ids).
+
+- **Design only, not built:** `docs/online/STORE-SERVER.md` (rule, data ownership, failure table, open issues: printing from
+  tills, how licences count tills, LAN security, discovery, SQLite scale; order of work).
+- **Built: upgrade safety net** (`Infrastructure/Data/PreUpgradeGuard.cs`, wired in `Web/Program.cs`): verified copy before any
+  upgrade, check after (integrity, new broken links, lost rows), restore on failure, and recovery of a half-done upgrade after a
+  power cut at the next start; newest 5 copies kept. Applies to every client PC. Details: PLATFORM.md 5a. Trade-off: with a full
+  disk the upgrade refuses to run.
+- **Built: portal redesign** (`Cloud/`): left rail, "Needs you" panel, client list with search and filters, **24-hour contact
+  strip** per till (new `SiteHeartbeat` table, migration `AddSiteHeartbeats`, `Site.LastSeenAt`), receipt-style connection link,
+  toasts, confirm dialogs, phone layout, local time zone (`Cloud__TimeZone`, default Asia/Beirut). Health is now judged on
+  contact, not on data (a closed shop sends no data overnight): "in contact" means heard from in the last 25 minutes.
+- **Guide:** `docs/online/HOW-TO-CONNECT.html` rewritten to match, with new real screenshots, a "Reading the portal" part, the
+  upgrade safety net, and the store-server plan marked as not built.
+- **Found by looking at screenshots (tests missed them):** the strip overflowed its column and, on the till page, made the page
+  23,887 px wide; the search icon sat on its placeholder. All fixed; the tests do not check layout,
+  so UI changes need a look at screenshots.
+- **Verified:** `Cloud.Tests` 149, `Tests` 1007 (994 + 13 guard tests), real app started on a genuinely old database made the
+  copy first. Not tried on a client's PC.
+- **Not done:** everything in STORE-SERVER.md sections 3 to 6 beyond the safety net; Docker image still never built.
+
+### 2026-11-06 — O2: one-link installation of NexPOS Online (branch `online/platform`)
+
+Why: installing Online took six manual steps (client, installation, token, hand-written JSON file, restart). It had to be
+easy for a non-technical owner. Decisions O13-O16 in `docs/online/PLATFORM.md`.
+
+- **Portal:** "New client" now also creates the installation and shows a one-time connection link with Copy and WhatsApp
+  buttons. Public `/enroll/<code>` page (instructions only, never looks the code up). `POST /api/enroll` redeems the code
+  for a device token. Codes: 60 bits, stored hashed, single-use, 7 days, a new link cancels the old one. Migration `AddEnrollmentCodes`.
+- **Till:** Settings > Online tab (EN/AR): paste the link (a whole WhatsApp message works), Connect; then status, Send now,
+  Disconnect. No restart: `OnlineSyncService` re-reads `OnlineSettingsStore` every cycle and can be woken (`OnlineSignal`);
+  disconnecting removes the triggers, reconnecting re-uploads everything. API `api/v1/online` (`Settings.Manage`).
+  `Web/Program.cs` no longer adds `online.json` to configuration; the store reads and writes it (same file format).
+- **Fixed on the way:** the guess throttle counted expired/used links as guesses (an owner retrying an old link could lock out
+  everyone behind the same address); now only unknown codes count.
+- **Guide:** `docs/online/HOW-TO-CONNECT.html`, a self-contained visual walkthrough with real screenshots. Making it also found and fixed a blank "expires on" date on the link screen (TempData turns date-like strings into DateTime; now asserted by a test).
+- **Verified:** `Cloud.Tests` 113, `Tests` 994 (986 + 8 new), client `online.test.tsx` 25, client lint, i18n check, build
+  (entry 154.8 KB gzip, budget 250). Real run of the actual Cloud and Web apps driven by Playwright: pasted a WhatsApp
+  message, demo shop (about 2,800 rows) uploaded in under a second, portal showed Connected; screens checked in EN and AR (RTL).
+- **Note:** in a full `vitest run`, 7 list tests of unrelated modules time out under machine load and pass alone (not caused by this).
+- **Not done:** Arabic texts have no native review; disconnecting on the till does not tell the cloud; owner-facing app,
+  write-back, reconciliation, billing; Dockerfile/compose still never built.
+
+### 2026-11-05 — O1: NexPOS Online platform (cloud mirror, admin portal), branch `online/platform`
+
+Why: some clients will pay extra for an online copy of their shop (owner views from a phone), while the till stays
+offline-first and keeps every feature. Design, decisions O1-O12, hosting and known limits: `docs/online/PLATFORM.md`.
+
+- `Sync/`: trigger-based change capture (`__SyncLog`), acknowledged idempotent pusher, mirror applier, wire contracts.
+  Off unless the till is enrolled (`%LocalAppData%\NexPOS\online.json`); a non-enrolled database is left untouched (tested).
+- `Cloud/`: ASP.NET app with its own control database (clients, subscriptions, installations, hashed device tokens), the
+  device API (`/api/sync/push`, `/ping`) and an admin portal (Razor Pages). One SQLite mirror file per installation.
+- `Web/Program.cs`: 2 additions (read `online.json`, `AddOnlineSync`); `Web/appsettings.json`: `Online.Enabled=false`.
+- `Cloud.Tests/`: 52 tests (triggers, end-to-end, background service, outage/lost-ack, isolation, expiry, API and portal security). Existing `Tests/` suite: 986/986 still green.
+- Found by tests: `ToDbValue` promoted every integer to double (`cond ? long : double`); fixed before it shipped.
+- **Not done / not verified at the time:** owner-facing web/mobile app, till-side settings page (done in O2), write-back,
+  reconciliation, billing; Dockerfile/compose were not built (Docker not running here).
+
 ### 2026-10-17 — L1: offline license keys (per PC)
 
 Why: NexPOS is sold software-only in Lebanon (one PC = one till, see F1), so each install needs a key

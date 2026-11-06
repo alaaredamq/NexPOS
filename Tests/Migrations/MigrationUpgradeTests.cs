@@ -62,7 +62,7 @@ public class MigrationUpgradeTests : IDisposable
         }
     }
 
-    private static async Task<object?> Scalar(System.Data.Common.DbConnection conn, string sql)
+    internal static async Task<object?> Scalar(System.Data.Common.DbConnection conn, string sql)
     {
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = sql;
@@ -70,7 +70,7 @@ public class MigrationUpgradeTests : IDisposable
     }
 
     /// <summary>Inserts one row, filling every other NOT NULL column that has no default with a neutral value.</summary>
-    private static async Task InsertRow(System.Data.Common.DbConnection conn, string table, Dictionary<string, object> values)
+    internal static async Task InsertRow(System.Data.Common.DbConnection conn, string table, Dictionary<string, object> values)
     {
         var row = new Dictionary<string, object>(values);
         await using (var info = conn.CreateCommand())

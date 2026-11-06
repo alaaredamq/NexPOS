@@ -32,6 +32,11 @@ const routes: RouteObject[] = [
         loader: loadSettingsStrings,
         lazy: async () => ({ Component: (await import('./BrandingPage')).default }),
       },
+      {
+        path: 'settings/online',
+        loader: loadSettingsStrings,
+        lazy: async () => ({ Component: (await import('./OnlinePage')).default }),
+      },
     ],
   },
 ]

@@ -1,0 +1,79 @@
+@{
+    var bare = ViewData["Bare"] as bool? == true;
+    var nav = ViewData["Nav"] as string;
+    var flash = ViewContext.TempData["Flash"] as string;
+    var user = User.Identity?.Name ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>@(ViewData["Title"] is string t ? t + " · " : "")NexPOS Cloud</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffd84d'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='20' text-anchor='middle' fill='%230a3533'%3EN%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="~/cloud.css" asp-append-version="true" />
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+</svg>
+
+@if (bare)
+{
+    @RenderBody()
+}
+else
+{
+    <div class="shell">
+        <aside class="rail">
+            <a class="brand" href="/" aria-label="NexPOS Cloud, clients">
+                <span class="mark" aria-hidden="true">N</span>
+                <span><b>NexPOS</b><span>Cloud</span></span>
+            </a>
+            <nav aria-label="Main">
+                <a href="/" aria-current="@(nav == "clients" ? "page" : null)"><svg class="icon"><use href="#i-store"/></svg><span class="t">Clients</span></a>
+                <a href="/Clients/Create" aria-current="@(nav == "new" ? "page" : null)"><svg class="icon"><use href="#i-plus"/></svg><span class="t">New client</span></a>
+            </nav>
+            <div class="who">
+                <span class="avatar" aria-hidden="true">@(user.Length > 0 ? user[..1] : "?")</span>
+                <span class="who-name">@user<small>Provider</small></span>
+                <form method="post" asp-page="/Account/Login" asp-page-handler="Logout">
+                    <button type="submit" aria-label="Sign out" title="Sign out"><svg class="icon"><use href="#i-out"/></svg></button>
+                </form>
+            </div>
+        </aside>
+        <main id="main">
+            @RenderBody()
+        </main>
+    </div>
+}
+
+<div class="toasts" role="status" aria-live="polite">
+    @if (!string.IsNullOrEmpty(flash))
+    {
+        <div class="toast" data-flash><svg class="icon" style="color:var(--tag)"><use href="#i-check"/></svg><span>@flash</span></div>
+    }
+</div>
+
+<dialog class="confirm" id="confirm" aria-labelledby="confirm-title">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-text" class="muted"></p>
+    <div class="row">
+        <button type="button" class="btn secondary" data-no>Cancel</button>
+        <button type="button" class="btn danger" data-yes>Confirm</button>
+    </div>
+</dialog>
+
+<script src="~/cloud.js" asp-append-version="true"></script>
+</body>
+</html>
