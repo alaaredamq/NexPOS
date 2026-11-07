@@ -26,6 +26,8 @@ builder.Services.AddSingleton(_ => MirrorStore.BuildSchema());
 builder.Services.AddSingleton<MirrorApplier>();
 builder.Services.AddSingleton<MirrorStore>();
 builder.Services.AddSingleton<LoginThrottle>();
+builder.Services.AddSingleton<CommandBroker>();
+builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
 
@@ -96,6 +98,7 @@ app.UseAuthorization();
 
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 app.MapSyncApi();
+app.MapOwnerApi();
 app.MapEnrollApi();
 app.MapRazorPages();
 

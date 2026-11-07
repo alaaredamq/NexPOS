@@ -95,9 +95,14 @@ public sealed class HttpAuditContext : IAuditContext
         return new Restore(() => Suppressed.Value--);
     }
 
+    private const string MobilePrefix = "Mobile:";
+
     private AuditSnapshot SystemSnapshot() => new()
     {
-        Username = "System",
+        // A change the owner made from the phone is written by the shop PC itself; say who asked instead of "System".
+        Username = SystemSource.Value is { } who && who.StartsWith(MobilePrefix, StringComparison.Ordinal)
+            ? "Mobile · " + who[MobilePrefix.Length..]
+            : "System",
         Source = SystemSource.Value is { } source ? $"System:{source}" : "System",
         MachineName = Environment.MachineName,
         AppVersion = _appVersion

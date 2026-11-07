@@ -167,6 +167,80 @@ namespace Cloud.Data.Migrations
                     b.ToTable("EnrollmentCodes");
                 });
 
+            modelBuilder.Entity("Cloud.Data.OwnerSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OwnerUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("OwnerSessions");
+                });
+
+            modelBuilder.Entity("Cloud.Data.OwnerUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("LastSignInAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("OwnerUsers");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.Property<Guid>("Id")
@@ -209,6 +283,70 @@ namespace Cloud.Data.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Sites");
+                });
+
+            modelBuilder.Entity("Cloud.Data.SiteCommand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OwnerUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequestedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResultCode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResultDataJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResultMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("SiteId", "Status", "CreatedAt");
+
+                    b.ToTable("SiteCommands");
                 });
 
             modelBuilder.Entity("Cloud.Data.SiteHeartbeat", b =>
@@ -333,6 +471,28 @@ namespace Cloud.Data.Migrations
                     b.Navigation("Site");
                 });
 
+            modelBuilder.Entity("Cloud.Data.OwnerSession", b =>
+                {
+                    b.HasOne("Cloud.Data.OwnerUser", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OwnerUser");
+                });
+
+            modelBuilder.Entity("Cloud.Data.OwnerUser", b =>
+                {
+                    b.HasOne("Cloud.Data.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.HasOne("Cloud.Data.Client", "Client")
@@ -342,6 +502,17 @@ namespace Cloud.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("Cloud.Data.SiteCommand", b =>
+                {
+                    b.HasOne("Cloud.Data.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Site");
                 });
 
             modelBuilder.Entity("Cloud.Data.SiteHeartbeat", b =>

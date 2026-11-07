@@ -20,11 +20,12 @@ public static class SyncEndpoints
         var group = app.MapGroup("/api/sync").AllowAnonymous();
         group.MapGet("/ping", Ping);
         group.MapPost("/push", Push);
+        DeviceCommandEndpoints.Map(group);
     }
 
-    private sealed record Device(DeviceToken Token, Site Site, Client Client, SubscriptionState State);
+    internal sealed record Device(DeviceToken Token, Site Site, Client Client, SubscriptionState State);
 
-    private static async Task<(Device? Device, IResult? Failure)> AuthenticateAsync(
+    internal static async Task<(Device? Device, IResult? Failure)> AuthenticateAsync(
         HttpContext http, ControlDbContext db, TimeProvider time)
     {
         var header = http.Request.Headers.Authorization.ToString();
@@ -67,10 +68,10 @@ public static class SyncEndpoints
         await db.SiteHeartbeats.Where(h => h.SiteId == siteId && h.Hour < cutoff).ExecuteDeleteAsync();
     }
 
-    private static IResult Error(int status, string code, string message)
+    internal static IResult Error(int status, string code, string message)
         => Results.Json(new SyncError(code, message), SyncWire.Json, statusCode: status);
 
-    private static IResult InactiveSubscription(Device d)
+    internal static IResult InactiveSubscription(Device d)
         => Error(StatusCodes.Status402PaymentRequired, SyncErrorCodes.SubscriptionInactive,
             d.State switch
             {

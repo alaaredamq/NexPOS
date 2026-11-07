@@ -17,6 +17,8 @@ public sealed record OnlineSettings
     public string DeviceToken { get; set; } = "";
     public int IntervalSeconds { get; set; } = 30;
     public int BatchSize { get; set; } = 500;
+    /// <summary>How long the shop PC lets the cloud hold a request open waiting for a change from the owner's phone (seconds, 0 to 55).</summary>
+    public int CommandWaitSeconds { get; set; } = 25;
 
     // Shown on the Online screen so the owner can see what they are connected to. Informational only.
     public string? SiteName { get; set; }

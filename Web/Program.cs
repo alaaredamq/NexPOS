@@ -1,4 +1,5 @@
 using Application.IServices.Base;
+using Web.Api.Online.Commands;
 using Core.Auditing;
 using Application.IServices.Products;
 using Application.Services.Base;
@@ -149,6 +150,7 @@ builder.Services.AddDbContextFactory<ErpDbContext>(options =>
 // online.json beside the database): until then the hosted service leaves the database untouched and makes no request.
 // See docs/online/PLATFORM.md.
 builder.Services.AddOnlineSync(builder.Configuration, AppDataPathProvider.GetOnlineSettingsFilePath());
+builder.Services.AddOnlineCommandHandlers(); // changes the owner makes from the phone, applied through the same services as the till's screens
 
 builder.Services.AddMemoryCache();
 // Backs ISession (DistributedSessionStore). In-process only — CacheService no longer

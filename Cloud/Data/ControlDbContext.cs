@@ -18,6 +18,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
     public DbSet<ClientEvent> ClientEvents => Set<ClientEvent>();
     public DbSet<EnrollmentCode> EnrollmentCodes => Set<EnrollmentCode>();
     public DbSet<SiteHeartbeat> SiteHeartbeats => Set<SiteHeartbeat>();
+    public DbSet<OwnerUser> OwnerUsers => Set<OwnerUser>();
+    public DbSet<OwnerSession> OwnerSessions => Set<OwnerSession>();
+    public DbSet<SiteCommand> SiteCommands => Set<SiteCommand>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -57,6 +60,31 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
         {
             e.HasIndex(x => new { x.SiteId, x.Hour }).IsUnique();
             e.HasOne(x => x.Site).WithMany(x => x.Heartbeats).HasForeignKey(x => x.SiteId);
+        });
+
+        b.Entity<OwnerUser>(e =>
+        {
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Property(x => x.Email).HasMaxLength(255);
+            e.Property(x => x.DisplayName).HasMaxLength(100);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<OwnerSession>(e =>
+        {
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.HasOne(x => x.OwnerUser).WithMany().HasForeignKey(x => x.OwnerUserId);
+        });
+
+        b.Entity<SiteCommand>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Type).HasMaxLength(60);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(100);
+            e.Property(x => x.RequestedBy).HasMaxLength(100);
+            e.HasIndex(x => new { x.SiteId, x.IdempotencyKey }).IsUnique();
+            e.HasIndex(x => new { x.SiteId, x.Status, x.CreatedAt });
+            e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId);
         });
     }
 }
