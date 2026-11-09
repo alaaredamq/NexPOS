@@ -15,6 +15,18 @@ public sealed class MirrorApplier(SyncSchema schema)
 {
     private sealed record ColumnInfo(string Name, bool NotNull, bool HasDefault, bool IsKey, string Type);
 
+    /// <summary>Where sealed rows live: one table beside the shop's own schema, made by the cloud (never by the till's migrations).</summary>
+    public const string SealedTable = "SealedRows";
+
+    /// <summary>Idempotent. Called when a mirror is created and before every batch, so older mirrors gain it too.</summary>
+    public static void EnsureSealedTable(SqliteConnection connection, SqliteTransaction? tx = null)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = $"CREATE TABLE IF NOT EXISTS {Q(SealedTable)} (TableName TEXT NOT NULL, Id INTEGER NOT NULL, KeyId TEXT NOT NULL, Blob TEXT NOT NULL, PRIMARY KEY (TableName, Id)) WITHOUT ROWID;";
+        cmd.ExecuteNonQuery();
+    }
+
     /// <returns>Number of changes applied.</returns>
     public int Apply(string mirrorPath, SyncBatch batch)
     {
@@ -23,6 +35,8 @@ public sealed class MirrorApplier(SyncSchema schema)
             var unknown = batch.Changes.First(c => !schema.TryGetTable(c.Table, out _)).Table;
             throw new SyncBatchException($"Unknown table '{unknown}'.");
         }
+
+        Validate(batch);
 
         // Foreign keys off: a batch lists parents and children in log order, not dependency order, and the
         // till already enforced integrity when it wrote the data. Cascades must not run either: the till logs
@@ -36,12 +50,17 @@ public sealed class MirrorApplier(SyncSchema schema)
 
         using var connection = new SqliteConnection(connectionString);
         connection.Open();
+        // Deleted rows are overwritten with zeros instead of lingering in free pages: a shop that switches to sealed has its old
+        // readable copy wiped by the initial batch, and that wipe has to actually remove the text.
+        Exec(connection, null, "PRAGMA secure_delete = ON;");
         using var tx = connection.BeginTransaction();
+        EnsureSealedTable(connection, tx);
 
         if (batch.Initial)
         {
             foreach (var table in schema.Tables)
                 Exec(connection, tx, $"DELETE FROM {Q(table.Name)};");
+            Exec(connection, tx, $"DELETE FROM {Q(SealedTable)};");
         }
 
         var columnCache = new Dictionary<string, IReadOnlyList<ColumnInfo>>(StringComparer.Ordinal);
@@ -57,19 +76,91 @@ public sealed class MirrorApplier(SyncSchema schema)
                 del.CommandText = $"DELETE FROM {Q(table.Name)} WHERE {Q(table.KeyColumn)} = $id";
                 del.Parameters.AddWithValue("$id", change.Id);
                 del.ExecuteNonQuery();
+                DeleteSealed(connection, tx, table.Name, change.Id);
             }
             else
             {
-                if (change.Values is null) throw new SyncBatchException($"Change for {change.Table}#{change.Id} has no values.");
-                if (!columnCache.TryGetValue(table.Name, out var actual))
-                    columnCache[table.Name] = actual = ReadColumns(connection, tx, table.Name);
-                Upsert(connection, tx, table, actual, change);
+                if (change.Values is null && change.Sealed is null)
+                    throw new SyncBatchException($"Change for {change.Table}#{change.Id} has no values.");
+                if (change.Values is not null)
+                {
+                    if (!columnCache.TryGetValue(table.Name, out var actual))
+                        columnCache[table.Name] = actual = ReadColumns(connection, tx, table.Name);
+                    Upsert(connection, tx, table, actual, change);
+                }
+                if (change.Sealed is not null) UpsertSealed(connection, tx, table.Name, change);
             }
             applied++;
         }
 
         tx.Commit();
+
+        // The write-ahead log still holds the pages as they were before the wipe. Fold them into the database file and empty the
+        // log now (best effort: a reader holding the log open just means the next checkpoint does it).
+        if (batch.Initial) TryCheckpoint(connection);
         return applied;
+    }
+
+    private static void TryCheckpoint(SqliteConnection connection)
+    {
+        try { Exec(connection, null, "PRAGMA wal_checkpoint(TRUNCATE);"); }
+        catch (SqliteException) { /* busy: the automatic checkpoint will get to it */ }
+    }
+
+    /// <summary>
+    /// A sealed batch must not carry anything in the clear that <see cref="SealPolicy"/> hides, whatever the till says:
+    /// a bug (or a downgraded till) cannot leak a sealed table through a batch that claims to be sealed. The cloud checks
+    /// shapes only; it has no key and cannot tell good ciphertext from bad.
+    /// </summary>
+    private static void Validate(SyncBatch batch)
+    {
+        if (batch.Format is not (SyncFormat.Plain or SyncFormat.Sealed))
+            throw new SyncBatchException($"Unknown sync format {batch.Format}. Upgrade the cloud.");
+
+        foreach (var change in batch.Changes)
+        {
+            if (change.Sealed is not null && !RowSealer.TryReadKeyId(change.Sealed, out _))
+                throw new SyncBatchException($"Change for {change.Table}#{change.Id} carries a malformed sealed value.");
+
+            if (batch.Format == SyncFormat.Plain)
+            {
+                if (change.Sealed is not null)
+                    throw new SyncBatchException($"Change for {change.Table}#{change.Id} is sealed but the batch says it is not.");
+                continue;
+            }
+
+            if (change.Deleted) continue;
+            if (SealPolicy.HasSealedPart(change.Table) && change.Sealed is null)
+                throw new SyncBatchException($"Change for {change.Table}#{change.Id} has a sealed part that was not sealed.");
+            if (SealPolicy.IsFullySealed(change.Table) && change.Values is not null)
+                throw new SyncBatchException($"Change for {change.Table}#{change.Id} sends a sealed table in the clear.");
+            if (change.Values is not null && SealPolicy.SealedColumnsOf(change.Table).Any(change.Values.ContainsKey))
+                throw new SyncBatchException($"Change for {change.Table}#{change.Id} sends a sealed column in the clear.");
+        }
+    }
+
+    private static void UpsertSealed(SqliteConnection connection, SqliteTransaction tx, string table, SyncChange change)
+    {
+        RowSealer.TryReadKeyId(change.Sealed!, out var keyId); // shape already checked in Validate
+        using var cmd = connection.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = $"INSERT INTO {Q(SealedTable)} (TableName, Id, KeyId, Blob) VALUES ($t, $id, $k, $b) " +
+                          "ON CONFLICT(TableName, Id) DO UPDATE SET KeyId = excluded.KeyId, Blob = excluded.Blob";
+        cmd.Parameters.AddWithValue("$t", table);
+        cmd.Parameters.AddWithValue("$id", change.Id);
+        cmd.Parameters.AddWithValue("$k", keyId);
+        cmd.Parameters.AddWithValue("$b", change.Sealed);
+        cmd.ExecuteNonQuery();
+    }
+
+    private static void DeleteSealed(SqliteConnection connection, SqliteTransaction tx, string table, long id)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = $"DELETE FROM {Q(SealedTable)} WHERE TableName = $t AND Id = $id";
+        cmd.Parameters.AddWithValue("$t", table);
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.ExecuteNonQuery();
     }
 
     private static void Upsert(SqliteConnection connection, SqliteTransaction tx, SyncTable table,
@@ -143,7 +234,7 @@ public sealed class MirrorApplier(SyncSchema schema)
         return list;
     }
 
-    private static void Exec(SqliteConnection connection, SqliteTransaction tx, string sql)
+    private static void Exec(SqliteConnection connection, SqliteTransaction? tx, string sql)
     {
         using var cmd = connection.CreateCommand();
         cmd.Transaction = tx;

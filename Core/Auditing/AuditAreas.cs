@@ -71,9 +71,9 @@ public static class AuditAreas
              "/app/account", "/app/users", "/app/roles", "/app/login", "/Account", "/Auth", "/Users"]),
 
         [AuditArea.Settings] = new(
-            [],
-            ["AppSetting", "CodeList", "CodeListValue", "StoreSettings", "SystemSettings", "UrlRoute", "License"],
-            ["/api/v1/settings", "/api/v1/code-lists", "/api/v1/license", "/app/settings", "/app/license",
+            [AuditActions.RecoverySlipShown, AuditActions.RecoverySlipFailed, AuditActions.SealingConfirmed, AuditActions.SealKeyRestored],
+            ["AppSetting", "CodeList", "CodeListValue", "StoreSettings", "SystemSettings", "UrlRoute", "License", "OnlineSealing"],
+            ["/api/v1/settings", "/api/v1/code-lists", "/api/v1/license", "/api/v1/online", "/app/settings", "/app/license",
              "/Settings", "/AppSettings", "/CodeLists", "/License", "/Branding"]),
 
         [AuditArea.Reports] = new(

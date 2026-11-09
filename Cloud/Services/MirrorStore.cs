@@ -20,6 +20,11 @@ public sealed class CloudOptions
     public string TimeZone { get; set; } = "Asia/Beirut";
 }
 
+/// <param name="LockedRows">Rows the shop sealed: stored, counted, unreadable here.</param>
+/// <param name="ReadableRows">Rows of tables that should be sealed, still readable in this copy.</param>
+/// <param name="KeyIds">Public fingerprints of the key(s) the locked rows are sealed under (normally one).</param>
+public sealed record MirrorPrivacy(long LockedRows, long ReadableRows, IReadOnlyList<string> KeyIds);
+
 /// <summary>
 /// One SQLite file per site, same schema as the till. Isolation is physical: a bug in a query cannot leak
 /// across clients because no two clients share a database file, and the file name is derived from a GUID
@@ -59,9 +64,29 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "PRAGMA journal_mode=WAL;";
             cmd.ExecuteNonQuery();
+            MirrorApplier.EnsureSealedTable(connection);
         }
 
         _ready[siteId] = true;
+    }
+
+    /// <summary>
+    /// Deletes a site's mirror file for good. Waits for a push that is in flight, and drops pooled connections first
+    /// because Windows will not delete a file that is still open.
+    /// </summary>
+    public async Task DeleteAsync(Guid siteId)
+    {
+        var gate = LockFor(siteId);
+        await gate.WaitAsync();
+        try
+        {
+            SqliteConnection.ClearAllPools();
+            var path = PathFor(siteId);
+            foreach (var file in new[] { path, path + "-wal", path + "-shm" })
+                if (File.Exists(file)) File.Delete(file);
+            _ready.TryRemove(siteId, out _);
+        }
+        finally { gate.Release(); }
     }
 
     public IReadOnlyDictionary<string, long> CountRows(Guid siteId, IEnumerable<string> tables)
@@ -75,13 +100,63 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
             Mode = SqliteOpenMode.ReadOnly,
         }.ToString());
         connection.Open();
+        var hasSealed = Scalar(connection, $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{MirrorApplier.SealedTable}'") > 0;
         foreach (var table in tables)
         {
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = $"SELECT COUNT(*) FROM {SyncSchema.Q(table)}"; // names come from code, never from a request
-            result[table] = (long)cmd.ExecuteScalar()!;
+            // Names come from code, never from a request.
+            var count = Scalar(connection, $"SELECT COUNT(*) FROM {SyncSchema.Q(table)}");
+
+            // A sealed table has no readable rows here, only locked ones; the cloud can still count those. The larger of the
+            // two, because a shop that was readable before and sealed since may briefly have both until its full resync.
+            if (hasSealed && SealPolicy.IsFullySealed(table))
+            {
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = $"SELECT COUNT(*) FROM {SyncSchema.Q(MirrorApplier.SealedTable)} WHERE TableName = $t";
+                cmd.Parameters.AddWithValue("$t", table);
+                count = Math.Max(count, (long)cmd.ExecuteScalar()!);
+            }
+            result[table] = count;
         }
         return result;
+    }
+
+    /// <summary>
+    /// How private a branch's cloud copy is, from what the file holds: locked rows (<see cref="MirrorApplier.SealedTable"/>) and any rows
+    /// of the sealed tables still readable. A branch that switched to sealed has both until its full re-upload has replaced the readable ones.
+    /// </summary>
+    public MirrorPrivacy Privacy(Guid siteId)
+    {
+        if (!Exists(siteId)) return new MirrorPrivacy(0, 0, []);
+
+        using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = PathFor(siteId),
+            Mode = SqliteOpenMode.ReadOnly,
+        }.ToString());
+        connection.Open();
+
+        long locked = 0, readable = 0;
+        var keys = new List<string>();
+        if (Scalar(connection, $"SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = '{MirrorApplier.SealedTable}'") > 0)
+        {
+            locked = Scalar(connection, $"SELECT COUNT(*) FROM {SyncSchema.Q(MirrorApplier.SealedTable)}");
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = $"SELECT DISTINCT KeyId FROM {SyncSchema.Q(MirrorApplier.SealedTable)} ORDER BY KeyId LIMIT 5";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read()) keys.Add(reader.GetString(0));
+        }
+
+        // The sealed tables are sealed by the till; any row of them in its readable form is data this server can read.
+        foreach (var table in SealPolicy.Sealed)
+            readable += Scalar(connection, $"SELECT COUNT(*) FROM {SyncSchema.Q(table)}");
+        return new MirrorPrivacy(locked, readable, keys);
+    }
+
+    private static long Scalar(SqliteConnection connection, string sql)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = sql;
+        return (long)cmd.ExecuteScalar()!;
     }
 
     private static string ReadLatestMigration()

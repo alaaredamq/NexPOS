@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NexPOS Online: private data, explained</title>
+<style>
+  :root {
+    --ink: #0e2a2b; --ink-2: #3a5457; --muted: #5f787b; --canvas: #e8eeec; --paper: #fbfcfb; --line: #d3dedc; --line-2: #e4ecea;
+    --teal: #0e7c72; --teal-d: #095a54; --teal-l: #dff1ee; --rail: #0a3533; --rail-2: #124a47; --rail-ink: #b9d6d2;
+    --tag: #ffd84d; --tag-d: #7a5b00; --tag-l: #fff3c2;
+    --ok: #138a4b; --ok-bg: #ddf4e6; --warn: #8a5000; --warn-bg: #fdecc2; --bad: #b92f2f; --bad-bg: #fadcdc;
+    --display: Bahnschrift, "DIN Alternate", "Barlow Semi Condensed", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+    --body: system-ui, "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font: 16px/1.55 var(--body); }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: .005em; line-height: 1.12; margin: 0; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  :focus-visible { outline: 3px solid var(--tag); outline-offset: 2px; border-radius: 6px; }
+  svg.i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ---- hero ---- */
+  header.hero { background: var(--rail); color: #fff; padding: 46px 0 44px; position: relative; overflow: hidden; }
+  header.hero::after { content: ""; position: absolute; inset: auto -60px -90px auto; width: 380px; height: 380px; border-radius: 50%; border: 56px solid var(--rail-2); opacity: .7; }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 26px; }
+  .hero .mark { width: 36px; height: 36px; border-radius: 9px; background: var(--tag); color: var(--rail); display: grid; place-items: center; font: 700 20px/1 var(--display); }
+  .hero .brand b { font: 600 17px var(--display); letter-spacing: .04em; text-transform: uppercase; }
+  .hero h1 { font-size: clamp(34px, 5.4vw, 56px); max-width: 16ch; line-height: 1.03; }
+  .hero h1 em { font-style: normal; color: var(--tag); }
+  .hero p { margin: 14px 0 0; color: var(--rail-ink); font-size: 18px; max-width: 580px; }
+  .hero .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .hero .chip { background: var(--rail-2); padding: 4px 14px; border-radius: 999px; font-size: 14px; }
+  .hero .chip.flag { background: var(--tag); color: var(--rail); font-weight: 700; }
+  nav.toc { position: sticky; top: 0; z-index: 5; background: rgba(232,238,236,.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav.toc .wrap { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; }
+  nav.toc a { white-space: nowrap; text-decoration: none; color: var(--ink-2); font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 8px; }
+  nav.toc a:hover { background: var(--teal-l); color: var(--teal-d); }
+
+  section { padding: 50px 0 6px; }
+  h2 { font-size: 30px; margin-bottom: 6px; }
+  h3 { font-size: 21px; }
+  .lead { color: var(--ink-2); margin: 0 0 26px; max-width: 700px; font-size: 17px; }
+
+  /* ---- node flow ---- */
+  .flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 14px; align-items: stretch; }
+  .node { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 1px 2px rgba(10,53,51,.06), 0 6px 18px rgba(10,53,51,.05); }
+  .node .ico { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; font-size: 28px; background: var(--teal-l); color: var(--teal-d); }
+  .node.cloud .ico { background: #d9e6e4; }
+  .node.phone .ico { background: var(--tag); color: var(--rail); }
+  .node h3 { margin: 12px 0 4px; }
+  .node p { margin: 0; color: var(--ink-2); font-size: 15px; }
+  .arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--teal-d); font-size: 12.5px; font-weight: 700; min-width: 84px; text-align: center; }
+  .arrow svg { width: 56px; height: 22px; }
+  .arrow .packet { display: inline-flex; align-items: center; gap: 5px; font: 600 12px var(--mono); background: var(--rail); color: var(--tag); border-radius: 7px; padding: 3px 8px; }
+  @media (max-width: 820px) { .flow { grid-template-columns: 1fr; } .arrow { flex-direction: row; min-height: 40px; } .arrow svg { transform: rotate(90deg); width: 28px; height: 20px; } }
+  .keyline { margin-top: 14px; display: flex; gap: 12px; align-items: center; background: var(--tag-l); border: 1px solid #efd678; border-radius: 12px; padding: 12px 16px; max-width: 760px; font-size: 15px; }
+  .keyline svg { font-size: 24px; color: var(--tag-d); }
+
+  /* ---- try it ---- */
+  .seg { display: inline-flex; background: #dbe5e3; border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 18px; }
+  .seg button { font: 700 15px var(--body); border: 0; background: transparent; color: var(--ink-2); padding: 9px 18px; border-radius: 9px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+  .seg button[aria-pressed="true"] { background: var(--rail); color: #fff; }
+  .seg button[aria-pressed="true"].sealed { background: var(--teal); }
+  .demo { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 820px) { .demo { grid-template-columns: 1fr; } }
+  .slip { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; font: 14px/1.6 var(--mono); box-shadow: 0 8px 22px rgba(10,53,51,.12); position: relative; }
+  .slip::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; height: 8px; background: radial-gradient(circle at 6px -1px, transparent 6px, #fff 6.5px) 0 0 / 12px 8px repeat-x; filter: drop-shadow(0 2px 1px rgba(10,53,51,.12)); }
+  .slip .head { text-align: center; font: 700 15px var(--display); letter-spacing: .12em; text-transform: uppercase; }
+  .slip hr { border: 0; border-top: 1px dashed #9db2b4; margin: 10px 0; }
+  .slip .row { display: flex; justify-content: space-between; gap: 10px; }
+  .slip .tot { font-weight: 700; }
+  .cloudbox { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(10,53,51,.06), 0 6px 18px rgba(10,53,51,.05); }
+  .cloudbox .top { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f1f6f5; border-bottom: 1px solid var(--line); font: 600 13px var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .cloudbox .top svg { font-size: 18px; }
+  .cloudbox table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  .cloudbox th { text-align: left; font: 600 12px var(--display); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 9px 14px; }
+  .cloudbox td { padding: 10px 14px; border-top: 1px solid var(--line-2); vertical-align: top; overflow-wrap: anywhere; }
+  .cloudbox td.t { font-weight: 600; white-space: nowrap; }
+  .cloudbox td.n { font-family: var(--mono); color: var(--muted); white-space: nowrap; }
+  .readable { color: var(--ink); }
+  .locked { font-family: var(--mono); font-size: 13px; color: var(--teal-d); background: var(--teal-l); border-radius: 6px; padding: 2px 8px; display: inline-flex; gap: 6px; align-items: flex-start; }
+  .locked svg { margin-top: 2px; }
+  .verdict { padding: 12px 16px; font-weight: 600; font-size: 15px; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; }
+  .verdict.bad { background: var(--bad-bg); color: var(--bad); }
+  .verdict.ok { background: var(--ok-bg); color: var(--ok); }
+
+  /* ---- cards ---- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(10,53,51,.06); }
+  .card h3 { margin: 0 0 6px; font-size: 20px; }
+  .card p { margin: 0 0 8px; font-size: 15px; } .card p:last-child { margin-bottom: 0; }
+  .card .n { width: 34px; height: 34px; border-radius: 50%; background: var(--rail); color: var(--tag); font: 600 18px var(--display); display: grid; place-items: center; margin-bottom: 10px; }
+  .pindots { display: flex; gap: 8px; margin: 10px 0 2px; } .pindots i { width: 14px; height: 14px; border-radius: 50%; background: var(--rail); } .pindots i.o { background: #cfdcda; }
+  .qr { width: 132px; height: 132px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: block; margin: 6px 0; }
+  .sample { font-size: 12px; color: var(--muted); margin: 0; }
+
+  .phoneframe { width: 190px; border: 7px solid var(--rail); border-radius: 26px; background: var(--paper); padding: 14px 12px 16px; margin-top: 4px; }
+  .phoneframe .ph-h { font: 600 15px var(--display); margin-bottom: 8px; }
+  .phoneframe .kpi { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--line-2); }
+  .phoneframe .kpi b { font-variant-numeric: tabular-nums; }
+
+  /* ---- two sides ---- */
+  .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .sides { grid-template-columns: 1fr; } }
+  .side { background: var(--paper); border-radius: 14px; padding: 18px 20px; border: 2px solid var(--line); }
+  .side.sealed { border-color: var(--teal); }
+  .side h3 { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+  .side h3 svg { font-size: 24px; }
+  .side.sealed h3 { color: var(--teal-d); }
+  .side .sub { margin: 0 0 8px; color: var(--ink-2); font-size: 15px; }
+  .side ul { margin: 0; padding-inline-start: 20px; } .side li { margin: 4px 0; }
+  .meta { margin-top: 14px; background: #fff; border: 1px dashed #9db2b4; border-radius: 12px; padding: 12px 16px; font-size: 15px; color: var(--ink-2); }
+
+  /* ---- table ---- */
+  table.meaning { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  table.meaning th { text-align: left; font: 600 12px var(--display); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); background: #f1f6f5; padding: 10px 14px; }
+  table.meaning td { padding: 12px 14px; border-top: 1px solid var(--line); vertical-align: top; font-size: 15px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 1px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; white-space: nowrap; background: var(--line-2); color: var(--ink-2); }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .85; }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); } .pill.warn { background: var(--warn-bg); color: var(--warn); } .pill.bad { background: var(--bad-bg); color: var(--bad); }
+  @media (max-width: 760px) { table.meaning thead { display: none; } table.meaning tr { display: block; border-top: 1px solid var(--line); padding: 8px 0; } table.meaning td { display: block; border: 0; padding: 3px 14px; } }
+
+  /* ---- recovery ---- */
+  .recov { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 26px; }
+  @media (max-width: 820px) { .recov { grid-template-columns: 1fr; } }
+  .code { font: 600 15px/1.7 var(--mono); letter-spacing: .06em; text-align: center; word-spacing: .4em; }
+  .toggle { display: flex; gap: 14px; margin-top: 4px; }
+  .toggle > div { flex: 1; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 15px; }
+  .toggle b { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  @media (max-width: 560px) { .toggle { flex-direction: column; } }
+  .box { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--teal-d); border-radius: 5px; background: var(--teal); position: relative; }
+  .box.off { background: #fff; border-color: var(--muted); }
+  .box:not(.off)::after { content: ""; position: absolute; left: 4px; top: 0; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+
+  /* ---- callouts / steps ---- */
+  .warn, .tip { border-radius: 10px; padding: 12px 15px; font-size: 15px; margin: 12px 0; display: flex; gap: 12px; max-width: 800px; }
+  .warn { background: var(--tag-l); border: 1px solid #efd678; }
+  .tip { background: var(--teal-l); border: 1px solid #b4dcd6; }
+  .warn > b, .tip > b { white-space: nowrap; min-width: 96px; }
+  .plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: p; }
+  .plan li { counter-increment: p; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+  .plan li::before { content: counter(p); width: 38px; height: 38px; border-radius: 50%; background: var(--rail); color: var(--tag); font: 600 20px var(--display); display: grid; place-items: center; }
+  .plan li.hit::before { background: var(--tag); color: var(--rail); }
+  .plan b { font-family: var(--display); font-size: 19px; font-weight: 600; }
+  .plan p { margin: 2px 0 0; color: var(--ink-2); font-size: 15px; }
+  .cheat { background: var(--paper); border: 2px solid var(--rail); border-radius: 16px; padding: 22px 26px; }
+  .cheat ol { margin: 8px 0 0; padding-inline-start: 22px; font-size: 16.5px; } .cheat li { margin: 8px 0; } .cheat li span { color: var(--ink-2); }
+  code { font-family: var(--mono); font-size: .9em; background: #e3ecea; padding: 1px 6px; border-radius: 5px; }
+  footer { margin-top: 56px; background: var(--rail); color: var(--rail-ink); padding: 28px 0 40px; font-size: 14px; } footer b { color: #fff; }
+  @media print { nav.toc { display: none; } body { background: #fff; } header.hero, footer, .plan li::before, .card .n { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .card, .node, .side, .plan li { break-inside: avoid; } section { padding-top: 24px; } }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-pc" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2M16 7l3 3M14 9l2 2"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand"><span class="mark">N</span><b>NexPOS Online</b></div>
+    <h1>Your shop's data, <em>locked</em> by you.</h1>
+    <p>The cloud keeps a copy for the owner's phone. With sealing, only the owner can read it: not the provider, not the server, not anyone who gets into it.</p>
+    <div class="chips"><span class="chip flag">Agreed design</span><span class="chip">7 Nov 2026</span><span class="chip">Steps 1 and 2 of 5 built</span></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections"><div class="wrap">
+  <a href="#idea">The idea</a><a href="#see">See the difference</a><a href="#phone">Linking a phone</a><a href="#lost">If a key is lost</a><a href="#sees">Who sees what</a><a href="#limits">Honest limits</a><a href="#plan">Plan</a>
+</div></nav>
+
+<main class="wrap">
+
+<section id="idea">
+  <h2>The idea: a locked box</h2>
+  <p class="lead">Today the shop sends its data to the cloud as plain, readable data. With sealing, the shop PC locks it first. The cloud only ever holds locked boxes.</p>
+  <div class="flow">
+    <div class="node">
+      <div class="ico"><svg class="i" aria-hidden="true"><use href="#i-pc"/></svg></div>
+      <h3>Shop PC</h3>
+      <p>Makes the key. Locks the data before it leaves the shop. Keeps selling exactly as now.</p>
+    </div>
+    <div class="arrow" aria-hidden="true">
+      <span class="packet"><svg class="i" style="font-size:13px"><use href="#i-lock"/></svg>9f3a07…</span>
+      <svg viewBox="0 0 56 22"><path d="M2 11h48M42 3l9 8-9 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      locked data
+    </div>
+    <div class="node cloud">
+      <div class="ico"><svg class="i" aria-hidden="true"><use href="#i-cloud"/></svg></div>
+      <h3>Cloud</h3>
+      <p>Stores the locked boxes. It does <b>not</b> have the key, so it cannot open them.</p>
+    </div>
+    <div class="arrow" aria-hidden="true">
+      <span class="packet"><svg class="i" style="font-size:13px"><use href="#i-lock"/></svg>9f3a07…</span>
+      <svg viewBox="0 0 56 22"><path d="M2 11h48M42 3l9 8-9 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      still locked
+    </div>
+    <div class="node phone">
+      <div class="ico"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg></div>
+      <h3>Owner's phone</h3>
+      <p>Holds the key. Opens the data on the phone, and only there.</p>
+    </div>
+  </div>
+  <div class="keyline"><svg class="i" aria-hidden="true"><use href="#i-key"/></svg><span><b>The key never goes through the cloud.</b> It goes from the shop PC to the phone by scanning a QR code on the PC screen, like linking WhatsApp Web.</span></div>
+</section>
+
+<section id="see">
+  <h2>See the difference</h2>
+  <p class="lead">One sale at the shop, and what the cloud holds for it. Switch between today and sealed.</p>
+  <div class="seg" role="group" aria-label="Show the cloud copy as">
+    <button type="button" id="b-today" aria-pressed="true"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Today</button>
+    <button type="button" id="b-sealed" class="sealed" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>Sealed</button>
+  </div>
+  <div class="demo">
+    <div class="slip" aria-label="A sample receipt at the shop">
+      <div class="head">Sample shop</div>
+      <div>Receipt #1042</div>
+      <div>Customer: Ahmad K.</div>
+      <hr>
+      <div class="row"><span>2 × Milk</span><span>3.00</span></div>
+      <div class="row"><span>1 × Bread</span><span>0.80</span></div>
+      <hr>
+      <div class="row tot"><span>TOTAL</span><span>3.80</span></div>
+      <div class="row"><span>Paid</span><span>cash</span></div>
+    </div>
+    <div class="cloudbox">
+      <div class="top"><svg class="i" aria-hidden="true"><use href="#i-cloud"/></svg>What the cloud holds</div>
+      <table>
+        <thead><tr><th>Table</th><th>#</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td class="t">Receipts</td><td class="n">1042</td><td>
+            <span data-s="today" class="readable">Ahmad K. · total 3.80 · cash</span>
+            <span data-s="sealed" class="locked" hidden><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>9f3a 07c2 e81b 5d40 a6f1 33be…</span></td></tr>
+          <tr><td class="t">Receipt lines</td><td class="n">3187</td><td>
+            <span data-s="today" class="readable">Milk × 2 · 3.00</span>
+            <span data-s="sealed" class="locked" hidden><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>c41d 7be9 02aa f6d3 91e0 58c7…</span></td></tr>
+          <tr><td class="t">Customers</td><td class="n">17</td><td>
+            <span data-s="today" class="readable">Ahmad Khalil · 0791 234 567 · owes 12.00</span>
+            <span data-s="sealed" class="locked" hidden><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>2be8 d950 6a17 c3f4 08ed b92a…</span></td></tr>
+          <tr><td class="t">Products</td><td class="n">5</td><td>
+            <span class="readable">Milk · price 1.50 · </span>
+            <span data-s="today" class="readable">cost 0.90</span>
+            <span data-s="sealed" class="locked" hidden><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>cost: 71c0 ae4d…</span></td></tr>
+        </tbody>
+      </table>
+      <div class="verdict bad" data-s="today"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Anyone with access to the cloud server can read all of this.</div>
+      <div class="verdict ok" data-s="sealed" hidden><svg class="i" aria-hidden="true"><use href="#i-eyeoff"/></svg>The server sees locked boxes only. The owner's phone opens them.</div>
+    </div>
+  </div>
+  <p class="sample" style="margin-top:12px">Sample data. Selling prices stay readable on purpose, so the owner can change prices from the phone later.</p>
+</section>
+
+<section id="phone">
+  <h2>Linking the owner's phone</h2>
+  <p class="lead">Four short steps, done once per phone. A new or second phone is the same scan.</p>
+  <div class="cards">
+    <div class="card"><div class="n">1</div><h3>On the shop PC</h3><p>Settings, then Online, then <b>Link my phone</b>.</p></div>
+    <div class="card"><div class="n">2</div><h3>Enter your PIN</h3><p>The key is only shown after the PIN, and the action is written to the audit trail.</p><div class="pindots" aria-hidden="true"><i></i><i></i><i class="o"></i><i class="o"></i></div></div>
+    <div class="card"><div class="n">3</div><h3>A QR code appears</h3><p>It holds the key and the cloud address.</p><svg class="qr" id="qr1" viewBox="0 0 25 25" role="img" aria-label="Example QR code"></svg><p class="sample">Example picture, not a real code.</p></div>
+    <div class="card"><div class="n">4</div><h3>Scan it with the app</h3><p>The phone keeps the key in its secure storage and opens the data.</p>
+      <div class="phoneframe" aria-label="Mock-up of the phone app"><div class="ph-h">Today</div><div class="kpi"><span>Receipts</span><b>12</b></div><div class="kpi"><span>Sales</span><b>184.50</b></div><div class="kpi"><span>Customers</span><b>3 new</b></div></div>
+      <p class="sample" style="margin-top:8px">Mock-up. The phone app is not built yet.</p></div>
+  </div>
+</section>
+
+<section id="lost">
+  <h2>What if a key is lost?</h2>
+  <p class="lead">Owners lose things, so the design assumes it will happen. Most losses cost nothing. Only losing everything at once is a real problem.</p>
+  <table class="meaning">
+    <thead><tr><th>What was lost</th><th>What happens</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td><b>The phone</b></td><td>Scan the QR code again from the shop PC.</td><td><span class="pill ok">Nothing</span></td></tr>
+      <tr><td><b>The phone and the slip</b>, the shop PC is fine</td><td>The PC makes a new key and uploads everything again. The old cloud copy is discarded.</td><td><span class="pill ok">Nothing</span></td></tr>
+      <tr><td><b>The shop PC</b>, the phone is linked</td><td>The phone still reads the cloud copy. The new PC gets the key from the phone's QR code or from the slip, and restores the shop's own backup.</td><td><span class="pill ok">Nothing</span></td></tr>
+      <tr><td><b>The PC and the phone</b>, the slip is kept</td><td>The slip opens everything on the new PC.</td><td><span class="pill warn">A bit of time</span></td></tr>
+      <tr><td><b>PC, phone and slip</b>, assisted recovery was ticked</td><td>The provider helps: checks who is asking, opens the sealed copy of the key offline, and hands back a new slip.</td><td><span class="pill warn">Needs help</span></td></tr>
+      <tr><td><b>PC, phone and slip</b>, assisted recovery was not ticked</td><td>Nobody can read the cloud copy. This is the price of real privacy. The shop's own backups are separate and unaffected.</td><td><span class="pill bad">Cloud copy lost</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="recov">
+    <div>
+      <div class="slip" aria-label="Sample recovery slip">
+        <div class="head">Recovery slip</div>
+        <div style="text-align:center">NexPOS Online · Sample shop</div>
+        <hr>
+        <div class="code">K7QM 2XPA 9DTR 4WLE<br>H6ZV 3NCB 8YFJ 5GUS<br>T2RD 7KAM 4XQP 9LWE<br>6HVB CHKQ</div>
+        <hr>
+        <div style="display:flex;justify-content:center"><svg class="qr" id="qr2" viewBox="0 0 25 25" style="margin:0" role="img" aria-label="Example QR code"></svg></div>
+        <hr>
+        <div style="text-align:center;font-size:13px">KEEP IN THE SHOP SAFE.<br>Anyone with this slip can read the cloud copy.</div>
+      </div>
+      <p class="sample" style="margin-top:12px">Printed on the receipt printer or saved as a PDF when Online is switched on. The owner must confirm they kept it. The last group is a check, so a typing mistake is caught. The QR code on the slip arrives with the phone link. Sample code, not a real key.</p>
+    </div>
+    <div>
+      <h3 style="margin-bottom:6px"><svg class="i" aria-hidden="true" style="vertical-align:-3px;margin-inline-end:8px"><use href="#i-key"/></svg>Assisted recovery: the owner chooses</h3>
+      <p style="margin:0 0 12px;color:var(--ink-2)">One tick at set-up. It can be switched off later. It is never on by default.</p>
+      <div class="toggle">
+        <div><b><span class="box"></span>Ticked</b>A copy of the key, sealed so that <b style="display:inline">only the provider's offline key</b> can open it, is stored in the cloud. The provider can help after a disaster, and writes it in the client's history.</div>
+        <div><b><span class="box off"></span>Not ticked</b>Nothing is stored. Nobody can recover the key for the owner. Fully private, fully the owner's responsibility.</div>
+      </div>
+      <div class="warn"><b>Note</b><span>The "only the provider's offline key" part is technical. The "checks who is asking" part is a procedure, not a lock. A short code such as the 4-digit PIN is never used to protect a key, because it can be guessed in seconds.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="sees">
+  <h2>Who sees what</h2>
+  <p class="lead">Everything is sealed unless it is on a short, explicit list of things the cloud needs. A new table added next year is private by default.</p>
+  <div class="sides">
+    <div class="side sealed">
+      <h3><svg class="i" aria-hidden="true"><use href="#i-lock"/></svg>Sealed</h3>
+      <p class="sub">The cloud cannot read it. Only the owner's phone can.</p>
+      <ul>
+        <li>Customers, balances and debt history</li>
+        <li>Orders, receipts, receipt lines, payments</li>
+        <li>Cash drawer sessions and drops</li>
+        <li>Purchases and suppliers</li>
+        <li>Staff accounts (names, roles)</li>
+        <li>Stock history, the shop's address and tax number</li>
+        <li>Product cost price</li>
+      </ul>
+    </div>
+    <div class="side">
+      <h3><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>Readable</h3>
+      <p class="sub">On purpose, so the owner can change prices from the phone later.</p>
+      <ul>
+        <li>Products, categories, selling prices</li>
+        <li>Taxes, discounts, payment methods</li>
+        <li>Whether the shop is connected, the 24-hour strip</li>
+        <li>Subscription dates</li>
+      </ul>
+    </div>
+  </div>
+  <div class="meta"><b>Unavoidable metadata:</b> table names, row numbers, how many rows, and when changes arrive and how big they are. That is why the portal can still show "435 orders" without reading a single order. Staff passwords and PINs never leave the shop at all.</div>
+</section>
+
+<section id="limits">
+  <h2>Honest limits</h2>
+  <p class="lead">Sealing protects privacy. It is not magic. These are worth telling clients plainly.</p>
+  <div class="warn"><b>Deleting</b><span>Someone with server access could delete or roll back locked rows. They cannot read or change them (a changed row fails to open), but missing rows can go unnoticed unless the phone app compares counts with the shop.</span></div>
+  <div class="warn"><b>The key</b><span>It is only as safe as the places it is kept: the shop PC, the owner's phone and the slip. A stolen unlocked phone with the app open can read the data.</span></div>
+  <div class="warn"><b>A web page</b><span>A page served from the provider's own server is weaker than an installed phone app: the server could change the page to capture the key. That is why the phone app comes first.</span></div>
+  <div class="warn"><b>Already uploaded</b><span>Anything the test shops uploaded before sealing stays readable in old disk copies and server backups. Seal before real clients connect.</span></div>
+</section>
+
+<section id="plan">
+  <h2>The plan</h2>
+  <p class="lead">Each step ends with something that works and is tested on its own.</p>
+  <ol class="plan">
+    <li class="hit"><div><b>Lock and store</b> <span class="pill ok">Built</span><p>Key creation and protection on the shop PC, the sealed and readable lists, locked rows in the sync, and a place for them in the cloud. Portal counts still work. If the key can't be opened, the shop uploads nothing rather than sending readable data.</p></div></li>
+    <li class="hit"><div><b>Shop PC screens</b> <span class="pill ok">Built</span><p>Settings, Online, Privacy: the recovery code behind the PIN, printed or saved as a PDF, and the "I kept it" confirmation. Nothing uploads until it is confirmed, and the whole shop is then sent again, locked. A PC that lost its key can enter the code from the slip. The portal shows "Sealed" per branch. The assisted-recovery tick waits for step 4, and the QR code on the slip for step 5.</p></div></li>
+    <li><div><b>Owner access and the phone app</b><p>Owners get their own sign-in and a read-only way to fetch locked rows. The phone app opens them with the key.</p></div></li>
+    <li><div><b>Assisted recovery</b><p>The provider's offline key pair, the offline recovery tool, and the entry in the client's history.</p></div></li>
+    <li><div><b>Link my phone on the PC</b><p>PIN, QR code and audit entry. Can be built together with step 3.</p></div></li>
+  </ol>
+  <p class="sample" style="margin-top:12px">Steps 1 and 2 (highlighted) already stop the provider reading client data, even before the phone app exists.</p>
+
+  <div class="cheat" style="margin-top:30px">
+    <h3>Decisions taken (say if you want any changed)</h3>
+    <ol>
+      <li><b>Product cost price sealed.</b> <span>It shows the shop's margin. Selling prices stay readable.</span></li>
+      <li><b>Staff accounts sealed.</b> <span>Together with roles and permissions.</span></li>
+      <li><b>Every new connection sealed, no opt-out.</b> <span>Applies from step 2, when the screens exist.</span></li>
+      <li><b>Phone app only, no browser viewer.</b> <span>A page from the provider's server is the weaker option.</span></li>
+      <li><b>Shop settings and stock history sealed.</b> <span>Checked: they hold the address, tax number, stock movements and staff names.</span></li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap"><b>NexPOS Online, private data.</b> The agreed design, 7 Nov 2026; steps 1 and 2 are built. The full technical version is <code>docs/online/PRIVACY-KEYS.md</code>.</div></footer>
+
+<script>
+  // Today / Sealed switch
+  (function () {
+    var today = document.getElementById('b-today'), sealed = document.getElementById('b-sealed');
+    function show(mode) {
+      today.setAttribute('aria-pressed', String(mode === 'today'));
+      sealed.setAttribute('aria-pressed', String(mode === 'sealed'));
+      document.querySelectorAll('[data-s]').forEach(function (el) { el.hidden = el.getAttribute('data-s') !== mode; });
+    }
+    today.addEventListener('click', function () { show('today'); });
+    sealed.addEventListener('click', function () { show('sealed'); });
+  })();
+
+  // Picture-only QR codes: three finder squares and a fixed pseudo-random fill. Not a real, scannable code.
+  function drawQr(svg, seed) {
+    var n = 25, s = seed, cells = '';
+    function rnd() { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }
+    function inFinder(x, y) { return (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9); }
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      if (inFinder(x, y)) continue;
+      if (rnd() > 0.52) cells += '<rect x="' + x + '" y="' + y + '" width="1" height="1"/>';
+    }
+    [[0, 0], [n - 7, 0], [0, n - 7]].forEach(function (p) {
+      cells += '<rect x="' + p[0] + '" y="' + p[1] + '" width="7" height="7"/>' +
+               '<rect x="' + (p[0] + 1) + '" y="' + (p[1] + 1) + '" width="5" height="5" fill="#fff"/>' +
+               '<rect x="' + (p[0] + 2) + '" y="' + (p[1] + 2) + '" width="3" height="3"/>';
+    });
+    svg.setAttribute('fill', '#0e2a2b');
+    svg.innerHTML = cells;
+  }
+  drawQr(document.getElementById('qr1'), 7);
+  drawQr(document.getElementById('qr2'), 21);
+</script>
+</body>
+</html>

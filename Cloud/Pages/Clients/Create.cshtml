@@ -9,7 +9,7 @@
     <div>
         <a class="crumb" href="/"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
         <h1>New client</h1>
-        <p class="sub">One form: the client, their first till, and the link to send the owner.</p>
+        <p class="sub">One form: the client, their first branch, and the link to send the owner.</p>
     </div>
 </div>
 
@@ -40,7 +40,7 @@
                 </label>
             }
         </div>
-        <p class="help">What they paid for. You can add more any time. With none, their till cannot send data yet.</p>
+        <p class="help">What they paid for. You can add more any time. With none, their shop cannot send data yet.</p>
     </fieldset>
 
     @if (Model.Error is not null)
@@ -75,8 +75,8 @@
                 client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(Months) };
             client.Events.Add(new ClientEvent { At = now, Text = Months > 0 ? $"Client created with {Months} month(s) of Online." : "Client created." });
 
-            // The usual case is one till, so set it up now: the next screen already holds the link to send.
-            var site = new Site { Id = Guid.NewGuid(), Name = "Main till", CreatedAt = now };
+            // The usual case is one branch, so set it up now: the next screen already holds the link to send.
+            var site = new Site { Id = Guid.NewGuid(), Name = "Main branch", CreatedAt = now };
             client.Sites.Add(site);
             db.Clients.Add(client);
             await db.SaveChangesAsync();

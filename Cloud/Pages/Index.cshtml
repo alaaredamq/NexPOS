@@ -52,7 +52,7 @@ else
     </div>
 
     <div class="list" data-list>
-        <div class="list-head"><span>Client</span><span>Online plan</span><span>Last 24 hours</span><span>Last contact</span><span></span></div>
+        <div class="list-head"><span>Client</span><span>Online plan</span><span>Data</span><span>Last 24 hours</span><span>Last contact</span><span></span></div>
         @foreach (var r in Model.Rows)
         {
             var (tone, label) = Pills.Plan(r.State);
@@ -64,6 +64,17 @@ else
                 <span class="plan">
                     <span class="pill @tone">@label</span>
                     <small>@r.PlanNote</small>
+                </span>
+                <span class="data">
+                    @if (r.Products is null)
+                    {
+                        <small>No data yet</small>
+                    }
+                    else
+                    {
+                        <span><b>@r.Products.Value.ToString("N0")</b> products</span>
+                        <span><b>@r.Orders!.Value.ToString("N0")</b> orders</span>
+                    }
                 </span>
                 <partial name="_Pulse" model="@(new PulseView(r.Pulse, false, Fmt))" />
                 <span class="seen">@r.Seen</span>
@@ -77,10 +88,12 @@ else
 @functions {
     public sealed record ClientRow(
         int Id, string Name, bool IsActive, string Sub, SubscriptionState State, string PlanNote,
-        PulseData Pulse, string Seen, string[] Tags);
+        PulseData Pulse, string Seen, string[] Tags, long? Products, long? Orders);
 
-    public class IndexModel(ControlDbContext db, PortalFormat fmt) : PageModel
+    public class IndexModel(ControlDbContext db, MirrorStore mirrors, PortalFormat fmt) : PageModel
     {
+        private static readonly string[] CountTables = ["Products", "Orders"];
+
         public List<ClientRow> Rows { get; private set; } = [];
         public List<AttentionItem> Attention { get; private set; } = [];
         public string Summary { get; private set; } = "";
@@ -107,15 +120,24 @@ else
                 var states = c.Sites.Where(s => !s.IsDisabled).Select(s => SiteInsight.Connection(s, now)).ToList();
                 var tags = new List<string>();
                 if (states.Contains(ConnectionState.Connected)) tags.Add("connected");
-                if (states.Any(s => s is ConnectionState.WaitingForTill or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0) tags.Add("waiting");
+                if (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0) tags.Add("waiting");
                 if (items.Count > 0) tags.Add("attention");
 
-                // A client with several tills is one strip: an hour is lit when any of its tills was heard from.
+                // A client with several branches is one strip: an hour is lit when any of its branches was heard from.
                 var pulse = PulseData.Build(c.Sites.SelectMany(s => beats[s.Id]), now);
                 var seenAt = c.Sites.Where(s => s.LastSeenAt != null).Select(s => s.LastSeenAt).DefaultIfEmpty().Max();
                 var state = SubscriptionRules.Evaluate(c.Subscription, now);
 
-                var sub = c.Sites.Count switch { 0 => "No till yet", 1 => "1 till", var n => $"{n} tills" };
+                // What the cloud holds for the client, summed over its branches. Null until some branch has uploaded.
+                long? products = null, orders = null;
+                foreach (var s in c.Sites.Where(s => mirrors.Exists(s.Id)))
+                {
+                    var counts = mirrors.CountRows(s.Id, CountTables);
+                    products = (products ?? 0) + counts["Products"];
+                    orders = (orders ?? 0) + counts["Orders"];
+                }
+
+                var sub = c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
                 if (!string.IsNullOrWhiteSpace(c.Phone)) sub += " · " + c.Phone;
 
                 return new ClientRow(c.Id, c.Name, c.IsActive, sub, state,
@@ -123,8 +145,8 @@ else
                         ? $"ends {fmt.Until(c.Subscription.ExpiresAt)} · {fmt.Day(c.Subscription.ExpiresAt)}"
                         : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
                     pulse,
-                    seenAt is null ? (c.Sites.Count == 0 ? "No till yet" : "Not connected yet") : fmt.Ago(seenAt),
-                    tags.ToArray());
+                    seenAt is null ? (c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
+                    tags.ToArray(), products, orders);
             }).ToList();
 
             Attention = attention.OrderByDescending(a => a.Item.Severity).ThenBy(a => a.Item.Client).Select(a => a.Item).ToList();

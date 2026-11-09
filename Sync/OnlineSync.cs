@@ -22,6 +22,7 @@ namespace Sync
     public sealed class OnlineSyncService(
         IServiceProvider services,
         OnlineSettingsStore store,
+        SealKeyStore keys,
         SyncStatus status,
         OnlineSignal signal,
         IHttpClientFactory httpFactory,
@@ -71,13 +72,50 @@ namespace Sync
                         http.BaseAddress = new Uri(settings.CloudUrl.TrimEnd('/') + "/");
                         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.DeviceToken);
 
-                        var pusher = new SyncPusher(schema, connectionString, new HttpSyncTransport(http), status, time, null,
-                            Math.Clamp(settings.BatchSize, 1, 2000));
-                        var result = await pusher.RunOnceAsync(stoppingToken);
+                        // Sealing is wanted: no confirmed slip, no key or an unreadable key all mean nothing is uploaded. A shop that
+                        // asked for privacy must never fall back to sending rows readable, nor get a new key behind the owner's back.
+                        RowSealer? sealer = null;
+                        var holding = settings.SealData && settings.SealConfirmedAtUtc is null;
+                        var blocked = holding;
+                        if (!holding && settings.SealData)
+                        {
+                            try
+                            {
+                                sealer = keys.TryLoad();
+                                if (sealer is null)
+                                {
+                                    status.Failed("seal_key_missing", "The shop's seal key is not on this PC, so nothing is uploaded.", -1);
+                                    blocked = true;
+                                }
+                                else
+                                {
+                                    ResealOnce(connectionString, schema, sealer.KeyId);
+                                }
+                            }
+                            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or System.Security.Cryptography.CryptographicException)
+                            {
+                                logger.LogError(ex, "The seal key could not be loaded; nothing is sent until it can.");
+                                status.Failed("seal_key", "The shop's seal key could not be opened, so nothing is uploaded.", -1);
+                                blocked = true;
+                            }
+                        }
 
-                        // Back off while failing so a down cloud costs nothing; snap back on the first success.
-                        failureDelay = result.Ok ? TimeSpan.Zero : TimeSpan.FromSeconds(Math.Min(300, Math.Max(10, failureDelay.TotalSeconds * 2)));
-                        wait = result.Ok ? interval : failureDelay;
+                        if (blocked)
+                        {
+                            // Waiting for the owner is not a failure to back off from; a missing or unreadable key is.
+                            failureDelay = holding ? TimeSpan.Zero : TimeSpan.FromSeconds(Math.Min(300, Math.Max(10, failureDelay.TotalSeconds * 2)));
+                            wait = holding ? interval : failureDelay;
+                        }
+                        else
+                        {
+                            var pusher = new SyncPusher(schema, connectionString, new HttpSyncTransport(http), status, time, null,
+                                Math.Clamp(settings.BatchSize, 1, 2000), sealer);
+                            var result = await pusher.RunOnceAsync(stoppingToken);
+
+                            // Back off while failing so a down cloud costs nothing; snap back on the first success.
+                            failureDelay = result.Ok ? TimeSpan.Zero : TimeSpan.FromSeconds(Math.Min(300, Math.Max(10, failureDelay.TotalSeconds * 2)));
+                            wait = result.Ok ? interval : failureDelay;
+                        }
 
                         var now = time.GetUtcNow().UtcDateTime;
                         if (now - lastPlanCheck > PlanCheckEvery)
@@ -108,6 +146,22 @@ namespace Sync
             else SyncTriggers.Uninstall(connection, schema);
         }
 
+        /// <summary>
+        /// The first time a key is used (sealing switched on, or a new key after a loss) the whole shop is queued again, so the
+        /// next upload is an initial batch: it replaces whatever the cloud holds, readable or sealed under another key. The marker is
+        /// in the shop's own database and the re-queue is what makes the initial batch stick, so a restart half-way repeats it, never skips it.
+        /// A shop that has not uploaded anything yet needs nothing: its first upload is already the whole shop.
+        /// </summary>
+        private static void ResealOnce(string connectionString, SyncSchema schema, string keyId)
+        {
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            SyncTriggers.EnsureTables(connection);
+            if (SyncTriggers.GetState(connection, SyncTriggers.SealedKeyKey) == keyId) return;
+            if (SyncTriggers.GetState(connection, SyncTriggers.SeededKey) == "1") SyncTriggers.Seed(connection, schema);
+            SyncTriggers.SetState(connection, null, SyncTriggers.SealedKeyKey, keyId);
+        }
+
         /// <summary>Learns the subscription state (and the site's name) for the Online screen. Failures are not interesting: the push already reports them.</summary>
         private async Task RefreshPlanAsync(HttpClient http, CancellationToken ct)
         {
@@ -134,12 +188,15 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var defaults = configuration.GetSection(OnlineSettings.SectionName).Get<OnlineSettings>() ?? new OnlineSettings();
             services.AddSingleton(new OnlineSettingsStore(settingsFilePath, defaults));
+            // Beside online.json, so it follows the same folder (and the NEXPOS_DB_PATH redirect) as the database it protects.
+            services.AddSingleton(new SealKeyStore(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(settingsFilePath))!, "online.key")));
             services.AddSingleton<SyncStatus>();
             services.AddSingleton<OnlineSignal>();
             services.TryAddSingleton(TimeProvider.System);
             services.AddHttpClient(OnlineSyncService.HttpClientName);
             services.AddSingleton<OnlineConnection>();
             services.AddSingleton<IOnlineConnection>(sp => sp.GetRequiredService<OnlineConnection>());
+            services.AddSingleton<IOnlineSealing, OnlineSealing>();
             services.AddSingleton(new CommandLedger(
                 Path.Combine(Path.GetDirectoryName(Path.GetFullPath(settingsFilePath))!, "online-commands.json")));
             services.AddHostedService<OnlineSyncService>();

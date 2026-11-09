@@ -2364,6 +2364,11 @@
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. افتح صفحة الترخيص للتجديد أو التفعيل.</value></data>
+  <data name="License_DeviceNotRegistered" xml:space="preserve"><value>هذا الجهاز غير مسجّل للبيع. اطلب من المسؤول إضافته من صفحة الترخيص، ثم أدخل رمز الاقتران هنا.</value></data>
+  <data name="License_SeatsExceeded" xml:space="preserve"><value>لا يمكن لهذا الجهاز البيع لأن الترخيص يغطي الآن أجهزة أقل من المسجّلة. اطلب من المسؤول تحرير مقعد أو تجديد الترخيص.</value></data>
+  <data name="License_SeatsFull" xml:space="preserve"><value>جميع أجهزة الباقة قيد الاستخدام. احذف جهاز بيع أولاً، أو اطلب من مزوّدك باقة أكبر.</value></data>
+  <data name="License_InvalidPairingCode" xml:space="preserve"><value>رمز الاقتران هذا غير صالح، أو سبق استخدامه، أو انتهت صلاحيته. اطلب من المسؤول رمزاً جديداً.</value></data>
+  <data name="License_PairingThrottled" xml:space="preserve"><value>عدد كبير من الرموز الخاطئة. انتظر بضع دقائق ثم حاول مجدداً.</value></data>
   <data name="License_SalesStoppedAskAdmin" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. يرجى مراجعة المسؤول لتجديده أو تفعيله.</value></data>
   <data name="Print_Menu" xml:space="preserve"><value>طباعة</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>طباعة على ورق الإيصال</value></data>
@@ -2500,4 +2505,19 @@
   <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>هذه القائمة تحتوي على هذه القيمة بالفعل.</value></data>
   <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>اختر يوم الأسبوع للجدول الأسبوعي.</value></data>
   <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>اختر يوم الشهر للجدول الشهري.</value></data>
+  <data name="Online_Slip_Title" xml:space="preserve"><value>قسيمة الاسترداد</value></data>
+  <data name="Online_Slip_Code" xml:space="preserve"><value>رمز الاسترداد</value></data>
+  <data name="Online_Slip_Keep1" xml:space="preserve"><value>احتفظ بهذه القسيمة في خزنة المحل.</value></data>
+  <data name="Online_Slip_Keep2" xml:space="preserve"><value>من يملكها يستطيع قراءة النسخة</value></data>
+  <data name="Online_Slip_Keep3" xml:space="preserve"><value>السحابية الخاصة بمحلك.</value></data>
+  <data name="Online_Slip_Use1" xml:space="preserve"><value>إذا فُقد هذا الجهاز، اكتب الرمز في</value></data>
+  <data name="Online_Slip_Use2" xml:space="preserve"><value>الإعدادات &gt; Online على الجهاز الجديد.</value></data>
+  <data name="Online_Slip_KeyId" xml:space="preserve"><value>معرّف المفتاح:</value></data>
+  <data name="Online_Slip_Printed" xml:space="preserve"><value>تاريخ الطباعة:</value></data>
+  <data name="Online_Seal_wrong_pin" xml:space="preserve"><value>الرمز السري غير صحيح.</value></data>
+  <data name="Online_Seal_pin_locked" xml:space="preserve"><value>محاولات خاطئة كثيرة. حاول مرة أخرى بعد دقائق.</value></data>
+  <data name="Online_Seal_not_connected" xml:space="preserve"><value>اتصل بخدمة NexPOS Online أولاً.</value></data>
+  <data name="Online_Seal_no_key" xml:space="preserve"><value>أظهر رمز الاسترداد أولاً ثم أكّد.</value></data>
+  <data name="Online_Seal_recovery_code_invalid" xml:space="preserve"><value>هذا ليس رمز استرداد كاملاً. قارنه بالقسيمة.</value></data>
+  <data name="Online_Seal_key_exists" xml:space="preserve"><value>هذا الجهاز لديه مفتاح مختلف بالفعل، لذلك لا يمكن استبداله.</value></data>
 </root>

@@ -25,6 +25,11 @@ public static class AuditActions
     public const string PinChangeFailed = "PinChangeFailed";
     public const string PasswordChanged = "PasswordChanged";
     public const string AccessDenied = "AccessDenied";
+    // Private Online: who saw or printed the recovery code, who restored a key. The code itself is never recorded.
+    public const string RecoverySlipShown = "RecoverySlipShown";
+    public const string RecoverySlipFailed = "RecoverySlipFailed";
+    public const string SealingConfirmed = "SealingConfirmed";
+    public const string SealKeyRestored = "SealKeyRestored";
 
     // Business
     public const string SaleCompleted = "SaleCompleted";

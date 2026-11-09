@@ -12,6 +12,8 @@
         <!-- Hosting/logging/options/HttpClient abstractions for the till-side background service. -->
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+        <!-- Protects the seal key file on the shop PC (Windows DPAPI). -->
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.4" />
     </ItemGroup>
 
 </Project>

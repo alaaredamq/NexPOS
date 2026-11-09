@@ -42,7 +42,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         private readonly string? _previousDbPath = Environment.GetEnvironmentVariable(AppDataPathProvider.DatabasePathEnvVar);
 
         public static async Task<TillRig> StartAsync(CloudFactory cloud, TillDb? till = null, string? settingsPath = null,
-            Action<OnlineSettingsStore>? preset = null, int intervalSeconds = 5)
+            Action<OnlineSettingsStore>? preset = null, int intervalSeconds = 5, bool sealOnConnect = false)
         {
             till ??= new TillDb();
             settingsPath ??= Path.Combine(Path.GetTempPath(), "nexpos-rig-" + Guid.NewGuid().ToString("N"), "online.json");
@@ -54,7 +54,12 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
             services.AddLogging();
             services.AddDbContext<ErpDbContext>(o => o.UseSqlite(till.ConnectionString));
             services.AddOnlineSync(new Microsoft.Extensions.Configuration.ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?> { ["Online:IntervalSeconds"] = intervalSeconds.ToString() }).Build(), settingsPath);
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Online:IntervalSeconds"] = intervalSeconds.ToString(),
+                    // Real tills seal every new connection; most scenarios here are about the sync itself, so the rig opts out.
+                    ["Online:SealOnConnect"] = sealOnConnect.ToString(),
+                }).Build(), settingsPath);
             services.AddHttpClient(OnlineSyncService.HttpClientName)
                 .ConfigurePrimaryHttpMessageHandler(() => new RoutingHandler(cloud.Server.CreateHandler()));
             var provider = services.BuildServiceProvider();
@@ -118,6 +123,129 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         await rig.Till.AddCustomerAsync("After");
         Assert.True(await WaitForAsync(() => InMirror(site, "After")), "later changes should follow");
         Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null));
+    }
+
+    [Fact]
+    public async Task A_shop_with_sealing_on_uploads_locked_rows_with_the_key_beside_the_settings()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        await using var rig = await TillRig.StartAsync(_cloud, preset: s => s.Save(s.Current with { SealData = true, SealConfirmedAtUtc = DateTime.UtcNow }));
+        await rig.Till.AddCustomerAsync("Zainab");
+        await rig.Till.AddProductAsync("Olive oil 1L", "6001");
+        rig.Provider.GetRequiredService<SealKeyStore>().LoadOrCreate(); // the key the owner kept the slip for
+
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+
+        Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null), "the first upload should succeed");
+        var mirror = _cloud.Mirrors.PathFor(site.SiteId);
+        Assert.Equal(0L, SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM Customers"));
+        Assert.Equal(1L, SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM Products WHERE Name = 'Olive oil 1L'"));
+        Assert.True(SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM SealedRows WHERE TableName = 'Customers'") >= 1);
+        Assert.True(File.Exists(Path.Combine(Path.GetDirectoryName(rig.SettingsPath)!, "online.key")));
+    }
+
+    [Fact]
+    public async Task A_shop_with_sealing_on_and_an_unreadable_key_uploads_nothing_instead_of_falling_back_to_readable()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        var folder = Path.Combine(Path.GetTempPath(), "nexpos-rig-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(folder);
+        byte[] damaged = [9, 9, 9];
+        File.WriteAllBytes(Path.Combine(folder, "online.key"), damaged);
+
+        await using var rig = await TillRig.StartAsync(_cloud, settingsPath: Path.Combine(folder, "online.json"),
+            preset: s => s.Save(s.Current with { SealData = true, SealConfirmedAtUtc = DateTime.UtcNow }));
+        await rig.Till.AddCustomerAsync("Zainab");
+
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+
+        Assert.True(await WaitForAsync(() => rig.Status.Snapshot().LastErrorCode == "seal_key"), "the key problem should be reported");
+        Assert.Equal(damaged, File.ReadAllBytes(Path.Combine(folder, "online.key")));
+        if (_cloud.Mirrors.Exists(site.SiteId))
+        {
+            var mirror = _cloud.Mirrors.PathFor(site.SiteId);
+            Assert.Equal(0L, SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM Customers"));
+            Assert.Equal(0L, SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM SealedRows"));
+        }
+    }
+
+    [Fact]
+    public async Task A_new_connection_uploads_nothing_until_the_owner_keeps_the_slip_and_then_uploads_sealed()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        await using var rig = await TillRig.StartAsync(_cloud, sealOnConnect: true);
+        await rig.Till.AddCustomerAsync("Zainab");
+        await rig.Till.AddProductAsync("Olive oil 1L", "6001");
+
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+
+        Assert.Equal(SealingStates.NeedsSlip, rig.Connection.GetStatus().SealingState);
+        await Task.Delay(1500); // plenty of loop turns: it must stay quiet
+        Assert.Null(rig.Connection.GetStatus().LastSuccessUtc);
+        Assert.False(_cloud.Mirrors.Exists(site.SiteId) && SqlHelper.Scalar<long>(_cloud.Mirrors.PathFor(site.SiteId), "SELECT COUNT(*) FROM Products WHERE Name = 'Olive oil 1L'") > 0,
+            "nothing may leave the shop before the slip is kept");
+
+        var sealing = rig.Provider.GetRequiredService<IOnlineSealing>();
+        var slip = sealing.GetSlip();
+        sealing.Confirm();
+
+        Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null), "the first upload should follow the confirmation");
+        var mirror = _cloud.Mirrors.PathFor(site.SiteId);
+        Assert.Equal(1L, SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM Products WHERE Name = 'Olive oil 1L'"));
+        Assert.True(SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM SealedRows WHERE TableName = 'Customers'") >= 1);
+        Assert.DoesNotContain("Zainab", SqlHelper.RawText(mirror));
+
+        var status = rig.Connection.GetStatus();
+        Assert.Equal(SealingStates.On, status.SealingState);
+        Assert.Equal(slip.KeyId, status.SealKeyId);
+    }
+
+    [Fact]
+    public async Task Turning_privacy_on_for_a_shop_that_uploaded_readable_replaces_the_cloud_copy_and_leaves_no_trace()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        await using var rig = await TillRig.StartAsync(_cloud);          // a shop connected before sealing existed
+        await rig.Till.AddCustomerAsync("Zainab");
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+        Assert.True(await WaitForAsync(() => InMirror(site, "Zainab")), "it starts readable");
+        var mirror = _cloud.Mirrors.PathFor(site.SiteId);
+        Assert.Equal(SealingStates.Off, rig.Connection.GetStatus().SealingState);
+
+        var sealing = rig.Provider.GetRequiredService<IOnlineSealing>();
+        sealing.GetSlip();
+        sealing.Confirm();
+
+        Assert.True(await WaitForAsync(() => SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM SealedRows WHERE TableName = 'Customers'") >= 1),
+            "the whole shop should be uploaded again, sealed");
+        Assert.True(await WaitForAsync(() => SqlHelper.Scalar<long>(mirror, "SELECT COUNT(*) FROM Customers WHERE FirstName = 'Zainab'") == 0),
+            "the readable copy is wiped");
+        Assert.DoesNotContain("Zainab", SqlHelper.RawText(mirror)); // not in free pages, not in the old log
+        Assert.Equal(SealingStates.On, rig.Connection.GetStatus().SealingState);
+    }
+
+    [Fact]
+    public async Task A_confirmed_shop_whose_key_is_missing_uploads_nothing_until_the_key_is_restored()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        await using var rig = await TillRig.StartAsync(_cloud, preset: s => s.Save(s.Current with { SealData = true, SealConfirmedAtUtc = DateTime.UtcNow }));
+        await rig.Till.AddCustomerAsync("Zainab");
+        var keys = rig.Provider.GetRequiredService<SealKeyStore>();
+        Assert.False(keys.Exists); // a restore on a new PC: the settings came along, the key did not
+
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+
+        Assert.True(await WaitForAsync(() => rig.Status.Snapshot().LastErrorCode == "seal_key_missing"));
+        Assert.Equal(SealingStates.KeyMissing, rig.Connection.GetStatus().SealingState);
+        Assert.False(keys.Exists, "a new key must never be made behind the owner's back");
+        Assert.False(_cloud.Mirrors.Exists(site.SiteId) && SqlHelper.Scalar<long>(_cloud.Mirrors.PathFor(site.SiteId), "SELECT COUNT(*) FROM SealedRows") > 0);
+
+        var slipKey = RowSealer.NewKey();
+        Assert.Equal(RestoreOutcome.Restored, rig.Provider.GetRequiredService<IOnlineSealing>().RestoreKey(RecoveryCode.Format(slipKey)));
+
+        Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null), "uploading resumes once the key is back");
+        var mirror = _cloud.Mirrors.PathFor(site.SiteId);
+        Assert.Equal(new RowSealer(slipKey).KeyId, SqlHelper.Scalar<string>(mirror, "SELECT KeyId FROM SealedRows WHERE TableName = 'Customers' LIMIT 1"));
+        Assert.Equal(SealingStates.On, rig.Connection.GetStatus().SealingState);
     }
 
     [Fact]

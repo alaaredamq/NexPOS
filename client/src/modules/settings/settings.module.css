@@ -311,3 +311,38 @@
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-weight: 400;
 }
+
+/* ---- private Online: the recovery code ---- */
+
+.codeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  user-select: all;
+}
+
+.codeGroup {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--color-ink);
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.checkRow input {
+  margin-block-start: 0.25rem;
+  flex: none;
+}

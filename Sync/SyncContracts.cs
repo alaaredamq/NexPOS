@@ -12,16 +12,29 @@ namespace Sync;
 /// <param name="FromSeq">Till-side log position this batch starts after (informational).</param>
 /// <param name="ThroughSeq">Till-side log position covered once this batch is acknowledged.</param>
 /// <param name="Initial">First batch of a full snapshot: the mirror is emptied before the rows are applied.</param>
+/// <param name="Format"><see cref="SyncFormat"/>: 1 sends every row readable, 2 seals what <see cref="SealPolicy"/> says. A cloud that
+/// does not know a format refuses the batch rather than store rows it cannot make sense of.</param>
 public sealed record SyncBatch(
     string SchemaVersion,
     long FromSeq,
     long ThroughSeq,
     bool Initial,
-    IReadOnlyList<SyncChange> Changes);
+    IReadOnlyList<SyncChange> Changes,
+    int Format = SyncFormat.Plain);
+
+public static class SyncFormat
+{
+    /// <summary>Every row travels readable (how Online worked before sealing).</summary>
+    public const int Plain = 1;
+    /// <summary>Rows travel as <see cref="SealPolicy"/> says: sealed tables and columns only as <see cref="SyncChange.Sealed"/>.</summary>
+    public const int Sealed = 2;
+}
 
 /// <param name="Table">Table name; must be one the cloud knows (<see cref="SyncSchema"/>).</param>
-/// <param name="Values">Column -> value for an upsert. Numbers, strings, null, or a <see cref="SyncBlob"/> for bytes.</param>
-public sealed record SyncChange(string Table, long Id, bool Deleted, Dictionary<string, object?>? Values);
+/// <param name="Values">Column -> value for an upsert. Numbers, strings, null, or a <see cref="SyncBlob"/> for bytes.
+/// Null for a delete, and for a fully sealed table.</param>
+/// <param name="Sealed">Base64 of the row (or its sealed columns) locked by <see cref="RowSealer"/>. The cloud stores it and cannot read it.</param>
+public sealed record SyncChange(string Table, long Id, bool Deleted, Dictionary<string, object?>? Values, string? Sealed = null);
 
 /// <summary>Binary column value. JSON has no bytes, and a bare base64 string would be indistinguishable from text.</summary>
 public sealed record SyncBlob([property: JsonPropertyName("$b64")] string Base64);

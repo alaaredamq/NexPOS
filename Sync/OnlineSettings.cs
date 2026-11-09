@@ -20,6 +20,22 @@ public sealed record OnlineSettings
     /// <summary>How long the shop PC lets the cloud hold a request open waiting for a change from the owner's phone (seconds, 0 to 55).</summary>
     public int CommandWaitSeconds { get; set; } = 25;
 
+    /// <summary>
+    /// Seal what the cloud does not need before it leaves the shop (docs/online/PRIVACY-KEYS.md). It only takes effect once the
+    /// owner has confirmed they kept the recovery slip (<see cref="SealConfirmedAtUtc"/>): a key nobody has a copy of would
+    /// strand the cloud copy. Until then a till that wants sealing uploads nothing.
+    /// </summary>
+    public bool SealData { get; set; }
+
+    /// <summary>When the owner confirmed they kept the recovery slip. Null until then; uploading (sealed) starts at that moment.</summary>
+    public DateTime? SealConfirmedAtUtc { get; set; }
+
+    /// <summary>
+    /// Every new connection is sealed (<see cref="SealData"/> is switched on when the link is redeemed). There is no switch for
+    /// this on the Online screen; the setting exists for the test rigs and for diagnosing a shop with support.
+    /// </summary>
+    public bool SealOnConnect { get; set; } = true;
+
     // Shown on the Online screen so the owner can see what they are connected to. Informational only.
     public string? SiteName { get; set; }
     public string? ClientName { get; set; }

@@ -115,7 +115,8 @@ public sealed class SyncPusher(
     SyncStatus status,
     TimeProvider time,
     ILogger<SyncPusher>? logger = null,
-    int batchSize = 500)
+    int batchSize = 500,
+    RowSealer? sealer = null)
 {
     public async Task<SyncRunResult> RunOnceAsync(CancellationToken ct)
     {
@@ -216,13 +217,20 @@ public sealed class SyncPusher(
         {
             if (!schema.TryGetTable(tableName, out var table)) continue; // a table that left the model
             var values = ReadRow(connection, table, rowId);
-            changes.Add(values is null
-                ? new SyncChange(tableName, rowId, true, null)
-                : new SyncChange(tableName, rowId, false, values));
+            changes.Add(values is null ? new SyncChange(tableName, rowId, true, null) : Change(table.Name, rowId, values));
         }
 
         var initial = SyncTriggers.GetState(connection, SyncTriggers.NeedsInitialKey) == "1";
-        return new SyncBatch(schemaVersion, after, through, initial, changes);
+        return new SyncBatch(schemaVersion, after, through, initial, changes, sealer is null ? SyncFormat.Plain : SyncFormat.Sealed);
+    }
+
+    /// <summary>Without a key the row travels as it is. With one, what <see cref="SealPolicy"/> hides is locked first and never sent in the clear.</summary>
+    private SyncChange Change(string table, long id, Dictionary<string, object?> values)
+    {
+        if (sealer is null) return new SyncChange(table, id, false, values);
+
+        var (open, secret) = SealPolicy.Split(table, values);
+        return new SyncChange(table, id, false, open, secret is null ? null : sealer.Seal(table, id, secret));
     }
 
     private static Dictionary<string, object?>? ReadRow(SqliteConnection connection, SyncTable table, long id)

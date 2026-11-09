@@ -46,6 +46,53 @@ public sealed record OnlineStatusDto
 
     /// <summary>Set when the settings file exists but cannot be read; Online then stays off until it is fixed or the till is reconnected.</summary>
     public string? SettingsProblem { get; init; }
+
+    /// <summary>
+    /// Private (sealed) Online, which step the owner is at: <c>off</c> (readable, as before; a connected shop can switch it on),
+    /// <c>needsSlip</c> (nothing is uploaded until the recovery slip is kept), <c>keyMissing</c> (confirmed, but this PC has no key:
+    /// restore it or make a new one) or <c>on</c> (uploading sealed).
+    /// </summary>
+    public required string SealingState { get; init; }
+
+    /// <summary>Public fingerprint of the key on this PC (16 hex characters), null when there is none. Safe to show; it opens nothing.</summary>
+    public string? SealKeyId { get; init; }
+}
+
+/// <summary>Anything that reveals the key asks for the signed-in user's PIN again, in the request itself.</summary>
+public sealed record SealingPinRequest
+{
+    [Required, StringLength(32)]
+    public string Pin { get; init; } = "";
+}
+
+public sealed record SealingRestoreRequest
+{
+    [Required, StringLength(32)]
+    public string Pin { get; init; } = "";
+
+    /// <summary>The recovery code from the slip, as typed: any case, spaces or dashes.</summary>
+    [Required, StringLength(200)]
+    public string Code { get; init; } = "";
+}
+
+/// <summary>The recovery slip. <see cref="Code"/> <b>is</b> the key: whoever has it can read the shop's cloud copy.</summary>
+public sealed record RecoverySlipDto
+{
+    /// <summary>The whole code, groups joined by dashes.</summary>
+    public required string Code { get; init; }
+
+    /// <summary>14 groups of 4, the last one a check, for showing in a grid.</summary>
+    public required IReadOnlyList<string> Groups { get; init; }
+
+    public required string KeyId { get; init; }
+}
+
+public sealed record SlipPrintResultDto
+{
+    public required bool Printed { get; init; }
+
+    /// <summary>Localized sentence for the toast. When <see cref="Printed"/> is false the PDF is the way out.</summary>
+    public required string Message { get; init; }
 }
 
 public sealed record OnlineConnectRequest

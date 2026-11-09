@@ -130,7 +130,7 @@ database and made the copy before upgrading. **Not yet tried on a client's PC.**
 
 ## 6. Running it
 
-**Visual walkthrough with screenshots (open in a browser, one file): `docs/online/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
+**Visual walkthrough with screenshots (open in a browser, one file): `docs/visual/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
 
 ### Try it on your PC (no server needed)
 

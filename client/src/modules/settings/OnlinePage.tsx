@@ -8,6 +8,7 @@ import { Loader } from '@/ui/Loader'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { toast } from '@/ui/toast'
 import { useConnectOnline, useDisconnectOnline, useOnlineStatus, useSyncOnlineNow, type OnlineStatus } from './api'
+import { PrivacyCard } from './SealingFlow'
 import { SettingsLayout } from './SettingsLayout'
 import styles from './settings.module.css'
 
@@ -31,6 +32,8 @@ const PROBLEM_KEYS: Record<string, string> = {
   subscription_inactive: 'subscription',
   unauthorized: 'unauthorized',
   schema_newer: 'schemaNewer',
+  seal_key: 'sealKey',
+  seal_key_missing: 'sealKeyMissing',
 }
 
 /** `/app/settings/online` - connect this till to NexPOS Online with the provider's link, and see how it is doing. */
@@ -85,6 +88,7 @@ function ConnectCard({ status }: { status: OnlineStatus }) {
         <li>{t('Online_Step2')}</li>
         <li>{t('Online_Step3')}</li>
       </ol>
+      <p className={styles.note}>{t('Online_Seal_ConnectNote')}</p>
 
       <label className={styles.fieldLabel} htmlFor="online-link">
         {t('Online_LinkLabel')}
@@ -212,6 +216,8 @@ function ConnectedCard({ status }: { status: OnlineStatus }) {
         </div>
         <p className={styles.note}>{t('Online_OfflineNote')}</p>
       </section>
+
+      <PrivacyCard status={status} />
     </div>
   )
 }

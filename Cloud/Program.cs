@@ -30,6 +30,7 @@ builder.Services.AddSingleton<CommandBroker>();
 builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
+builder.Services.AddScoped<SiteRemoval>();
 
 // Keep the cookie/TempData encryption keys on the data volume, or every redeploy would sign the admin out.
 builder.Services.AddDataProtection().SetApplicationName("NexPOS.Cloud");

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +25,9 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   void initState() {
     super.initState();
-    _url = TextEditingController(text: context.read<Session>().cloudUrl);
+    final saved = context.read<Session>().cloudUrl;
+    // Debug builds start on the PC running the cloud (the emulator's name for it); release builds start empty.
+    _url = TextEditingController(text: saved.isNotEmpty ? saved : (kDebugMode ? 'http://10.0.2.2:51158' : ''));
   }
 
   @override

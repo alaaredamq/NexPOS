@@ -46,6 +46,9 @@ namespace Application.DTOs.Licensing
         public string? Serial { get; init; }
         public DateOnly? IssuedOn { get; init; }
 
+        /// <summary>How many PCs the installed key covers (the store server plus its tills). 1 while nothing is installed.</summary>
+        public int Seats { get; init; } = 1;
+
         /// <summary>Full licenses: last day of the updates plan. Provisional/Trial: last valid day.</summary>
         public DateOnly? ValidUntil { get; init; }
 

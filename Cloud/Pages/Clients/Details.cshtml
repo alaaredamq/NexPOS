@@ -40,7 +40,7 @@
             }
             else
             {
-                <p style="margin:6px 0 0">No subscription yet. Their till cannot send data.</p>
+                <p style="margin:6px 0 0">No subscription yet. Their shop cannot send data.</p>
             }
         </div>
         <div>
@@ -59,18 +59,18 @@
     @if (sub is not null)
     {
         <form method="post" asp-page-handler="@(sub.IsSuspended ? "Resume" : "Suspend")" asp-route-id="@Model.Client.Id"
-              data-confirm="@(sub.IsSuspended ? "Their till will be allowed to send data again." : "Their till stops sending data to the cloud. It keeps selling, and sends what it saved when you resume.")"
+              data-confirm="@(sub.IsSuspended ? "Their shop will be allowed to send data again." : "Their shop stops sending data to the cloud. It keeps selling, and sends what it saved when you resume.")"
               data-confirm-title="@(sub.IsSuspended ? "Resume Online?" : "Suspend Online?")" data-confirm-yes="@(sub.IsSuspended ? "Resume" : "Suspend")" style="margin-top:6px">
             <button type="submit" class="btn @(sub.IsSuspended ? "secondary" : "danger") sm">@(sub.IsSuspended ? "Resume" : "Suspend")</button>
         </form>
     }
 </section>
 
-<section class="card" aria-labelledby="tills">
-    <h2 id="tills">Tills <span class="count">@Model.Client.Sites.Count</span></h2>
+<section class="card" aria-labelledby="branches">
+    <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
     {
-        <p class="muted">No till yet. Add one for each shop PC that should connect.</p>
+        <p class="muted">No branch yet. Add one for each separate shop that has its own NexPOS database. Extra PCs in the same shop do not need one.</p>
     }
     @foreach (var site in Model.Client.Sites.OrderBy(x => x.CreatedAt))
     {
@@ -83,23 +83,73 @@
                 <div class="muted" style="font-size:13px;margin-top:2px">@(site.LastSeenAt is null ? "Never in contact" : "Last contact " + Fmt.Ago(site.LastSeenAt))@(site.MachineId is null ? "" : " · " + site.MachineId)</div>
                 <partial name="_Pulse" model="@(new PulseView(PulseData.Build(Model.Beats[site.Id], Model.Now), false, Fmt))" />
             </div>
-            <a class="btn secondary" href="/Sites/Details/@site.Id">Open</a>
+            <div class="row">
+                <a class="btn secondary" href="/Sites/Details/@site.Id">Open</a>
+                <form method="post" asp-page="/Sites/Details" asp-page-handler="Remove" asp-route-id="@site.Id"
+                      data-confirm-title="Remove @site.Name?" data-confirm-yes="Remove branch"
+                      data-confirm="@(state == ConnectionState.Connected ? "This branch is connected. Its cloud copy of the data is deleted for good and it stops syncing. The shop keeps selling and everything stays on its PC. " : "Its cloud copy of the data is deleted for good. ")This cannot be undone.">
+                    <button type="submit" class="btn danger">Remove</button>
+                </form>
+            </div>
         </div>
     }
     <details class="fold" style="margin-top:14px">
-        <summary>Add a till</summary>
+        <summary>Add a branch</summary>
         <form method="post" asp-page-handler="AddSite" asp-route-id="@Model.Client.Id">
             <div class="fields2">
                 <div>
                     <label for="siteName">Name</label>
-                    <input id="siteName" name="SiteName" placeholder="Back till" required maxlength="200" />
+                    <input id="siteName" name="SiteName" placeholder="Second shop" required maxlength="200" />
                 </div>
                 <div>
-                    <label for="machineId">Machine ID <span class="opt">(from the till's License page)</span></label>
+                    <label for="machineId">Machine ID <span class="opt">(from the shop's License page)</span></label>
                     <input id="machineId" name="MachineId" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" />
                 </div>
             </div>
-            <p style="margin-top:14px"><button type="submit" class="btn">Add till</button></p>
+            <p style="margin-top:14px"><button type="submit" class="btn">Add branch</button></p>
+        </form>
+    </details>
+</section>
+
+<section class="card" aria-labelledby="owners">
+    <h2 id="owners">Phone app sign-ins <span class="count">@Model.Owners.Count</span></h2>
+    <p class="help" style="margin-top:0">Who can sign in to the NexPOS Owner app for this shop. They see and change only this client's shop.</p>
+    @foreach (var owner in Model.Owners)
+    {
+        <div class="site-card">
+            <div>
+                <b>@owner.DisplayName</b>
+                @if (!owner.IsActive) { <span class="pill none plain" style="margin-inline-start:8px">blocked</span> }
+                <div class="muted" style="font-size:13px;margin-top:2px">@owner.Email · @(owner.LastSignInAt is null ? "Never signed in" : "Last sign-in " + Fmt.Ago(owner.LastSignInAt))</div>
+            </div>
+            <div class="row">
+                <form method="post" asp-page-handler="ToggleOwner" asp-route-id="@Model.Client.Id" asp-route-ownerId="@owner.Id">
+                    <button type="submit" class="btn secondary">@(owner.IsActive ? "Block" : "Allow")</button>
+                </form>
+                <form method="post" asp-page-handler="RemoveOwner" asp-route-id="@Model.Client.Id" asp-route-ownerId="@owner.Id"
+                      data-confirm-title="Remove @owner.DisplayName?" data-confirm-yes="Remove sign-in"
+                      data-confirm="@owner.Email is signed out of the phone app and can no longer sign in. The shop's data is not touched.">
+                    <button type="submit" class="btn danger">Remove</button>
+                </form>
+            </div>
+        </div>
+    }
+    <details class="fold" style="margin-top:14px">
+        <summary>Add a sign-in</summary>
+        <form method="post" asp-page-handler="AddOwner" asp-route-id="@Model.Client.Id" autocomplete="off">
+            <div class="fields2">
+                <div>
+                    <label for="ownerName">Name</label>
+                    <input id="ownerName" name="OwnerName" placeholder="Shop owner" required maxlength="100" />
+                </div>
+                <div>
+                    <label for="ownerEmail">Email <span class="opt">(what they type to sign in)</span></label>
+                    <input id="ownerEmail" name="OwnerEmail" type="email" required maxlength="255" />
+                </div>
+            </div>
+            <label for="ownerPassword">Password <span class="opt">(at least 8 characters; give it to them yourself)</span></label>
+            <input id="ownerPassword" name="OwnerPassword" type="text" required minlength="8" maxlength="100" autocomplete="off" />
+            <p style="margin-top:14px"><button type="submit" class="btn">Add sign-in</button></p>
         </form>
     </details>
 </section>
@@ -119,9 +169,14 @@
             <p style="margin:16px 0 0"><button type="submit" class="btn">Save changes</button></p>
         </form>
         <form method="post" asp-page-handler="ToggleActive" asp-route-id="@Model.Client.Id" style="margin-top:14px"
-              data-confirm="@(Model.Client.IsActive ? "All their tills are blocked from the cloud. Their shop keeps selling." : "Their tills can connect again.")"
+              data-confirm="@(Model.Client.IsActive ? "All their branches are blocked from the cloud. Their shop keeps selling." : "Their branches can connect again.")"
               data-confirm-title="@(Model.Client.IsActive ? "Deactivate this client?" : "Reactivate this client?")" data-confirm-yes="@(Model.Client.IsActive ? "Deactivate" : "Reactivate")">
             <button type="submit" class="btn sm @(Model.Client.IsActive ? "danger" : "secondary")">@(Model.Client.IsActive ? "Deactivate client" : "Reactivate client")</button>
+        </form>
+        <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Client.Id" style="margin-top:10px"
+              data-confirm-title="Remove @Model.Client.Name?" data-confirm-yes="Remove client"
+              data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
+            <button type="submit" class="btn sm danger">Remove client</button>
         </form>
     </section>
 
@@ -137,12 +192,13 @@
 </div>
 
 @functions {
-    public class DetailsModel(ControlDbContext db, PortalFormat fmt, TimeProvider time) : PageModel
+    public class DetailsModel(ControlDbContext db, SiteRemoval removal, PortalFormat fmt, TimeProvider time) : PageModel
     {
         public Client? Client { get; private set; }
         public SubscriptionState State { get; private set; }
         public DateTime Now => fmt.Now;
         public ILookup<Guid, SiteHeartbeat> Beats { get; private set; } = Array.Empty<SiteHeartbeat>().ToLookup(h => h.SiteId);
+        public List<OwnerUser> Owners { get; private set; } = [];
 
         private async Task LoadAsync(int id)
         {
@@ -152,6 +208,7 @@
                 .Include(c => c.Events)
                 .FirstOrDefaultAsync(c => c.Id == id);
             State = SubscriptionRules.Evaluate(Client?.Subscription, Now);
+            Owners = await db.OwnerUsers.AsNoTracking().Where(o => o.ClientId == id).OrderBy(o => o.CreatedAt).ToListAsync();
 
             var since = new DateTime(Now.Year, Now.Month, Now.Day, Now.Hour, 0, 0, DateTimeKind.Utc).AddHours(-23);
             var ids = Client?.Sites.Select(s => s.Id).ToList() ?? [];
@@ -192,6 +249,15 @@
             return RedirectToPage(new { id });
         }
 
+        public async Task<IActionResult> OnPostRemoveAsync(int id)
+        {
+            var client = await db.Clients.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+            if (client is null) return NotFound();
+            await removal.RemoveClientAsync(id);
+            this.Flash($"{client.Name} removed");
+            return Redirect("/");
+        }
+
         public async Task<IActionResult> OnPostExtendAsync(int id, int months)
         {
             var client = await TrackedAsync(id);
@@ -228,6 +294,69 @@
             return RedirectToPage(new { id });
         }
 
+        public async Task<IActionResult> OnPostAddOwnerAsync(int id, string ownerName, string ownerEmail, string ownerPassword)
+        {
+            var client = await TrackedAsync(id);
+            if (client is null) return NotFound();
+
+            var email = ownerEmail?.Trim().ToLowerInvariant() ?? "";
+            if (string.IsNullOrWhiteSpace(ownerName) || !email.Contains('@') || (ownerPassword ?? "").Length < 8)
+            {
+                this.Flash("Not added: enter a name, an email and a password of at least 8 characters");
+                return RedirectToPage(new { id });
+            }
+            // The sign-in name is unique across all clients, so one person can never land in two shops by accident.
+            if (await db.OwnerUsers.AnyAsync(o => o.Email == email))
+            {
+                this.Flash("Not added: that email already has a sign-in");
+                return RedirectToPage(new { id });
+            }
+
+            db.OwnerUsers.Add(new OwnerUser
+            {
+                ClientId = id, Email = email, DisplayName = ownerName.Trim(),
+                PasswordHash = PasswordHasher.Hash(ownerPassword!), CreatedAt = time.GetUtcNow().UtcDateTime,
+            });
+            Log(client, $"Phone sign-in added for {email}.");
+            await db.SaveChangesAsync();
+            this.Flash($"Sign-in added for {email}");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostToggleOwnerAsync(int id, int ownerId)
+        {
+            var client = await TrackedAsync(id);
+            var owner = await db.OwnerUsers.FirstOrDefaultAsync(o => o.Id == ownerId && o.ClientId == id);
+            if (client is null || owner is null) return NotFound();
+
+            owner.IsActive = !owner.IsActive;
+            if (!owner.IsActive)
+            {
+                // Blocking must end phones that are already signed in, not only stop the next sign-in.
+                var now = time.GetUtcNow().UtcDateTime;
+                foreach (var s in await db.OwnerSessions.Where(s => s.OwnerUserId == ownerId && s.RevokedAt == null).ToListAsync())
+                    s.RevokedAt = now;
+            }
+            Log(client, owner.IsActive ? $"Phone sign-in allowed for {owner.Email}." : $"Phone sign-in blocked for {owner.Email}.");
+            await db.SaveChangesAsync();
+            this.Flash(owner.IsActive ? "Sign-in allowed" : "Sign-in blocked");
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostRemoveOwnerAsync(int id, int ownerId)
+        {
+            var client = await TrackedAsync(id);
+            var owner = await db.OwnerUsers.FirstOrDefaultAsync(o => o.Id == ownerId && o.ClientId == id);
+            if (client is null || owner is null) return NotFound();
+
+            await db.OwnerSessions.Where(s => s.OwnerUserId == ownerId).ExecuteDeleteAsync();
+            db.OwnerUsers.Remove(owner);
+            Log(client, $"Phone sign-in removed for {owner.Email}.");
+            await db.SaveChangesAsync();
+            this.Flash("Sign-in removed");
+            return RedirectToPage(new { id });
+        }
+
         public async Task<IActionResult> OnPostAddSiteAsync(int id, string siteName, string? machineId)
         {
             var client = await TrackedAsync(id);
@@ -241,9 +370,9 @@
                 CreatedAt = time.GetUtcNow().UtcDateTime,
             };
             db.Sites.Add(site);
-            Log(client, $"Installation '{site.Name}' added.");
+            Log(client, $"Branch '{site.Name}' added.");
             await db.SaveChangesAsync();
-            this.Flash("Till added. Create its connection link below");
+            this.Flash("Branch added. Create its connection link below");
             return Redirect($"/Sites/Details/{site.Id}");
         }
     }

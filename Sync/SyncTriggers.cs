@@ -22,6 +22,8 @@ public static class SyncTriggers
     public const string AckedSeqKey = "AckedSeq";
     public const string SeededKey = "Seeded";
     public const string NeedsInitialKey = "NeedsInitial";
+    /// <summary>Id of the seal key the cloud's copy was last (re)built under. A different key means upload everything again, sealed.</summary>
+    public const string SealedKeyKey = "SealedKeyId";
 
     private static string TriggerName(string table, char kind) => $"__sync_{table}_{kind}";
 
@@ -78,7 +80,7 @@ public static class SyncTriggers
             Exec(connection, tx, $"DROP TRIGGER IF EXISTS {Q(TriggerName(table.Name, kind))};");
         Exec(connection, tx, $"DELETE FROM {Q(LogTable)};");
         if (TableExists(connection, tx, StateTable))
-            Exec(connection, tx, $"DELETE FROM {Q(StateTable)} WHERE Key IN ('{SeededKey}', '{NeedsInitialKey}');");
+            Exec(connection, tx, $"DELETE FROM {Q(StateTable)} WHERE Key IN ('{SeededKey}', '{NeedsInitialKey}', '{SealedKeyKey}');");
         tx.Commit();
     }
 

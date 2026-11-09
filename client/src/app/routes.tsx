@@ -28,12 +28,14 @@ function IndexRedirect() {
 }
 
 /**
- * Public: `/login`. Everything else sits behind `RequireAuth`. Inside the shell, the `*` route is the placeholder for rail
+ * Public: `/login` and `/pair-till`. Everything else sits behind `RequireAuth`. Inside the shell, the `*` route is the placeholder for rail
  * entries that have no React page yet; a real module route always outranks it because a splat is the lowest-priority match.
  */
 export function buildRoutes(modules: RouteObject[] = moduleRoutes): RouteObject[] {
   return [
     { path: '/login', lazy: async () => ({ Component: (await import('@/shell/pages/LoginPage')).default }) },
+    // A till PC pairs before anyone signs in on it, so this is public too.
+    { path: '/pair-till', lazy: async () => ({ Component: (await import('@/shell/pages/PairTillPage')).default }) },
     {
       element: <RequireAuth />,
       children: [

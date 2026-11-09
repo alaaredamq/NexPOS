@@ -3,7 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'screens/home_screen.dart';import 'screens/sign_in_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/sign_in_screen.dart';
 import 'state/session.dart';
 import 'theme.dart';
 

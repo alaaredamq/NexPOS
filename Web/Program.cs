@@ -341,6 +341,8 @@ builder.Services.AddScoped<Core.IRepositories.Users.IRoleRepository, Infrastruct
 builder.Services.AddScoped<Application.IServices.Users.IUserService, Application.Services.Users.UserService>();
 builder.Services.AddScoped<Application.IServices.Auth.IAuthService, Application.Services.Auth.AuthService>();
 builder.Services.AddSingleton<Web.Services.AccessCache>();
+// Moves whenever a write succeeds; the open screens of the other PCs poll it to know when to reload (api/v1/live/version).
+builder.Services.AddSingleton<Web.Api.Live.DataVersion>();
 builder.Services.AddScoped<Web.Services.IRoleAccessService, Web.Services.RoleAccessService>();
 builder.Services.AddScoped<IProductDisplayOrderService, ProductDisplayOrderService>();
 
@@ -428,6 +430,8 @@ builder.Services.AddSingleton<Application.Services.Licensing.ILicenseStorage>(
     _ => new Application.Services.Licensing.FileLicenseStorage(AppDataPathProvider.GetLicenseFilePath()));
 builder.Services.AddSingleton<Common.Licensing.IMachineIdProvider, Infrastructure.Licensing.WindowsMachineIdProvider>();
 builder.Services.AddSingleton<Application.IServices.Licensing.ILicenseService, Application.Services.Licensing.LicenseService>();
+builder.Services.AddSingleton<Application.Services.Licensing.PairingThrottle>();
+builder.Services.AddScoped<Application.IServices.Licensing.ITillDeviceService, Application.Services.Licensing.TillDeviceService>();
 
 // Build the app
 var app = builder.Build();
@@ -636,6 +640,9 @@ app.UseMiddleware<Web.Middlewares.AuditRequestMiddleware>();
 
 // ✅ CSRF gate of the versioned API: every non-GET /api/v1 call must carry `X-NexPOS-Client: web`. After the audit row so refusals are recorded.
 app.UseMiddleware<Web.Api.Infrastructure.ApiClientHeaderMiddleware>();
+
+// ✅ Live updates between PCs: a successful write moves the data version the other tills poll (see DataVersion).
+app.UseMiddleware<Web.Middlewares.DataVersionMiddleware>();
 
 // ✅ License: close the POS screen and refuse new sales when the license does not allow selling.
 // After static files (assets are never blocked) and before routing/auth; reads and everything else pass.

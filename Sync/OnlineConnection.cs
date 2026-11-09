@@ -18,7 +18,9 @@ public sealed record OnlineStatusInfo(
     long PendingChanges,
     string? SubscriptionStatus,
     DateTime? SubscriptionExpiresAtUtc,
-    string? SettingsProblem);
+    string? SettingsProblem,
+    string SealingState = SealingStates.Off,
+    string? SealKeyId = null);
 
 /// <summary>Connecting failed; <see cref="Code"/> is stable for the UI, <see cref="Exception.Message"/> is plain English for logs and fallback.</summary>
 public sealed class OnlineConnectException(string code, string message) : Exception(message)
@@ -69,7 +71,8 @@ public sealed class OnlineConnection(
     IHttpClientFactory httpFactory,
     OnlineSignal signal,
     TimeProvider time,
-    IMachineIdProvider? machineIdProvider = null) : IOnlineConnection
+    IMachineIdProvider? machineIdProvider = null,
+    SealKeyStore? keys = null) : IOnlineConnection
 {
     public OnlineStatusInfo GetStatus()
     {
@@ -94,7 +97,16 @@ public sealed class OnlineConnection(
             PendingChanges: active ? snapshot.Pending : 0,
             SubscriptionStatus: active ? plan.Status : null,
             SubscriptionExpiresAtUtc: active ? plan.ExpiresAtUtc : null,
-            SettingsProblem: store.LoadError);
+            SettingsProblem: store.LoadError,
+            SealingState: SealingStates.Of(s, keys?.Exists ?? false),
+            SealKeyId: KeyIdOrNull());
+    }
+
+    /// <summary>The key's public fingerprint for the screen; null when there is no key or it cannot be read (the sync loop reports that).</summary>
+    private string? KeyIdOrNull()
+    {
+        try { return keys?.TryLoad()?.KeyId; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or System.Security.Cryptography.CryptographicException) { return null; }
     }
 
     public async Task<OnlineStatusInfo> ConnectAsync(string link, CancellationToken ct)
@@ -135,6 +147,9 @@ public sealed class OnlineConnection(
             SiteName = response.SiteName,
             ClientName = response.ClientName,
             ConnectedAtUtc = time.GetUtcNow().UtcDateTime,
+            // Every new connection is sealed. A shop that already confirmed its slip stays confirmed (the key is still here);
+            // a new one uploads nothing until the owner has kept the slip.
+            SealData = store.Current.SealData || store.Current.SealOnConnect,
         });
         signal.Wake();
         return GetStatus();

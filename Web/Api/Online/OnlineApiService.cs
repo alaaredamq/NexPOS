@@ -51,5 +51,7 @@ public sealed class OnlineApiService : IOnlineApiService
         SubscriptionStatus = s.SubscriptionStatus,
         SubscriptionExpiresAtUtc = s.SubscriptionExpiresAtUtc,
         SettingsProblem = s.SettingsProblem,
+        SealingState = s.SealingState,
+        SealKeyId = s.SealKeyId,
     };
 }

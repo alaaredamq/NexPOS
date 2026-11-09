@@ -136,3 +136,50 @@ export function useSyncOnlineNow() {
     onSettled: () => window.setTimeout(() => void client.invalidateQueries({ queryKey: settingsKeys.online }), 2500),
   })
 }
+
+// ---- Private Online: the recovery slip and the key (docs/online/PRIVACY-KEYS.md) ----
+// Everything that reveals the key sends the signed-in user's PIN in the request; the server checks it every time.
+
+export type RecoverySlip = Schemas['RecoverySlipDto']
+export type SlipPrintResult = Schemas['SlipPrintResultDto']
+
+/** The recovery code for the key on this PC (the key is made on first use). A wrong PIN is a 400 with `errors.pin`. */
+export function getRecoverySlip(pin: string): Promise<RecoverySlip> {
+  return http.post<RecoverySlip>('/online/sealing/slip', { pin })
+}
+
+/** Prints the slip on the receipt printer. The API never fails because of the printer: `printed: false` comes with a message. */
+export function printRecoverySlip(pin: string): Promise<SlipPrintResult> {
+  return http.post<SlipPrintResult>('/online/sealing/slip/print', { pin })
+}
+
+/** Saves the slip as a PDF through the signed-in cookie. */
+export async function downloadRecoverySlipPdf(pin: string): Promise<void> {
+  const file = await http.downloadPost('/online/sealing/slip/pdf', { pin })
+  const url = URL.createObjectURL(file.blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.filename || 'recovery-slip.pdf'
+  document.body.append(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
+/** The owner kept the slip: sealing starts and the whole shop is uploaded again, locked. */
+export function useConfirmSealing() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => http.post<OnlineStatus>('/online/sealing/confirm'),
+    onSuccess: (status) => client.setQueryData(settingsKeys.online, status),
+  })
+}
+
+/** Puts the key from a recovery slip on this PC (a restore on a new machine). */
+export function useRestoreSealKey() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { pin: string; code: string }) => http.post<OnlineStatus>('/online/sealing/restore', input),
+    onSuccess: (status) => client.setQueryData(settingsKeys.online, status),
+  })
+}
