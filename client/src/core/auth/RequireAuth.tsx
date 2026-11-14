@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { isApiError } from '@/api/http'
 import { getLanguage, seedLanguage } from '@/core/i18n'
+import { useLiveData } from '@/core/live/useLiveData'
 import { IDLE_TIMEOUT_MS, useIdleTimeout } from '@/core/idle/useIdleTimeout'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
@@ -39,6 +40,9 @@ export function RequireAuth() {
   const mustChangePin = data?.user.mustChangePin === true
 
   useIdleTimeout(() => void signOut({ reason: 'idle' }), IDLE_TIMEOUT_MS)
+
+  // Other PCs of the shop sell into the same stock: keep the numbers on this screen current.
+  useLiveData(data !== undefined)
 
   if (isApiError(error) && error.status === 401) {
     return <Navigate to={loginUrl(`${location.pathname}${location.search}`)} replace />

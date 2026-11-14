@@ -1,3 +1,4 @@
+using Application.DTOs.Licensing;
 using Application.IServices.Licensing;
 using Core.Auditing;
 using Core.Entities.Logging;
@@ -15,15 +16,36 @@ namespace Web.Api.Infrastructure;
 /// API marks the actions instead, so a module cannot rename an endpoint and silently lose the gate. The services
 /// (<c>POSCheckoutService</c>, <c>OrderService</c>) still repeat the check as a backstop.
 /// </para>
+/// <para>
+/// It also keeps a PC that is not part of the package from selling: any PC other than the store server must be a paired till
+/// (<see cref="TillGate"/>), answered 403 <c>device_not_registered</c> or <c>seats_exceeded</c>. Only the sale endpoints are gated, so
+/// a till that is not paired can still sign in and read, and the pairing screen can be reached.
+/// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public sealed class RequireSalesLicenseAttribute : Attribute, IAuthorizationFilter
+public sealed class RequireSalesLicenseAttribute : Attribute, IAsyncAuthorizationFilter
 {
-    public void OnAuthorization(AuthorizationFilterContext context)
+    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
         var services = context.HttpContext.RequestServices;
         var state = services.GetRequiredService<ILicenseService>().GetState();
-        if (state.AllowsSales) return;
+        if (state.AllowsSales)
+        {
+            var access = await TillGate.CheckAsync(context.HttpContext);
+            if (access == TillAccess.Allowed) return;
+
+            services.GetService<IAuditTrail>()?.LogBusiness(AuditActions.SaleFailed,
+                $"Sale blocked: this PC is not a registered till ({access}): {context.HttpContext.Request.Method} {context.HttpContext.Request.Path}",
+                "License", AuditOutcome.Denied, AuditLogSeverity.Warning,
+                details: new { device = access.ToString(), area = "api/v1" });
+
+            context.Result = new ObjectResult(ApiProblem.Create(context.HttpContext, StatusCodes.Status403Forbidden, TillGate.CodeFor(access)))
+            {
+                StatusCode = StatusCodes.Status403Forbidden,
+                ContentTypes = { ApiProblem.ContentType },
+            };
+            return;
+        }
 
         // A refused sale is just a 403 in the request log, so say in the audit trail why (same entry the legacy middleware writes).
         services.GetService<IAuditTrail>()?.LogBusiness(AuditActions.SaleFailed,

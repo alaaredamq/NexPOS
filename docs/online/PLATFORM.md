@@ -171,7 +171,7 @@ unencrypted); wrong key, moved row and flipped bit all fail; every single-charac
 
 ## 6. Running it
 
-**Visual walkthrough with screenshots (open in a browser, one file): `docs/online/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
+**Visual walkthrough with screenshots (open in a browser, one file): `docs/visual/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
 
 ### Try it on your PC (no server needed)
 

@@ -1,13 +1,13 @@
 @page "{id:guid}"
 @model SiteDetailsModel
 @{
-    ViewData["Title"] = Model.Site?.Name ?? "Till";
+    ViewData["Title"] = Model.Site?.Name ?? "Branch";
     ViewData["Nav"] = "clients";
 }
 
 @if (Model.Site is null)
 {
-    <div class="list"><div class="empty"><h3>Till not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
+    <div class="list"><div class="empty"><h3>Branch not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
     return;
 }
 
@@ -60,7 +60,7 @@
     <div class="row" style="justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px">
         <div>
             <span class="pill @healthTone">@healthLabel</span>
-            <span class="muted" style="margin-inline-start:6px">@(Model.Site.LastSeenAt is null ? "This till has not contacted the cloud yet." : "Last contact " + Fmt.Ago(Model.Site.LastSeenAt) + " (" + Fmt.Clock(Model.Site.LastSeenAt.Value) + ")")</span>
+            <span class="muted" style="margin-inline-start:6px">@(Model.Site.LastSeenAt is null ? "This branch has not contacted the cloud yet." : "Last contact " + Fmt.Ago(Model.Site.LastSeenAt) + " (" + Fmt.Clock(Model.Site.LastSeenAt.Value) + ")")</span>
         </div>
     </div>
     @if (Model.Site.LastSeenAt is not null || Model.Connection == ConnectionState.Connected)
@@ -69,7 +69,7 @@
     }
     else
     {
-        <p class="help" style="margin:0">The 24-hour strip appears here once this till has contacted the cloud.</p>
+        <p class="help" style="margin:0">The 24-hour strip appears here once this branch has contacted the cloud.</p>
     }
 </section>
 
@@ -77,12 +77,12 @@
     <h2 id="connection">Connection</h2>
     <div class="row">
         <form method="post" asp-page-handler="NewLink" asp-route-id="@Model.Site.Id">
-            <button type="submit" class="btn @(Model.Connection == ConnectionState.Connected ? "secondary" : "tag")">@(Model.Connection == ConnectionState.Connected ? "Reconnect this till (new link)" : "Create connection link")</button>
+            <button type="submit" class="btn @(Model.Connection == ConnectionState.Connected ? "secondary" : "tag")">@(Model.Connection == ConnectionState.Connected ? "Reconnect this branch (new link)" : "Create connection link")</button>
         </form>
-        @if (Model.Connection is ConnectionState.Connected or ConnectionState.WaitingForTill)
+        @if (Model.Connection is ConnectionState.Connected or ConnectionState.WaitingForShop)
         {
             <form method="post" asp-page-handler="Disconnect" asp-route-id="@Model.Site.Id"
-                  data-confirm-title="Disconnect this till?" data-confirm-yes="Disconnect"
+                  data-confirm-title="Disconnect this branch?" data-confirm-yes="Disconnect"
                   data-confirm="Its access is removed at once and any unused link stops working. The shop keeps selling; it only stops sending data. To connect it again you create a new link.">
                 <button type="submit" class="btn danger">Disconnect</button>
             </form>
@@ -97,19 +97,19 @@
             <dt>Last data</dt><dd>@(Model.Site.LastSyncAt is null ? "none yet" : Fmt.Clock(Model.Site.LastSyncAt.Value) + " · " + Fmt.Ago(Model.Site.LastSyncAt))</dd>
             <dt>Online plan</dt><dd><span class="pill @planTone">@planLabel</span></dd>
             <dt>Machine ID</dt><dd class="mono">@(Model.Site.MachineId ?? "-")</dd>
-            <dt>Till version</dt><dd class="mono" style="font-weight:400">@(Model.Site.LastSchemaVersion ?? "-")</dd>
+            <dt>Database version</dt><dd class="mono" style="font-weight:400">@(Model.Site.LastSchemaVersion ?? "-")</dd>
         </dl>
         <div class="row" style="margin-top:16px">
             <form method="post" asp-page-handler="Resync" asp-route-id="@Model.Site.Id">
                 <button type="submit" class="btn secondary sm" @(Model.Site.ResyncRequested ? "disabled" : null)>@(Model.Site.ResyncRequested ? "Resync requested" : "Request full resync")</button>
             </form>
             <form method="post" asp-page-handler="ToggleDisabled" asp-route-id="@Model.Site.Id"
-                  data-confirm-title="@(Model.Site.IsDisabled ? "Enable this till?" : "Disable this till?")" data-confirm-yes="@(Model.Site.IsDisabled ? "Enable" : "Disable")"
+                  data-confirm-title="@(Model.Site.IsDisabled ? "Enable this branch?" : "Disable this branch?")" data-confirm-yes="@(Model.Site.IsDisabled ? "Enable" : "Disable")"
                   data-confirm="@(Model.Site.IsDisabled ? "It can send data again." : "It is blocked from the cloud until you enable it. The shop keeps selling.")">
                 <button type="submit" class="btn sm @(Model.Site.IsDisabled ? "secondary" : "danger")">@(Model.Site.IsDisabled ? "Enable" : "Disable")</button>
             </form>
         </div>
-        <p class="help">A full resync wipes this till's cloud copy and uploads everything again. Use it after the till restored a backup.</p>
+        <p class="help">A full resync wipes this branch's cloud copy and uploads everything again. Use it after the shop restored a backup.</p>
     </section>
 
     <section class="card" aria-labelledby="mirror">
@@ -125,7 +125,7 @@
             <div class="ledger">
                 @foreach (var c in Model.Counts) { <div><b>@c.Value.ToString("N0")</b><span>@c.Key</span></div> }
             </div>
-            <p class="help">These should match the till.</p>
+            <p class="help">These should match the numbers in the shop.</p>
         }
         @if (Model.Encrypted)
         {
@@ -181,7 +181,7 @@
             <div class="notice">
                 <strong>Copy this device token now. It is shown only once.</strong>
                 <div class="token">@Model.NewToken</div>
-                <p>Manual alternative to the link: create <code>%LocalAppData%\NexPOS\online.json</code> on the till and restart NexPOS:</p>
+                <p>Manual alternative to the link: create <code>%LocalAppData%\NexPOS\online.json</code> on the shop PC and restart NexPOS:</p>
 <pre>{
   "Online": {
     "Enabled": true,
@@ -193,16 +193,26 @@
         }
         <form method="post" asp-page-handler="IssueToken" asp-route-id="@Model.Site.Id"
               data-confirm-title="Issue a raw token?" data-confirm-yes="Issue token"
-              data-confirm="The current device token stops working at once. The till must be given the new one by hand.">
+              data-confirm="The current device token stops working at once. The shop PC must be given the new one by hand.">
             <button type="submit" class="btn secondary sm">Issue a raw device token (revokes the current one)</button>
         </form>
         <p class="help">Normally you never need this: the connection link does it for you.</p>
     </details>
 </section>
 
+<section class="card" aria-labelledby="remove">
+    <h2 id="remove">Remove this branch</h2>
+    <p class="muted" style="margin-top:0">Deletes this branch from the cloud: its copy of the shop's data, its history and its connection. Nothing is deleted at the shop, and it keeps selling. Use it for a branch that was added by mistake or has closed.</p>
+    <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Site.Id"
+          data-confirm-title="Remove @Model.Site.Name?" data-confirm-yes="Remove branch"
+          data-confirm="@(Model.Connection == ConnectionState.Connected ? "This branch is connected. Its cloud copy of the data is deleted for good and it stops syncing. The shop keeps selling and everything stays on its PC. " : "Its cloud copy of the data is deleted for good. ")This cannot be undone.">
+        <button type="submit" class="btn danger">Remove branch</button>
+    </form>
+</section>
+
 @functions {
     public class SiteDetailsModel(
-        ControlDbContext db, MirrorStore mirrors, EnrollmentService enrollment, PortalFormat fmt, TimeProvider time,
+        ControlDbContext db, MirrorStore mirrors, EnrollmentService enrollment, SiteRemoval removal, PortalFormat fmt, TimeProvider time,
         Microsoft.Extensions.Options.IOptions<CloudOptions> options) : PageModel
     {
         private static readonly string[] SummaryTables = ["Products", "Customers", "Suppliers", "Orders", "Purchases", "Receipts"];
@@ -311,8 +321,20 @@
             site.ResyncRequested = true;
             Log(site, "Full resync requested.");
             await db.SaveChangesAsync();
-            this.Flash("Full resync requested. It starts at the till's next contact");
+            this.Flash("Full resync requested. It starts at the shop PC's next contact");
             return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostRemoveAsync(Guid id)
+        {
+            var site = await TrackedAsync(id);
+            if (site is null) return NotFound();
+            var (clientId, name) = (site.ClientId, site.Name);
+            await removal.RemoveAsync([id]);
+            db.ClientEvents.Add(new ClientEvent { ClientId = clientId, At = time.GetUtcNow().UtcDateTime, Text = $"Branch '{name}' removed." });
+            await db.SaveChangesAsync();
+            this.Flash($"Branch '{name}' removed");
+            return Redirect($"/Clients/Details/{clientId}");
         }
 
         public async Task<IActionResult> OnPostToggleDisabledAsync(Guid id)
@@ -320,9 +342,9 @@
             var site = await TrackedAsync(id);
             if (site is null) return NotFound();
             site.IsDisabled = !site.IsDisabled;
-            Log(site, site.IsDisabled ? "Installation disabled." : "Installation enabled.");
+            Log(site, site.IsDisabled ? "Branch disabled." : "Branch enabled.");
             await db.SaveChangesAsync();
-            this.Flash(site.IsDisabled ? "Till disabled" : "Till enabled");
+            this.Flash(site.IsDisabled ? "Branch disabled" : "Branch enabled");
             return RedirectToPage(new { id });
         }
     }

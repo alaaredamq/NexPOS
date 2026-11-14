@@ -43,7 +43,7 @@ public class EnrollmentApiTests : IClassFixture<CloudFactory>
         var stored = await _cloud.WithControlDbAsync(db => db.Sites.AsNoTracking().FirstAsync(s => s.Id == site.SiteId));
         Assert.Equal("ABCDE-12345-ABCDE-12345", stored.MachineId);
         var events = await _cloud.WithControlDbAsync(db => db.ClientEvents.AsNoTracking().Where(e => e.ClientId == site.ClientId).ToListAsync());
-        Assert.Contains(events, e => e.Text.Contains("Till connected"));
+        Assert.Contains(events, e => e.Text.Contains("Branch connected"));
     }
 
     [Fact]

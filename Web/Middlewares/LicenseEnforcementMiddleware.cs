@@ -1,7 +1,9 @@
+using Application.DTOs.Licensing;
 using Application.IServices.Licensing;
 using Core.Auditing;
 using Core.Entities.Logging;
 using Microsoft.Extensions.Localization;
+using Web.Api.Infrastructure;
 
 namespace Web.Middlewares;
 
@@ -31,9 +33,23 @@ public class LicenseEnforcementMiddleware
         HttpContext context, ILicenseService license, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail)
     {
         var blocked = Classify(context.Request);
-        if (blocked == Blocked.None || license.GetState().AllowsSales)
+        if (blocked == Blocked.None)
         {
             await _next(context);
+            return;
+        }
+
+        if (license.GetState().AllowsSales)
+        {
+            // Licensed - but a PC other than the store server must be a paired till to sell (see TillGate).
+            var access = await TillGate.CheckAsync(context);
+            if (access == TillAccess.Allowed)
+            {
+                await _next(context);
+                return;
+            }
+
+            await RefuseDevice(context, blocked, access, localizer, auditTrail);
             return;
         }
 
@@ -63,6 +79,35 @@ public class LicenseEnforcementMiddleware
 
         // The POS script reads {success:false, message} from a normal 200 response (the convention
         // every controller in this app follows). The cart API is plain REST, so it gets a real 403.
+        context.Response.StatusCode = blocked == Blocked.CartApi ? StatusCodes.Status403Forbidden : StatusCodes.Status200OK;
+        await context.Response.WriteAsJsonAsync(body);
+    }
+
+    private static async Task RefuseDevice(
+        HttpContext context, Blocked blocked, TillAccess access, IStringLocalizer<SharedResource> localizer, IAuditTrail auditTrail)
+    {
+        if (blocked != Blocked.Page)
+        {
+            auditTrail.LogBusiness(AuditActions.SaleFailed,
+                $"Sale blocked: this PC is not a registered till ({access}): {context.Request.Method} {context.Request.Path}",
+                "License", AuditOutcome.Denied, AuditLogSeverity.Warning,
+                details: new { device = access.ToString(), area = blocked.ToString() });
+        }
+
+        if (blocked == Blocked.Page)
+        {
+            // The till's own pairing screen (public, so a PC with no seat can still reach it).
+            context.Response.Redirect("/app/pair-till");
+            return;
+        }
+
+        var code = TillGate.CodeFor(access);
+        var body = new
+        {
+            success = false,
+            message = localizer[access == TillAccess.SeatsExceeded ? "License_SeatsExceeded" : "License_DeviceNotRegistered"].Value,
+            errorCode = code
+        };
         context.Response.StatusCode = blocked == Blocked.CartApi ? StatusCodes.Status403Forbidden : StatusCodes.Status200OK;
         await context.Response.WriteAsJsonAsync(body);
     }

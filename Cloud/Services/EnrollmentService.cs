@@ -73,7 +73,7 @@ public sealed class EnrollmentService(ControlDbContext db, TimeProvider time)
         var device = string.IsNullOrWhiteSpace(deviceName) ? "" : $" ({Truncate(deviceName.Trim(), 60)})";
         db.ClientEvents.Add(new ClientEvent
         {
-            ClientId = code.Site.ClientId, At = now, Text = $"[{code.Site.Name}] Till connected{device}.",
+            ClientId = code.Site.ClientId, At = now, Text = $"[{code.Site.Name}] Branch connected{device}.",
         });
         await db.SaveChangesAsync();
 

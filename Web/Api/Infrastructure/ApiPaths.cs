@@ -42,6 +42,17 @@ public static class ApiCodes
     /// <summary>The licence does not allow selling (expired past the grace week, not activated, wrong PC, ...).</summary>
     public const string LicenseSalesStopped = "license_sales_stopped";
 
+    /// <summary>A PC other than the store server tried to sell without having been paired as a till.</summary>
+    public const string DeviceNotRegistered = "device_not_registered";
+
+    /// <summary>A paired till, but the licence now covers fewer PCs than are registered and this one is over the limit.</summary>
+    public const string SeatsExceeded = "seats_exceeded";
+
+    /// <summary>Every PC of the package is already in use.</summary>
+    public const string SeatsFull = "seats_full";
+
+    public const string InvalidPairingCode = "invalid_pairing_code";
+
     public const string InvalidCredentials = "invalid_credentials";
     public const string AccountDisabled = "account_disabled";
 
@@ -78,6 +89,10 @@ public static class ApiCodes
         RateLimited => "Api_RateLimited",
         InternalError => "Api_InternalError",
         LicenseSalesStopped => "License_SalesStopped",
+        DeviceNotRegistered => "License_DeviceNotRegistered",
+        SeatsExceeded => "License_SeatsExceeded",
+        SeatsFull => "License_SeatsFull",
+        InvalidPairingCode => "License_InvalidPairingCode",
         InvalidCredentials => "Invalid username or PIN",
         AccountDisabled => "Account is disabled",
         BadRequest => "Api_BadRequest",

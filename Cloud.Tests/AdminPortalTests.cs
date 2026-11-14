@@ -108,7 +108,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         Assert.NotEmpty(link);
         Assert.Contains("https://wa.me/?text=", page);
         Assert.Contains("data-copy=\"#enroll-link\"", page);
-        Assert.Contains("Waiting for the till", page);
+        Assert.Contains("Waiting for the shop", page);
         Assert.Matches(@"expires on \d{4}-\d{2}-\d{2}\.", page); // the date must be filled in, not blank
 
         // 3. Shown once: a reload no longer holds it, the status says what is going on.
@@ -204,6 +204,50 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         var history = await c.GetStringAsync(clientUrl);
         Assert.Contains("extended by 12 month", history);
         Assert.Contains("suspended", history, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task A_phone_sign_in_can_be_added_used_blocked_and_removed_from_the_portal()
+    {
+        var c = await SignedInAsync();
+        var seeded = await _cloud.SeedSiteAsync(subscriptionMonths: 1, clientName: "Phone sign-ins");
+        var clientUrl = $"/Clients/Details/{seeded.ClientId}";
+        const string email = "portal-owner@shop.test";
+
+        // Too-short password and a missing "@" are refused; nothing is created.
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", email), ("Password", "short"));
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", "nobody"), ("Password", "long-enough-1"));
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(o => o.ClientId == seeded.ClientId)));
+
+        // The email is stored lower-case, and the owner can sign in to the phone API with it.
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", " Portal-Owner@Shop.Test "), ("Password", "long-enough-1"));
+        var owner = await _cloud.WithControlDbAsync(db => db.OwnerUsers.AsNoTracking().SingleAsync(o => o.ClientId == seeded.ClientId));
+        Assert.Equal(email, owner.Email);
+        Assert.Contains(email, await c.GetStringAsync(clientUrl));
+
+        var phone = _cloud.CreateClient();
+        var login = await phone.PostAsJsonAsync("/owner/v1/auth/login", new { email, password = "long-enough-1" });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        var token = (await login.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("token").GetString()!;
+        phone.DefaultRequestHeaders.Authorization = new("Bearer", token);
+        Assert.Equal(HttpStatusCode.OK, (await phone.GetAsync("/owner/v1/me")).StatusCode);
+
+        // The same email cannot be added twice, here or for another client.
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Again"), ("Email", email), ("Password", "long-enough-2"));
+        Assert.Equal(1, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(o => o.Email == email)));
+
+        // Blocking signs the phone out at once and stops a new sign-in.
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=ToggleOwner&ownerId={owner.Id}");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await phone.GetAsync("/owner/v1/me")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _cloud.CreateClient().PostAsJsonAsync("/owner/v1/auth/login", new { email, password = "long-enough-1" })).StatusCode);
+
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=ToggleOwner&ownerId={owner.Id}");
+        Assert.Equal(HttpStatusCode.OK, (await _cloud.CreateClient().PostAsJsonAsync("/owner/v1/auth/login", new { email, password = "long-enough-1" })).StatusCode);
+
+        // Removing the client takes its sign-ins with it (the foreign key is restricted, so this used to be a trap).
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=Remove");
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(o => o.ClientId == seeded.ClientId)));
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.Clients.CountAsync(x => x.Id == seeded.ClientId)));
     }
 }
 

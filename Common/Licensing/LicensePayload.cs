@@ -19,13 +19,15 @@ public enum LicenseKind : byte
 /// <param name="ValidUntil">Full: last day of the updates plan. Provisional/Trial: last day the license is valid.</param>
 /// <param name="Serial">Random number that identifies this key in the issuer's log.</param>
 /// <param name="Customer">Customer name, at most <see cref="LicenseCodec.MaxCustomerBytes"/> bytes of UTF-8.</param>
+/// <param name="Seats">How many PCs may sell under this key: the store server plus its tills. Keys from before seats existed cover 1.</param>
 public sealed record LicensePayload(
     LicenseKind Kind,
     MachineId Machine,
     DateOnly IssuedOn,
     DateOnly ValidUntil,
     uint Serial,
-    string Customer)
+    string Customer,
+    int Seats = 1)
 {
     /// <summary>True for Provisional and Trial keys: they expire and then stop the POS. Full keys never expire.</summary>
     public bool IsTimeLimited => Kind != LicenseKind.Full;

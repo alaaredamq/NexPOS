@@ -18,8 +18,9 @@ internal sealed class LicenseTestIssuer : IDisposable
         DateOnly issuedOn,
         DateOnly validUntil,
         string customer = "Test Shop",
-        uint serial = 0xA1B2C3D4) =>
-        LicenseCodec.Encode(new LicensePayload(kind, machine, issuedOn, validUntil, serial, customer), PrivateKey);
+        uint serial = 0xA1B2C3D4,
+        int seats = 1) =>
+        LicenseCodec.Encode(new LicensePayload(kind, machine, issuedOn, validUntil, serial, customer, seats), PrivateKey);
 
     public void Dispose() => PrivateKey.Dispose();
 }

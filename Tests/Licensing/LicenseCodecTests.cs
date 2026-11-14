@@ -28,6 +28,77 @@ public class LicenseCodecTests
         Assert.True(payload.IsTimeLimited);
     }
 
+    [Theory]
+    [InlineData(2)]
+    [InlineData(5)]
+    [InlineData(255)]
+    public void Seats_round_trip_and_leave_the_other_fields_alone(int seats)
+    {
+        using var issuer = new LicenseTestIssuer();
+        var key = issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until, "Alaa Mini Market", 0xDEADBEEF, seats);
+
+        var payload = LicenseCodec.Decode(key, issuer.PublicKeySpki).Payload!;
+
+        Assert.Equal(seats, payload.Seats);
+        Assert.Equal("Alaa Mini Market", payload.Customer);
+        Assert.Equal(0xDEADBEEFu, payload.Serial);
+        Assert.Equal(Until, payload.ValidUntil);
+        Assert.True(payload.Machine.IsSameMachineAs(TestMachines.ShopPc));
+    }
+
+    [Fact]
+    public void A_key_without_seats_covers_one_pc()
+    {
+        using var issuer = new LicenseTestIssuer();
+        var key = issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until);
+
+        Assert.Equal(1, LicenseCodec.Decode(key, issuer.PublicKeySpki).Payload!.Seats);
+    }
+
+    [Fact]
+    public void A_single_seat_key_is_still_written_in_the_original_format_so_older_builds_accept_it()
+    {
+        using var issuer = new LicenseTestIssuer();
+
+        Assert.Equal(1, FormatVersionOf(issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until, seats: 1)));
+        Assert.Equal(2, FormatVersionOf(issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until, seats: 2)));
+    }
+
+    [Fact]
+    public void Seats_cannot_be_raised_by_editing_the_key()
+    {
+        using var issuer = new LicenseTestIssuer();
+        var key = issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until, "Shop", 1, seats: 2);
+
+        // Re-encode the raw bytes with the seat byte changed: the signature no longer matches.
+        Assert.True(Base32.TryDecode(string.Concat(key.Split('-').Skip(1)), out var raw));
+        raw[raw.Length - 64 - 1] = 200;
+        var tampered = LicenseCodec.Canonicalize(Base32.Encode(raw));
+
+        var result = LicenseCodec.Decode(tampered, issuer.PublicKeySpki);
+
+        Assert.False(result.Success);
+        Assert.Equal(LicenseDecodeError.BadSignature, result.Error);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(256)]
+    public void A_license_cannot_be_issued_for_an_impossible_seat_count(int seats)
+    {
+        using var issuer = new LicenseTestIssuer();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, Issued, Until, seats: seats));
+    }
+
+    private static int FormatVersionOf(string key)
+    {
+        Assert.True(Base32.TryDecode(string.Concat(key.Split('-').Skip(1)), out var raw));
+        return raw[0];
+    }
+
     [Fact]
     public void Arabic_customer_names_survive()
     {

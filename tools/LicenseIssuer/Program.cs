@@ -21,8 +21,9 @@ internal static class Program
                    Print the public key (Base64) that is embedded in the app.
 
           issue    --machine <ID> --customer "<name>" --kind full|provisional|trial
-                   [--days <n> | --until yyyy-MM-dd] [--key <path>] [--out <file>]
-                   Sign a license for one PC.
+                   [--seats <n>] [--days <n> | --until yyyy-MM-dd] [--key <path>] [--out <file>]
+                   Sign a license for a store server. --seats is the package size: how many PCs may sell,
+                   the server included (default 1; 1..255).
                      full         perpetual; the date is the end of the updates plan   (default 365 days)
                      provisional  expires on the date (instalment sales)               (default 45 days)
                      trial        expires on the date (evaluation)                     (default 14 days)
@@ -117,6 +118,11 @@ internal static class Program
             var other => throw new CliException($"Unknown kind '{other}'. Use full, provisional or trial.")
         };
 
+        var seats = 1;
+        if (options.TryGetValue("seats", out var seatsText)
+            && (!int.TryParse(seatsText, NumberStyles.None, CultureInfo.InvariantCulture, out seats) || seats < 1 || seats > LicenseCodec.MaxSeats))
+            throw new CliException($"--seats must be a whole number from 1 to {LicenseCodec.MaxSeats}.");
+
         var today = DateOnly.FromDateTime(DateTime.Now);
         DateOnly until;
         if (options.TryGetValue("until", out var untilText))
@@ -137,7 +143,7 @@ internal static class Program
             throw new CliException("The end date is in the past. (--allow-past exists for testing the expiry screens.)");
 
         var serial = BitConverter.ToUInt32(RandomNumberGenerator.GetBytes(4));
-        var payload = new LicensePayload(kind, machine, today, until, serial, customer);
+        var payload = new LicensePayload(kind, machine, today, until, serial, customer, seats);
 
         using var key = LoadPrivateKey(KeyPath(options));
         var keyText = LicenseCodec.Encode(payload, key);
@@ -155,6 +161,7 @@ internal static class Program
         Console.WriteLine($"Customer : {payload.Customer}");
         Console.WriteLine($"Machine  : {machine.Format()}");
         Console.WriteLine($"Type     : {kind}");
+        Console.WriteLine($"PCs      : {seats}{(seats == 1 ? "" : " (server + " + (seats - 1) + " till" + (seats == 2 ? "" : "s") + "; needs a build that knows multi-seat keys)")}");
         Console.WriteLine(kind == LicenseKind.Full
             ? $"Updates  : until {until:yyyy-MM-dd} (the till itself never expires)"
             : $"Expires  : {until:yyyy-MM-dd}  (warns {until.AddDays(-7):yyyy-MM-dd}, grace until {until.AddDays(7):yyyy-MM-dd}, then the POS stops)");
@@ -183,6 +190,7 @@ internal static class Program
         Console.WriteLine($"Customer  : {p.Customer}");
         Console.WriteLine($"Machine   : {p.Machine.Format()}");
         Console.WriteLine($"Type      : {p.Kind}");
+        Console.WriteLine($"PCs       : {p.Seats}");
         Console.WriteLine($"Issued    : {p.IssuedOn:yyyy-MM-dd}");
         Console.WriteLine(p.IsTimeLimited ? $"Expires   : {p.ValidUntil:yyyy-MM-dd}" : $"Updates   : until {p.ValidUntil:yyyy-MM-dd}");
         Console.WriteLine($"Serial    : {p.SerialText}");
@@ -251,14 +259,16 @@ internal static class Program
         var logPath = Path.Combine(Path.GetDirectoryName(keyPath)!, "issued.csv");
         var isNew = !File.Exists(logPath);
         var sb = new StringBuilder();
-        if (isNew) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial");
+        // "seats" is the last column so rows written before it existed keep lining up with the older header.
+        if (isNew) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats");
         sb.AppendLine(string.Join(',',
             p.IssuedOn.ToString("yyyy-MM-dd"),
             Csv(p.Customer),
             p.Kind,
             p.ValidUntil.ToString("yyyy-MM-dd"),
             p.Machine.Format(),
-            p.SerialText));
+            p.SerialText,
+            p.Seats.ToString(CultureInfo.InvariantCulture)));
         File.AppendAllText(logPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 

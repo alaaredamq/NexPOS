@@ -74,6 +74,25 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
         _ready[siteId] = true;
     }
 
+    /// <summary>
+    /// Deletes a site's mirror file for good. Waits for a push that is in flight, and drops pooled connections first
+    /// because Windows will not delete a file that is still open.
+    /// </summary>
+    public async Task DeleteAsync(Guid siteId)
+    {
+        var gate = LockFor(siteId);
+        await gate.WaitAsync();
+        try
+        {
+            SqliteConnection.ClearAllPools();
+            var path = PathFor(siteId);
+            foreach (var file in new[] { path, path + "-wal", path + "-shm" })
+                if (File.Exists(file)) File.Delete(file);
+            _ready.TryRemove(siteId, out _);
+        }
+        finally { gate.Release(); }
+    }
+
     public IReadOnlyDictionary<string, long> CountRows(Guid siteId, IEnumerable<string> tables)
     {
         var result = new Dictionary<string, long>();

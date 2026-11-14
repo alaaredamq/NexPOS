@@ -91,3 +91,15 @@ products, are hidden in the app from Manager and Staff but not cryptographically
 | Customers and debts | yes | yes | no |
 | Add products / customers / suppliers, edit products, adjust stock | yes | yes | no |
 | Profit, cost prices, margins, **cash drawer** | yes | no | no |
+
+## Run it in the Android Studio emulator (against a cloud on this PC)
+
+Needs the Flutter and Dart plugins in Android Studio, the Flutter SDK path set, and an emulator with a system image.
+
+1. Start the cloud: `dotnet run --project Cloud` (it listens on `http://localhost:51158`).
+2. Portal > open a client that has a branch and an active subscription > **Phone logins** > **Add a phone login**.
+3. Pick the emulator, open `lib/main.dart` and press **Run**.
+4. Sign in with that email and password. A debug build pre-fills the cloud address with `http://10.0.2.2:51158`
+   (10.0.2.2 is how the emulator names the PC it runs on). On a real phone use the PC's LAN address instead.
+
+The shop PC must be connected to that same cloud for the lookups and for changes to move from "Waiting for shop" to "Done".

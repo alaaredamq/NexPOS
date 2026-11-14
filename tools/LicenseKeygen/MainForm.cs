@@ -16,7 +16,9 @@ internal sealed class MainForm : Form
 
     private readonly TextBox _machine = new() { CharacterCasing = CharacterCasing.Upper, Font = new Font("Consolas", 12f) };
     private readonly Label _machineHint = new() { AutoSize = true };
+    private readonly Label _seatsHint = new() { AutoSize = true };
     private readonly NumericUpDown _days = new() { Minimum = 1, Maximum = 3650, Value = 30 };
+    private readonly NumericUpDown _seats = new() { Minimum = 1, Maximum = LicenseCodec.MaxSeats, Value = 1 };
     private readonly ComboBox _kind = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly TextBox _customer = new() { PlaceholderText = "Optional - shown on the customer's License page" };
     private readonly TextBox _keyPath = new() { ReadOnly = true };
@@ -36,8 +38,8 @@ internal sealed class MainForm : Form
         Text = "NexPOS Keygen";
         Font = new Font("Segoe UI", 10f);
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(640, 560);
-        MinimumSize = new Size(560, 520);
+        ClientSize = new Size(640, 600);
+        MinimumSize = new Size(560, 560);
 
         _kind.Items.AddRange(["Provisional - expires after N days (instalment sale)", "Trial - expires after N days (evaluation)", "Full - perpetual, N days of updates"]);
         _kind.SelectedIndex = 0;
@@ -47,6 +49,7 @@ internal sealed class MainForm : Form
         BuildLayout();
         Wire();
         RefreshMachineHint();
+        RefreshSeatsHint();
         RefreshPassphraseState();
     }
 
@@ -80,13 +83,18 @@ internal sealed class MainForm : Form
             }
         }
 
-        Row("Machine ID", _machine);
+        Row("Server Machine ID", _machine);
         grid.RowCount++;
         grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         grid.Controls.Add(_machineHint, 1, grid.RowCount - 1);
         grid.SetColumnSpan(_machineHint, 2);
 
         Row("Days", _days);
+        Row("PCs (package)", _seats);
+        grid.RowCount++;
+        grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        grid.Controls.Add(_seatsHint, 1, grid.RowCount - 1);
+        grid.SetColumnSpan(_seatsHint, 2);
         Row("Type", _kind);
         Row("Customer", _customer);
         Row("Private key", _keyPath, browse);
@@ -112,6 +120,7 @@ internal sealed class MainForm : Form
     private void Wire()
     {
         _machine.TextChanged += (_, _) => RefreshMachineHint();
+        _seats.ValueChanged += (_, _) => RefreshSeatsHint();
         _generate.Click += (_, _) => Generate();
         _copy.Click += (_, _) =>
         {
@@ -120,6 +129,21 @@ internal sealed class MainForm : Form
             _summary.Text = "Copied to the clipboard.";
         };
         _save.Click += (_, _) => SaveToFile();
+    }
+
+    private void RefreshSeatsHint()
+    {
+        var seats = (int)_seats.Value;
+        if (seats == 1)
+        {
+            _seatsHint.ForeColor = SystemColors.GrayText;
+            _seatsHint.Text = "One PC. Works with every NexPOS build.";
+        }
+        else
+        {
+            _seatsHint.ForeColor = Color.DarkOrange;
+            _seatsHint.Text = $"The server + {seats - 1} till{(seats == 2 ? "" : "s")}. Needs a NexPOS build that knows multi-seat keys.";
+        }
     }
 
     private void RefreshMachineHint()
@@ -245,7 +269,8 @@ internal sealed class MainForm : Form
             var today = DateOnly.FromDateTime(DateTime.Now);
             var until = today.AddDays((int)_days.Value);
             var serial = BitConverter.ToUInt32(RandomNumberGenerator.GetBytes(4));
-            var payload = new LicensePayload(kind, machine, today, until, serial, _customer.Text.Trim());
+            var seats = (int)_seats.Value;
+            var payload = new LicensePayload(kind, machine, today, until, serial, _customer.Text.Trim(), seats);
 
             using var key = LoadPrivateKey();
             var keyText = LicenseCodec.Encode(payload, key);
@@ -259,9 +284,10 @@ internal sealed class MainForm : Form
             _output.Text = keyText;
             _copy.Enabled = _save.Enabled = true;
             _summary.ForeColor = SystemColors.ControlText;
+            var pcs = seats == 1 ? "1 PC" : $"{seats} PCs";
             _summary.Text = kind == LicenseKind.Full
-                ? $"{machine.Format()}  |  Full  |  updates until {until:yyyy-MM-dd}  |  serial {payload.SerialText}"
-                : $"{machine.Format()}  |  {kind}  |  expires {until:yyyy-MM-dd} ({(int)_days.Value} days)  |  serial {payload.SerialText}";
+                ? $"{machine.Format()}  |  Full  |  {pcs}  |  updates until {until:yyyy-MM-dd}  |  serial {payload.SerialText}"
+                : $"{machine.Format()}  |  {kind}  |  {pcs}  |  expires {until:yyyy-MM-dd} ({(int)_days.Value} days)  |  serial {payload.SerialText}";
         }
         catch (UserException ex)
         {
@@ -283,14 +309,15 @@ internal sealed class MainForm : Form
     {
         var logPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(_keyPath.Text))!, "issued.csv");
         var sb = new StringBuilder();
-        if (!File.Exists(logPath)) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial");
+        if (!File.Exists(logPath)) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats");
         sb.AppendLine(string.Join(',',
             p.IssuedOn.ToString("yyyy-MM-dd"),
             "\"" + p.Customer.Replace("\"", "\"\"") + "\"",
             p.Kind,
             p.ValidUntil.ToString("yyyy-MM-dd"),
             p.Machine.Format(),
-            p.SerialText));
+            p.SerialText,
+            p.Seats));
         File.AppendAllText(logPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 

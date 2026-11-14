@@ -23,7 +23,7 @@ document.addEventListener('click', async (event) => {
   setTimeout(() => { label.textContent = original }, 1600)
 })
 
-// ---- confirm: <form data-confirm="Disconnect this till?" data-confirm-title="..." data-confirm-yes="Disconnect"> ----
+// ---- confirm: <form data-confirm="Disconnect this branch?" data-confirm-title="..." data-confirm-yes="Disconnect"> ----
 const dialog = document.getElementById('confirm')
 if (dialog) {
   let pending = null

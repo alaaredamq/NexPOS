@@ -22,6 +22,8 @@ public sealed class SyncSchema
         "Notifications", "Alerts", "UrlRoutes",
         "Carts", "CartItems", "CartSessions", "CartSessionItems", "CustomerCarts",
         "SystemSettings", "AppSettings",
+        // Registered till PCs and their token hashes: a shop's access control, never copied off the shop's network.
+        "TillDevices",
     };
 
     /// <summary>Credentials never leave the shop. The mirror gets an empty placeholder where the column is NOT NULL.</summary>

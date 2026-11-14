@@ -122,8 +122,8 @@ public sealed class TillDb : IDisposable
         SyncTriggers.Install(connection, Schema);
     }
 
-    public SyncPusher Pusher(ISyncTransport transport, SyncStatus? status = null, int batchSize = 500)
-        => new(Schema, ConnectionString, transport, status ?? new SyncStatus(), TimeProvider.System, null, batchSize);
+    public SyncPusher Pusher(ISyncTransport transport, SyncStatus? status = null, int batchSize = 500, RowCipher? cipher = null)
+        => new(Schema, ConnectionString, transport, status ?? new SyncStatus(), TimeProvider.System, null, batchSize, cipher);
 
     public async Task<int> AddCustomerAsync(string first, string city = "Beirut")
     {
@@ -134,13 +134,14 @@ public sealed class TillDb : IDisposable
         return customer.Id;
     }
 
-    public async Task<int> AddProductAsync(string name, string barcode)
+    public async Task<int> AddProductAsync(string name, string barcode, decimal? costPrice = null)
     {
         await using var context = CreateContext();
         var product = new Product
         {
             Name = name,
             Barcode = barcode,
+            CostPrice = costPrice,
             SupplierId = await context.Suppliers.Select(s => s.Id).FirstAsync(),
             CategoryId = await context.ProductCategories.Select(c => c.Id).FirstAsync(),
             CurrencyId = await context.Currencies.Select(c => c.Id).FirstAsync(),
@@ -172,6 +173,24 @@ public static class SqlHelper
         cmd.CommandText = sql;
         var value = cmd.ExecuteScalar();
         return value is null or DBNull ? default : (T)Convert.ChangeType(value, typeof(T));
+    }
+
+    /// <summary>
+    /// Every byte of a SQLite file and its write-ahead log as text, for proving a value is nowhere in it, not even in free pages
+    /// or old log frames. Reads while the database is open.
+    /// </summary>
+    public static string RawText(string path)
+    {
+        var all = new System.Text.StringBuilder();
+        foreach (var suffix in new[] { "", "-wal", "-shm" })
+        {
+            if (!File.Exists(path + suffix)) continue;
+            using var stream = File.Open(path + suffix, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var memory = new MemoryStream();
+            stream.CopyTo(memory);
+            all.Append(System.Text.Encoding.Latin1.GetString(memory.ToArray()));
+        }
+        return all.ToString();
     }
 
     public static void Exec(string path, string sql)

@@ -2364,6 +2364,11 @@
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. افتح صفحة الترخيص للتجديد أو التفعيل.</value></data>
+  <data name="License_DeviceNotRegistered" xml:space="preserve"><value>هذا الجهاز غير مسجّل للبيع. اطلب من المسؤول إضافته من صفحة الترخيص، ثم أدخل رمز الاقتران هنا.</value></data>
+  <data name="License_SeatsExceeded" xml:space="preserve"><value>لا يمكن لهذا الجهاز البيع لأن الترخيص يغطي الآن أجهزة أقل من المسجّلة. اطلب من المسؤول تحرير مقعد أو تجديد الترخيص.</value></data>
+  <data name="License_SeatsFull" xml:space="preserve"><value>جميع أجهزة الباقة قيد الاستخدام. احذف جهاز بيع أولاً، أو اطلب من مزوّدك باقة أكبر.</value></data>
+  <data name="License_InvalidPairingCode" xml:space="preserve"><value>رمز الاقتران هذا غير صالح، أو سبق استخدامه، أو انتهت صلاحيته. اطلب من المسؤول رمزاً جديداً.</value></data>
+  <data name="License_PairingThrottled" xml:space="preserve"><value>عدد كبير من الرموز الخاطئة. انتظر بضع دقائق ثم حاول مجدداً.</value></data>
   <data name="License_SalesStoppedAskAdmin" xml:space="preserve"><value>تم إيقاف المبيعات لأن الترخيص غير فعّال. يرجى مراجعة المسؤول لتجديده أو تفعيله.</value></data>
   <data name="Print_Menu" xml:space="preserve"><value>طباعة</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>طباعة على ورق الإيصال</value></data>

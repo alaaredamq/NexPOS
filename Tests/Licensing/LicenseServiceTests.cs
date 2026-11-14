@@ -65,6 +65,33 @@ public class LicenseServiceTests : IDisposable
         Assert.False(state.AllowsSales);
     }
 
+    // ---- seats ------------------------------------------------------------------------------
+
+    [Fact]
+    public void The_state_reports_how_many_pcs_the_key_covers_and_one_when_nothing_is_installed()
+    {
+        Assert.Equal(1, Service(Expiry).GetState().Seats);
+
+        _storage.Text = _issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, IssuedOn, Expiry.AddYears(1), seats: 4);
+        var state = Service(Expiry).GetState();
+
+        Assert.Equal(LicenseStatus.Active, state.Status);
+        Assert.Equal(4, state.Seats);
+    }
+
+    [Fact]
+    public void Activating_a_multi_seat_key_keeps_its_seats()
+    {
+        var service = Service(Expiry);
+        var key = _issuer.Issue(LicenseKind.Full, TestMachines.ShopPc, IssuedOn, Expiry.AddYears(1), seats: 3);
+
+        var result = service.Activate(key);
+
+        Assert.True(result.Success);
+        Assert.Equal(3, result.State.Seats);
+        Assert.Equal(3, Service(Expiry).GetState().Seats); // a fresh service reads it back from storage
+    }
+
     // ---- Full (perpetual) -------------------------------------------------------------------
 
     [Fact]

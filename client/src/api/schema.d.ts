@@ -976,6 +976,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The package and its tills. */
+        get: operations["getTillSeats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/pairing-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adds a till: reserves a seat and returns the pairing code (shown once). 409 `seats_full` when every PC of the package is in
+         *     use; 403 `license_sales_stopped` while the licence is not active.
+         */
+        post: operations["createTillPairingCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a till (or cancels an unused code) and frees its seat. The till is refused from its next request on. */
+        delete: operations["removeTill"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/pair": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Called by a till (no sign-in needed): exchanges a pairing code for the device cookie. 400 `invalid_pairing_code` for a wrong,
+         *     used or expired code; 429 `rate_limited` after too many wrong ones; 409 `seats_full` if the licence has shrunk since the code was made.
+         */
+        post: operations["pairTill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What this PC is: the store server, an allowed till, or not allowed to sell. Public, so the pairing screen can decide what to show. */
+        get: operations["getDeviceStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/discounts": {
         parameters: {
             query?: never;
@@ -1282,6 +1373,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The current data version (see Web.Api.Live.DataVersion). A different value than last time means a sale, a stock change or an
+         *     edit happened somewhere (this PC included) and the screen should reload its numbers. Cheap on purpose: no database access.
+         */
+        get: operations["getLiveVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/feed": {
         parameters: {
             query?: never;
@@ -1545,6 +1656,27 @@ export interface paths {
         put?: never;
         /** Stops syncing and forgets the credential. Nothing on this till is deleted. */
         post: operations["disconnectOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online/recovery-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The recovery code for the shop's end-to-end encryption key. The owner prints or writes it down and keeps it safe: if this PC is
+         *     lost, it is the only way to read the cloud copy again, and nobody else (the provider included) can produce it.
+         *     404 until the till has connected once.
+         */
+        get: operations["getOnlineRecoveryCode"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4170,6 +4302,13 @@ export interface components {
             /** @description Payment method of the receipt, or null when the order has none. */
             paymentMethod?: string | null;
         };
+        /** @description What the PC asking is, so the shell can show the pairing screen instead of a dead POS. */
+        DeviceStatusDto: {
+            /** @description True for the store server's own PC (it never needs pairing). */
+            isServer: boolean;
+            /** @description `Allowed`, `NotRegistered` or `SeatsExceeded`. */
+            access: string;
+        };
         /** @description A percentage discount the cashier can pick at the till. */
         DiscountDto: {
             /** Format: int32 */
@@ -4570,6 +4709,11 @@ export interface components {
             /** @description `Full`, `Provisional` or `Trial`; null while nothing is installed. */
             kind?: string | null;
             serial?: string | null;
+            /**
+             * Format: int32
+             * @description How many PCs the licence covers: the store server plus its tills. 1 until a licence is installed, and for keys issued before seats existed.
+             */
+            seats: number;
             /** @description `yyyy-MM-dd`. */
             issuedOn?: string | null;
             /** @description `yyyy-MM-dd`. A time-limited licence: the last valid day. A full one: the last day of its updates plan. */
@@ -4609,6 +4753,10 @@ export interface components {
             message: string;
             /** @description `success`, `warning` (selling works, renewal due) or `danger` (selling stopped). */
             severity: string;
+        };
+        LiveVersionDto: {
+            /** @description Opaque text; only "is it different from the last one" means anything. */
+            version: string;
         };
         /** @description PIN sign-in, exactly the fields of the Razor login page. */
         LoginRequest: {
@@ -5011,6 +5159,25 @@ export interface components {
             cancelledOrders: number;
             /** @description One entry per currency that sold something, biggest first. Empty when nothing was sold. */
             revenue: components["schemas"]["OrderRevenueDto"][];
+        };
+        PairRequest: {
+            code: string;
+        };
+        PairedDto: {
+            /** @description The name the administrator gave this till. */
+            name: string;
+        };
+        PairingCodeDto: {
+            /** Format: int32 */
+            deviceId: number;
+            /** @description Shown once, as `XXXX-XXXX`. Type it on the till; valid for 15 minutes, once. */
+            code: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        PairingCodeRequest: {
+            /** @description What to call the till ("Till 2", "Back counter"). */
+            name: string;
         };
         /** @description A way to pay at the till. */
         PaymentMethodItemDto: {
@@ -6262,6 +6429,10 @@ export interface components {
             /** @description Required, as the old void dialogs demanded it. It goes on the receipt and into the audit trail. */
             reason: string;
         };
+        /** @description The owner's recovery code for the shop's end-to-end encryption key (56 characters in groups of four). */
+        RecoveryCodeDto: {
+            code: string;
+        };
         /** @description New order of the main screen: the ids of the display-order rows, first to last. */
         ReorderRequest: {
             ids: number[];
@@ -6988,6 +7159,51 @@ export interface components {
              * @description Not before Web.Api.Money.Contracts.TaxRateRequest.EffectiveFrom.
              */
             effectiveTo?: string | null;
+        };
+        /** @description One till in the list on the License page. */
+        TillDeviceDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** @description `Pending`: waiting for the till to enter its pairing code (holds a seat until the code expires). `Active`: paired. */
+            state: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            pairedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Last time the till sold or asked to (updated every few minutes at most).
+             */
+            lastSeenAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Pending only: when the pairing code stops working.
+             */
+            pairingExpiresAt?: string | null;
+            /** @description Active, but the licence now covers fewer PCs than are registered: this till is refused until a seat is freed or a bigger key is installed. */
+            overflow: boolean;
+        };
+        /** @description The package: how many PCs the licence covers and which tills use them. The store server itself is always the first seat. */
+        TillSeatsDto: {
+            /**
+             * Format: int32
+             * @description PCs the licence covers, the store server included.
+             */
+            seats: number;
+            /**
+             * Format: int32
+             * @description Seats for tills (Web.Api.Devices.Contracts.TillSeatsDto.Seats minus the server). Null in a build that does not enforce licences (no limit).
+             */
+            tillSeats?: number | null;
+            /**
+             * Format: int32
+             * @description Tills that hold a seat: paired ones plus pairing codes still open.
+             */
+            used: number;
+            /** @description False in a Debug build. */
+            enforced: boolean;
+            devices: components["schemas"]["TillDeviceDto"][];
         };
         /** @description Body of "enable / disable a user". */
         UserActiveRequest: {
@@ -10942,6 +11158,204 @@ export interface operations {
             };
         };
     };
+    getTillSeats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TillSeatsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createTillPairingCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PairingCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingCodeDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    removeTill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    pairTill: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PairRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairedDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getDeviceStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceStatusDto"];
+                };
+            };
+        };
+    };
     listDiscounts: {
         parameters: {
             query?: {
@@ -12057,6 +12471,44 @@ export interface operations {
             };
         };
     };
+    getLiveVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveVersionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getNotificationFeed: {
         parameters: {
             query?: {
@@ -12760,6 +13212,53 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOnlineRecoveryCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecoveryCodeDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
