@@ -367,6 +367,7 @@ else
     builder.Services.AddScoped<IPrinterTransport, Win32PrinterTransport>();
 builder.Services.AddScoped<IEscPosBuilder, EscPosBuilder>();
 builder.Services.AddSingleton<ILabelPdfBuilder, LabelPdfBuilder>();
+builder.Services.AddSingleton<ITsplLabelBuilder, TsplLabelBuilder>();
 builder.Services.AddScoped<Application.IServices.Sales.IThermalPrinterService, Application.Services.Sales.ThermalPrinterService>();
 
 // Tax Management

@@ -6,12 +6,15 @@ plugins {
 
 android {
     namespace = "com.nexpos.nexpos_owner"
-    compileSdk = flutter.compileSdkVersion
+    // 37, not Flutter's default: the notification library and androidx.core 1.19 are built against it (backward compatible).
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Needed by flutter_local_notifications (newer Java APIs on older Android versions).
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -42,6 +45,10 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 flutter {

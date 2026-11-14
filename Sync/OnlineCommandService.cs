@@ -88,10 +88,50 @@ public sealed class OnlineCommandService(
         return batch.Commands.Count;
     }
 
+    /// <summary>The shop's key, when it has one. With a key, only changes sealed by the owner's phone are accepted and answers are sealed too.</summary>
+    private RowCipher? Cipher()
+    {
+        var key = store.Current.DataKeyBase64;
+        if (string.IsNullOrEmpty(key)) return null;
+        try { return DataKey.FromBase64(key).Cipher(); }
+        catch (FormatException) { return null; }
+        catch (ArgumentException) { return null; }
+    }
+
     private async Task<CommandResult> RunAsync(CommandEnvelope command, CancellationToken ct)
+    {
+        var cipher = Cipher();
+        var plain = await ExecuteAsync(command, cipher, ct);
+        // Even a refusal is sealed when a key exists: it can name a product or a quantity.
+        return cipher is null ? plain : CommandSeal.SealResult(cipher, command.Id, plain);
+    }
+
+    private async Task<CommandResult> ExecuteAsync(CommandEnvelope command, RowCipher? cipher, CancellationToken ct)
     {
         // Already run before (the answer never reached the cloud): repeat the answer, do not repeat the change.
         if (ledger.TryGet(command.Id, out var known)) return known;
+
+        var payload = command.Payload;
+        string? changeKey = null;
+        if (cipher is not null)
+        {
+            var opened = CommandSeal.Open(cipher, command.Type, payload);
+            if (opened is null)
+            {
+                var refused = CommandResult.Reject(CommandErrorCodes.NotSealed,
+                    "This change was not sealed with the shop's key, so the shop PC did not apply it. Only the owner's phone can send changes.");
+                ledger.Record(command.Id, refused);
+                return refused;
+            }
+            (payload, changeKey) = opened.Value;
+
+            // The same change under a new command id (the cloud re-queued it): same answer, not a second run.
+            if (ledger.TryGetByKey(changeKey, out var twin))
+            {
+                ledger.Record(command.Id, twin);
+                return twin;
+            }
+        }
 
         CommandResult result;
         try
@@ -102,7 +142,7 @@ public sealed class OnlineCommandService(
             result = handler is null
                 ? CommandResult.Reject(CommandErrorCodes.UnknownType,
                     "This version of NexPOS on the shop PC does not know this kind of change. Update NexPOS and try again.")
-                : await handler.HandleAsync(command.Payload, new CommandContext(command.Id, command.RequestedBy), ct);
+                : await handler.HandleAsync(payload, new CommandContext(command.Id, command.RequestedBy), ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (JsonException)
@@ -115,7 +155,7 @@ public sealed class OnlineCommandService(
             result = CommandResult.Reject(CommandErrorCodes.ServerError, "The shop PC could not apply this change. Nothing was saved.");
         }
 
-        ledger.Record(command.Id, result);
+        ledger.Record(command.Id, result, changeKey);
         return result;
     }
 

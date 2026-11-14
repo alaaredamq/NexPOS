@@ -3,7 +3,13 @@ namespace Core.IRepositories.PrinterTransport;
 public interface IPrinterTransport
 {
     bool IsAvailable(string printerName);
-    bool SendBytes(string printerName, byte[] data, string jobName);
+
+    /// <param name="quickFail">
+    /// True for the automatic print at the end of a sale: when this printer failed to take a job a moment ago it is only
+    /// given a short chance to take this one, so a printer that is unplugged does not hold up every sale. An explicit
+    /// reprint passes false and always gets the full wait.
+    /// </param>
+    bool SendBytes(string printerName, byte[] data, string jobName, bool quickFail = false);
     bool SendString(string printerName, string content, string jobName);
 
     /// <summary>

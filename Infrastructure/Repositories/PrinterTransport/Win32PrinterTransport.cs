@@ -41,7 +41,7 @@ public class Win32PrinterTransport : IPrinterTransport
         }
     }
 
-    public bool SendBytes(string printerName, byte[] data, string jobName)
+    public bool SendBytes(string printerName, byte[] data, string jobName, bool quickFail = false)
     {
         if (IsDocumentPrinter(printerName))
         {
@@ -50,7 +50,7 @@ public class Win32PrinterTransport : IPrinterTransport
             return false;
         }
 
-        return RawPrint(printerName, data, jobName);
+        return RawPrint(printerName, data, jobName, quickFail);
     }
 
     public bool SendString(string printerName, string content, string jobName)
@@ -126,8 +126,32 @@ public class Win32PrinterTransport : IPrinterTransport
         }
     }
 
-    private bool RawPrint(string printerName, byte[] data, string jobName)
+    private bool RawPrint(string printerName, byte[] data, string jobName, bool quickFail = false)
     {
+        var success = RawPrintCore(printerName, data, jobName, quickFail, out var deliveryFailed);
+
+        // Only remember a printer that took the job but never delivered it (unplugged / off / stuck): that is the slow failure.
+        // A printer that is missing altogether fails in milliseconds and needs no memory.
+        if (success) RecentlyFailed.TryRemove(printerName, out _);
+        else if (deliveryFailed) RecentlyFailed[printerName] = DateTime.UtcNow + FailureMemory;
+
+        return success;
+    }
+
+    /// <summary>Printers that recently accepted a job but did not deliver it, and until when to treat them as down.</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> RecentlyFailed = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly TimeSpan FailureMemory = TimeSpan.FromSeconds(60);
+
+    /// <summary>The short chance a printer that just failed gets when the sale prints automatically (see <c>quickFail</c>).</summary>
+    private static readonly TimeSpan ProbeWait = TimeSpan.FromMilliseconds(500);
+
+    private static bool IsRecentlyFailed(string printerName)
+        => RecentlyFailed.TryGetValue(printerName, out var until) && until > DateTime.UtcNow;
+
+    private bool RawPrintCore(string printerName, byte[] data, string jobName, bool quickFail, out bool deliveryFailed)
+    {
+        deliveryFailed = false;
         IntPtr hPrinter = IntPtr.Zero;
         IntPtr pBytes = IntPtr.Zero;
 
@@ -144,9 +168,6 @@ public class Win32PrinterTransport : IPrinterTransport
             {
                 var error = Marshal.GetLastWin32Error();
                 Console.WriteLine($"[PRINTER TRANSPORT] ❌ Failed to open printer '{printerName}'. Win32 Error: {error}");
-                
-                // List available printers for debugging
-                ListAvailablePrinters();
                 return false;
             }
 
@@ -159,6 +180,7 @@ public class Win32PrinterTransport : IPrinterTransport
             {
                 _logger.LogWarning("Printer '{Printer}' is offline ({Reason}); job '{Job}' was not sent.", printerName, reason, jobName);
                 Console.WriteLine($"[PRINTER TRANSPORT] ❌ Printer '{printerName}' is offline ({reason}) - nothing sent");
+                deliveryFailed = true;
                 return false;
             }
 
@@ -194,8 +216,10 @@ public class Win32PrinterTransport : IPrinterTransport
             // Spooling the job only means Windows accepted it. Follow it until the spooler has handed it
             // to the device; a job that stays stuck (printer unplugged, powered off) is cancelled so it
             // cannot come out later as a duplicate once the cashier retries.
-            if (success && !WaitForJobToLeave(hPrinter, jobId, out var stuckReason))
+            var wait = quickFail && IsRecentlyFailed(printerName) ? ProbeWait : JobWait;
+            if (success && !WaitForJobToLeave(hPrinter, jobId, wait, out var stuckReason))
             {
+                deliveryFailed = true;
                 _logger.LogWarning("Print job '{Job}' to '{Printer}' did not reach the device ({Reason}); cancelled.", jobName, printerName, stuckReason);
                 Console.WriteLine($"[PRINTER TRANSPORT] ❌ Job did not reach the printer ({stuckReason}) - cancelled");
                 SetJob(hPrinter, jobId, 0, IntPtr.Zero, JOB_CONTROL_DELETE);
@@ -254,12 +278,12 @@ public class Win32PrinterTransport : IPrinterTransport
     /// <summary>
     /// Waits for the spooler to finish with a job. A job that is gone from the queue (or marked
     /// printed/complete) went to the device; one that reports an error or is still queued after
-    /// <see cref="JobWait"/> did not, which is what an unplugged printer looks like.
+    /// <paramref name="wait"/> did not, which is what an unplugged printer looks like.
     /// </summary>
-    private static bool WaitForJobToLeave(IntPtr hPrinter, int jobId, out string reason)
+    private static bool WaitForJobToLeave(IntPtr hPrinter, int jobId, TimeSpan wait, out string reason)
     {
         reason = "still queued";
-        var deadline = DateTime.UtcNow + JobWait;
+        var deadline = DateTime.UtcNow + wait;
 
         while (true)
         {

@@ -18,6 +18,7 @@ export const DEFAULT_LABEL_SIZE = { widthMm: 40, heightMm: 25 } as const
 // Same localStorage keys as the Razor pages: the printer is a per-computer hardware choice shared with App Settings.
 const PRINTER_KEY = 'nexpos-sticker-printer'
 const SHOW_PRICE_KEY = 'nexpos-sticker-show-price'
+const DIRECT_KEY = 'nexpos-sticker-direct'
 
 export interface StickerData {
   name: string
@@ -33,6 +34,11 @@ export interface StickerJob {
   showPrice: boolean
   /** Desktop only. Empty = the OS default printer. */
   printerName: string
+  /**
+   * Desktop only: send label-printer commands (TSPL) instead of printing through the Windows driver. Needs a real printer
+   * name. Label-printer drivers keep one fixed paper size and ignore the one a program asks for; the commands carry the size.
+   */
+  direct?: boolean
 }
 
 /** Whole number inside [min, max], else `fallback` (a blank or nonsense field keeps the shop's default). */
@@ -91,6 +97,32 @@ export function getShowPrice(): boolean {
 export function setShowPrice(show: boolean): void {
   try {
     localStorage.setItem(SHOW_PRICE_KEY, show ? '1' : '0')
+  } catch {
+    // storage blocked: not remembered
+  }
+}
+
+/** Printers whose names say they are TSPL (TSC-compatible) label printers: the dialog starts with "direct" on for these. */
+const LABEL_PRINTER_NAME = /xprinter|\btsc\b|gprinter|hprt|godex|argox|label|barcode|sticker/i
+
+export function looksLikeLabelPrinter(printerName: string): boolean {
+  return LABEL_PRINTER_NAME.test(printerName)
+}
+
+/** Whether labels go to the printer as TSPL commands: this computer's remembered choice, else a guess from the printer's name. */
+export function getDirectPrint(printerName: string): boolean {
+  try {
+    const stored = localStorage.getItem(DIRECT_KEY)
+    if (stored !== null) return stored === '1'
+  } catch {
+    // storage blocked: fall through to the guess
+  }
+  return looksLikeLabelPrinter(printerName)
+}
+
+export function setDirectPrint(direct: boolean): void {
+  try {
+    localStorage.setItem(DIRECT_KEY, direct ? '1' : '0')
   } catch {
     // storage blocked: not remembered
   }
@@ -188,12 +220,28 @@ function saveBlob(blob: Blob, filename: string) {
 
 /**
  * Sends the job. Resolves once handed off; throws an Error (or ApiError) with a message on failure.
- * Desktop app -> silent print to the chosen printer; plain browser -> the labels are downloaded as a PDF.
+ * Desktop app -> silent print to the chosen printer (as label-printer commands when `direct`, so the size is honoured whatever
+ * the driver's paper size is); plain browser -> the labels are downloaded as a PDF.
  */
 export async function printSticker(data: StickerData, job: StickerJob): Promise<void> {
   const copies = clampCopies(job.copies)
   const widthMm = clampWidth(job.widthMm)
   const heightMm = clampHeight(job.heightMm)
+
+  if (electron.isElectron && job.direct && job.printerName) {
+    await http.post<void>('/products/sticker-print', {
+      name: data.name,
+      code: data.code,
+      price: data.price,
+      bars: await buildBarcodeBars(data.code),
+      printerName: job.printerName,
+      widthMm,
+      heightMm,
+      copies,
+      showPrice: job.showPrice,
+    })
+    return
+  }
 
   if (electron.isElectron) {
     const html = buildStickerHtml(data, await buildBarcodeSvg(data.code), widthMm, heightMm, 1, job.showPrice)

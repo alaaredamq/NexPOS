@@ -10,10 +10,12 @@ namespace Sync;
 public sealed class CommandLedger
 {
     public const int Capacity = 500;
+    public const int KeyedCapacity = 2000;
 
     private readonly string _path;
     private readonly object _gate = new();
     private readonly List<KeyValuePair<Guid, CommandResult>> _entries = new();
+    private readonly List<KeyValuePair<string, CommandResult>> _keyed = new();
 
     public CommandLedger(string filePath)
     {
@@ -36,13 +38,38 @@ public sealed class CommandLedger
         return false;
     }
 
-    public void Record(Guid id, CommandResult result)
+    /// <summary>
+    /// The outcome of the change the owner's phone gave this key to. The same key means the same change however the cloud labelled it,
+    /// so a sealed change replayed under a new command id is answered from here instead of running again.
+    /// </summary>
+    public bool TryGetByKey(string key, out CommandResult result)
+    {
+        lock (_gate)
+        {
+            foreach (var entry in _keyed)
+            {
+                if (!string.Equals(entry.Key, key, StringComparison.Ordinal)) continue;
+                result = entry.Value;
+                return true;
+            }
+        }
+        result = null!;
+        return false;
+    }
+
+    public void Record(Guid id, CommandResult result, string? key = null)
     {
         lock (_gate)
         {
             _entries.RemoveAll(e => e.Key == id);
             _entries.Add(new(id, result));
             if (_entries.Count > Capacity) _entries.RemoveRange(0, _entries.Count - Capacity);
+            if (key is not null)
+            {
+                _keyed.RemoveAll(e => string.Equals(e.Key, key, StringComparison.Ordinal));
+                _keyed.Add(new(key, result));
+                if (_keyed.Count > KeyedCapacity) _keyed.RemoveRange(0, _keyed.Count - KeyedCapacity);
+            }
             Save();
         }
     }
@@ -54,11 +81,18 @@ public sealed class CommandLedger
             if (!File.Exists(_path)) return;
             var stored = JsonSerializer.Deserialize<Dictionary<Guid, CommandResult>>(File.ReadAllText(_path), SyncWire.Json);
             if (stored is not null) _entries.AddRange(stored);
+            var keyedPath = _path + ".keys";
+            if (File.Exists(keyedPath))
+            {
+                var keyed = JsonSerializer.Deserialize<Dictionary<string, CommandResult>>(File.ReadAllText(keyedPath), SyncWire.Json);
+                if (keyed is not null) _keyed.AddRange(keyed);
+            }
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
             // An unreadable ledger only means a rare double-delivery could run twice; never block the shop over it.
             _entries.Clear();
+            _keyed.Clear();
         }
     }
 
@@ -70,6 +104,9 @@ public sealed class CommandLedger
             var temp = _path + ".tmp";
             File.WriteAllText(temp, JsonSerializer.Serialize(_entries.ToDictionary(e => e.Key, e => e.Value), SyncWire.Json));
             File.Move(temp, _path, overwrite: true);
+            var keyedTemp = _path + ".keys.tmp";
+            File.WriteAllText(keyedTemp, JsonSerializer.Serialize(_keyed.ToDictionary(e => e.Key, e => e.Value), SyncWire.Json));
+            File.Move(keyedTemp, _path + ".keys", overwrite: true);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

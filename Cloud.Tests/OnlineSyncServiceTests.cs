@@ -95,9 +95,26 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         return Check();
     }
 
-    private bool InMirror(SeededSite site, string firstName)
-        => _cloud.Mirrors.Exists(site.SiteId)
-           && SqlHelper.Scalar<long>(_cloud.Mirrors.PathFor(site.SiteId), $"SELECT COUNT(*) FROM Customers WHERE FirstName = '{firstName}'") == 1;
+    /// <summary>
+    /// Whether the cloud copy holds that customer. The cloud keeps only ciphertext, so this decrypts with the till's own key, which is
+    /// what the owner's phone will do. Reading the cloud's file directly, the name is not there at all (see EncryptedSyncTests).
+    /// </summary>
+    private bool InMirror(TillRig rig, SeededSite site, string firstName)
+    {
+        if (!_cloud.Mirrors.Exists(site.SiteId) || string.IsNullOrEmpty(rig.Store.Current.DataKeyBase64)) return false;
+        var cipher = DataKey.FromBase64(rig.Store.Current.DataKeyBase64).Cipher();
+        using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_cloud.Mirrors.PathFor(site.SiteId)};Mode=ReadOnly");
+        connection.Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT RowId, Payload FROM \"__EncryptedRows\" WHERE TableName = 'Customers'";
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var row = cipher.Decrypt("Customers", reader.GetInt64(0), reader.GetString(1));
+            if (row["FirstName"] is JsonElement { ValueKind: JsonValueKind.String } v && v.GetString() == firstName) return true;
+        }
+        return false;
+    }
 
     [Fact]
     public async Task Pasting_the_link_starts_syncing_at_once_without_a_restart()
@@ -113,10 +130,10 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         Assert.True(status.Enabled);
         Assert.Equal("Main till", status.SiteName);
         Assert.Equal("Link Shop", status.ClientName);
-        Assert.True(await WaitForAsync(() => InMirror(site, "Before")), "the existing shop should be uploaded");
+        Assert.True(await WaitForAsync(() => InMirror(rig, site, "Before")), "the existing shop should be uploaded");
 
         await rig.Till.AddCustomerAsync("After");
-        Assert.True(await WaitForAsync(() => InMirror(site, "After")), "later changes should follow");
+        Assert.True(await WaitForAsync(() => InMirror(rig, site, "After")), "later changes should follow");
         Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null));
     }
 
@@ -138,7 +155,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         Assert.True(second.Connection.GetStatus().Enabled, "no need to paste the link again");
 
         await till.AddCustomerAsync("AfterRestart");
-        Assert.True(await WaitForAsync(() => InMirror(site, "AfterRestart")));
+        Assert.True(await WaitForAsync(() => InMirror(second, site, "AfterRestart")));
     }
 
     [Fact]
@@ -150,7 +167,17 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastSuccessUtc is not null));
         Assert.True(rig.TriggerCount() > 0);
 
+        var keyBefore = rig.Store.Current.DataKeyBase64;
+        var codeBefore = rig.Connection.GetRecoveryCode();
+        Assert.False(string.IsNullOrEmpty(keyBefore), "connecting makes the shop's encryption key");
+        Assert.True(DataKey.TryParseRecoveryCode(codeBefore, out var parsed));
+        Assert.Equal(keyBefore, parsed!.ToBase64());
+
         var status = await rig.Connection.DisconnectAsync(default);
+
+        // The credential goes; the key stays, so the owner's printed recovery code still opens what the cloud keeps.
+        Assert.Equal(keyBefore, rig.Store.Current.DataKeyBase64);
+        Assert.Equal(codeBefore, rig.Connection.GetRecoveryCode());
 
         Assert.False(status.Enabled);
         Assert.Null(status.SiteName);
@@ -160,7 +187,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
 
         await rig.Till.AddCustomerAsync("WhileOff");
         await Task.Delay(1500);
-        Assert.False(InMirror(site, "WhileOff"));
+        Assert.False(InMirror(rig, site, "WhileOff"));
     }
 
     [Fact]
@@ -176,7 +203,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         await rig.Till.AddCustomerAsync("Meanwhile");
         await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
 
-        Assert.True(await WaitForAsync(() => InMirror(site, "Meanwhile")), "a reconnect starts from a full snapshot");
+        Assert.True(await WaitForAsync(() => InMirror(rig, site, "Meanwhile")), "a reconnect starts from a full snapshot");
     }
 
     [Fact]
@@ -190,7 +217,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         await rig.Till.AddCustomerAsync("Pressed");
         rig.Connection.SyncNow();
 
-        Assert.True(await WaitForAsync(() => InMirror(site, "Pressed"), seconds: 10));
+        Assert.True(await WaitForAsync(() => InMirror(rig, site, "Pressed"), seconds: 10));
     }
 
     [Fact]
@@ -238,7 +265,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         rig.Connection.SyncNow();
 
         Assert.True(await WaitForAsync(() => rig.Connection.GetStatus().LastErrorCode == SyncErrorCodes.Unauthorized));
-        Assert.False(InMirror(site, "Orphan"));
+        Assert.False(InMirror(rig, site, "Orphan"));
     }
 
     [Fact]
@@ -267,7 +294,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         }));
         await rig.Till.AddCustomerAsync("Manual");
 
-        Assert.True(await WaitForAsync(() => InMirror(site, "Manual")));
+        Assert.True(await WaitForAsync(() => InMirror(rig, site, "Manual")));
     }
 
     [Fact]

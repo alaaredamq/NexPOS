@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 /// The same tokens as the till (BoussiCell look): teal brand, near-black rail, soft teal canvas.
@@ -28,6 +29,11 @@ ThemeData buildTheme() {
     useMaterial3: true,
     colorScheme: scheme,
     scaffoldBackgroundColor: Tokens.canvas,
+    // Forward = the new page fades in and rises slightly; back reverses it. iOS keeps its own swipe-back slide.
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    }),
     appBarTheme: const AppBarTheme(
       backgroundColor: Tokens.canvas,
       foregroundColor: Tokens.ink,

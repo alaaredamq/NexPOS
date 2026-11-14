@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../api/owner_api.dart';
+import '../../crypto/change_seal.dart';
+import '../../data/shop_data.dart';
 import '../../l10n.dart';
 import '../../state/session.dart';
 import '../../theme.dart';
+import '../../widgets/motion.dart';
 
 /// Optional text: empty becomes "not sent", because the shop treats "" as a value to check (an empty email is not an email).
 String? orNull(TextEditingController c) {
@@ -34,23 +37,41 @@ mixin SubmitsChange<T extends StatefulWidget> on State<T> {
       'Sent to the shop. You can follow it under Changes.',
       'أُرسل إلى المحل. يمكنك متابعته من تبويب التغييرات.',
     );
+    final sentShort = context.tr('Sent to the shop', 'أُرسل إلى المحل');
+    final locked = context.tr(
+      'Unlock the shop\'s data first (Manage > Shop data). Changes are encrypted with its key, so nobody in between can read them.',
+      'افتح بيانات المحل أولًا (إدارة > بيانات المحل). تُشفَّر التغييرات بمفتاحه فلا يستطيع أحد في الطريق قراءتها.',
+    );
     final offline = context.tr(
       'No connection, so nothing was sent. Try again when you are online.',
       'لا يوجد اتصال فلم يُرسل شيء. حاول مجددًا عند الاتصال.',
     );
 
+    final key = context.read<ShopData>().key;
+    if (key == null) {
+      // Changes are sealed with the shop's key so the cloud cannot read them; without it there is nothing safe to send.
+      Haptics.problem();
+      messenger.showSnackBar(SnackBar(content: Text(locked)));
+      if (mounted) setState(() => busy = false);
+      return;
+    }
+
     try {
-      await session.api.submit(kind, body, idempotencyKey);
+      await session.api.submit(kind, await ChangeSeal.seal(key, kind, idempotencyKey, body), idempotencyKey);
       changes.refresh();
+      if (!mounted) return;
+      await showSavedCheck(navigator.context, label: sentShort); // the check draws itself, then the form closes
       messenger.showSnackBar(SnackBar(content: Text(sent)));
       navigator.pop(true);
     } on OfflineException {
+      Haptics.problem();
       messenger.showSnackBar(SnackBar(content: Text(offline)));
     } on ApiException catch (e) {
       if (e.isUnauthorized) {
         await session.handleUnauthorized();
         return;
       }
+      Haptics.problem();
       messenger.showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Tokens.danger));
     } finally {
       if (mounted) setState(() => busy = false);

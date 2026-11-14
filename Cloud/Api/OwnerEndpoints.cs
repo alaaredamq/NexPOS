@@ -21,6 +21,8 @@ public static class OwnerEndpoints
         ("/customers", "customer.create"),
         ("/suppliers", "supplier.create"),
         ("/products", "product.create"),
+        ("/product-edits", "product.update"),
+        ("/stock-changes", "stock.adjust"),
     ];
 
     public static void MapOwnerApi(this IEndpointRouteBuilder app)
@@ -96,6 +98,8 @@ public static class OwnerEndpoints
             token,
             expiresAtUtc = now + OwnerTokens.SessionLifetime,
             displayName = user.DisplayName,
+            permissions = user.Permissions,
+            role = OwnerRoles.NameOf(user.Can),
             clientName = user.Client.Name,
             siteName = site?.Name,
         }, SyncWire.Json);
@@ -118,6 +122,8 @@ public static class OwnerEndpoints
         return Results.Json(new
         {
             displayName = who.User.DisplayName,
+            permissions = who.User.Permissions,
+            role = OwnerRoles.NameOf(who.User.Can),
             email = who.User.Email,
             clientName = who.Client.Name,
             siteName = who.Site?.Name,
@@ -140,6 +146,12 @@ public static class OwnerEndpoints
         if (!SubscriptionRules.AllowsSync(who.State))
             return Error(StatusCodes.Status402PaymentRequired, SyncErrorCodes.SubscriptionInactive,
                 "The online plan is not active, so changes cannot be sent to the shop. Contact your provider.");
+
+        // What this login may ask the shop to do. Checked here, before anything is queued, because the shop PC cannot tell phones apart:
+        // every sealed change looks the same to it.
+        var needed = OwnerRoles.NeededFor(type);
+        if (!who.User.Can.HasFlag(needed))
+            return Error(StatusCodes.Status403Forbidden, "forbidden", "This login is not allowed to make that change.");
 
         var key = http.Request.Headers["Idempotency-Key"].ToString().Trim();
         if (key.Length is < 8 or > 100)
@@ -193,7 +205,9 @@ public static class OwnerEndpoints
         if (who.Site is null) return Results.Json(Array.Empty<OwnerCommandView>(), SyncWire.Json);
 
         var take = Math.Clamp(limit ?? 50, 1, 200);
-        var rows = await db.SiteCommands.Where(c => c.SiteId == who.Site.Id)
+        var everyone = who.User.Can == OwnerPermissions.All; // staff see only the changes they made themselves
+        var mine = who.User.Id;
+        var rows = await db.SiteCommands.Where(c => c.SiteId == who.Site.Id && (everyone || c.OwnerUserId == mine))
             .OrderByDescending(c => c.CreatedAt).Take(take).ToListAsync();
         return Results.Json(rows.Select(ToView), SyncWire.Json);
     }
@@ -203,7 +217,9 @@ public static class OwnerEndpoints
         var who = await OwnerAuth.AuthenticateAsync(http, db, time);
         if (who is null) return Unauthorized();
         var siteId = who.Site?.Id;
-        var command = siteId is null ? null : await db.SiteCommands.FirstOrDefaultAsync(c => c.Id == id && c.SiteId == siteId);
+        var everyone = who.User.Can == OwnerPermissions.All;
+        var mine = who.User.Id;
+        var command = siteId is null ? null : await db.SiteCommands.FirstOrDefaultAsync(c => c.Id == id && c.SiteId == siteId && (everyone || c.OwnerUserId == mine));
         return command is null
             ? Error(StatusCodes.Status404NotFound, "not_found", "No such change.")
             : Results.Json(ToView(command), SyncWire.Json);
@@ -214,7 +230,9 @@ public static class OwnerEndpoints
         var who = await OwnerAuth.AuthenticateAsync(http, db, time);
         if (who is null) return Unauthorized();
         var siteId = who.Site?.Id;
-        var command = siteId is null ? null : await db.SiteCommands.FirstOrDefaultAsync(c => c.Id == id && c.SiteId == siteId);
+        var everyone = who.User.Can == OwnerPermissions.All;
+        var mine = who.User.Id;
+        var command = siteId is null ? null : await db.SiteCommands.FirstOrDefaultAsync(c => c.Id == id && c.SiteId == siteId && (everyone || c.OwnerUserId == mine));
         if (command is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such change.");
 
         // Only before the shop PC has taken it. After that it may already be applied, and withdrawing it would be a lie.

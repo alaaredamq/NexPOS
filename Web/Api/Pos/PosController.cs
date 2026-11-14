@@ -128,7 +128,7 @@ public sealed class PosController : PosControllerBase
     [SwaggerOperation(OperationId = "quickCreatePosCustomer")]
     public async Task<ActionResult<PosCustomerDto>> CreateCustomer(PosQuickCustomerRequest request)
     {
-        var created = await _lookup.QuickCreateCustomerAsync(request.FirstName, request.LastName);
+        var created = await _lookup.QuickCreateCustomerAsync(request.FirstName, request.LastName, request.PhoneNumber);
         return Created($"/api/v1/pos/customers?q={Uri.EscapeDataString(created.Name)}", created);
     }
 

@@ -15,9 +15,29 @@ public sealed class MirrorApplier(SyncSchema schema)
 {
     private sealed record ColumnInfo(string Name, bool NotNull, bool HasDefault, bool IsKey, string Type);
 
+    /// <summary>Where end-to-end encrypted rows live: the cloud sees the table, the row id and an opaque payload, nothing else.</summary>
+    public const string EncryptedTable = "__EncryptedRows";
+    private const int MaxPayloadChars = 12 * 1024 * 1024;
+
+    public static string EnsureEncryptedTableSql => $"""
+        CREATE TABLE IF NOT EXISTS {Q(EncryptedTable)} (
+            TableName TEXT NOT NULL,
+            RowId INTEGER NOT NULL,
+            Payload TEXT NOT NULL,
+            UpdatedAt TEXT NOT NULL,
+            PRIMARY KEY (TableName, RowId)
+        ) WITHOUT ROWID;
+        """;
+
+    /// <param name="requireEncrypted">Refuse readable rows. Turn on once nothing that reads the copy needs them.</param>
     /// <returns>Number of changes applied.</returns>
-    public int Apply(string mirrorPath, SyncBatch batch)
+    public int Apply(string mirrorPath, SyncBatch batch, bool requireEncrypted = false)
     {
+        if (requireEncrypted && batch.Changes.Any(c => !c.Deleted && c.Enc is null))
+            throw new SyncBatchException("This cloud only accepts end-to-end encrypted data. Update NexPOS on the till.");
+        if (batch.Changes.Any(c => c.Enc is not null && (!c.Enc.StartsWith(RowCipher.Prefix, StringComparison.Ordinal) || c.Enc.Length > MaxPayloadChars)))
+            throw new SyncBatchException("A change carries a payload that is not valid encrypted data.");
+
         if (batch.Changes.Count > 0 && batch.Changes.Any(c => !schema.TryGetTable(c.Table, out _)))
         {
             var unknown = batch.Changes.First(c => !schema.TryGetTable(c.Table, out _)).Table;
@@ -38,10 +58,15 @@ public sealed class MirrorApplier(SyncSchema schema)
         connection.Open();
         using var tx = connection.BeginTransaction();
 
+        var now = DateTime.UtcNow.ToString("O");
+        if (batch.Initial || batch.Changes.Any(c => c.Enc is not null))
+            Exec(connection, tx, EnsureEncryptedTableSql);
+
         if (batch.Initial)
         {
             foreach (var table in schema.Tables)
                 Exec(connection, tx, $"DELETE FROM {Q(table.Name)};");
+            Exec(connection, tx, $"DELETE FROM {Q(EncryptedTable)};");
         }
 
         var columnCache = new Dictionary<string, IReadOnlyList<ColumnInfo>>(StringComparer.Ordinal);
@@ -57,6 +82,28 @@ public sealed class MirrorApplier(SyncSchema schema)
                 del.CommandText = $"DELETE FROM {Q(table.Name)} WHERE {Q(table.KeyColumn)} = $id";
                 del.Parameters.AddWithValue("$id", change.Id);
                 del.ExecuteNonQuery();
+
+                if (TableExists(connection, tx, EncryptedTable))
+                {
+                    using var delEnc = connection.CreateCommand();
+                    delEnc.Transaction = tx;
+                    delEnc.CommandText = $"DELETE FROM {Q(EncryptedTable)} WHERE TableName = $t AND RowId = $id";
+                    delEnc.Parameters.AddWithValue("$t", table.Name);
+                    delEnc.Parameters.AddWithValue("$id", change.Id);
+                    delEnc.ExecuteNonQuery();
+                }
+            }
+            else if (change.Enc is not null)
+            {
+                using var put = connection.CreateCommand();
+                put.Transaction = tx;
+                put.CommandText = $"INSERT INTO {Q(EncryptedTable)} (TableName, RowId, Payload, UpdatedAt) VALUES ($t, $id, $p, $u) " +
+                                  "ON CONFLICT(TableName, RowId) DO UPDATE SET Payload = excluded.Payload, UpdatedAt = excluded.UpdatedAt";
+                put.Parameters.AddWithValue("$t", table.Name);
+                put.Parameters.AddWithValue("$id", change.Id);
+                put.Parameters.AddWithValue("$p", change.Enc);
+                put.Parameters.AddWithValue("$u", now);
+                put.ExecuteNonQuery();
             }
             else
             {
@@ -141,6 +188,15 @@ public sealed class MirrorApplier(SyncSchema schema)
                 Type: reader.GetString(2)));
         }
         return list;
+    }
+
+    private static bool TableExists(SqliteConnection connection, SqliteTransaction tx, string name)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.Transaction = tx;
+        cmd.CommandText = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = $n";
+        cmd.Parameters.AddWithValue("$n", name);
+        return cmd.ExecuteScalar() is not null;
     }
 
     private static void Exec(SqliteConnection connection, SqliteTransaction tx, string sql)

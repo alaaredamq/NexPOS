@@ -12,7 +12,7 @@ public class DemoPrinterTransport : IPrinterTransport
     private const string DemoPrinterName = "Demo Receipt Printer";
 
     public bool IsAvailable(string printerName) => true;
-    public bool SendBytes(string printerName, byte[] data, string jobName) => true;
+    public bool SendBytes(string printerName, byte[] data, string jobName, bool quickFail = false) => true;
     public bool SendString(string printerName, string content, string jobName) => true;
     public List<string> GetAvailablePrinters() => new() { DemoPrinterName };
 }

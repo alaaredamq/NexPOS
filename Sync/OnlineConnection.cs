@@ -46,6 +46,12 @@ public interface IOnlineConnection
 
     /// <summary>Asks the background loop to push now instead of at the next interval.</summary>
     void SyncNow();
+
+    /// <summary>
+    /// The owner's recovery code for the shop's end-to-end encryption key (null before the first connection). It is the only way back
+    /// to the cloud copy if this PC is lost, and nobody else, the provider included, can produce it.
+    /// </summary>
+    string? GetRecoveryCode();
 }
 
 /// <summary>Lets the screen wake the background loop immediately (after connecting, disconnecting or "Sync now").</summary>
@@ -132,6 +138,7 @@ public sealed class OnlineConnection(
             Enabled = true,
             CloudUrl = parsed.BaseUri.ToString().TrimEnd('/'),
             DeviceToken = response.Token,
+            DataKeyBase64 = string.IsNullOrEmpty(store.Current.DataKeyBase64) ? DataKey.Generate().ToBase64() : store.Current.DataKeyBase64,
             SiteName = response.SiteName,
             ClientName = response.ClientName,
             ConnectedAtUtc = time.GetUtcNow().UtcDateTime,
@@ -152,6 +159,14 @@ public sealed class OnlineConnection(
     }
 
     public void SyncNow() => signal.Wake();
+
+    public string? GetRecoveryCode()
+    {
+        var key = store.Current.DataKeyBase64;
+        if (string.IsNullOrEmpty(key)) return null;
+        try { return DataKey.FromBase64(key).ToRecoveryCode(); }
+        catch (Exception ex) when (ex is FormatException or ArgumentException) { return null; }
+    }
 
     private string? ReadMachineId()
     {

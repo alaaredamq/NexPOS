@@ -156,4 +156,120 @@ public sealed class OnlineCommandHandlerTests : CatalogApiTestBase
         Assert.Equal(CommandErrorCodes.Validation, result.Code);
         Assert.True(result.Data!.Value.GetProperty("errors").TryGetProperty("sellingPrice", out _));
     }
+    private async Task<(int Id, string Name)> NewProductAsync(decimal stock = 10, decimal selling = 5m)
+    {
+        var (categoryId, supplierId) = await LookupAsync();
+        var name = Unique("Edit me ");
+        var barcode = "27" + Random.Shared.NextInt64(10_000_000_000, 99_999_999_999);
+        var created = await RunAsync("product.create", new { name, barcode, categoryId, supplierId, purchasePrice = 2m, sellingPrice = selling, stockQuantity = stock, minStockLevel = 3 });
+        Assert.True(created.IsApplied, created.Message);
+        return (created.Data!.Value.GetProperty("id").GetInt32(), name);
+    }
+
+    private async Task<JsonElement> ProductAsync(int id) => await Body(await (await Admin()).GetAsync($"/api/v1/products/{id}"));
+
+    [Fact]
+    public async Task The_shop_knows_the_edit_and_stock_changes_too()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var types = scope.ServiceProvider.GetServices<IOnlineCommandHandler>().Select(h => h.Type).ToHashSet();
+
+        Assert.Superset(new HashSet<string> { "product.update", "stock.adjust" }, types);
+    }
+
+    [Fact]
+    public async Task Changing_a_price_from_the_phone_changes_only_the_price()
+    {
+        var (id, name) = await NewProductAsync(stock: 10, selling: 5m);
+        var before = await ProductAsync(id);
+
+        var result = await RunAsync("product.update", new { productId = id, sellingPrice = 6.25m });
+
+        Assert.True(result.IsApplied, result.Message);
+        var after = await ProductAsync(id);
+        Assert.Equal(6.25m, after.GetProperty("sellingPrice").GetDecimal());
+        Assert.Equal(name, after.GetProperty("name").GetString());
+        Assert.Equal(before.GetProperty("barcode").GetString(), after.GetProperty("barcode").GetString());
+        Assert.Equal(10m, after.GetProperty("stockQuantity").GetDecimal());
+        Assert.Equal(before.GetProperty("categoryId").GetInt32(), after.GetProperty("categoryId").GetInt32());
+    }
+
+    [Fact]
+    public async Task A_price_below_cost_rules_and_unknown_products_are_refused_with_a_reason()
+    {
+        var (id, _) = await NewProductAsync();
+
+        var zero = await RunAsync("product.update", new { productId = id, sellingPrice = 0m });
+        Assert.Equal(CommandErrorCodes.Validation, zero.Code);
+        Assert.True(zero.Data!.Value.GetProperty("errors").TryGetProperty("sellingPrice", out _));
+
+        var gone = await RunAsync("product.update", new { productId = 987654, sellingPrice = 3m });
+        Assert.Equal(CommandErrorCodes.NotFound, gone.Code);
+    }
+
+    [Fact]
+    public async Task Stopping_the_sale_of_a_product_from_the_phone_marks_it_inactive()
+    {
+        var (id, _) = await NewProductAsync();
+
+        Assert.True((await RunAsync("product.update", new { productId = id, isActive = false })).IsApplied);
+
+        Assert.False((await ProductAsync(id)).GetProperty("isActive").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Adding_and_removing_stock_from_the_phone_moves_the_stock_and_the_history_names_who_asked()
+    {
+        var (id, _) = await NewProductAsync(stock: 10);
+
+        var added = await RunAsync("stock.adjust", new { productId = id, type = "add", quantity = 5, reason = "Delivery" });
+        Assert.True(added.IsApplied, added.Message);
+        Assert.Equal(15m, added.Data!.Value.GetProperty("now").GetDecimal());
+
+        var removed = await RunAsync("stock.adjust", new { productId = id, type = "remove", quantity = 2 });
+        Assert.Equal(13m, removed.Data!.Value.GetProperty("now").GetDecimal());
+
+        Assert.Equal(13m, (await ProductAsync(id)).GetProperty("stockQuantity").GetDecimal());
+        var history = await (await (await Admin()).GetAsync($"/api/v1/products/{id}/history")).Content.ReadAsStringAsync();
+        Assert.Contains("Mobile · Layla", history);
+    }
+
+    [Fact]
+    public async Task A_stock_count_sets_the_stock_to_the_counted_figure_even_when_it_went_down_or_up()
+    {
+        var (id, _) = await NewProductAsync(stock: 10);
+
+        var down = await RunAsync("stock.adjust", new { productId = id, type = "set", quantity = 4 });
+        Assert.True(down.IsApplied, down.Message);
+        Assert.Equal(4m, (await ProductAsync(id)).GetProperty("stockQuantity").GetDecimal());
+
+        var up = await RunAsync("stock.adjust", new { productId = id, type = "set", quantity = 30 });
+        Assert.Equal(30m, up.Data!.Value.GetProperty("now").GetDecimal());
+        Assert.Equal(30m, (await ProductAsync(id)).GetProperty("stockQuantity").GetDecimal());
+
+        var same = await RunAsync("stock.adjust", new { productId = id, type = "set", quantity = 30 });
+        Assert.True(same.IsApplied);
+        Assert.Equal(30m, (await ProductAsync(id)).GetProperty("stockQuantity").GetDecimal());
+    }
+
+    [Fact]
+    public async Task Removing_more_than_there_is_is_refused_and_nothing_changes()
+    {
+        var (id, _) = await NewProductAsync(stock: 3);
+
+        var result = await RunAsync("stock.adjust", new { productId = id, type = "remove", quantity = 8 });
+
+        Assert.Equal(CommandErrorCodes.Validation, result.Code);
+        Assert.True(result.Data!.Value.GetProperty("errors").TryGetProperty("quantity", out _));
+        Assert.Equal(3m, (await ProductAsync(id)).GetProperty("stockQuantity").GetDecimal());
+    }
+
+    [Fact]
+    public async Task A_stock_change_with_a_bad_type_or_an_unknown_product_is_refused()
+    {
+        var (id, _) = await NewProductAsync();
+
+        Assert.Equal(CommandErrorCodes.Validation, (await RunAsync("stock.adjust", new { productId = id, type = "steal", quantity = 1 })).Code);
+        Assert.Equal(CommandErrorCodes.NotFound, (await RunAsync("stock.adjust", new { productId = 987654, type = "add", quantity = 1 })).Code);
+    }
 }

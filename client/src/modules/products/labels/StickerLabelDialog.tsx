@@ -19,9 +19,11 @@ import {
   clampCopies,
   clampHeight,
   clampWidth,
+  getDirectPrint,
   getPrinterName,
   getShowPrice,
   printSticker,
+  setDirectPrint,
   setPrinterName,
   setShowPrice,
   type StickerData,
@@ -45,12 +47,16 @@ export function StickerLabelDialog({ data, onClose }: DialogProps) {
   const [showPrice, setShowPriceState] = useState(getShowPrice)
   const [printer, setPrinter] = useState(getPrinterName)
   const [printers, setPrinters] = useState<PrinterInfo[]>([])
+  const [directChoice, setDirectChoice] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
 
   // The shop's label size is the starting point; typing over it is a one-off for this job.
   const sizeWidth = width ?? clampWidth(settings.data?.widthMm, DEFAULT_LABEL_SIZE.widthMm)
   const sizeHeight = height ?? clampHeight(settings.data?.heightMm, DEFAULT_LABEL_SIZE.heightMm)
   const count = clampCopies(copies)
+  // Empty = the OS default printer; direct printing needs its real name.
+  const printerName = printer || printers.find((p) => p.isDefault)?.name || ''
+  const direct = desktop && printerName !== '' && (directChoice ?? getDirectPrint(printerName))
 
   useEffect(() => {
     if (!desktop) return
@@ -69,7 +75,8 @@ export function StickerLabelDialog({ data, onClose }: DialogProps) {
         widthMm: clampWidth(sizeWidth),
         heightMm: clampHeight(sizeHeight),
         showPrice,
-        printerName: printer,
+        printerName: direct ? printerName : printer,
+        direct,
       })
       onClose()
     } catch (error) {
@@ -116,6 +123,21 @@ export function StickerLabelDialog({ data, onClose }: DialogProps) {
             )}
           </Field>
         )}
+
+        {desktop && printerName && (
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={direct}
+              onChange={(e) => {
+                setDirectChoice(e.target.checked)
+                setDirectPrint(e.target.checked)
+              }}
+            />
+            <span>{t('printLabel.direct')}</span>
+          </label>
+        )}
+        {desktop && printerName && <div className={styles.hint}>{t('printLabel.directHint')}</div>}
 
         {data.price && (
           <label className={styles.check}>

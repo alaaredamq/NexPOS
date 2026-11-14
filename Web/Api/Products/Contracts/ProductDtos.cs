@@ -293,6 +293,37 @@ public sealed class StickerPdfRequest
     public bool ShowPrice { get; set; } = true;
 }
 
+/// <summary>
+/// A barcode sticker sent as label-printer commands (TSPL) straight to a printer on this computer. Same fields as the PDF,
+/// plus the printer; the size travels in the commands, so it does not depend on the printer driver's paper size.
+/// </summary>
+public sealed class StickerPrintRequest
+{
+    public string? Name { get; set; }
+
+    [Required]
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>The price as it should read on the label, already formatted.</summary>
+    public string? Price { get; set; }
+
+    /// <summary>The barcode as modules, <c>1</c> = bar and <c>0</c> = space.</summary>
+    [Required]
+    public string Bars { get; set; } = string.Empty;
+
+    /// <summary>The Windows name of an installed label printer.</summary>
+    [Required]
+    public string PrinterName { get; set; } = string.Empty;
+
+    public int WidthMm { get; set; }
+
+    public int HeightMm { get; set; }
+
+    public int Copies { get; set; } = 1;
+
+    public bool ShowPrice { get; set; } = true;
+}
+
 /// <summary>The multipart body of the import: the workbook and whether to save it.</summary>
 public sealed class ProductImportForm
 {

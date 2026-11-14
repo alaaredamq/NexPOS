@@ -7,7 +7,7 @@ import { formatDate, formatDateTime } from '@/ui/format'
 import { Loader } from '@/ui/Loader'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { toast } from '@/ui/toast'
-import { useConnectOnline, useDisconnectOnline, useOnlineStatus, useSyncOnlineNow, type OnlineStatus } from './api'
+import { useConnectOnline, useDisconnectOnline, useOnlineStatus, useRecoveryCode, useSyncOnlineNow, type OnlineStatus } from './api'
 import { SettingsLayout } from './SettingsLayout'
 import styles from './settings.module.css'
 
@@ -212,6 +212,88 @@ function ConnectedCard({ status }: { status: OnlineStatus }) {
         </div>
         <p className={styles.note}>{t('Online_OfflineNote')}</p>
       </section>
+      <RecoveryCard shop={status.clientName ?? null} />
     </div>
+  )
+}
+
+/**
+ * The key to the phone app. The code is fetched only when the owner presses Show, held in this component's state, and dropped when
+ * they hide it. Printing opens a window with only the code, so the rest of the till's screen never ends up on the paper.
+ */
+function RecoveryCard({ shop }: { shop: string | null }) {
+  const { t } = useTranslation('settings')
+  const recovery = useRecoveryCode()
+  const [code, setCode] = useState<string | null>(null)
+
+  const show = async () => {
+    try {
+      setCode((await recovery.mutateAsync()).code)
+    } catch {
+      toast.error(t('Online_Recovery_Failed'))
+    }
+  }
+
+  const copy = async () => {
+    if (!code) return
+    try {
+      await navigator.clipboard.writeText(code)
+      toast.success(t('Online_Recovery_Copied'))
+    } catch {
+      /* clipboard blocked: the code is on screen to copy by hand */
+    }
+  }
+
+  const print = () => {
+    if (!code) return
+    const page = window.open('', '_blank', 'width=640,height=480')
+    if (!page) return
+    const esc = (text: string) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+    page.document.write(
+      `<!doctype html><meta charset="utf-8"><title>${esc(t('Online_Recovery_PrintHeading'))}</title>` +
+        `<body style="font-family:sans-serif;padding:32px"><h1>${esc(t('Online_Recovery_PrintHeading'))}</h1>` +
+        (shop ? `<p>${esc(t('Online_Recovery_PrintFor', { shop }))}</p>` : '') +
+        `<p style="font:700 26px/1.8 monospace;letter-spacing:.08em;direction:ltr">${esc(code)}</p>` +
+        `<p>${esc(t('Online_Recovery_Warning'))}</p></body>`,
+    )
+    page.document.close()
+    page.focus()
+    page.print()
+  }
+
+  return (
+    <section className={styles.card} aria-label={t('Online_Recovery_Title')}>
+      <h2 className={styles.cardTitle}>{t('Online_Recovery_Title')}</h2>
+      <p className={styles.cardHelp}>{t('Online_Recovery_Intro')}</p>
+      <p className={styles.alert} data-tone="warning">
+        {t('Online_Recovery_Warning')}
+      </p>
+
+      {code && (
+        <p className={styles.recoveryCode} dir="ltr" data-testid="recovery-code">
+          {code}
+        </p>
+      )}
+
+      <div className={styles.actions}>
+        {code ? (
+          <>
+            <Button variant="secondary" onClick={() => void copy()}>
+              {t('Online_Recovery_Copy')}
+            </Button>
+            <Button variant="secondary" onClick={print}>
+              {t('Online_Recovery_Print')}
+            </Button>
+            <Button variant="primary" onClick={() => setCode(null)}>
+              {t('Online_Recovery_Hide')}
+            </Button>
+          </>
+        ) : (
+          <Button variant="secondary" loading={recovery.isPending} onClick={() => void show()}>
+            {t('Online_Recovery_Show')}
+          </Button>
+        )}
+      </div>
+    </section>
   )
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../api/owner_api.dart';
 import '../../l10n.dart';
+import '../../theme.dart';
 import 'form_support.dart';
 import 'lookup_loader.dart';
 
@@ -33,7 +34,7 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
   final _cost = TextEditingController();
   final _stock = TextEditingController(text: '0');
   final _min = TextEditingController(text: '0');
-  final _unit = TextEditingController();
+  String? _unit;
   int? _categoryId;
   int? _supplierId;
 
@@ -49,7 +50,7 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
 
   @override
   void dispose() {
-    for (final c in [_name, _barcode, _price, _cost, _stock, _min, _unit]) {
+    for (final c in [_name, _barcode, _price, _cost, _stock, _min]) {
       c.dispose();
     }
     super.dispose();
@@ -66,7 +67,7 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
       'sellingPrice': parseNumber(_price.text),
       'stockQuantity': parseNumber(_stock.text) ?? 0,
       'minStockLevel': parseNumber(_min.text) ?? 0,
-      'unit': orNull(_unit),
+      'unit': _unit,
       'isActive': true,
     }..removeWhere((_, v) => v == null));
   }
@@ -196,9 +197,15 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
             ),
           ],
         ),
-        TextFormField(
-          controller: _unit,
-          decoration: InputDecoration(labelText: context.tr('Sold by (optional)', 'وحدة البيع (اختياري)'), hintText: 'Piece, kg, box'),
+        DropdownButtonFormField<String?>(
+          initialValue: _unit,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: context.tr('Sold by (optional)', 'وحدة البيع (اختياري)')),
+          items: [
+            DropdownMenuItem<String?>(value: null, child: Text(context.tr('Not set', 'غير محددة'), style: const TextStyle(color: Tokens.muted))),
+            for (final u in productUnits) DropdownMenuItem<String?>(value: u, child: Text(unitName(context, u))),
+          ],
+          onChanged: (v) => setState(() => _unit = v),
         ),
       ],
     );

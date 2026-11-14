@@ -11,6 +11,8 @@ namespace Cloud.Services;
 /// </summary>
 public sealed class MirrorReader(MirrorStore mirrors)
 {
+    public bool HasEncryptedRows(Guid siteId) => mirrors.HasEncryptedRows(siteId);
+
     public ErpDbContext Open(Guid siteId)
     {
         mirrors.EnsureReady(siteId); // a shop that has not synced yet reads as empty rather than failing

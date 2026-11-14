@@ -814,3 +814,84 @@ were untouched by this session.
 **Verified:** 14 new tests (reversal, weighed goods, no-receipt order, debt once only, double void/cancel refused, rollback, audit, status guard, drawer); full suite 241/241. End to end on a throwaway instance (:5099): cash sale → void (stock 296→300, orders card 1 delivered/$2.00 → 1 cancelled/$0.00, second void refused); debt sale → cancel from Orders (stock 118→120, balance $3.80→$0.00, receipt void); reopen refused with the message shown; normal status change still works; audit rows present.
 
 **Not done / noticed:** drawer "expected cash" still counts debt/card sales as cash (existing TODO); `QueryOptimizationService`'s order stats and the Z-report order list don't filter cancelled orders; a void after the drawer was closed doesn't adjust that closed session; if a sale was rung up past available stock (cashier override clamps stock at 0), restoring adds back the full quantity.
+
+## 2026-11-12 — Owner phone app reads the encrypted shop copy (phase 2)
+
+**Why:** every connected till now sends its data end-to-end encrypted, so the cloud could not answer any read (`/lookups` returned 409
+`encrypted_copy`). The phone app could add things but showed nothing. Done per `docs/online/PLATFORM.md` 5b, phase 2.
+
+- **Cloud:** `GET /owner/v1/rows` (one page of a table's ciphertext after a cursor) and `GET /owner/v1/row-ids` (for deletions), same
+  sign-in / own-shop / plan rules as every owner read (`OwnerReadEndpoints`, `MirrorStore.ReadEncryptedRows`). 9 new tests
+  (`OwnerEncryptedReadTests`): ciphertext only, paging and resume, changed row returned again, deletions, isolation between shops, bad table
+  or cursor, lapsed plan.
+- **Phone (`mobile/`):** unlock with the recovery code (`lib/crypto/shop_key.dart`, checksum + AES-256-GCM, same format as `Sync/DataKey.cs`),
+  `ShopData` pulls and decrypts into memory (only the columns the screens use), screens **Today / Sales / Stock / Debts** (layout from the
+  design preview), add-forms take their lists from the decrypted rows. Key and rows are dropped on sign-out. 53 Flutter tests, including
+  a row and a recovery code produced by the C# code. Android: debug builds allow http for LAN tests, backup off.
+- **Till:** Settings > Online > "Recovery code" card (show on demand, copy, print, hide), EN and AR, 3 tests.
+- **Cloud portal:** the phone-login hand-over (and its WhatsApp text, EN + AR) now tells the owner where to find the recovery code; the till
+  page labels an encrypted copy and says nobody can recover it. 2 tests. Cloud suite 205/205.
+
+**Not done:** changes sent from the phone are still readable JSON in transit through the cloud (5b item 2); no on-device cache (re-read at each
+start); release APK still uses the debug signing key; never run against a real cloud with a real phone (that is the next test); iOS not built.
+
+## 2026-11-12 (later) — Phone: sealed changes, stock edits, reports, pages, app lock, alerts (phase 3)
+
+**Why:** the owner asked for the next set: tap a sale to see its items, fingerprint lock, reports, customer and product pages, encrypt what
+the phone sends, edit products and adjust stock from the phone, and push notifications.
+
+- **Phone to till is now end-to-end encrypted** (closes `PLATFORM.md` 5b item 2). The phone sends `{ "enc": "e1..." }` = AES-GCM of
+  `{ k: idempotency key, body }` bound to the kind of change; the cloud stores and forwards it blind (`OwnerEndpoints` is unchanged: it
+  never looked inside). The till (`OnlineCommandService`, `CommandSeal` in `Sync/Commands.cs`) opens it, **refuses anything unsealed once a
+  key exists** (so the cloud cannot forge a change either), refuses a replay of the same `k` under a new command id (`CommandLedger`
+  keeps outcomes by `k`), and seals its answer to the command id so product names, quantities and refusal reasons are unreadable in
+  the cloud. `RowCipher.Seal/Open` are the generic primitives. Phone: `ShopKey.seal/open`, `ChangeSeal`. 6 cloud tests
+  (`CommandChannelTests`: sealed apply with nothing readable stored, unsealed refused, wrong key / swapped kind refused, replay run once,
+  sealed refusal), plus a vector made by Flutter that C# opens and one made by C# that Flutter opens.
+- **New change kinds on the till:** `product.update` (name, prices, minimum, on-sale; only what is sent changes, price tiers and pack
+  settings are kept) and `stock.adjust` (`add`, `remove`, and `set` = a count, worked out against the stock at that moment, written to
+  product history with the phone user's name). Cloud routes `/owner/v1/product-edits` and `/stock-changes`. 9 handler tests.
+- **Phone screens:** tap a sale (items, customer, what is still owed), customer page (balance, ledger, purchases), product page (stock,
+  margin, 30-day sales, edit, adjust stock), **Reports** in the Sales tab (7/30 days, best sellers, payment split, busiest hours, estimated
+  profit from current cost prices), all worked out on the phone. Shop data now also keeps ReceiptItems, CustomerDebtTransactions and a few
+  more columns.
+- **App lock** (fingerprint / face / phone PIN; `local_auth`): asks at start and after 30 s away, hides the app from recent apps
+  (`FLAG_SECURE`), switching it off also asks.
+- **Alerts** (new sales, products running low, answers to changes): the phone checks about every 15 minutes in the background
+  (`workmanager`), decrypts what changed and posts a local notification. Counts only by default; names and amounts are opt-in.
+  **This is not FCM/APNs push**: no server pushes to the phone, so no third party learns anything, but Android decides when it runs and it
+  is never instant. A true push needs a Firebase project owned by the provider (see below).
+- **Tests:** Flutter 121 (was 61), cloud suite 211, handler tests 17.
+
+**Not done / know:** old phone app builds cannot send changes to an updated till (the till refuses unsealed changes, by design). Alerts need
+the app to have been opened once (key in secure storage) and run only while signed in with the shop unlocked. iOS background checks are
+less frequent and the iOS side is untested/unbuilt. A real push (instant) needs: a Firebase project, `google-services.json`, a sender in the
+cloud, and the till pinging the cloud on new data; the message would be content-free ("something changed") and the phone would then fetch.
+Release APK still debug-signed.
+
+## 2026-11-12 (evening) — Phone: staff logins with limits, cash drawer, Arabic amounts, "Sold by" list
+
+- **Staff logins with limits.** Each phone login now has a role: **Owner** (everything), **Manager** (sales, stock, customers and debts; can add
+  and edit; no profit, cost prices or cash drawer), **Staff** (sales and stock, read only). Picked in the portal when adding a login and
+  changeable later (`Pages/Clients/Details`: "What can they do?", "Set role"; changing a role signs that phone out so it applies at once).
+  `OwnerUser.Permissions` (flags `OwnerPermissions`; migration `AddOwnerPermissions` for SQLite and SQL Server, existing logins default to
+  everything). **The cloud enforces it**: a table a login may not read is never sent (`/rows`, `/row-ids` answer 403 `forbidden`), a change it may
+  not make is never queued (`/customers` etc. 403), and a limited login sees only the changes it made itself. The phone asks only for the tables it
+  may read, skips one the cloud refuses, hides tabs/rows/buttons it cannot use, and shows the role in Manage. 7 + 2 cloud tests, 13 phone tests.
+  **Limit to know:** a row is one encrypted blob, so limits work per table. Cost prices live in the Products table, so a login that can read stock
+  can in principle read costs; Manager/Staff have them hidden in the app only. The cash drawer, orders and users tables are withheld from them
+  for real.
+- **Cash drawer** (phone, read only; needs the financial permission). Today shows a row; the page shows what the drawer should hold now
+  (opening cash + sales rung up in the session - cash taken out), the sales split by payment method, cash drops, and every past shift with
+  counted vs expected and how far off it was. Worked out as `CashDrawerService` does. **The till counts every sale as cash** when it works out
+  "expected" (existing TODO in `CashDrawerService.CalculateExpectedCashAsync`), so card sales are inside that figure; the page says so.
+  The phone now also keeps the tables `CashDrawerSession`, `CashDrop`, `Orders` (a few columns) and `Users` (names). Table names are singular
+  for the first two; the cloud rejects unknown table names, which is how a wrong guess showed up.
+- **Arabic amounts**: digits after an Arabic letter are read as Arabic numbers and the `$` in front was left behind ("15.07$"). Amounts are now
+  wrapped in an invisible left-to-right isolate when the app is in Arabic (`isolateAmounts`, also in alerts).
+- **Sold by** on the add-product form is a list of the till's seven units (Piece, Kilogram, Pound, Liter, Gallon, Box, Pack), stored as the same
+  keys the till uses; Arabic names and short forms after quantities.
+- Bug found by the new tests and fixed: the drawer page crashed on a shift with no cash drops (sorted an immutable empty list).
+
+**Not done:** staff cannot be added from the phone (the provider adds them in the portal, on the owner's request); the cash drawer cannot be
+opened, counted or closed from the phone (read only); the till's "expected cash" still counts card sales as cash.

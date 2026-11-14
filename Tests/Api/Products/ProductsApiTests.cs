@@ -481,6 +481,23 @@ public sealed class ProductsApiTests
     }
 
     [Fact]
+    public async Task Sticker_print_sends_the_labels_to_an_installed_printer_and_refuses_unknown_printers_and_unusable_bars()
+    {
+        var admin = await Admin();
+        object Label(string bars, string printer) => new { name = "Cable", code = "2261013123452", price = "$4.00", bars, printerName = printer, widthMm = 60, heightMm = 30, copies = 2, showPrice = true };
+
+        // The test host runs with NEXPOS_DEMO=1: its only printer is a no-op that reports success, never hardware.
+        var ok = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/products/sticker-print", Label("1101001101", "Demo Receipt Printer")));
+        Assert.Equal(HttpStatusCode.NoContent, ok.StatusCode);
+
+        var unknown = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/products/sticker-print", Label("1101001101", @"\\evil\share")));
+        Assert.Equal(HttpStatusCode.BadRequest, unknown.StatusCode);
+
+        var bad = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/products/sticker-print", Label("abc", "Demo Receipt Printer")));
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+    }
+
+    [Fact]
     public async Task Export_returns_a_workbook_with_the_products_and_their_custom_prices_and_the_template_has_both_sheets()
     {
         var admin = await Admin();

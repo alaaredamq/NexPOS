@@ -202,5 +202,7 @@ public class SyncApiTests : IClassFixture<CloudFactory>
     {
         var response = await _cloud.CreateClient().GetAsync("/healthz");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("\"controlDb\":\"sqlite\"", body); // tests run on SQLite; the connection string itself is never shown
     }
 }

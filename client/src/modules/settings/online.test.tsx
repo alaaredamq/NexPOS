@@ -196,6 +196,44 @@ describe('connected', () => {
   })
 })
 
+describe('recovery code', () => {
+  const CODE = 'DLNE-EURX-WYBS-ECX5-TSMP-KPIZ-WQPA-3Y4Y-JS2J-4UYN-KN4P-LPPW-GIC7-JAXS'
+
+  it('is not fetched or shown until the owner asks, then shown and hidden again', async () => {
+    open(on())
+    api.routes['GET /api/v1/online/recovery-code'] = () => json({ code: CODE })
+    await screen.findByText('Corner Shop')
+    expect(calls('GET', '/api/v1/online/recovery-code')).toHaveLength(0)
+    expect(screen.queryByText(CODE)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show recovery code' }))
+
+    expect(await screen.findByTestId('recovery-code')).toHaveTextContent(CODE)
+    expect(screen.getByText(/If this PC is lost/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'I have saved it, hide' }))
+    expect(screen.queryByTestId('recovery-code')).not.toBeInTheDocument()
+  })
+
+  it('says so when the till has no code to give', async () => {
+    open(on())
+    api.routes['GET /api/v1/online/recovery-code'] = () => problem(404, 'no_recovery_code')
+    await screen.findByText('Corner Shop')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show recovery code' }))
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Show recovery code' })).toBeInTheDocument())
+    expect(screen.queryByTestId('recovery-code')).not.toBeInTheDocument()
+  })
+
+  it('is not offered before the till is connected', async () => {
+    open(off())
+    await screen.findByLabelText('Connection link')
+
+    expect(screen.queryByRole('button', { name: 'Show recovery code' })).not.toBeInTheDocument()
+  })
+})
+
 describe('arabic', () => {
   it('is translated and right-to-left friendly', async () => {
     await setLanguage('ar')

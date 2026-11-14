@@ -264,6 +264,11 @@
   gap: var(--space-2);
 }
 
+/* The optional phone number sits under both name fields. */
+.quickCustomerWide {
+  grid-column: 1 / -1;
+}
+
 .quickCustomerActions {
   display: flex;
   justify-content: flex-end;

@@ -160,3 +160,79 @@ public class LabelPdfTests
         Assert.Equal(StickerLabel.MaxCopies, label.Copies);
     }
 }
+
+/// <summary>
+/// The label printer gets the sticker as TSPL commands. The point of that path is that the size in the commands is the size
+/// that was asked for, whatever paper size the printer's Windows driver has.
+/// </summary>
+public class TsplLabelTests
+{
+    private static string Bars => string.Concat(Enumerable.Repeat("1101001110", 12));
+
+    /// <summary>The text commands before the bitmap, the bitmap header numbers, the bitmap bytes and the text after.</summary>
+    private static (string Head, int WidthBytes, int Height, byte[] Bitmap, string Tail) Parse(byte[] tspl)
+    {
+        var text = Encoding.Latin1.GetString(tspl);
+        var marker = text.IndexOf("BITMAP 0,0,", StringComparison.Ordinal);
+        var head = text[..marker];
+        var comma = marker + "BITMAP 0,0,".Length;
+        var fields = text[comma..].Split(',', 4);
+        var widthBytes = int.Parse(fields[0]);
+        var height = int.Parse(fields[1]);
+        var dataStart = comma + fields[0].Length + 1 + fields[1].Length + 1 + fields[2].Length + 1;
+        var bitmap = tspl[dataStart..(dataStart + widthBytes * height)];
+        return (head, widthBytes, height, bitmap, text[(dataStart + bitmap.Length)..]);
+    }
+
+    private static int BlackDots(byte[] bitmap) => bitmap.Sum(b => 8 - System.Numerics.BitOperations.PopCount(b));
+
+    [Theory]
+    [InlineData(40, 25)]
+    [InlineData(60, 30)]
+    [InlineData(100, 150)]
+    public void Build_PutsTheRequestedSizeInTheCommandsAndTheBitmap(int width, int height)
+    {
+        var label = StickerLabel.TryCreate("Cable", "2261013123452", "$4.00", Bars, width, height, 3, true)!;
+
+        var (head, widthBytes, bitmapHeight, bitmap, tail) = Parse(new TsplLabelBuilder().Build(label));
+
+        Assert.StartsWith($"SIZE {width} mm,{height} mm\r\n", head);
+        Assert.Equal((width * 8 + 7) / 8, widthBytes);
+        Assert.Equal(height * 8, bitmapHeight);
+        Assert.Equal(widthBytes * bitmapHeight, bitmap.Length);
+        Assert.Equal("\r\nPRINT 1,3\r\n", tail);
+    }
+
+    [Fact]
+    public void Build_DrawsTheLabelAndLeavesMostOfItWhite()
+    {
+        var label = StickerLabel.TryCreate("Cable", "2261013123452", "$4.00", Bars, 40, 25, 1, true)!;
+
+        var (_, widthBytes, height, bitmap, _) = Parse(new TsplLabelBuilder().Build(label));
+
+        var black = BlackDots(bitmap);
+        Assert.InRange(black, widthBytes * 8 * height / 50, widthBytes * 8 * height / 2); // something drawn, nothing inverted
+    }
+
+    [Fact]
+    public void Build_AnotherSizeIsNotJustTheSameBitmap()
+    {
+        var small = StickerLabel.TryCreate("Cable", "2261013123452", "$4.00", Bars, 40, 25, 1, true)!;
+        var big = StickerLabel.TryCreate("Cable", "2261013123452", "$4.00", Bars, 60, 40, 1, true)!;
+
+        var a = new TsplLabelBuilder().Build(small);
+        var b = new TsplLabelBuilder().Build(big);
+
+        Assert.NotEqual(a.Length, b.Length);
+    }
+
+    [Fact]
+    public void Build_HandlesArabicNamesAndNoPrice()
+    {
+        var label = StickerLabel.TryCreate("حليب كامل الدسم من المزرعة الطازجة", "2261013123452", "", Bars, 40, 25, 1, true)!;
+
+        var (_, _, _, bitmap, _) = Parse(new TsplLabelBuilder().Build(label));
+
+        Assert.True(BlackDots(bitmap) > 0);
+    }
+}

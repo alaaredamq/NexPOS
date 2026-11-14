@@ -228,6 +228,24 @@ public sealed class PosCatalogAndPricingTests
         Assert.True((await Body(tooShort)).GetProperty("errors").TryGetProperty("firstName", out _));
     }
 
+    [Fact]
+    public async Task A_customer_added_from_the_till_can_carry_an_optional_phone_number()
+    {
+        var till = await Till();
+
+        var withPhone = await till.SendAsync(Json(HttpMethod.Post, "/api/v1/pos/customers", new { firstName = "Rima", lastName = "Khoury", phoneNumber = " 71123456 " }));
+        var blankPhone = await till.SendAsync(Json(HttpMethod.Post, "/api/v1/pos/customers", new { firstName = "Samer", lastName = "Khoury", phoneNumber = "  " }));
+        var badPhone = await till.SendAsync(Json(HttpMethod.Post, "/api/v1/pos/customers", new { firstName = "Tarek", lastName = "Khoury", phoneNumber = "not a phone" }));
+
+        Assert.Equal(HttpStatusCode.Created, withPhone.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, blankPhone.StatusCode);
+        await AssertProblem(badPhone, HttpStatusCode.BadRequest, "validation_failed");
+
+        // The Customers page search matches phone numbers, so the saved number is findable there.
+        var found = await Body(await till.GetAsync("/api/v1/customers?q=71123456"));
+        Assert.Contains(found.GetProperty("items").EnumerateArray(), c => c.GetProperty("firstName").GetString() == "Rima" && c.GetProperty("phoneNumber").GetString() == "71123456");
+    }
+
     // ---- price options ---------------------------------------------------------------------------------------------
 
     [Fact]

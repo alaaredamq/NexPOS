@@ -39,8 +39,34 @@ String friendlyField(BuildContext context, String field) {
     'sellingPrice': ('Selling price', 'سعر البيع'),
     'phoneNumber': ('Phone', 'الهاتف'),
     'phone': ('Phone', 'الهاتف'),
+    'quantity': ('Quantity', 'الكمية'),
     'email': ('Email', 'البريد الإلكتروني'),
   };
   final hit = known[field];
   return hit == null ? field : context.tr(hit.$1, hit.$2);
+}
+
+/// The units a product can be sold by, as the till offers them (`Prod_Unit_*`). The stored value is the key.
+const productUnits = ['piece', 'kg', 'lb', 'liter', 'gallon', 'box', 'pack'];
+
+/// The full name for a unit, for the picker ("Kilogram", "كيلوغرام"). A unit the shop typed itself is shown as it is.
+String unitName(BuildContext context, String unit) {
+  const names = {
+    'piece': ('Piece', 'قطعة'),
+    'kg': ('Kilogram', 'كيلوغرام'),
+    'lb': ('Pound', 'رطل'),
+    'liter': ('Liter', 'لتر'),
+    'gallon': ('Gallon', 'غالون'),
+    'box': ('Box', 'صندوق'),
+    'pack': ('Pack', 'عبوة'),
+  };
+  final hit = names[unit.toLowerCase()];
+  return hit == null ? unit : context.tr(hit.$1, hit.$2);
+}
+
+/// The short form shown after a quantity ("24 piece", "24 قطعة"). English keeps the stored word; Arabic gets the Arabic word.
+String unitShort(BuildContext context, String unit) {
+  if (unit.isEmpty || !context.isArabic) return unit;
+  const short = {'piece': 'قطعة', 'kg': 'كغ', 'lb': 'رطل', 'liter': 'لتر', 'gallon': 'غالون', 'box': 'صندوق', 'pack': 'عبوة'};
+  return short[unit.toLowerCase()] ?? unit;
 }

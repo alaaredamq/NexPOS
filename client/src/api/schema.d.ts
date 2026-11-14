@@ -2287,6 +2287,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products/sticker-print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prints the labels on a label printer attached to this computer, as printer commands (TSPL).
+         * @description For TSC-compatible label printers (Xprinter, TSC, Gprinter...). Windows drivers for these keep one fixed paper size and
+         *     ignore the size a program asks for; the commands carry the label size themselves, so the size chosen in the dialog is
+         *     what comes out. A printer that does not speak TSPL prints rubbish, so the desktop app only offers this as a choice.
+         */
+        post: operations["printStickerLabels"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/products/export": {
         parameters: {
             query?: never;
@@ -5375,6 +5397,8 @@ export interface components {
             firstName: string;
             /** @description 2-100 characters. */
             lastName: string;
+            /** @description Optional: blank means none. Same rule as the Customers page (up to 20 characters, phone-number shaped), checked after trimming. */
+            phoneNumber?: string | null;
         };
         /** @description A completed sale: everything the success screen and a receipt preview need. The paper / PDF receipt stays server-side (`print` / `receipt.pdf`). */
         PosSaleDto: {
@@ -6569,6 +6593,27 @@ export interface components {
             price?: string | null;
             /** @description The barcode as modules, `1` = bar and `0` = space. */
             bars: string;
+            /** Format: int32 */
+            widthMm?: number;
+            /** Format: int32 */
+            heightMm?: number;
+            /** Format: int32 */
+            copies?: number;
+            showPrice?: boolean;
+        };
+        /**
+         * @description A barcode sticker sent as label-printer commands (TSPL) straight to a printer on this computer. Same fields as the PDF,
+         *     plus the printer; the size travels in the commands, so it does not depend on the printer driver's paper size.
+         */
+        StickerPrintRequest: {
+            name?: string | null;
+            code: string;
+            /** @description The price as it should read on the label, already formatted. */
+            price?: string | null;
+            /** @description The barcode as modules, `1` = bar and `0` = space. */
+            bars: string;
+            /** @description The Windows name of an installed label printer. */
+            printerName: string;
             /** Format: int32 */
             widthMm?: number;
             /** Format: int32 */
@@ -14974,6 +15019,46 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    printStickerLabels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StickerPrintRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };

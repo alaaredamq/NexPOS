@@ -113,7 +113,9 @@
     </section>
 
     <section class="card" aria-labelledby="mirror">
-        <h2 id="mirror">What the cloud holds</h2>
+        <h2 id="mirror">What the cloud holds
+            @if (Model.Encrypted) { <span class="pill ok" style="vertical-align:middle;margin-inline-start:6px">Encrypted by the shop</span> }
+        </h2>
         @if (Model.Counts.Count == 0)
         {
             <p class="muted">No data received yet.</p>
@@ -124,6 +126,10 @@
                 @foreach (var c in Model.Counts) { <div><b>@c.Value.ToString("N0")</b><span>@c.Key</span></div> }
             </div>
             <p class="help">These should match the till.</p>
+        }
+        @if (Model.Encrypted)
+        {
+            <p class="help">The shop PC encrypts every row before sending it. You can count rows per table but not read them, and the owner's phone opens them with the shop's recovery code. If the owner loses the code and the PC, nobody can recover this data, including you.</p>
         }
     </section>
 </div>
@@ -207,6 +213,9 @@
         public ConnectionState Connection { get; private set; }
         public PulseData Pulse { get; private set; } = PulseData.Build([], DateTime.UtcNow);
         public IReadOnlyDictionary<string, long> Counts { get; private set; } = new Dictionary<string, long>();
+
+        /// <summary>The shop sends its data end-to-end encrypted, so the portal can count it but not read it.</summary>
+        public bool Encrypted { get; private set; }
         public List<SyncBatchLog> Logs { get; private set; } = [];
         public string? NewToken { get; private set; }
         public string? NewLink { get; private set; }
@@ -239,6 +248,7 @@
             Pulse = PulseData.Build(await db.SiteHeartbeats.AsNoTracking().Where(h => h.SiteId == id && h.Hour >= since).ToListAsync(), now);
 
             Counts = mirrors.CountRows(id, SummaryTables);
+            Encrypted = mirrors.HasEncryptedRows(id);
             Logs = await db.SyncBatchLogs.AsNoTracking().Where(l => l.SiteId == id).OrderByDescending(l => l.Id).Take(20).ToListAsync();
             NewToken = TempData["NewToken"] as string;
             NewLink = TempData["NewLink"] as string;

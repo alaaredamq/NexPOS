@@ -68,3 +68,9 @@ Cloud/data/sites/
 Cloud/data/keys/
 Cloud/design-time.db
 .env
+
+# Cloud production secrets (admin login) live only on the server
+Cloud/cloud.settings.json
+
+# Cloud publish settings (admin login, database password): local only
+Cloud/deploy/cloud.settings.json
