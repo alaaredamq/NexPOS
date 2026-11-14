@@ -473,7 +473,7 @@ namespace Application.Services.Sales
                             try
                             {
                                 _logger.LogInformation("Printing receipt for order {OrderId} on thermal printer", order.Id);
-                                response.ReceiptPrinted = await _thermalPrinterService.PrintReceiptAsync(receipt);
+                                response.ReceiptPrinted = await _thermalPrinterService.PrintReceiptAsync(receipt, quickFail: true);
                                 if (response.ReceiptPrinted == true)
                                     _logger.LogInformation("Receipt printed successfully");
                                 else

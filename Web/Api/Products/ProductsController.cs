@@ -25,6 +25,8 @@ public sealed class ProductsController : ApiControllerBase
     private readonly IProductImportExportService _importExport;
     private readonly ISystemSettingsService _settings;
     private readonly ILabelPdfBuilder _labels;
+    private readonly ITsplLabelBuilder _tsplLabels;
+    private readonly IPrinterTransport _printers;
     private readonly IAuditTrail _audit;
 
     public ProductsController(
@@ -32,12 +34,16 @@ public sealed class ProductsController : ApiControllerBase
         IProductImportExportService importExport,
         ISystemSettingsService settings,
         ILabelPdfBuilder labels,
+        ITsplLabelBuilder tsplLabels,
+        IPrinterTransport printers,
         IAuditTrail audit)
     {
         _catalog = catalog;
         _importExport = importExport;
         _settings = settings;
         _labels = labels;
+        _tsplLabels = tsplLabels;
+        _printers = printers;
         _audit = audit;
     }
 
@@ -156,6 +162,33 @@ public sealed class ProductsController : ApiControllerBase
         if (label == null) return ValidationFailure(nameof(StickerPdfRequest.Bars), Text("Prod_LabelInvalid"));
 
         return File(_labels.Build(label), "application/pdf", $"Labels-{label.Code}.pdf");
+    }
+
+    /// <summary>Prints the labels on a label printer attached to this computer, as printer commands (TSPL).</summary>
+    /// <remarks>
+    /// For TSC-compatible label printers (Xprinter, TSC, Gprinter...). Windows drivers for these keep one fixed paper size and
+    /// ignore the size a program asks for; the commands carry the label size themselves, so the size chosen in the dialog is
+    /// what comes out. A printer that does not speak TSPL prints rubbish, so the desktop app only offers this as a choice.
+    /// </remarks>
+    [HttpPost("sticker-print")]
+    [RequirePermission(PermissionHelper.Permissions.Products_View)]
+    [SwaggerOperation(OperationId = "printStickerLabels")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public IActionResult StickerPrint([FromBody] StickerPrintRequest request)
+    {
+        var label = StickerLabel.TryCreate(request.Name, request.Code, request.Price, request.Bars,
+            request.WidthMm, request.HeightMm, request.Copies, request.ShowPrice);
+        if (label == null) return ValidationFailure(nameof(StickerPrintRequest.Bars), Text("Prod_LabelInvalid"));
+
+        // Only a printer that is really installed here: this endpoint must not be a way to open arbitrary printer paths.
+        var printer = _printers.GetAvailablePrinters()
+            .FirstOrDefault(p => string.Equals(p, request.PrinterName?.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (printer == null) return ValidationFailure(nameof(StickerPrintRequest.PrinterName), Text("Prod_LabelPrinterNotFound"));
+
+        if (!_printers.SendBytes(printer, _tsplLabels.Build(label), $"Labels-{label.Code}"))
+            return Failure(StatusCodes.Status502BadGateway, "printer_unavailable", Text("Prod_LabelPrintFailed"));
+
+        return NoContent();
     }
 
     // ---- Excel import / export --------------------------------------------------------------------

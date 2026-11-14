@@ -147,13 +147,17 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
         var seeded = await _cloud.SeedSiteAsync(clientName: "Careful Shop");
 
         var site = await c.GetStringAsync($"/Sites/Details/{seeded.SiteId}");
-        Assert.Contains("data-confirm-title=\"Disconnect this till?\"", site);
+        Assert.Contains("data-confirm-title=\"Disconnect this branch?\"", site);
         Assert.Contains("The shop keeps selling", site);
-        Assert.Contains("data-confirm-title=\"Disable this till?\"", site);
+        Assert.Contains("data-confirm-title=\"Disable this branch?\"", site);
+        Assert.Contains("data-confirm-title=\"Remove Main till?\"", site);
+        Assert.Contains("This cannot be undone.", site);
 
         var client = await c.GetStringAsync($"/Clients/Details/{seeded.ClientId}");
         Assert.Contains("data-confirm-title=\"Suspend Online?\"", client);
         Assert.Contains("data-confirm-title=\"Deactivate this client?\"", client);
+        Assert.Contains("data-confirm-title=\"Remove Careful Shop?\"", client);
+        Assert.Contains("data-confirm-title=\"Remove Main till?\"", client); // the branch card's own Remove button
     }
 
     [Fact]

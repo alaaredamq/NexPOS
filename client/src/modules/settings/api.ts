@@ -136,3 +136,13 @@ export function useSyncOnlineNow() {
     onSettled: () => window.setTimeout(() => void client.invalidateQueries({ queryKey: settingsKeys.online }), 2500),
   })
 }
+
+/**
+ * The recovery code for the shop's end-to-end encryption key. A mutation, not a query: it is a secret, so it is fetched only when the
+ * owner asks and is never kept in the query cache.
+ */
+export function useRecoveryCode() {
+  return useMutation({
+    mutationFn: () => http.get<{ code: string }>('/online/recovery-code'),
+  })
+}

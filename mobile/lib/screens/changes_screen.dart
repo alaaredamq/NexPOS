@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../api/owner_api.dart';
+import '../data/shop_data.dart';
 import '../l10n.dart';
 import '../state/session.dart';
 import '../theme.dart';
+import '../widgets/common.dart';
 
 /// Everything the owner has sent to the shop and what became of it. A refusal explains itself.
 class ChangesScreen extends StatelessWidget {
@@ -95,8 +97,45 @@ class _ChangeCard extends StatelessWidget {
         ChangeKind.customer => context.tr('New customer', 'زبون جديد'),
         ChangeKind.supplier => context.tr('New supplier', 'مورّد جديد'),
         ChangeKind.product => context.tr('New product', 'منتج جديد'),
+        ChangeKind.productEdit => context.tr('Product edit', 'تعديل منتج'),
+        ChangeKind.stock => context.tr('Stock change', 'تعديل مخزون'),
         null => change.type,
       };
+
+  /// The product's name for edits and stock changes: looked up in the shop's data, since the request only carries its id.
+  String _title(BuildContext context) {
+    if (change.hidden) return context.tr('Encrypted change', 'تغيير مشفّر');
+    if (change.kind == ChangeKind.productEdit || change.kind == ChangeKind.stock) {
+      final name = context.read<ShopData>().row('Products', change.productId)?['Name'];
+      return name == null ? context.tr('Product', 'منتج') : '$name';
+    }
+    return change.title;
+  }
+
+  /// What the change did, in a few words ("Price 6.25", "Add 5").
+  String? _detail(BuildContext context) {
+    if (change.hidden) return null;
+    final p = change.payload;
+    String n(Object? v) => qty(toNum(v));
+    if (change.kind == ChangeKind.stock) {
+      final amount = n(p['quantity']);
+      return switch ('${p['type']}'.toLowerCase()) {
+        'add' => context.tr('Add $amount', 'إضافة $amount'),
+        'remove' => context.tr('Remove $amount', 'سحب $amount'),
+        _ => context.tr('Stock count: $amount', 'جرد المخزون: $amount'),
+      };
+    }
+    if (change.kind == ChangeKind.productEdit) {
+      return [
+        if (p['name'] != null) context.tr('Name: ${p['name']}', 'الاسم: ${p['name']}'),
+        if (p['sellingPrice'] != null) context.tr('Price ${n(p['sellingPrice'])}', 'السعر ${n(p['sellingPrice'])}'),
+        if (p['purchasePrice'] != null) context.tr('Cost ${n(p['purchasePrice'])}', 'التكلفة ${n(p['purchasePrice'])}'),
+        if (p['minStockLevel'] != null) context.tr('Minimum ${n(p['minStockLevel'])}', 'الحد الأدنى ${n(p['minStockLevel'])}'),
+        if (p['isActive'] != null) (p['isActive'] == true ? context.tr('On sale', 'معروض للبيع') : context.tr('Stopped', 'متوقف')),
+      ].join(' · ');
+    }
+    return null;
+  }
 
   (String, Color, Color) _status(BuildContext context) => switch (change.status) {
         ChangeStatus.queued || ChangeStatus.delivered =>
@@ -127,7 +166,9 @@ class _ChangeCard extends StatelessWidget {
                     children: [
                       Text(_kind(context), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Tokens.muted)),
                       const SizedBox(height: 2),
-                      Text(change.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(_title(context), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      if (_detail(context) case final detail? when detail.isNotEmpty)
+                        Padding(padding: const EdgeInsets.only(top: 2), child: Text(detail, style: const TextStyle(fontSize: 13, color: Tokens.muted))),
                     ],
                   ),
                 ),
@@ -140,7 +181,15 @@ class _ChangeCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(when, style: const TextStyle(fontSize: 12, color: Tokens.muted)),
-            if (change.status == ChangeStatus.rejected) ...[
+            if (change.hidden) ...[
+              const SizedBox(height: 6),
+              Text(
+                context.tr('Unlock the shop\'s data (Manage) to read this change. It is encrypted, so only your phone and the shop PC can.',
+                    'افتح بيانات المحل (إدارة) لقراءة هذا التغيير. هو مشفّر فلا يقرؤه غير هاتفك وجهاز المحل.'),
+                style: const TextStyle(fontSize: 12, color: Tokens.muted, height: 1.4),
+              ),
+            ],
+            if (change.status == ChangeStatus.rejected && !change.hidden) ...[
               const SizedBox(height: 8),
               if (errors.isEmpty && change.message != null)
                 Text(change.message!, style: const TextStyle(fontSize: 13, color: Tokens.danger, height: 1.4)),

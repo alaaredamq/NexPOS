@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { http } from '@/api/http'
 import { emptyProductForm, productFormSchema, toSaveRequest, zodResolver, type ProductFormMessages, type ProductFormValues } from './form'
 import { readListParams, writeListParams } from './listParams'
 import {
@@ -10,7 +11,11 @@ import {
   clampWidth,
   escapeHtml,
   formatStickerPrice,
+  getDirectPrint,
   getShowPrice,
+  looksLikeLabelPrinter,
+  printSticker,
+  setDirectPrint,
   setShowPrice,
 } from './labels/stickerLabel'
 
@@ -195,6 +200,20 @@ describe('sticker label logic', () => {
     expect(buildStickerHtml(data, '<svg></svg>', 80, 50, 1, true)).toContain('font-size: 5.40mm')
   })
 
+  it('guesses direct (TSPL) printing from the printer name until this computer chooses', () => {
+    localStorage.removeItem('nexpos-sticker-direct')
+    expect(looksLikeLabelPrinter('Xprinter XP-365B')).toBe(true)
+    expect(looksLikeLabelPrinter('TSC TTP-244 Pro')).toBe(true)
+    expect(looksLikeLabelPrinter('HP LaserJet 400')).toBe(false)
+    expect(getDirectPrint('Xprinter XP-365B')).toBe(true)
+    expect(getDirectPrint('HP LaserJet 400')).toBe(false)
+    setDirectPrint(false)
+    expect(getDirectPrint('Xprinter XP-365B')).toBe(false)
+    setDirectPrint(true)
+    expect(getDirectPrint('HP LaserJet 400')).toBe(true)
+    localStorage.removeItem('nexpos-sticker-direct')
+  })
+
   it('encodes Code 128 bars (start + data + check + stop) and refuses what it cannot encode', async () => {
     const bars = await buildBarcodeBars('2261013123452')
     expect(bars).toMatch(/^[01]+$/)
@@ -209,5 +228,44 @@ describe('sticker label logic', () => {
     setShowPrice(false)
     expect(getShowPrice()).toBe(false)
     localStorage.clear()
+  })
+})
+
+describe('direct label printing', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    delete window.nexpos
+  })
+
+  it('sends the chosen size and printer to the server as label commands, not to the Windows driver', async () => {
+    const printSticker$ = vi.fn()
+    window.nexpos = { isElectron: true, printSticker: printSticker$ }
+    const post = vi.spyOn(http, 'post').mockResolvedValue(undefined)
+
+    await printSticker(
+      { name: 'Cable', code: '2261013123452', price: '$4.00' },
+      { copies: 3, widthMm: 60, heightMm: 30, showPrice: true, printerName: 'Xprinter XP-365B', direct: true },
+    )
+
+    expect(printSticker$).not.toHaveBeenCalled()
+    expect(post).toHaveBeenCalledOnce()
+    const [path, body] = post.mock.calls[0] as [string, unknown]
+    expect(path).toBe('/products/sticker-print')
+    expect(body).toMatchObject({ printerName: 'Xprinter XP-365B', widthMm: 60, heightMm: 30, copies: 3, showPrice: true, code: '2261013123452' })
+    expect((body as { bars: string }).bars).toMatch(/^[01]+$/)
+  })
+
+  it('still prints through the driver when direct is off', async () => {
+    const printSticker$ = vi.fn().mockResolvedValue({ success: true })
+    window.nexpos = { isElectron: true, printSticker: printSticker$ }
+    const post = vi.spyOn(http, 'post')
+
+    await printSticker(
+      { name: 'Cable', code: '2261013123452', price: '$4.00' },
+      { copies: 1, widthMm: 50, heightMm: 30, showPrice: true, printerName: 'HP LaserJet', direct: false },
+    )
+
+    expect(post).not.toHaveBeenCalled()
+    expect(printSticker$).toHaveBeenCalledWith(expect.objectContaining({ widthMm: 50, heightMm: 30, printerName: 'HP LaserJet' }))
   })
 })

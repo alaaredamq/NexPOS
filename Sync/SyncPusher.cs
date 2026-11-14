@@ -115,7 +115,8 @@ public sealed class SyncPusher(
     SyncStatus status,
     TimeProvider time,
     ILogger<SyncPusher>? logger = null,
-    int batchSize = 500)
+    int batchSize = 500,
+    RowCipher? cipher = null)
 {
     public async Task<SyncRunResult> RunOnceAsync(CancellationToken ct)
     {
@@ -216,9 +217,12 @@ public sealed class SyncPusher(
         {
             if (!schema.TryGetTable(tableName, out var table)) continue; // a table that left the model
             var values = ReadRow(connection, table, rowId);
+            // With a key, the row leaves this PC already encrypted; only its table and id stay readable to the cloud.
             changes.Add(values is null
                 ? new SyncChange(tableName, rowId, true, null)
-                : new SyncChange(tableName, rowId, false, values));
+                : cipher is null
+                    ? new SyncChange(tableName, rowId, false, values)
+                    : new SyncChange(tableName, rowId, false, null, cipher.Encrypt(tableName, rowId, values)));
         }
 
         var initial = SyncTriggers.GetState(connection, SyncTriggers.NeedsInitialKey) == "1";

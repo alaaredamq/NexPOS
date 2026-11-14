@@ -202,6 +202,9 @@ public sealed class PosQuickCustomerRequest
     /// <summary>2-100 characters.</summary>
     [Required, StringLength(100, MinimumLength = 2)]
     public string LastName { get; set; } = string.Empty;
+
+    /// <summary>Optional: blank means none. Same rule as the Customers page (up to 20 characters, phone-number shaped), checked after trimming.</summary>
+    public string? PhoneNumber { get; set; }
 }
 
 /// <summary>The signed-in user's cash drawer, for the POS "open your drawer first" prompt.</summary>

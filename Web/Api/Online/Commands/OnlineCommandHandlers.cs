@@ -4,6 +4,8 @@ using Core.Auditing;
 using Sync;
 using Web.Api.Customers;
 using Web.Api.Customers.Contracts;
+using Web.Api.Inventory;
+using Web.Api.Inventory.Contracts;
 using Web.Api.Infrastructure;
 using Web.Api.Products;
 using Web.Api.Products.Contracts;
@@ -102,6 +104,126 @@ public sealed class CreateProductHandler(IProductCatalogService catalog, IAuditC
     }
 }
 
+/// <summary>
+/// What the phone may change on an existing product. Every field but the id is optional: only what is sent changes, and everything
+/// else (barcode, category, supplier, price tiers, pack settings) stays as the shop has it.
+/// </summary>
+public sealed class ProductEditRequest
+{
+    [Range(1, int.MaxValue)]
+    public int ProductId { get; set; }
+
+    [StringLength(255, MinimumLength = 2, ErrorMessage = "Prod_NameLength")]
+    public string? Name { get; set; }
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Selling price must be greater than 0")]
+    public decimal? SellingPrice { get; set; }
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Purchase price must be greater than 0")]
+    public decimal? PurchasePrice { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MinStockLevel { get; set; }
+
+    public bool? IsActive { get; set; }
+}
+
+public sealed class UpdateProductHandler(IProductCatalogService catalog, IAuditContext audit) : OnlineCommandHandler<ProductEditRequest>(audit)
+{
+    public override string Type => "product.update";
+
+    protected override async Task<CommandResult> ApplyAsync(ProductEditRequest request, CancellationToken ct)
+    {
+        var current = await catalog.GetAsync(request.ProductId);
+        if (current is null) return CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.");
+
+        // Start from the product as it is now, so a field the phone did not mention (and the price tiers) is not wiped.
+        var save = new ProductSaveRequest
+        {
+            Name = request.Name?.Trim() ?? current.Name,
+            Description = current.Description,
+            Barcode = current.Barcode,
+            CategoryId = current.CategoryId,
+            SupplierId = current.SupplierId,
+            CurrencyId = current.CurrencyId,
+            PurchasePrice = request.PurchasePrice ?? current.PurchasePrice,
+            SellingPrice = request.SellingPrice ?? current.SellingPrice,
+            StockQuantity = current.StockQuantity,
+            MinStockLevel = request.MinStockLevel ?? current.MinStockLevel,
+            IsActive = request.IsActive ?? current.IsActive,
+            Unit = current.Unit,
+            IsPack = current.IsPack,
+            PackSize = current.PackSize,
+            SingleProductId = current.SingleProductId,
+            PriceTiers = current.PriceTiers.Select(t => new ProductPriceTierDto { Name = t.Name, Price = t.Price }).ToList(),
+        };
+
+        var errors = await catalog.ValidateAsync(save, request.ProductId);
+        if (errors.Count > 0) return Invalid(errors);
+
+        var updated = await catalog.UpdateAsync(request.ProductId, save);
+        return updated is null
+            ? CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.")
+            : CommandResult.Ok(new { id = updated.Id, name = updated.Name, sellingPrice = updated.SellingPrice });
+    }
+}
+
+/// <summary>
+/// A stock change from the phone. <c>add</c> and <c>remove</c> are relative (safe when sales happen meanwhile); <c>set</c> is a stock
+/// count: the shop works out the difference against what it has at that moment, so the result is exactly the counted figure.
+/// </summary>
+public sealed class StockChangeRequest
+{
+    [Range(1, int.MaxValue)]
+    public int ProductId { get; set; }
+
+    [Required]
+    [RegularExpression("(?i)^(add|remove|set)$")]
+    public string Type { get; set; } = "";
+
+    [Range(0, 1_000_000_000)]
+    public decimal Quantity { get; set; }
+
+    [StringLength(500)]
+    public string? Reason { get; set; }
+}
+
+public sealed class AdjustStockHandler(IProductCatalogService catalog, IInventoryApiService inventory, IAuditContext audit) : OnlineCommandHandler<StockChangeRequest>(audit)
+{
+    public override string Type => "stock.adjust";
+
+    protected override async Task<CommandResult> ApplyAsync(StockChangeRequest request, CancellationToken ct)
+    {
+        var current = await catalog.GetAsync(request.ProductId);
+        if (current is null) return CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.");
+
+        var kind = request.Type.ToLowerInvariant();
+        var delta = kind switch
+        {
+            "add" => request.Quantity,
+            "remove" => -request.Quantity,
+            _ => request.Quantity - current.StockQuantity,
+        };
+        if (delta == 0)
+            return CommandResult.Ok(new { productId = current.Id, name = current.Name, previous = current.StockQuantity, now = current.StockQuantity });
+        if (kind != "set" && request.Quantity <= 0) return Invalid(nameof(StockChangeRequest.Quantity), "Enter a quantity above 0.");
+
+        var reason = string.IsNullOrWhiteSpace(request.Reason) ? (kind == "set" ? "Stock count from the owner's phone" : null) : request.Reason;
+        try
+        {
+            var result = await inventory.AdjustAsync(request.ProductId,
+                new StockAdjustmentRequest { Type = delta > 0 ? "add" : "remove", Quantity = Math.Abs(delta), Reason = reason });
+            return result is null
+                ? CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.")
+                : CommandResult.Ok(new { productId = current.Id, name = current.Name, previous = result.PreviousStock, now = result.NewStock });
+        }
+        catch (InsufficientStockException ex)
+        {
+            return Invalid(nameof(StockChangeRequest.Quantity), ex.Message);
+        }
+    }
+}
+
 public static class OnlineCommandHandlerRegistration
 {
     /// <summary>Teaches the shop PC the kinds of change the phone can ask for. Add a handler here to add a kind.</summary>
@@ -110,6 +232,8 @@ public static class OnlineCommandHandlerRegistration
         services.AddScoped<IOnlineCommandHandler, CreateCustomerHandler>();
         services.AddScoped<IOnlineCommandHandler, CreateSupplierHandler>();
         services.AddScoped<IOnlineCommandHandler, CreateProductHandler>();
+        services.AddScoped<IOnlineCommandHandler, UpdateProductHandler>();
+        services.AddScoped<IOnlineCommandHandler, AdjustStockHandler>();
         return services;
     }
 }

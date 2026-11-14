@@ -90,7 +90,7 @@ public static class SyncEndpoints
 
     private static async Task<IResult> Push(
         HttpContext http, [FromBody] SyncBatch batch, ControlDbContext db, MirrorStore mirrors, MirrorApplier applier,
-        TimeProvider time, ILoggerFactory loggers)
+        TimeProvider time, ILoggerFactory loggers, Microsoft.Extensions.Options.IOptions<CloudOptions> options)
     {
         var (device, failure) = await AuthenticateAsync(http, db, time);
         if (failure is not null) return failure;
@@ -120,7 +120,7 @@ public static class SyncEndpoints
         try
         {
             mirrors.EnsureReady(site.Id);
-            var applied = applier.Apply(mirrors.PathFor(site.Id), batch);
+            var applied = applier.Apply(mirrors.PathFor(site.Id), batch, options.Value.RequireEncryption);
 
             var tracked = await db.Sites.FirstAsync(s => s.Id == site.Id);
             var resync = tracked.ResyncRequested && !batch.Initial;

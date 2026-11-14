@@ -311,3 +311,20 @@
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-weight: 400;
 }
+
+/* The shop's recovery code, shown big enough to copy by eye or read off a printout. */
+.recoveryCode {
+  margin: 12px 0 4px;
+  padding: 14px 16px;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface, #fff);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-align: center;
+  overflow-wrap: anywhere;
+  user-select: all;
+}

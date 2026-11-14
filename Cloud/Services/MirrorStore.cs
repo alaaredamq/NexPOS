@@ -11,7 +11,17 @@ public sealed class CloudOptions
 {
     /// <summary>Folder for control.db and the per-site mirror files. Put it on a persistent volume and back it up.</summary>
     public string DataRoot { get; set; } = "data";
-    /// <summary>Admin portal account. The environment is the source of truth: restart with a new password to change it.</summary>
+    /// <summary>
+    /// SQL Server connection string for the control database (clients, subscriptions, tokens, accounts).
+    /// Empty means SQLite (control.db in DataRoot), which is what tests, a local trial and a free test host use.
+    /// Shop mirrors are SQLite files either way.
+    /// </summary>
+    public string ControlConnectionString { get; set; } = "";
+    /// <summary>
+    /// Refuse shop data that is not end-to-end encrypted. Leave off only while something still reads the copy on the server
+    /// (the phone's pick-lists); turn on for production so the provider can never be handed readable shop data.
+    /// </summary>
+    public bool RequireEncryption { get; set; }    /// <summary>Admin portal account. The environment is the source of truth: restart with a new password to change it.</summary>
     public string AdminUser { get; set; } = "";
     public string AdminPassword { get; set; } = "";
     /// <summary>Public address of this site (https://cloud.example.com). Used to build enrolment links; falls back to the address the portal was opened on.</summary>
@@ -64,6 +74,25 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
         _ready[siteId] = true;
     }
 
+    /// <summary>
+    /// Deletes a site's mirror file for good. Waits for a push that is in flight, and drops pooled connections first
+    /// because Windows will not delete a file that is still open.
+    /// </summary>
+    public async Task DeleteAsync(Guid siteId)
+    {
+        var gate = LockFor(siteId);
+        await gate.WaitAsync();
+        try
+        {
+            SqliteConnection.ClearAllPools();
+            var path = PathFor(siteId);
+            foreach (var file in new[] { path, path + "-wal", path + "-shm" })
+                if (File.Exists(file)) File.Delete(file);
+            _ready.TryRemove(siteId, out _);
+        }
+        finally { gate.Release(); }
+    }
+
     public IReadOnlyDictionary<string, long> CountRows(Guid siteId, IEnumerable<string> tables)
     {
         var result = new Dictionary<string, long>();
@@ -81,7 +110,92 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
             cmd.CommandText = $"SELECT COUNT(*) FROM {SyncSchema.Q(table)}"; // names come from code, never from a request
             result[table] = (long)cmd.ExecuteScalar()!;
         }
+
+        // Encrypted rows: the provider can count them by table but not read them.
+        if (HasEncryptedTable(connection))
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = $"SELECT TableName, COUNT(*) FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)} GROUP BY TableName";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+                result[reader.GetString(0)] = result.GetValueOrDefault(reader.GetString(0)) + reader.GetInt64(1);
+        }
         return result;
+    }
+
+    /// <summary>True once this shop has sent end-to-end encrypted rows. The server cannot answer questions about such a copy; the phone does.</summary>
+    public bool HasEncryptedRows(Guid siteId)
+    {
+        if (!Exists(siteId)) return false;
+        using var connection = new SqliteConnection(new SqliteConnectionStringBuilder
+        {
+            DataSource = PathFor(siteId),
+            Mode = SqliteOpenMode.ReadOnly,
+        }.ToString());
+        connection.Open();
+        if (!HasEncryptedTable(connection)) return false;
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT EXISTS(SELECT 1 FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)})";
+        return Convert.ToInt64(cmd.ExecuteScalar()) == 1;
+    }
+
+    /// <summary>One end-to-end encrypted row as the cloud holds it: opaque to the server, readable only by whoever has the shop's key.</summary>
+    public sealed record EncryptedRow(long Id, string Payload, string UpdatedAt);
+
+    /// <summary>
+    /// Up to <paramref name="limit"/> encrypted rows of one table, oldest arrival first, strictly after the cursor
+    /// (<paramref name="afterUpdatedAt"/>, <paramref name="afterId"/>). The table name is a bound parameter, never part of the SQL.
+    /// </summary>
+    public IReadOnlyList<EncryptedRow> ReadEncryptedRows(Guid siteId, string table, string? afterUpdatedAt, long afterId, int limit)
+    {
+        var rows = new List<EncryptedRow>();
+        if (!Exists(siteId)) return rows;
+        using var connection = OpenReadOnly(siteId);
+        if (!HasEncryptedTable(connection)) return rows;
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT RowId, Payload, UpdatedAt FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)}
+            WHERE TableName = $t AND ($u IS NULL OR UpdatedAt > $u OR (UpdatedAt = $u AND RowId > $id))
+            ORDER BY UpdatedAt, RowId LIMIT $limit
+            """;
+        cmd.Parameters.AddWithValue("$t", table);
+        cmd.Parameters.AddWithValue("$u", (object?)afterUpdatedAt ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$id", afterId);
+        cmd.Parameters.AddWithValue("$limit", limit);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read()) rows.Add(new EncryptedRow(reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
+        return rows;
+    }
+
+    /// <summary>Ids of every encrypted row of one table. A phone uses it to drop rows the shop has since deleted.</summary>
+    public IReadOnlyList<long> EncryptedRowIds(Guid siteId, string table)
+    {
+        var ids = new List<long>();
+        if (!Exists(siteId)) return ids;
+        using var connection = OpenReadOnly(siteId);
+        if (!HasEncryptedTable(connection)) return ids;
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT RowId FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)} WHERE TableName = $t ORDER BY RowId";
+        cmd.Parameters.AddWithValue("$t", table);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read()) ids.Add(reader.GetInt64(0));
+        return ids;
+    }
+
+    private SqliteConnection OpenReadOnly(Guid siteId)
+    {
+        var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = PathFor(siteId), Mode = SqliteOpenMode.ReadOnly }.ToString());
+        connection.Open();
+        return connection;
+    }
+
+    private static bool HasEncryptedTable(SqliteConnection connection)
+    {
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = '{MirrorApplier.EncryptedTable}'";
+        return cmd.ExecuteScalar() is not null;
     }
 
     private static string ReadLatestMigration()

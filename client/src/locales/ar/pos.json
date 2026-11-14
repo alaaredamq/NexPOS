@@ -173,6 +173,7 @@
   "paymentTotalDue": "المبلغ المستحق",
   "percentage": "نسبة مئوية",
   "percentageCannotExceed100": "النسبة المئوية لا يمكن أن تتجاوز 100%",
+  "phoneOptional": "رقم الهاتف (اختياري)",
   "pleaseEnterBarcode": "يرجى إدخال باركود",
   "pleaseEnterProductName": "يرجى إدخال اسم المنتج",
   "pleaseEnterValidAmount": "يرجى إدخال مبلغ صحيح",

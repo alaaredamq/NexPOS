@@ -1,0 +1,10 @@
+{
+  "Cloud": {
+    "AdminUser": "owner",
+    "AdminPassword": "REPLACE-with-at-least-12-characters",
+    "PublicUrl": "https://your-domain.example",
+    "TimeZone": "Asia/Beirut",
+    "DataRoot": "data",
+    "ControlConnectionString": ""
+  }
+}

@@ -12,15 +12,29 @@ using Sync;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Server-only settings (admin login, public address, database): a file the publish never contains or overwrites, read whatever the
+// environment is called. It wins over appsettings.json; see Cloud/deploy/cloud.settings.json.example.
+builder.Configuration.AddJsonFile("cloud.settings.json", optional: true, reloadOnChange: false);
+
 builder.Services.AddOptions<CloudOptions>().BindConfiguration("Cloud");
 builder.Services.AddSingleton(TimeProvider.System);
 
-builder.Services.AddDbContext<ControlDbContext>((sp, options) =>
+// Control database: SQL Server when Cloud:ControlConnectionString is set, otherwise SQLite in DataRoot.
+var controlConnection = builder.Configuration["Cloud:ControlConnectionString"];
+if (!string.IsNullOrWhiteSpace(controlConnection))
 {
-    var root = Path.GetFullPath(sp.GetRequiredService<IOptions<CloudOptions>>().Value.DataRoot);
-    Directory.CreateDirectory(root);
-    options.UseSqlite($"Data Source={Path.Combine(root, "control.db")}");
-});
+    builder.Services.AddDbContext<ControlDbContext, SqlServerControlDbContext>(options =>
+        options.UseSqlServer(controlConnection, sql => sql.EnableRetryOnFailure()));
+}
+else
+{
+    builder.Services.AddDbContext<ControlDbContext>((sp, options) =>
+    {
+        var root = Path.GetFullPath(sp.GetRequiredService<IOptions<CloudOptions>>().Value.DataRoot);
+        Directory.CreateDirectory(root);
+        options.UseSqlite($"Data Source={Path.Combine(root, "control.db")}");
+    });
+}
 
 builder.Services.AddSingleton(_ => MirrorStore.BuildSchema());
 builder.Services.AddSingleton<MirrorApplier>();
@@ -30,6 +44,7 @@ builder.Services.AddSingleton<CommandBroker>();
 builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
+builder.Services.AddScoped<SiteRemoval>();
 
 // Keep the cookie/TempData encryption keys on the data volume, or every redeploy would sign the admin out.
 builder.Services.AddDataProtection().SetApplicationName("NexPOS.Cloud");
@@ -96,7 +111,11 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/healthz", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+// Says which database the control plane is on (never the connection string), so "did my settings file get read?" has an answer.
+var controlDb = string.IsNullOrWhiteSpace(controlConnection) ? "sqlite" : "sqlserver";
+app.Logger.LogInformation("Control database: {Provider}", controlDb);
+var settingsFileFound = File.Exists(Path.Combine(app.Environment.ContentRootPath, "cloud.settings.json"));
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok", controlDb, settingsFileFound })).AllowAnonymous();
 app.MapSyncApi();
 app.MapOwnerApi();
 app.MapEnrollApi();

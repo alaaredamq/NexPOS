@@ -67,12 +67,13 @@ namespace Sync
                     }
                     else
                     {
+                        settings = EnsureDataKey(connectionString, schema, settings);
                         using var http = httpFactory.CreateClient(HttpClientName);
                         http.BaseAddress = new Uri(settings.CloudUrl.TrimEnd('/') + "/");
                         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.DeviceToken);
 
                         var pusher = new SyncPusher(schema, connectionString, new HttpSyncTransport(http), status, time, null,
-                            Math.Clamp(settings.BatchSize, 1, 2000));
+                            Math.Clamp(settings.BatchSize, 1, 2000), DataKey.FromBase64(settings.DataKeyBase64).Cipher());
                         var result = await pusher.RunOnceAsync(stoppingToken);
 
                         // Back off while failing so a down cloud costs nothing; snap back on the first success.
@@ -98,6 +99,24 @@ namespace Sync
                 try { await signal.WaitAsync(wait, stoppingToken); }
                 catch (OperationCanceledException) { break; }
             }
+        }
+
+        /// <summary>
+        /// A till connected before end-to-end encryption existed has no key yet. Make one and re-send the whole shop encrypted: the first
+        /// batch of a snapshot wipes the cloud copy, so the old readable rows are replaced rather than left behind.
+        /// </summary>
+        private OnlineSettings EnsureDataKey(string connectionString, SyncSchema schema, OnlineSettings settings)
+        {
+            if (!string.IsNullOrEmpty(settings.DataKeyBase64)) return settings;
+
+            var updated = settings with { DataKeyBase64 = DataKey.Generate().ToBase64() };
+            store.Save(updated);
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            SyncTriggers.EnsureTables(connection);
+            SyncTriggers.Seed(connection, schema);
+            logger.LogInformation("Created the shop's encryption key and queued a full encrypted snapshot.");
+            return updated;
         }
 
         private void Prepare(string connectionString, SyncSchema schema, bool active)

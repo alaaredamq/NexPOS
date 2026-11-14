@@ -26,6 +26,27 @@ public sealed class OnlineApiTests : CatalogApiTestBase
         await AssertProblem(await anonymous.SendAsync(Json(HttpMethod.Post, "/api/v1/online/connect", new { link = "x" })), HttpStatusCode.Unauthorized, "unauthenticated");
         await AssertProblem(await anonymous.SendAsync(Json(HttpMethod.Post, "/api/v1/online/disconnect", new { })), HttpStatusCode.Unauthorized, "unauthenticated");
         await AssertProblem(await anonymous.SendAsync(Json(HttpMethod.Post, "/api/v1/online/sync-now", new { })), HttpStatusCode.Unauthorized, "unauthenticated");
+        await AssertProblem(await anonymous.GetAsync("/api/v1/online/recovery-code"), HttpStatusCode.Unauthorized, "unauthenticated");
+    }
+
+    [Fact]
+    public async Task A_cashier_cannot_read_the_recovery_code()
+    {
+        var cashier = await Cashier();
+
+        await AssertProblem(await cashier.GetAsync("/api/v1/online/recovery-code"), HttpStatusCode.Forbidden, "forbidden");
+    }
+
+    [Fact]
+    public async Task There_is_no_recovery_code_before_the_till_has_connected_and_the_status_never_carries_the_key()
+    {
+        var admin = await Admin();
+
+        await AssertProblem(await admin.GetAsync("/api/v1/online/recovery-code"), HttpStatusCode.NotFound, "no_recovery_code");
+
+        var text = await (await admin.GetAsync("/api/v1/online")).Content.ReadAsStringAsync();
+        Assert.DoesNotContain("key", text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("recovery", text, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -15,6 +15,11 @@ public sealed record OnlineSettings
     public string CloudUrl { get; set; } = "";
     /// <summary>Device token for this installation. Written by the enrolment flow; treat like a password.</summary>
     public string DeviceToken { get; set; } = "";
+    /// <summary>
+    /// End-to-end encryption key (base64), made on this till when it connects. Never sent to the cloud. It outlives Disconnect on
+    /// purpose: the cloud keeps its (encrypted) copy, and the owner's recovery code must keep opening it after a reconnect.
+    /// </summary>
+    public string DataKeyBase64 { get; set; } = "";
     public int IntervalSeconds { get; set; } = 30;
     public int BatchSize { get; set; } = 500;
     /// <summary>How long the shop PC lets the cloud hold a request open waiting for a change from the owner's phone (seconds, 0 to 55).</summary>

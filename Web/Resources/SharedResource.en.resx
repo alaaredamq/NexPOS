@@ -2364,6 +2364,11 @@
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>A newer license is already active on this computer.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>The license could not be saved on this computer.</value></data>
   <data name="License_SalesStopped" xml:space="preserve"><value>Sales are stopped because the license is not active. Open the License page to renew or activate.</value></data>
+  <data name="License_DeviceNotRegistered" xml:space="preserve"><value>This PC is not registered to sell. Ask your administrator to add it on the License page, then enter the pairing code here.</value></data>
+  <data name="License_SeatsExceeded" xml:space="preserve"><value>This PC cannot sell because the license now covers fewer PCs than are registered. Ask your administrator to free a seat or renew the license.</value></data>
+  <data name="License_SeatsFull" xml:space="preserve"><value>All the PCs in your package are in use. Remove a till first, or ask your provider for a bigger package.</value></data>
+  <data name="License_InvalidPairingCode" xml:space="preserve"><value>That pairing code is not valid, has already been used, or has expired. Ask your administrator for a new one.</value></data>
+  <data name="License_PairingThrottled" xml:space="preserve"><value>Too many wrong codes. Wait a few minutes, then try again.</value></data>
   <data name="License_SalesStoppedAskAdmin" xml:space="preserve"><value>Sales are stopped because the license is not active. Please ask your administrator to renew or activate it.</value></data>
   <data name="Print_Menu" xml:space="preserve"><value>Print</value></data>
   <data name="Print_ReceiptPaper" xml:space="preserve"><value>Print on receipt paper</value></data>
@@ -2413,6 +2418,7 @@
   <data name="Pos_InvalidDiscountPercentage" xml:space="preserve"><value>The discount percentage must be between 0 and 100.</value></data>
   <data name="Pos_NameTooShort" xml:space="preserve"><value>Enter at least 2 letters.</value></data>
   <data name="Pos_OrderNotFound" xml:space="preserve"><value>That sale was not found.</value></data>
+  <data name="Pos_PhoneInvalid" xml:space="preserve"><value>Enter a valid phone number (up to 20 characters).</value></data>
   <data name="Pos_PaymentMethodInvalid" xml:space="preserve"><value>Select a payment method.</value></data>
   <data name="Pos_PriceBelowMinimum" xml:space="preserve"><value>The price {1} for {0} is below the minimum of {2}.</value></data>
   <data name="Pos_PriceNotAvailable" xml:space="preserve"><value>The selected price is not available for {0}.</value></data>
@@ -2428,6 +2434,8 @@
   <data name="Prod_ImportNoFile" xml:space="preserve"><value>No file uploaded.</value></data>
   <data name="Prod_ImportTooBig" xml:space="preserve"><value>The file is larger than 10 MB.</value></data>
   <data name="Prod_LabelInvalid" xml:space="preserve"><value>The label could not be created.</value></data>
+  <data name="Prod_LabelPrinterNotFound" xml:space="preserve"><value>The selected printer was not found on this computer.</value></data>
+  <data name="Prod_LabelPrintFailed" xml:space="preserve"><value>The printer did not accept the labels. Check that it is on and connected.</value></data>
   <data name="Drawer_AlreadyOpen" xml:space="preserve"><value>You already have an open cash drawer session.</value></data>
   <data name="Drawer_SessionNotFound" xml:space="preserve"><value>That cash drawer session was not found.</value></data>
   <data name="Drawer_SessionClosed" xml:space="preserve"><value>That cash drawer session is already closed.</value></data>

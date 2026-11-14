@@ -13,6 +13,9 @@ public interface IOnlineApiService
     Task<OnlineStatusDto> DisconnectAsync(CancellationToken ct);
 
     OnlineStatusDto SyncNow();
+
+    /// <summary>Null until the till has connected once.</summary>
+    string? GetRecoveryCode();
 }
 
 /// <summary>Maps the sync library's connection to the Online screen's DTO. The library owns the behaviour; this only translates.</summary>
@@ -35,6 +38,8 @@ public sealed class OnlineApiService : IOnlineApiService
         _online.SyncNow();
         return Get();
     }
+
+    public string? GetRecoveryCode() => _online.GetRecoveryCode();
 
     private static OnlineStatusDto ToDto(OnlineStatusInfo s) => new()
     {

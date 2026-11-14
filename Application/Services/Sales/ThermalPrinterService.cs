@@ -70,8 +70,8 @@ public class ThermalPrinterService : IThermalPrinterService
     public bool IsPrinterAvailable(string? printerName = null)
         => _printer.IsAvailable(printerName ?? FallbackPrinter);
 
-    public async Task<bool> PrintReceiptAsync(Receipt receipt, string? printerName = null)
-        => await PrintDocumentAsync(await GetReceiptDocumentAsync(receipt), printerName, "POS Receipt");
+    public async Task<bool> PrintReceiptAsync(Receipt receipt, string? printerName = null, bool quickFail = false)
+        => await PrintDocumentAsync(await GetReceiptDocumentAsync(receipt), printerName, "POS Receipt", quickFail);
 
     public async Task<PrintDocument> GetReceiptDocumentAsync(Receipt receipt)
     {
@@ -88,12 +88,12 @@ public class ThermalPrinterService : IThermalPrinterService
     public async Task<PrintDocument> GetOrderReceiptDocumentAsync(Order order)
         => await GetReceiptDocumentAsync(await GetReceiptForOrderAsync(order));
 
-    public async Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "Coduo POS Document")
+    public async Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "Coduo POS Document", bool quickFail = false)
     {
         try
         {
             var bytes = _escPos.BuildPrintJob(document);
-            return _printer.SendBytes(printerName ?? await ResolveDefaultPrinterAsync(), bytes, jobName);
+            return _printer.SendBytes(printerName ?? await ResolveDefaultPrinterAsync(), bytes, jobName, quickFail);
         }
         catch (Exception ex)
         {

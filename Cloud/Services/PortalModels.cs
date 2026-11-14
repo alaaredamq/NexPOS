@@ -58,14 +58,14 @@ public sealed class PortalFormat
     }
 }
 
-public enum ConnectionState { NotLinked, WaitingForTill, LinkExpired, Connected, Disconnected }
+public enum ConnectionState { NotLinked, WaitingForShop, LinkExpired, Connected, Disconnected }
 
 public static class SiteInsight
 {
     /// <summary>Needs the site loaded with its tokens and enrolment codes.</summary>
     public static ConnectionState Connection(Site site, DateTime now)
         => site.Tokens.Any(t => t.RevokedAt == null) ? ConnectionState.Connected
-         : site.EnrollmentCodes.Any(c => c.UsedAt == null && c.ExpiresAt > now) ? ConnectionState.WaitingForTill
+         : site.EnrollmentCodes.Any(c => c.UsedAt == null && c.ExpiresAt > now) ? ConnectionState.WaitingForShop
          : site.Tokens.Count > 0 ? ConnectionState.Disconnected
          : site.EnrollmentCodes.Count > 0 ? ConnectionState.LinkExpired
          : ConnectionState.NotLinked;
@@ -73,7 +73,7 @@ public static class SiteInsight
     public static string Label(ConnectionState state) => state switch
     {
         ConnectionState.Connected => "Connected",
-        ConnectionState.WaitingForTill => "Waiting for the till",
+        ConnectionState.WaitingForShop => "Waiting for the shop",
         ConnectionState.LinkExpired => "Link expired",
         ConnectionState.Disconnected => "Disconnected",
         _ => "Not linked",
@@ -81,17 +81,17 @@ public static class SiteInsight
 
     public static string Help(ConnectionState state) => state switch
     {
-        ConnectionState.Connected => "This till has its credential and can sync.",
-        ConnectionState.WaitingForTill => "A link was created and has not been used yet.",
+        ConnectionState.Connected => "This branch has its credential and can sync.",
+        ConnectionState.WaitingForShop => "A link was created and has not been used yet.",
         ConnectionState.LinkExpired => "The link was never used. Create a new one.",
-        ConnectionState.Disconnected => "The till's credential was removed. Create a new link to reconnect it.",
+        ConnectionState.Disconnected => "This branch's credential was removed. Create a new link to reconnect it.",
         _ => "Create a link and send it to the shop owner.",
     };
 
     public static string Tone(ConnectionState state) => state switch
     {
         ConnectionState.Connected => "ok",
-        ConnectionState.WaitingForTill => "warn",
+        ConnectionState.WaitingForShop => "warn",
         ConnectionState.NotLinked => "none",
         _ => "bad",
     };
@@ -142,7 +142,7 @@ public static class AttentionRules
             items.Add(new(AttentionSeverity.Warn, client.Name, $"Online ends {fmt.Until(sub.ExpiresAt)}", clientHref, "Renew"));
 
         if (client.Sites.Count == 0)
-            items.Add(new(AttentionSeverity.Warn, client.Name, "No till added yet", clientHref, "Add till"));
+            items.Add(new(AttentionSeverity.Warn, client.Name, "No branch added yet", clientHref, "Add branch"));
 
         foreach (var site in client.Sites.Where(s => !s.IsDisabled))
         {
@@ -150,7 +150,7 @@ public static class AttentionRules
             var name = client.Sites.Count > 1 ? $"{client.Name} · {site.Name}" : client.Name;
             switch (SiteInsight.Connection(site, now))
             {
-                case ConnectionState.WaitingForTill:
+                case ConnectionState.WaitingForShop:
                     var sent = site.EnrollmentCodes.Where(c => c.UsedAt == null).Max(c => c.CreatedAt);
                     if (now - sent > TimeSpan.FromDays(2))
                         items.Add(new(AttentionSeverity.Warn, name, $"Link sent {fmt.Ago(sent)}, not used yet", href, "Open"));

@@ -62,6 +62,24 @@ public sealed class OnlineController : ApiControllerBase
     [SwaggerOperation(OperationId = "disconnectOnline")]
     public async Task<OnlineStatusDto> Disconnect(CancellationToken ct) => await _online.DisconnectAsync(ct);
 
+    /// <summary>
+    /// The recovery code for the shop's end-to-end encryption key. The owner prints or writes it down and keeps it safe: if this PC is
+    /// lost, it is the only way to read the cloud copy again, and nobody else (the provider included) can produce it.
+    /// 404 until the till has connected once.
+    /// </summary>
+    [HttpGet("recovery-code")]
+    [ProducesResponseType<RecoveryCodeDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [SwaggerOperation(OperationId = "getOnlineRecoveryCode")]
+    public ActionResult<RecoveryCodeDto> GetRecoveryCode()
+    {
+        var code = _online.GetRecoveryCode();
+        Response.Headers.CacheControl = "no-store";
+        return code is null
+            ? Failure(StatusCodes.Status404NotFound, "no_recovery_code", "Connect this till to NexPOS Online first.")
+            : new RecoveryCodeDto { Code = code };
+    }
+
     /// <summary>Asks the background sync to run now rather than at its next turn. Returns the state as it is; poll <c>GET</c> for the outcome.</summary>
     [HttpPost("sync-now")]
     [ProducesResponseType<OnlineStatusDto>(StatusCodes.Status200OK)]

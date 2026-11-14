@@ -273,6 +273,21 @@ describe('checkout', () => {
     expect(api.calls.find((c) => c.url === '/api/v1/pos/customers' && c.method === 'POST')?.body).toEqual({ firstName: 'Omar', lastName: 'Said' })
   })
 
+  it('sends the optional phone number with a new customer when one is typed', async () => {
+    open()
+    api.routes['POST /api/v1/pos/customers'] = () => json({ id: 9, name: 'Omar Said', email: null, balance: 0 }, 201)
+    await pay()
+
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'New' }))
+    fireEvent.change(within(dialog()).getByLabelText('First name'), { target: { value: 'Omar' } })
+    fireEvent.change(within(dialog()).getByLabelText('Last name'), { target: { value: 'Said' } })
+    fireEvent.change(within(dialog()).getByLabelText('Phone number (optional)'), { target: { value: ' 71 123 456 ' } })
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Save and select' }))
+
+    await waitFor(() => expect(useCartStore.getState().customerId).toBe(9))
+    expect(api.calls.find((c) => c.url === '/api/v1/pos/customers' && c.method === 'POST')?.body).toEqual({ firstName: 'Omar', lastName: 'Said', phoneNumber: '71 123 456' })
+  })
+
   it('keeps the cart and says why when the server refuses the sale', async () => {
     open()
     api.routes['POST /api/v1/pos/sales/checkout'] = () => problem(409, 'total_mismatch', 'The total changed.')

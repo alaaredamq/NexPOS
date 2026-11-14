@@ -22,8 +22,10 @@ export function QuickCustomerForm({ onCreated, onCancel }: Props) {
   const create = useQuickCreateCustomer()
   const firstId = useId()
   const lastId = useId()
+  const phoneId = useId()
   const [first, setFirst] = useState('')
   const [last, setLast] = useState('')
+  const [phone, setPhone] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const save = async () => {
@@ -35,7 +37,8 @@ export function QuickCustomerForm({ onCreated, onCancel }: Props) {
     }
     setError(null)
     try {
-      const customer = await create.mutateAsync({ firstName, lastName })
+      const phoneNumber = phone.trim()
+      const customer = await create.mutateAsync(phoneNumber ? { firstName, lastName, phoneNumber } : { firstName, lastName })
       toast.success(t('customerAdded'))
       onCreated(customer)
     } catch (e) {
@@ -64,6 +67,21 @@ export function QuickCustomerForm({ onCreated, onCancel }: Props) {
             {t('lastName')}
           </label>
           <input id={lastId} className={styles.input} value={last} maxLength={100} onChange={(e) => setLast(e.target.value)} />
+        </div>
+        <div className={`${styles.fieldGroup} ${styles.quickCustomerWide}`}>
+          <label htmlFor={phoneId} className={styles.fieldLabel}>
+            {t('phoneOptional')}
+          </label>
+          <input
+            id={phoneId}
+            className={styles.input}
+            type="tel"
+            dir="ltr"
+            value={phone}
+            maxLength={20}
+            autoComplete="off"
+            onChange={(e) => setPhone(e.target.value)}
+          />
         </div>
       </div>
       {error && (

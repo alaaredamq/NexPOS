@@ -7,8 +7,13 @@ namespace Cloud.Data;
 /// The control plane's own database: who the clients are, what they have paid for, which tills may connect.
 /// It holds NO shop data; that lives in one mirror file per site (see MirrorStore).
 /// </summary>
-public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbContext(options)
+public class ControlDbContext : DbContext
 {
+    public ControlDbContext(DbContextOptions<ControlDbContext> options) : base(options) { }
+
+    /// <summary>For provider-specific subclasses (SqlServerControlDbContext), which carry their own migration set.</summary>
+    protected ControlDbContext(DbContextOptions options) : base(options) { }
+
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
@@ -67,6 +72,9 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasIndex(x => x.Email).IsUnique();
             e.Property(x => x.Email).HasMaxLength(255);
             e.Property(x => x.DisplayName).HasMaxLength(100);
+            // Logins made before roles existed (this default fills their new column) keep full access.
+            e.Property(x => x.Permissions).HasDefaultValue((int)OwnerPermissions.All);
+            e.Ignore(x => x.Can);
             e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -87,6 +95,21 @@ public class ControlDbContext(DbContextOptions<ControlDbContext> options) : DbCo
             e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId);
         });
     }
+}
+
+/// <summary>
+/// The same model on SQL Server. A separate type only so it has its own migrations (Data/MigrationsSqlServer): EF picks
+/// migrations by the context's runtime type, and SQLite and SQL Server need different SQL. Nothing else refers to it;
+/// the app asks for <see cref="ControlDbContext"/> and gets whichever one is configured.
+/// </summary>
+public sealed class SqlServerControlDbContext(DbContextOptions<SqlServerControlDbContext> options) : ControlDbContext(options);
+
+/// <summary>Lets `dotnet ef migrations add` run without starting the web host.</summary>
+public sealed class SqlServerControlDbContextFactory : IDesignTimeDbContextFactory<SqlServerControlDbContext>
+{
+    public SqlServerControlDbContext CreateDbContext(string[] args)
+        => new(new DbContextOptionsBuilder<SqlServerControlDbContext>()
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=NexPosCloudDesignTime;Trusted_Connection=True").Options);
 }
 
 /// <summary>Lets `dotnet ef migrations add` run without starting the web host.</summary>

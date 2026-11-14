@@ -125,6 +125,8 @@
   "list.searchPlaceholder": "Search by name, barcode or description",
   "printLabel.copies": "Number of labels",
   "printLabel.decrease": "One less label",
+  "printLabel.direct": "Send label commands straight to the printer (fixes the size being ignored)",
+  "printLabel.directHint": "Turn this on for label printers such as Xprinter or TSC. Their Windows driver keeps one fixed paper size, so the width and height above are only honoured when the printer is sent its own label commands. Leave it off for ordinary printers.",
   "printLabel.downloadPdf": "Download {{count}} label(s) as PDF",
   "printLabel.failed": "Sticker print failed",
   "printLabel.height": "Height",

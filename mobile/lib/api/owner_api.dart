@@ -27,21 +27,21 @@ class OfflineException implements Exception {
 
 /// The kinds of change the phone can ask the shop PC to make. [route] is the owner-API path; the cloud turns it into a command.
 enum ChangeKind {
-  customer('customers'),
-  supplier('suppliers'),
-  product('products');
+  customer('customers', 'customer.create'),
+  supplier('suppliers', 'supplier.create'),
+  product('products', 'product.create'),
+  productEdit('product-edits', 'product.update'),
+  stock('stock-changes', 'stock.adjust');
 
-  const ChangeKind(this.route);
+  const ChangeKind(this.route, this.type);
   final String route;
 
+  /// The command's name on the shop PC. It is also what the sealed request is bound to.
+  final String type;
+
   static ChangeKind? fromType(String type) {
-    switch (type) {
-      case 'customer.create':
-        return customer;
-      case 'supplier.create':
-        return supplier;
-      case 'product.create':
-        return product;
+    for (final kind in values) {
+      if (kind.type == type) return kind;
     }
     return null;
   }
@@ -73,7 +73,35 @@ class Change {
     this.code,
     this.message,
     this.data,
+    this.hidden = false,
   });
+
+  /// A copy with some fields replaced (used to show a change with its sealed request and answer opened).
+  Change copyWith({Map<String, dynamic>? payload, String? message, Map<String, dynamic>? data}) => Change(
+        id: id,
+        type: type,
+        status: status,
+        createdAt: createdAt,
+        completedAt: completedAt,
+        code: code,
+        message: message ?? this.message,
+        data: data,
+        payload: payload ?? this.payload,
+      );
+
+  /// The same change, marked as one this phone cannot read (it is locked, or the key does not open it).
+  Change withHidden() => Change(
+        id: id,
+        type: type,
+        status: status,
+        createdAt: createdAt,
+        completedAt: completedAt,
+        code: code,
+        message: message,
+        data: null,
+        payload: const {},
+        hidden: true,
+      );
 
   factory Change.fromJson(Map<String, dynamic> json) => Change(
         id: json['id'] as String,
@@ -97,7 +125,13 @@ class Change {
   final Map<String, dynamic>? data;
   final Map<String, dynamic> payload;
 
+  /// True when the request and answer are sealed and this phone could not open them.
+  final bool hidden;
+
   ChangeKind? get kind => ChangeKind.fromType(type);
+
+  /// The product an edit or a stock change is about.
+  int? get productId => (payload['productId'] as num?)?.toInt();
 
   /// What to call it in a list: the name the owner typed.
   String get title {
@@ -131,23 +165,31 @@ class CurrencyOption {
   final bool isDefault;
 }
 
-/// The choices the forms need, from the cloud copy of the shop.
+/// One page of encrypted rows. [payload]s are ciphertext: only the shop's key opens them.
+class RowPage {
+  RowPage({required this.rows, required this.nextCursor, required this.hasMore, this.asOf});
+
+  factory RowPage.fromJson(Map<String, dynamic> json) => RowPage(
+        rows: [
+          for (final r in json['rows'] as List)
+            (id: ((r as Map<String, dynamic>)['id'] as num).toInt(), payload: r['payload'] as String),
+        ],
+        nextCursor: json['nextCursor'] as String?,
+        hasMore: json['hasMore'] as bool,
+        asOf: json['asOfUtc'] == null ? null : DateTime.parse(json['asOfUtc'] as String),
+      );
+
+  final List<({int id, String payload})> rows;
+  final String? nextCursor;
+  final bool hasMore;
+
+  /// When the shop PC last sent anything. A switched-off till leaves this behind, so screens show it.
+  final DateTime? asOf;
+}
+
+/// The choices the forms need, built on the phone from the shop's categories, suppliers and currencies.
 class Lookups {
   Lookups({required this.categories, required this.suppliers, required this.currencies, this.asOf});
-
-  factory Lookups.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    List<Map<String, dynamic>> list(String key) => [for (final e in (data[key] as List)) e as Map<String, dynamic>];
-    return Lookups(
-      categories: [for (final c in list('categories')) Option(c['id'] as int, c['name'] as String)],
-      suppliers: [for (final s in list('suppliers')) Option(s['id'] as int, s['name'] as String)],
-      currencies: [
-        for (final c in list('currencies'))
-          CurrencyOption(c['id'] as int, c['code'] as String, c['notation'] as String, c['isDefault'] as bool),
-      ],
-      asOf: json['asOfUtc'] == null ? null : DateTime.parse(json['asOfUtc'] as String),
-    );
-  }
 
   final List<Option> categories;
   final List<Option> suppliers;
@@ -163,18 +205,27 @@ class Lookups {
 }
 
 class SignedIn {
-  SignedIn({required this.token, required this.displayName, required this.clientName, this.siteName});
+  SignedIn({required this.token, required this.displayName, required this.clientName, this.siteName, this.permissions = 63, this.role = 'owner'});
   final String token;
   final String displayName;
   final String clientName;
   final String? siteName;
+
+  /// What this login may do (see `Perm`). 63 is everything: an older cloud does not send it.
+  final int permissions;
+  final String role;
 }
 
 /// Everything the app asks of the cloud. An interface so screens can be tested with a fake.
 abstract class OwnerApi {
   Future<SignedIn> signIn(String email, String password);
   Future<void> signOut();
-  Future<Lookups> lookups();
+
+  /// One page of a table's encrypted rows after [cursor]. The cloud hands back ciphertext; [ShopKey] opens it on the phone.
+  Future<RowPage> rows(String table, {String? cursor, int limit = 500});
+
+  /// Every row id the cloud holds for [table], so rows the shop deleted can be dropped from the phone.
+  Future<List<int>> rowIds(String table);
 
   /// Queues a change. [idempotencyKey] must be new for each change and reused when the same one is retried.
   Future<Change> submit(ChangeKind kind, Map<String, dynamic> body, String idempotencyKey);
@@ -239,6 +290,8 @@ class HttpOwnerApi implements OwnerApi {
       displayName: json['displayName'] as String,
       clientName: json['clientName'] as String,
       siteName: json['siteName'] as String?,
+      permissions: (json['permissions'] as num?)?.toInt() ?? 63,
+      role: (json['role'] as String?) ?? 'owner',
     );
   }
 
@@ -248,8 +301,19 @@ class HttpOwnerApi implements OwnerApi {
   }
 
   @override
-  Future<Lookups> lookups() async =>
-      Lookups.fromJson(await _send(() => _http.get(_uri('lookups'), headers: _headers)) as Map<String, dynamic>);
+  Future<RowPage> rows(String table, {String? cursor, int limit = 500}) async {
+    final query = {'table': table, 'limit': '$limit', 'cursor': ?cursor};
+    final json = await _send(() => _http.get(_uri('rows').replace(queryParameters: query), headers: _headers))
+        as Map<String, dynamic>;
+    return RowPage.fromJson(json);
+  }
+
+  @override
+  Future<List<int>> rowIds(String table) async {
+    final json = await _send(() => _http.get(_uri('row-ids').replace(queryParameters: {'table': table}), headers: _headers))
+        as Map<String, dynamic>;
+    return [for (final id in json['ids'] as List) (id as num).toInt()];
+  }
 
   @override
   Future<Change> submit(ChangeKind kind, Map<String, dynamic> body, String idempotencyKey) async {

@@ -231,6 +231,11 @@ namespace Cloud.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Permissions")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(63);
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");

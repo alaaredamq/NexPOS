@@ -173,6 +173,7 @@
   "paymentTotalDue": "Total due",
   "percentage": "Percentage",
   "percentageCannotExceed100": "Percentage cannot exceed 100%",
+  "phoneOptional": "Phone number (optional)",
   "pleaseEnterBarcode": "Please enter a barcode",
   "pleaseEnterProductName": "Please enter product name",
   "pleaseEnterValidAmount": "Please enter a valid total amount",

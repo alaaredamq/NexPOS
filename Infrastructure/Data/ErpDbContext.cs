@@ -1,6 +1,7 @@
 using Core.Entities.Backup;
 using Core.Entities.Configuration;
 using Core.Entities.Inventory;
+using Core.Entities.Licensing;
 using Core.Entities.Notifications;
 using Core.Entities.Products;
 using Core.Entities.Purchasing;
@@ -52,7 +53,8 @@ public class ErpDbContext : DbContext
         public DbSet<Backup> Backups { get; set; }
         public DbSet<BackupSchedule> BackupSchedules { get; set; }
         public DbSet<CustomerCart> CustomerCarts { get; set; }
-        
+        public DbSet<TillDevice> TillDevices { get; set; }
+
         // Receipts
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<ReceiptItem> ReceiptItems { get; set; }
@@ -431,6 +433,17 @@ public class ErpDbContext : DbContext
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.NextRun);
             entity.HasIndex(e => e.ScheduleFrequency);
+        });
+
+        // Till devices: the registered PCs behind a multi-seat licence (hashes only; excluded from the cloud sync)
+        modelBuilder.Entity<TillDevice>(entity =>
+        {
+            entity.ToTable("TillDevices");
+            entity.HasKey(e => e.Id);
+            entity.Ignore(e => e.IsActive);
+
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.HasIndex(e => e.PairingCodeHash).IsUnique();
         });
 
         // =========================

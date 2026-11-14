@@ -5,6 +5,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/owner_api.dart';
+import '../crypto/change_seal.dart';
+import '../crypto/shop_key.dart';
+import 'permissions.dart';
 
 /// Where the sign-in token lives. The real one is the phone's secure storage (Keychain / Keystore); tests use memory.
 abstract class TokenStore {
@@ -44,6 +47,8 @@ class Session extends ChangeNotifier {
   static const _langKey = 'language';
   static const _nameKey = 'display_name';
   static const _clientKey = 'client_name';
+  static const _permKey = 'permissions';
+  static const _roleKey = 'role';
 
   final SharedPreferences _prefs;
   final TokenStore _tokens;
@@ -55,6 +60,13 @@ class Session extends ChangeNotifier {
   String get cloudUrl => _prefs.getString(_urlKey) ?? '';
   String get displayName => _prefs.getString(_nameKey) ?? '';
   String get clientName => _prefs.getString(_clientKey) ?? '';
+
+  /// What this login may do. A phone signed in before roles existed keeps everything (the cloud still decides what it will serve).
+  int get permissions => _prefs.getInt(_permKey) ?? Perm.all;
+  String get role => _prefs.getString(_roleKey) ?? 'owner';
+
+  /// Whether this login may [permission] (a `Perm` bit).
+  bool can(int permission) => permissions & permission == permission;
   bool get signedIn => _token != null && _api != null;
 
   /// The api to use while signed in. Only call after checking [signedIn].
@@ -80,6 +92,8 @@ class Session extends ChangeNotifier {
     await _prefs.setString(_urlKey, url);
     await _prefs.setString(_nameKey, result.displayName);
     await _prefs.setString(_clientKey, result.clientName);
+    await _prefs.setInt(_permKey, result.permissions);
+    await _prefs.setString(_roleKey, result.role);
     _token = result.token;
     _api = _apiFactory(url, result.token);
     notifyListeners();
@@ -112,7 +126,10 @@ class Session extends ChangeNotifier {
 
 /// The owner's changes and their progress. Polls while the app is open so "Waiting for shop" turns into "Done" by itself.
 class ChangesController extends ChangeNotifier {
-  ChangesController(this._session);
+  ChangesController(this._session, {this.keyOf});
+
+  /// Where to get the shop key from when a change comes back sealed. Null in places that never see sealed changes.
+  final ShopKey? Function()? keyOf;
 
   final Session _session;
   Timer? _timer;
@@ -142,7 +159,9 @@ class ChangesController extends ChangeNotifier {
     if (!_session.signedIn || loading) return;
     loading = true;
     try {
-      items = await _session.api.changes();
+      final fetched = await _session.api.changes();
+      final key = keyOf?.call();
+      items = [for (final c in fetched) await ChangeSeal.open(key, c)];
       error = null;
     } on ApiException catch (e) {
       error = e;

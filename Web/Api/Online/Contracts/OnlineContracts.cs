@@ -54,3 +54,9 @@ public sealed record OnlineConnectRequest
     [Required, StringLength(4000)]
     public string Link { get; init; } = "";
 }
+
+/// <summary>The owner's recovery code for the shop's end-to-end encryption key (56 characters in groups of four).</summary>
+public sealed record RecoveryCodeDto
+{
+    public required string Code { get; init; }
+}

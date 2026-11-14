@@ -302,7 +302,9 @@ public class CommandChannelTests : IClassFixture<CloudFactory>
         }
     }
 
-    private ShopPc StartShopPc(SeededSite site, params IOnlineCommandHandler[] handlers)
+    private ShopPc StartShopPc(SeededSite site, params IOnlineCommandHandler[] handlers) => StartShopPc(site, null, handlers);
+
+    private ShopPc StartShopPc(SeededSite site, DataKey? key, params IOnlineCommandHandler[] handlers)
     {
         var folder = Path.Combine(Path.GetTempPath(), "nexpos-cmd-" + Guid.NewGuid().ToString("N"));
         var services = new ServiceCollection();
@@ -316,6 +318,7 @@ public class CommandChannelTests : IClassFixture<CloudFactory>
         provider.GetRequiredService<OnlineSettingsStore>().Save(new OnlineSettings
         {
             Enabled = true, CloudUrl = "http://localhost", DeviceToken = site.Token, CommandWaitSeconds = 0,
+            DataKeyBase64 = key?.ToBase64() ?? "",
         });
         return new ShopPc
         {
@@ -395,6 +398,144 @@ public class CommandChannelTests : IClassFixture<CloudFactory>
 
         Assert.Equal(1, handler.Runs); // answered from the ledger, not run again
         Assert.Equal("applied", (await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}")).GetProperty("status").GetString());
+    }
+
+    // ---- sealed changes: the cloud carries ciphertext it can neither read nor forge ----
+
+    /// <summary>What the owner's phone does: seal {k, body} to the kind of change and send it as {enc}.</summary>
+    private static object SealedByPhone(DataKey key, string type, string idempotencyKey, object body)
+    {
+        var plain = JsonSerializer.SerializeToUtf8Bytes(new { k = idempotencyKey, body });
+        return new Dictionary<string, string> { [CommandSeal.Field] = key.Cipher().Seal(CommandSeal.CommandPurpose, type, plain) };
+    }
+
+    private static JsonElement OpenResult(DataKey key, Guid commandId, JsonElement view)
+    {
+        var enc = view.GetProperty("data").GetProperty(CommandSeal.Field).GetString()!;
+        return JsonDocument.Parse(key.Cipher().Open(CommandSeal.ResultPurpose, commandId.ToString("D"), enc)).RootElement.Clone();
+    }
+
+    [Fact]
+    public async Task A_sealed_change_is_applied_and_the_cloud_never_holds_the_name_in_the_clear()
+    {
+        var owner = await SeedOwnerAsync("sealed@shop.test");
+        var key = DataKey.Generate();
+        string? seenFirstName = null;
+        var handler = new FakeHandler("customer.create", (p, _) =>
+        {
+            seenFirstName = p.GetProperty("firstName").GetString();
+            return CommandResult.Ok(new { id = 7, name = "Nadine Fares" });
+        });
+        await using var pc = StartShopPc(owner.Site, key, handler);
+
+        var sent = await owner.Http.SendAsync(Post("/owner/v1/customers", SealedByPhone(key, "customer.create", "sealed-0001", NewCustomer), "sealed-0001"));
+        var id = (await sent.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await pc.Service.PollOnceAsync(default);
+
+        Assert.Equal("Nadine", seenFirstName); // the handler got the real body
+        var view = await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}");
+        Assert.Equal("applied", view.GetProperty("status").GetString());
+        var opened = OpenResult(key, id, view);
+        Assert.Equal("Nadine Fares", opened.GetProperty("data").GetProperty("name").GetString());
+
+        // What the provider can read: no name, no phone number, in the request or in the answer.
+        var stored = await _cloud.WithControlDbAsync(db => db.SiteCommands.SingleAsync(c => c.Id == id));
+        var everything = stored.PayloadJson + stored.ResultDataJson + stored.ResultMessage;
+        Assert.DoesNotContain("Nadine", everything);
+        Assert.DoesNotContain("Fares", everything);
+        Assert.DoesNotContain("71234567", everything);
+    }
+
+    [Fact]
+    public async Task A_change_that_is_not_sealed_is_refused_once_the_shop_has_a_key_so_the_cloud_cannot_forge_one()
+    {
+        var owner = await SeedOwnerAsync("forged@shop.test");
+        var key = DataKey.Generate();
+        var handler = new FakeHandler("customer.create", (_, _) => CommandResult.Ok());
+        await using var pc = StartShopPc(owner.Site, key, handler);
+
+        var id = (await (await owner.Http.SendAsync(Post("/owner/v1/customers", NewCustomer, "forged-000001"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await pc.Service.PollOnceAsync(default);
+
+        Assert.Equal(0, handler.Runs);
+        var view = await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}");
+        Assert.Equal("rejected", view.GetProperty("status").GetString());
+        Assert.Equal("not_sealed", view.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task A_change_sealed_with_another_key_or_for_another_kind_of_change_is_refused()
+    {
+        var owner = await SeedOwnerAsync("wrongkey@shop.test");
+        var key = DataKey.Generate();
+        var handler = new FakeHandler("customer.create", (_, _) => CommandResult.Ok());
+        var supplierHandler = new FakeHandler("supplier.create", (_, _) => CommandResult.Ok());
+        await using var pc = StartShopPc(owner.Site, key, handler, supplierHandler);
+
+        var otherKey = DataKey.Generate();
+        var a = (await (await owner.Http.SendAsync(Post("/owner/v1/customers", SealedByPhone(otherKey, "customer.create", "other-key-0001", NewCustomer), "other-key-0001"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        // A sealed customer, posted to the supplier route: the cloud swapping what the change is for.
+        var b = (await (await owner.Http.SendAsync(Post("/owner/v1/suppliers", SealedByPhone(key, "customer.create", "swapped-00001", NewCustomer), "swapped-00001"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await pc.Service.PollOnceAsync(default);
+
+        Assert.Equal(0, handler.Runs + supplierHandler.Runs);
+        foreach (var id in new[] { a, b })
+            Assert.Equal("not_sealed", (await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}")).GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task The_cloud_replaying_a_sealed_change_under_a_new_id_does_not_make_it_run_twice()
+    {
+        var owner = await SeedOwnerAsync("replay@shop.test");
+        var key = DataKey.Generate();
+        var handler = new FakeHandler("customer.create", (_, _) => CommandResult.Ok(new { id = 11 }));
+        await using var pc = StartShopPc(owner.Site, key, handler);
+        var sealedBody = SealedByPhone(key, "customer.create", "replay-key-0001", NewCustomer);
+
+        // The same sealed bytes queued twice, under two different keys (what a dishonest cloud could do).
+        var first = (await (await owner.Http.SendAsync(Post("/owner/v1/customers", sealedBody, "replay-queue-01"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var second = (await (await owner.Http.SendAsync(Post("/owner/v1/customers", sealedBody, "replay-queue-02"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await pc.Service.PollOnceAsync(default);
+
+        Assert.Equal(1, handler.Runs);
+        foreach (var id in new[] { first, second })
+        {
+            var view = await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}");
+            Assert.Equal("applied", view.GetProperty("status").GetString());
+            Assert.Equal(11, OpenResult(key, id, view).GetProperty("data").GetProperty("id").GetInt32()); // each answer sealed to its own id
+        }
+    }
+
+    [Fact]
+    public async Task A_refusal_of_a_sealed_change_keeps_its_reason_sealed_too()
+    {
+        var owner = await SeedOwnerAsync("sealedrefusal@shop.test");
+        var key = DataKey.Generate();
+        var handler = new FakeHandler("customer.create", (_, _) => CommandResult.Reject(CommandErrorCodes.Validation, "Only 3 in stock, cannot remove 8.", new { errors = new { lastName = new[] { "too short" } } }));
+        await using var pc = StartShopPc(owner.Site, key, handler);
+
+        var id = (await (await owner.Http.SendAsync(Post("/owner/v1/customers", SealedByPhone(key, "customer.create", "refusal-0001", NewCustomer), "refusal-0001"))).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        await pc.Service.PollOnceAsync(default);
+
+        var view = await owner.Http.GetFromJsonAsync<JsonElement>($"/owner/v1/commands/{id}");
+        Assert.Equal("rejected", view.GetProperty("status").GetString());
+        Assert.Equal("validation", view.GetProperty("code").GetString());
+        Assert.DoesNotContain("in stock", view.GetProperty("message").GetString());
+        var opened = OpenResult(key, id, view);
+        Assert.Contains("in stock", opened.GetProperty("message").GetString());
+        Assert.Equal("too short", opened.GetProperty("data").GetProperty("errors").GetProperty("lastName")[0].GetString());
+    }
+
+    [Fact]
+    public async Task The_cloud_routes_for_product_edits_and_stock_changes_queue_the_right_kind()
+    {
+        var owner = await SeedOwnerAsync("kinds@shop.test");
+
+        var edit = await owner.Http.SendAsync(Post("/owner/v1/product-edits", new { enc = "e1.x" }, "kind-edit-0001"));
+        var stock = await owner.Http.SendAsync(Post("/owner/v1/stock-changes", new { enc = "e1.x" }, "kind-stock-001"));
+
+        Assert.Equal("product.update", (await edit.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("type").GetString());
+        Assert.Equal("stock.adjust", (await stock.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("type").GetString());
     }
 
     [Fact]

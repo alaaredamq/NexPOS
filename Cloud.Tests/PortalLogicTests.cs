@@ -88,7 +88,7 @@ public class PortalLogicTests
         s.EnrollmentCodes.Add(new EnrollmentCode { CodeHash = "y", CreatedAt = Now.AddDays(-20), ExpiresAt = Now.AddDays(-13) });
         Assert.Contains(AttentionRules.For(ClientWith(200, s), Now, Format()), i => i.Reason.Contains("expired unused"));
 
-        Assert.Contains(AttentionRules.For(ClientWith(200), Now, Format()), i => i.Reason == "No till added yet");
+        Assert.Contains(AttentionRules.For(ClientWith(200), Now, Format()), i => i.Reason == "No branch added yet");
     }
 
     [Fact]

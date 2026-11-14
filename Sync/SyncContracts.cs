@@ -20,8 +20,10 @@ public sealed record SyncBatch(
     IReadOnlyList<SyncChange> Changes);
 
 /// <param name="Table">Table name; must be one the cloud knows (<see cref="SyncSchema"/>).</param>
-/// <param name="Values">Column -> value for an upsert. Numbers, strings, null, or a <see cref="SyncBlob"/> for bytes.</param>
-public sealed record SyncChange(string Table, long Id, bool Deleted, Dictionary<string, object?>? Values);
+/// <param name="Values">Column -> value for an upsert. Numbers, strings, null, or a <see cref="SyncBlob"/> for bytes. Null when <paramref name="Enc"/> is used.</param>
+/// <param name="Enc">The row, end-to-end encrypted on the till (<see cref="RowCipher"/>). The cloud stores it as it is and cannot read it.
+/// Only the table, row id and "deleted" are visible to the cloud.</param>
+public sealed record SyncChange(string Table, long Id, bool Deleted, Dictionary<string, object?>? Values, string? Enc = null);
 
 /// <summary>Binary column value. JSON has no bytes, and a bare base64 string would be indistinguishable from text.</summary>
 public sealed record SyncBlob([property: JsonPropertyName("$b64")] string Base64);

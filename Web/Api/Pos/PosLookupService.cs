@@ -17,7 +17,7 @@ public interface IPosLookupService
 
     Task<PosCustomerPageDto> SearchCustomersAsync(string? search, int page, int pageSize);
 
-    Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName);
+    Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName, string? phoneNumber = null);
 
     Task<PosDrawerDto> GetDrawerAsync(int userId);
 }
@@ -69,7 +69,7 @@ public sealed class PosLookupService : IPosLookupService
         return new PosCustomerPageDto { Items = items.Select(Map).ToList(), Page = page, PageSize = pageSize, HasMore = hasMore };
     }
 
-    public async Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName)
+    public async Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName, string? phoneNumber = null)
     {
         // Same rule as the Customers page: 2-100 characters each. (The DTO attributes check the untrimmed text, so trim and look again.)
         firstName = firstName.Trim();
@@ -77,7 +77,12 @@ public sealed class PosLookupService : IPosLookupService
         if (firstName.Length < 2) throw new PosRuleException(StatusCodes.Status400BadRequest, "validation_failed", "Pos_NameTooShort", "firstName");
         if (lastName.Length < 2) throw new PosRuleException(StatusCodes.Status400BadRequest, "validation_failed", "Pos_NameTooShort", "lastName");
 
-        var created = await _customers.CreateAsync(new Customer(firstName, lastName, string.Empty));
+        // The phone number is optional: blank means none (stored as null, like the Customers page).
+        phoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
+        if (phoneNumber is not null && (phoneNumber.Length > 20 || !new System.ComponentModel.DataAnnotations.PhoneAttribute().IsValid(phoneNumber)))
+            throw new PosRuleException(StatusCodes.Status400BadRequest, "validation_failed", "Pos_PhoneInvalid", "phoneNumber");
+
+        var created = await _customers.CreateAsync(new Customer(firstName, lastName, string.Empty, phoneNumber));
         return Map(created);
     }
 

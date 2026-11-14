@@ -237,6 +237,7 @@ namespace Application.Services.Licensing
             Customer = payload?.Customer,
             Kind = payload?.Kind,
             Serial = payload?.SerialText,
+            Seats = payload?.Seats ?? 1,
             IssuedOn = payload?.IssuedOn,
             ValidUntil = payload?.ValidUntil
         };

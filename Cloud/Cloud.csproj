@@ -14,7 +14,20 @@
         <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
     </ItemGroup>
 
+    <!--
+        Server settings (admin login, public address, database connection) travel with every publish, from Cloud/deploy/cloud.settings.json,
+        which you create from cloud.settings.json.example and which git ignores. It is published to the site root as cloud.settings.json.
+        It is deliberately NOT in the project folder itself, so dotnet run and the tests never pick it up and cannot touch your real database.
+    -->
     <ItemGroup>
+        <Content Remove="deploy\**" />
+        <None Remove="deploy\**" />
+        <Content Include="deploy\cloud.settings.json" Condition="Exists('deploy\cloud.settings.json')"
+                 Link="cloud.settings.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

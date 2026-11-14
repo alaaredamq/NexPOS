@@ -102,8 +102,9 @@ new entity is picked up automatically. The list is `SyncSchema.ExcludedTables`.
   There is **no default password**: the account comes from `Cloud__AdminUser` / `Cloud__AdminPassword`
   (at least 12 characters).
 - Data-protection keys live on the data volume, so a redeploy does not sign you out.
-- **Not done:** two-factor sign-in, audit trail of portal actions beyond the per-client history, encryption of mirror
-  files at rest (rely on disk or volume encryption from your host), token storage on the till is a plain JSON file.
+- **Not done:** two-factor sign-in, audit trail of portal actions beyond the per-client history, token storage on the till is a
+  plain JSON file. Shop data is now end-to-end encrypted before it leaves the till (section 5b), which supersedes encryption at rest
+  for shop rows; the control database (clients, subscriptions) is still not encrypted at rest.
 
 ### 5a. Upgrade safety on the till (applies to every client PC, Online or not)
 
@@ -128,9 +129,49 @@ Tested with real databases on disk, including a real older-to-newer upgrade, a s
 copy, and a simulated power cut (`Tests/Migrations/PreUpgradeGuardTests.cs`); the real app was also started on a genuinely old
 database and made the copy before upgrading. **Not yet tried on a client's PC.**
 
+### 5b. End-to-end encryption of the shop's copy (added 2026-11-11, phase 1 of 3)
+
+**Goal (owner's requirement):** the provider cannot read a client's shop data. The provider sees only what is needed to run the
+service.
+
+| The cloud/provider can see | The cloud/provider cannot see |
+|---|---|
+| Client and shop name, contact, subscription, last contact, versions, sync status | Product names, prices, barcodes, customers, debts, sales lines, staff |
+| Which table a row belongs to, its id, whether it was deleted, when it arrived (so: **row counts per table**, storage size) | The contents of any row |
+
+How it works (`Sync/DataKey.cs`):
+- On first connect the till makes a **256-bit key** and keeps it in `online.json` (`DataKeyBase64`). It is never sent anywhere.
+  It survives Disconnect on purpose, so a printed recovery code keeps opening the cloud's copy after a reconnect.
+- Every changed row is encrypted on the till with **AES-256-GCM**, a fresh nonce each time, with the table and row id bound in as
+  authenticated data (the cloud cannot swap rows between places undetected). The batch carries `Enc` instead of `Values`.
+- The cloud stores the payload in a generic table, `__EncryptedRows(TableName, RowId, Payload)`, inside that client's own file. It
+  never holds the key, so it cannot decrypt, and **cannot recover the data for the owner either**.
+- **Recovery code:** the same key written as 56 base32 characters in groups of four with a 3-byte checksum, so a typo is refused instead
+  of producing a wrong key (`GET /api/v1/online/recovery-code`, needs `Settings.Manage`). The owner must print or write it down.
+  **If the PC is lost and the owner has neither the code nor a phone that already holds the key, the cloud copy is unreadable.** This is
+  the price of the promise, not a bug. Decided with the owner: no escrow copy is kept by the provider.
+- A till connected before this existed makes a key on its next cycle and re-sends the whole shop encrypted (the snapshot replaces the
+  readable copy).
+- `Cloud:RequireEncryption=true` makes the cloud refuse any readable row (deletions are always allowed).
+
+**Verified:** `Cloud.Tests/EncryptedSyncTests.cs`: after a real sync, the raw bytes of the client's database file and WAL contain
+none of the product names, barcodes, customer names or emails (and a control test proves the same scan *does* find them when sent
+unencrypted); wrong key, moved row and flipped bit all fail; every single-character typo in a recovery code is caught.
+
+**Phase 2, done (2026-11-12): the phone reads the copy.** `GET /owner/v1/rows?table=&cursor=&limit=` hands out one page of ciphertext (resumable cursor on arrival time); `GET /owner/v1/row-ids?table=` lets the phone drop rows the shop deleted. The Flutter app (`mobile/`) takes the recovery code once, keeps the key in secure storage, decrypts on the device (AES-GCM, tested against rows made by the C# code) and builds Today, Sales, Stock, Debts and the add-form pick-lists from the shop's own rows. `GET /lookups` still answers 409 `encrypted_copy` for an encrypted shop and is no longer used by the app. **`RequireEncryption` can now be turned on.** Settings > Online has a "Recovery code" card (show, copy, print, hide).
+
+**Phase 3, done (2026-11-12): what the phone sends is encrypted too.** The phone seals every change (`{ "enc": ... }`, AES-GCM of `{ k, body }` bound to the kind of change) and the till opens it. With a key on the till, **an unsealed change is refused**, so the cloud can neither read nor forge a change; the same `k` is never run twice even if the cloud re-queues the bytes under a new id; the till's answer (names, quantities, refusal reasons) is sealed to the command id. See `Sync/Commands.cs` (`CommandSeal`), `OnlineCommandService`, `CommandLedger`. New change kinds that use it: `product.update`, `stock.adjust`.
+
+**Not done yet:**
+4. The key sits in `online.json` as plain text, like the device token. Protect it with Windows DPAPI (per-user) before real clients.
+5. Customer names inside **audit/event text the portal writes itself** are not shop data, but check the portal never copies shop text
+   into the control database.
+6. The portal's per-table row counts still work (they count encrypted rows by table). Anything that wants totals (sales amounts) cannot
+   be computed on the server by design; if you want billing by volume, send an explicit plain counter from the till.
+
 ## 6. Running it
 
-**Visual walkthrough with screenshots (open in a browser, one file): `docs/online/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
+**Visual walkthrough with screenshots (open in a browser, one file): `docs/visual/HOW-TO-CONNECT.html`.** It covers connecting a shop, renewing, what each status means, and the other situations (new PC, second till, restored backup).
 
 ### Try it on your PC (no server needed)
 
@@ -170,6 +211,19 @@ Build the image once on the server and check `https://<your-domain>/healthz` bef
 
 Back up the `cloud-data` volume (`control.db`, `sites/*.db`, `keys/`). It is everything. Do it before you have a
 paying client.
+
+### Control database: SQLite or SQL Server
+
+The control database (clients, subscriptions, tokens, accounts, heartbeats; **no shop data**) runs on SQLite by default
+(`control.db` in `Cloud:DataRoot`), which needs nothing and is what tests, a local trial and a free test host use.
+Set `Cloud:ControlConnectionString` (or `Cloud__ControlConnectionString`) to a SQL Server connection string and it runs
+on SQL Server instead, creating its tables on first start. Recommended collation: `Arabic_CI_AS`. The two providers have
+separate migration sets (`Cloud/Data/Migrations` for SQLite, `Cloud/Data/MigrationsSqlServer`), selected by the context type
+(`ControlDbContext` / `SqlServerControlDbContext`). After changing the model, add a migration for **both**:
+`dotnet ef migrations add <Name> --project Cloud --context ControlDbContext --output-dir Data/Migrations` and the same with
+`--context SqlServerControlDbContext --output-dir Data/MigrationsSqlServer`. Shop mirrors stay SQLite files either way.
+Verified against LocalDB (all 12 tables created, admin seeded, `/healthz` ok); the 172 Cloud tests run on SQLite only.
+**Moving existing data between providers is not built**; do it before real clients exist.
 
 ## 7. Known limits
 

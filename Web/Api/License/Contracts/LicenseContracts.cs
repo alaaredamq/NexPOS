@@ -41,6 +41,9 @@ public sealed record LicenseDto
 
     public string? Serial { get; init; }
 
+    /// <summary>How many PCs the licence covers: the store server plus its tills. 1 until a licence is installed, and for keys issued before seats existed.</summary>
+    public required int Seats { get; init; }
+
     /// <summary><c>yyyy-MM-dd</c>.</summary>
     public string? IssuedOn { get; init; }
 

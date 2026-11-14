@@ -29,6 +29,11 @@ public sealed record LicenseDecodeResult(bool Success, LicensePayload? Payload, 
 /// Payload layout (big-endian):
 /// [0] format version (1) | [1] kind | [2..13] machine id | [14..15] issued day | [16..17] valid-until day |
 /// [18..21] serial | [22] name length N | [23..23+N) customer name, UTF-8. Days count from 2024-01-01.
+///
+/// Version 2 is the same record plus one trailing byte after the name: the seat count (PCs covered, 1..255).
+/// A key for a single seat is still written as version 1, so builds that predate seats keep accepting it; only
+/// multi-seat keys need a build that knows version 2 (an older build says "unsupported version" rather than
+/// quietly treating a 5-PC package as one PC).
 /// </summary>
 public static class LicenseCodec
 {
@@ -37,7 +42,10 @@ public static class LicenseCodec
 
     public const int MaxCustomerBytes = 60;
 
+    public const int MaxSeats = 255;
+
     private const byte FormatVersion = 1;
+    private const byte FormatVersionWithSeats = 2;
     private const int SignatureLength = 64;
     private const int FixedPayloadLength = 23;
     private static readonly DateOnly Epoch = new(2024, 1, 1);
@@ -79,9 +87,11 @@ public static class LicenseCodec
         if (!Base32.TryDecode(body, out var raw) || raw.Length < FixedPayloadLength + SignatureLength)
             return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
-        if (raw[0] != FormatVersion) return LicenseDecodeResult.Fail(LicenseDecodeError.UnsupportedVersion);
+        var version = raw[0];
+        if (version != FormatVersion && version != FormatVersionWithSeats)
+            return LicenseDecodeResult.Fail(LicenseDecodeError.UnsupportedVersion);
 
-        var payloadLength = FixedPayloadLength + raw[22];
+        var payloadLength = FixedPayloadLength + raw[22] + (version == FormatVersionWithSeats ? 1 : 0);
         if (raw.Length != payloadLength + SignatureLength) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
         var payloadBytes = raw.AsSpan(0, payloadLength);
@@ -103,13 +113,21 @@ public static class LicenseCodec
         var kind = (LicenseKind)raw[1];
         if (!Enum.IsDefined(kind)) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
+        var seats = 1;
+        if (version == FormatVersionWithSeats)
+        {
+            seats = payloadBytes[^1];
+            if (seats < 1) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
+        }
+
         var payload = new LicensePayload(
             kind,
             MachineId.FromBytes(payloadBytes.Slice(2, MachineId.Length)),
             FromDay(BinaryPrimitives.ReadUInt16BigEndian(payloadBytes.Slice(14, 2))),
             FromDay(BinaryPrimitives.ReadUInt16BigEndian(payloadBytes.Slice(16, 2))),
             BinaryPrimitives.ReadUInt32BigEndian(payloadBytes.Slice(18, 4)),
-            Encoding.UTF8.GetString(payloadBytes.Slice(FixedPayloadLength, raw[22])));
+            Encoding.UTF8.GetString(payloadBytes.Slice(FixedPayloadLength, raw[22])),
+            seats);
 
         return LicenseDecodeResult.Ok(payload);
     }
@@ -147,8 +165,12 @@ public static class LicenseCodec
         if (payload.Machine.IsEmpty)
             throw new ArgumentException("A license cannot be issued for an empty machine id.", nameof(payload));
 
-        var bytes = new byte[FixedPayloadLength + nameBytes.Length];
-        bytes[0] = FormatVersion;
+        if (payload.Seats is < 1 or > MaxSeats)
+            throw new ArgumentOutOfRangeException(nameof(payload), $"A license covers between 1 and {MaxSeats} PCs.");
+
+        var withSeats = payload.Seats > 1;
+        var bytes = new byte[FixedPayloadLength + nameBytes.Length + (withSeats ? 1 : 0)];
+        bytes[0] = withSeats ? FormatVersionWithSeats : FormatVersion;
         bytes[1] = (byte)payload.Kind;
         payload.Machine.Bytes.CopyTo(bytes.AsSpan(2, MachineId.Length));
         BinaryPrimitives.WriteUInt16BigEndian(bytes.AsSpan(14, 2), ToDay(payload.IssuedOn));
@@ -156,6 +178,7 @@ public static class LicenseCodec
         BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(18, 4), payload.Serial);
         bytes[22] = (byte)nameBytes.Length;
         nameBytes.CopyTo(bytes, FixedPayloadLength);
+        if (withSeats) bytes[^1] = (byte)payload.Seats;
         return bytes;
     }
 
