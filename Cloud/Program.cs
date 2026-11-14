@@ -116,6 +116,8 @@ var controlDb = string.IsNullOrWhiteSpace(controlConnection) ? "sqlite" : "sqlse
 app.Logger.LogInformation("Control database: {Provider}", controlDb);
 var settingsFileFound = File.Exists(Path.Combine(app.Environment.ContentRootPath, "cloud.settings.json"));
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok", controlDb, settingsFileFound })).AllowAnonymous();
+// The owner's website (static files in wwwroot/owner): public pages that sign in through /owner/v1 and decrypt in the browser.
+app.MapGet("/owner", () => Results.Redirect("/owner/index.html")).AllowAnonymous();
 app.MapSyncApi();
 app.MapOwnerApi();
 app.MapEnrollApi();

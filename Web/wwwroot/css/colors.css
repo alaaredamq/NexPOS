@@ -8,17 +8,18 @@
        ===================================================== */
 
     /* Brand — a teal dark enough to carry white label text (5:1 on white) */
-    --color-primary: #0a7b85;
-    --color-primary-hover: #08636b;
+    --color-primary: #1e3a8a;
+    --color-primary-hover: #172e6e;
+    --color-accent: #12b5a5;
     /* Same hue lifted to LCD brightness for the dark readouts (POS total, rail accents) */
-    --color-readout: #5ad7e2;
+    --color-readout: #6d8df0;
     --color-readout-settled: #74e8ab;
 
-    --color-ink: #171b26;
+    --color-ink: #0b1633;
     --color-muted: #5c6472;
     --color-faint: #8b93a3;
     --color-border: #e3e7ee;
-    --color-canvas: #f2f7f7;
+    --color-canvas: #f2f5fb;
     --color-card: #ffffff;
 
     --color-success: #178a50;
@@ -34,9 +35,9 @@
     --color-neutral-bg: #eef1f5;
 
     /* Navigation rail: near-black with the brand hue, plus the surfaces layered on it */
-    --color-nav-bg: #101e20;
+    --color-nav-bg: #0b1633;
     --color-nav-ink: #ffffff;
-    --color-nav-faint: #8fa3a6;
+    --color-nav-faint: #8f9cc0;
     --color-nav-hover: rgba(255, 255, 255, 0.07);
     --color-nav-divider: rgba(255, 255, 255, 0.08);
 
@@ -64,7 +65,7 @@
     --space-8: 32px;
 
     /* Elevation */
-    --shadow-hover: 0 2px 10px rgba(10, 123, 133, 0.12);
+    --shadow-hover: 0 2px 10px rgba(30, 58, 138, 0.14);
     --shadow-card: 0 1px 2px rgba(16, 20, 28, 0.05), 0 1px 3px rgba(16, 20, 28, 0.04);
     --shadow-pop: 0 12px 32px rgba(16, 20, 28, 0.16), 0 2px 6px rgba(16, 20, 28, 0.08);
     --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.25);

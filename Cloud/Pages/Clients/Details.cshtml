@@ -25,7 +25,8 @@
     </div>
 </div>
 
-<section class="card" aria-labelledby="plan">
+<div class="g">
+<section class="card s5" aria-labelledby="plan">
     <h2 id="plan">Online subscription</h2>
     <div class="row" style="justify-content:space-between;align-items:flex-start;gap:20px">
         <div>
@@ -66,7 +67,7 @@
     }
 </section>
 
-<section class="card" aria-labelledby="branches">
+<section class="card s7" aria-labelledby="branches">
     <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
     {
@@ -110,6 +111,7 @@
         </form>
     </details>
 </section>
+</div>
 
 @if (Model.NewLoginEmail is not null)
 {
@@ -124,7 +126,7 @@ Password: @Model.NewLoginPassword</div>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
         <div class="row" style="margin-top:12px">
-            <button type="button" class="btn tag" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
+            <button type="button" class="btn" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
             <a class="btn secondary" target="_blank" rel="noopener" href="@Model.NewLoginWhatsApp"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
         </div>
     </section>
@@ -132,7 +134,7 @@ Password: @Model.NewLoginPassword</div>
 
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
-    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app. It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
     @if (Model.Owners.Count == 0)
     {
         <p class="muted">No phone login yet.</p>

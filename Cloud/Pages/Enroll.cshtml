@@ -7,19 +7,9 @@
 
 @* Public on purpose, so a link sent on WhatsApp opens to instructions instead of an error. It never looks the code up or shows who it belongs to. *@
 <div class="auth">
-    <section class="side">
-        <a class="brand" href="#" aria-label="Coduo POS Online">
-            <span class="mark" aria-hidden="true">C</span>
-            <span><b>Coduo POS</b><span>Online</span></span>
-        </a>
-        <div>
-            <h1>Connect your <em>Coduo POS.</em></h1>
-            <p>Three steps, once. After that your shop copies itself to the cloud, all day, by itself.</p>
-        </div>
-        <small class="muted" style="color:var(--rail-ink);opacity:.7">Selling never waits for Online. If the internet drops, sales are kept on your PC and sent later.</small>
-    </section>
     <section class="form">
         <div class="box" style="max-width:460px">
+            <a class="lgrow" href="#" aria-label="Coduo POS Online"><partial name="_Logo" /><span class="where">Online</span></a>
             <h2>What to do</h2>
             <ol class="steps">
                 <li><span>Open <b>Coduo POS</b> on the shop computer and sign in.</span></li>
@@ -31,6 +21,13 @@
             <p class="help">The link works once and expires after a week. If it stops working, ask your provider for a new one.</p>
             <p dir="rtl" class="help">افتح Coduo POS ثم الإعدادات ثم Online، والصق عنوان هذه الصفحة واضغط Connect.</p>
         </div>
+    </section>
+    <section class="side">
+        <div>
+            <h1>Connect your <em>Coduo POS.</em></h1>
+            <p>Three steps, once. After that your shop copies itself to the cloud, all day, by itself.</p>
+        </div>
+        <small class="muted" style="color:var(--rail-ink);opacity:.7">Selling never waits for Online. If the internet drops, sales are kept on your PC and sent later.</small>
     </section>
 </div>
 <script>document.getElementById('page-link').textContent = window.location.href;</script>

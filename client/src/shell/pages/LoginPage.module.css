@@ -20,7 +20,7 @@
   pointer-events: none;
   background:
     radial-gradient(circle at 20% 80%, rgba(140, 232, 228, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(10, 123, 133, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(18, 181, 165, 0.16) 0%, transparent 50%),
     radial-gradient(circle at 40% 40%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
 }
 
@@ -246,7 +246,7 @@
 .language[data-active='true'] {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(10, 123, 133, 0.3);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 .language:focus-visible {

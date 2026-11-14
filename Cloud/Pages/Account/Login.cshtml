@@ -11,11 +11,28 @@
 }
 
 <div class="auth">
+    <section class="form">
+        <div class="box">
+            <a class="lgrow" href="/" aria-label="Coduo POS Cloud"><partial name="_Logo" /><span class="where">Cloud</span></a>
+            <h2>Sign in</h2>
+            <p class="muted">Use the account set up for this portal.</p>
+            <form method="post">
+                <label for="username">Username</label>
+                <input id="username" name="Username" value="@Model.Username" autocomplete="username" autofocus />
+                <label for="password">Password</label>
+                <div class="pw">
+                    <input id="password" name="Password" type="password" autocomplete="current-password" />
+                    <button type="button" id="pw-toggle" aria-controls="password">Show</button>
+                </div>
+                @if (Model.Error is not null)
+                {
+                    <p class="error" role="alert">@Model.Error</p>
+                }
+                <p style="margin-top:18px"><button type="submit" class="btn" style="width:100%;min-height:44px">Sign in</button></p>
+            </form>
+        </div>
+    </section>
     <section class="side">
-        <a class="brand" href="/" aria-label="Coduo POS Cloud">
-            <span class="mark" aria-hidden="true">C</span>
-            <span><b>Coduo POS</b><span>Cloud</span></span>
-        </a>
         <div>
             <h1>Every branch, <em>in sight.</em></h1>
             <p>See which shops are connected, who is due to renew, and the hours a shop's PC went quiet.</p>
@@ -25,24 +42,13 @@
         </div>
         <small class="muted" style="color:var(--rail-ink);opacity:.7">For the provider only.</small>
     </section>
-    <section class="form">
-        <div class="box">
-            <h2>Sign in</h2>
-            <p class="muted">Use the account set up for this portal.</p>
-            <form method="post">
-                <label for="username">Username</label>
-                <input id="username" name="Username" value="@Model.Username" autocomplete="username" autofocus />
-                <label for="password">Password</label>
-                <input id="password" name="Password" type="password" autocomplete="current-password" />
-                @if (Model.Error is not null)
-                {
-                    <p class="error" role="alert">@Model.Error</p>
-                }
-                <p style="margin-top:18px"><button type="submit" class="btn" style="width:100%;min-height:44px">Sign in</button></p>
-            </form>
-        </div>
-    </section>
 </div>
+<script>
+    document.getElementById('pw-toggle').addEventListener('click', function () {
+        var input = document.getElementById('password'), show = input.type === 'password';
+        input.type = show ? 'text' : 'password'; this.textContent = show ? 'Hide' : 'Show';
+    });
+</script>
 
 @functions {
     public class LoginModel(ControlDbContext db, LoginThrottle throttle, TimeProvider time) : PageModel

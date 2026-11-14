@@ -10,22 +10,75 @@
         <h1>Clients</h1>
         <p class="sub">@Model.Summary</p>
     </div>
-    <a class="btn tag" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>New client</a>
+    <a class="btn" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>New client</a>
 </div>
 
-@if (Model.Attention.Count > 0)
+@if (Model.Rows.Count > 0)
 {
-    <section class="card attention" aria-labelledby="needs">
-        <h2 id="needs">Needs you <span class="count">@Model.Attention.Count</span></h2>
-        @foreach (var a in Model.Attention)
-        {
-            <div class="attn @(a.Severity == AttentionSeverity.Bad ? "bad" : "")">
-                <i aria-hidden="true"></i>
-                <div><b>@a.Client</b> <span>@a.Reason</span></div>
-                <a class="btn sm secondary" href="@a.Href">@a.Action</a>
+    var cells = Model.Overall.Cells;
+    var maxContacts = cells.Max(c => c.Contacts);
+    var top = maxContacts <= 4 ? 4 : (int)Math.Ceiling(maxContacts / 4.0) * 4;
+    var planTotal = Math.Max(1, Model.Rows.Count);
+    <div class="g">
+        <section class="card s8" aria-labelledby="h-contact">
+            <div class="ph">
+                <h2 id="h-contact">Shops in contact</h2>
+                <span class="pill @(Model.Connected == Model.Rows.Count ? "ok" : "warn")">@Model.Overall.LitHours of the last 24 hours had contact</span>
             </div>
-        }
-    </section>
+            <div class="big">@Model.Connected <span class="of">of @Model.Rows.Count clients</span></div>
+            <p class="muted" style="margin:6px 0 0">have a shop PC connected and sending data.</p>
+            <div class="chart" dir="ltr" role="img" aria-label="Contacts from all shops in each of the last 24 hours">
+                <div class="yax">
+                    @foreach (var v in new[] { 0, top / 2, top }) { <span style="bottom:@((v * 100.0 / top).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%">@v</span> }
+                </div>
+                <div class="plot">
+                    @foreach (var v in new[] { 0, top / 2, top }) { <div class="gl" style="bottom:@((v * 100.0 / top).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%"></div> }
+                    <div class="cols">
+                        @for (var i = 0; i < cells.Count; i++)
+                        {
+                            var h = (cells[i].Contacts * 100.0 / top).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                            <div class="col">@if (cells[i].Contacts > 0) { <div class="bar @(i == cells.Count - 1 ? "now" : "")" style="height:@h%"></div> }</div>
+                        }
+                    </div>
+                </div>
+                <div class="xl">
+                    @for (var i = 0; i < cells.Count; i++) { <span>@(Fmt.Local(cells[i].HourUtc).Hour % 3 == 0 ? Fmt.Local(cells[i].HourUtc).Hour.ToString("00") : "")</span> }
+                </div>
+            </div>
+        </section>
+        <section class="card s4" aria-labelledby="h-plans">
+            <div class="ph"><h2 id="h-plans">Online plans</h2></div>
+            <div class="stack" role="img" aria-label="Plans: @Model.PlansActive active, @Model.PlansEnding ending soon, @Model.PlansEnded ended">
+                <i style="width:@((Model.PlansActive * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:var(--data)"></i>
+                <i style="width:@((Model.PlansEnding * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:#e0a526"></i>
+                <i style="width:@((Model.PlansEnded * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:var(--bad)"></i>
+            </div>
+            <div>
+                <div class="pr"><span class="sw" style="background:var(--data)"></span><span class="nm">Active</span><span class="am">@Model.PlansActive</span></div>
+                <div class="pr"><span class="sw" style="background:#e0a526"></span><span class="nm">Ends within 14 days</span><span class="am">@Model.PlansEnding</span></div>
+                <div class="pr"><span class="sw" style="background:var(--bad)"></span><span class="nm">Ended or not started</span><span class="am">@Model.PlansEnded</span></div>
+            </div>
+            <div class="kv">
+                <div><b>@Model.ProductsTotal.ToString("N0")</b><span>products held</span></div>
+                <div><b>@Model.OrdersTotal.ToString("N0")</b><span>orders held</span></div>
+            </div>
+        </section>
+    </div>
+
+    @if (Model.Attention.Count > 0)
+    {
+        <section class="card" aria-labelledby="needs">
+            <div class="ph"><h2 id="needs">Needs you</h2><span class="pill warn">@Model.Attention.Count</span></div>
+            @foreach (var a in Model.Attention)
+            {
+                <div class="ai">
+                    <span class="ico @(a.Severity == AttentionSeverity.Bad ? "bad" : "warn")"><svg class="icon"><use href="#i-alert"/></svg></span>
+                    <div class="tx"><b>@a.Client</b><p>@a.Reason</p></div>
+                    <a class="btn sm secondary" href="@a.Href">@a.Action</a>
+                </div>
+            }
+        </section>
+    }
 }
 
 @if (Model.Rows.Count == 0)
@@ -33,7 +86,7 @@
     <div class="list"><div class="empty">
         <h3>No clients yet</h3>
         <p>Add the first shop. You get a link to send the owner; they paste it on the shop PC and the shop connects.</p>
-        <a class="btn tag" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>Add the first client</a>
+        <a class="btn" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>Add the first client</a>
     </div></div>
 }
 else
@@ -88,7 +141,7 @@ else
 @functions {
     public sealed record ClientRow(
         int Id, string Name, bool IsActive, string Sub, SubscriptionState State, string PlanNote,
-        PulseData Pulse, string Seen, string[] Tags, long? Products, long? Orders);
+        PulseData Pulse, string Seen, string[] Tags, long? Products, long? Orders, bool EndingSoon);
 
     public class IndexModel(ControlDbContext db, MirrorStore mirrors, PortalFormat fmt) : PageModel
     {
@@ -97,6 +150,13 @@ else
         public List<ClientRow> Rows { get; private set; } = [];
         public List<AttentionItem> Attention { get; private set; } = [];
         public string Summary { get; private set; } = "";
+        public PulseData Overall { get; private set; } = new([]);
+        public int Connected { get; private set; }
+        public int PlansActive { get; private set; }
+        public int PlansEnding { get; private set; }
+        public int PlansEnded { get; private set; }
+        public long ProductsTotal { get; private set; }
+        public long OrdersTotal { get; private set; }
 
         public async Task OnGetAsync()
         {
@@ -146,11 +206,19 @@ else
                         : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
                     pulse,
                     seenAt is null ? (c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
-                    tags.ToArray(), products, orders);
+                    tags.ToArray(), products, orders,
+                    state == SubscriptionState.Active && c.Subscription is not null && c.Subscription.ExpiresAt - now < TimeSpan.FromDays(14));
             }).ToList();
 
             Attention = attention.OrderByDescending(a => a.Item.Severity).ThenBy(a => a.Item.Client).Select(a => a.Item).ToList();
             var connected = Rows.Count(r => r.Tags.Contains("connected"));
+            Connected = connected;
+            Overall = PulseData.Build(clients.SelectMany(c => c.Sites).SelectMany(x => beats[x.Id]), now);
+            PlansEnding = Rows.Count(r => r.State == SubscriptionState.Active && r.EndingSoon);
+            PlansActive = Rows.Count(r => r.State is SubscriptionState.Active or SubscriptionState.Grace) - PlansEnding;
+            PlansEnded = Rows.Count - PlansActive - PlansEnding;
+            ProductsTotal = Rows.Sum(r => r.Products ?? 0);
+            OrdersTotal = Rows.Sum(r => r.Orders ?? 0);
             Summary = Rows.Count == 0 ? "Nobody yet."
                 : $"{Rows.Count} client{(Rows.Count == 1 ? "" : "s")} · {connected} connected" + (Attention.Count > 0 ? $" · {Attention.Count} need{(Attention.Count == 1 ? "s" : "")} you" : "");
         }
