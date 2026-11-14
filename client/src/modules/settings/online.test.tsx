@@ -81,7 +81,7 @@ describe('not connected', () => {
 
     expect(await screen.findByText('Corner Shop')).toBeInTheDocument()
     expect(calls('POST', '/api/v1/online/connect')[0]!.body).toEqual({ link: LINK })
-    expect(await screen.findByText('Connected to NexPOS Online')).toBeInTheDocument()
+    expect(await screen.findByText('Connected to Coduo POS Online')).toBeInTheDocument()
     expect(screen.queryByLabelText('Connection link')).not.toBeInTheDocument()
   })
 
@@ -90,7 +90,7 @@ describe('not connected', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Connect' }))
 
-    expect(await screen.findByText(/doesn't look like a NexPOS Online link/)).toBeInTheDocument()
+    expect(await screen.findByText(/doesn't look like a Coduo POS Online link/)).toBeInTheDocument()
     expect(calls('POST', '/api/v1/online/connect')).toHaveLength(0)
   })
 

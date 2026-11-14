@@ -4935,7 +4935,7 @@ export interface components {
             link: string;
         };
         /**
-         * @description The Online screen: whether this till is connected to NexPOS Online, to whom, and how the last synchronisation went.
+         * @description The Online screen: whether this till is connected to Coduo POS Online, to whom, and how the last synchronisation went.
          *     The device token is never part of it.
          */
         OnlineStatusDto: {

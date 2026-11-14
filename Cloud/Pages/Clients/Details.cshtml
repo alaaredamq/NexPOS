@@ -70,7 +70,7 @@
     <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
     {
-        <p class="muted">No branch yet. Add one for each separate shop that has its own NexPOS database. Extra PCs in the same shop do not need one.</p>
+        <p class="muted">No branch yet. Add one for each separate shop that has its own Coduo POS database. Extra PCs in the same shop do not need one.</p>
     }
     @foreach (var site in Model.Client.Sites.OrderBy(x => x.CreatedAt))
     {
@@ -119,8 +119,8 @@
         <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Email: @Model.NewLoginEmail
 Password: @Model.NewLoginPassword</div>
         <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
-            <li>The owner installs the NexPOS Owner app and signs in with the email and password above.</li>
-            <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: NexPOS &gt; Settings &gt; Online &gt; Show recovery code.</li>
+            <li>The owner installs the Coduo POS Owner app and signs in with the email and password above.</li>
+            <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: Coduo POS &gt; Settings &gt; Online &gt; Show recovery code.</li>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
         <div class="row" style="margin-top:12px">
@@ -132,7 +132,7 @@ Password: @Model.NewLoginPassword</div>
 
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
-    <p class="muted" style="margin-top:0">What the shop owner types in the NexPOS phone app. It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app. It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
     @if (Model.Owners.Count == 0)
     {
         <p class="muted">No phone login yet.</p>
@@ -253,9 +253,9 @@ Password: @Model.NewLoginPassword</div>
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
         public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"NexPOS app login\nEmail: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
-            "After signing in the app asks for the recovery code. Find it on the shop PC: NexPOS > Settings > Online > Show recovery code.\n" +
-            "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: NexPOS > الإعدادات > Online > إظهار رمز الاسترداد.");
+            $"Coduo POS app login\nEmail: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+            "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
+            "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
 
         private async Task LoadAsync(int id)
         {

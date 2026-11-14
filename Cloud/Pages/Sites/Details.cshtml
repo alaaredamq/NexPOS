@@ -31,7 +31,7 @@
 {
     <div class="slip-area">
         <div class="slip">
-            <div class="head">NexPOS Online</div>
+            <div class="head">Coduo POS Online</div>
             <div class="store">@Model.Site.Client.Name</div>
             <hr />
             <div class="label">Connection link</div>
@@ -43,7 +43,7 @@
             <h2>Send this link to the shop owner</h2>
             <p>It works once and expires on @Model.NewLinkExpires. It is shown only now; if you lose it, make a new one.</p>
             <ol>
-                <li>The owner opens NexPOS on the shop PC.</li>
+                <li>The owner opens Coduo POS on the shop PC.</li>
                 <li>Settings, then the Online tab: paste the link.</li>
                 <li>Press Connect. That is all.</li>
             </ol>
@@ -181,7 +181,7 @@
             <div class="notice">
                 <strong>Copy this device token now. It is shown only once.</strong>
                 <div class="token">@Model.NewToken</div>
-                <p>Manual alternative to the link: create <code>%LocalAppData%\NexPOS\online.json</code> on the shop PC and restart NexPOS:</p>
+                <p>Manual alternative to the link: create <code>%LocalAppData%\NexPOS\online.json</code> on the shop PC and restart Coduo POS:</p>
 <pre>{
   "Online": {
     "Enabled": true,
@@ -236,8 +236,8 @@
             : options.Value.PublicUrl.TrimEnd('/');
 
         public string WhatsAppUrl => "https://wa.me/?text=" + Uri.EscapeDataString(
-            "NexPOS Online: open NexPOS > Settings > Online, paste this link and press Connect.\n" +
-            "لتفعيل NexPOS Online: افتح الإعدادات ثم Online والصق هذا الرابط واضغط Connect.\n" + NewLink);
+            "Coduo POS Online: open Coduo POS > Settings > Online, paste this link and press Connect.\n" +
+            "لتفعيل Coduo POS Online: افتح الإعدادات ثم Online والصق هذا الرابط واضغط Connect.\n" + NewLink);
 
         public string ConnectionLabel => SiteInsight.Label(Connection);
         public string ConnectionHelp => SiteInsight.Help(Connection);

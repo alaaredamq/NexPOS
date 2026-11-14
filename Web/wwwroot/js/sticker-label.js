@@ -4,7 +4,7 @@
  *
  *   StickerLabel.prompt({ name: 'Cable', code: '2261013123452', price: '$4.00' });
  *
- * Inside the NexPos desktop app the sticker prints silently, straight to the sticker printer
+ * Inside the Coduo POS desktop app the sticker prints silently, straight to the sticker printer
  * chosen on this computer (in App Settings or the dialog itself; the OS default if none), and
  * the copy count is handed to the printer.
  * In a plain browser a web page can't talk to a specific printer, so the labels (one page per

@@ -4,7 +4,7 @@
     - the database lives in out\demo.db (NEXPOS_DB_PATH)
     - NEXPOS_DEMO=1 swaps the receipt printer for a no-op
   Usage:  powershell -File tools\demo-video\record.ps1            (add -SkipBuild to reuse the last build)
-  Output: tools\demo-video\out\NexPOS-Demo.mp4
+  Output: tools\demo-video\out\CoduoPOS-Demo.mp4
 #>
 param([switch]$SkipBuild, [int]$Port = 5055)
 $ErrorActionPreference = 'Stop'
@@ -46,5 +46,5 @@ try {
 finally { if ($server -and -not $server.HasExited) { Stop-Process -Id $server.Id -Force } }
 
 $ffmpeg = node -e "console.log(require('$($here.Replace('\','/'))/node_modules/ffmpeg-static'))"
-& $ffmpeg -y -hide_banner -loglevel error -ss 0.4 -i (Join-Path $out 'raw.webm') -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p -r 25 -movflags +faststart (Join-Path $out 'NexPOS-Demo.mp4')
-Write-Host "Done: $(Join-Path $out 'NexPOS-Demo.mp4')"
+& $ffmpeg -y -hide_banner -loglevel error -ss 0.4 -i (Join-Path $out 'raw.webm') -c:v libx264 -preset slow -crf 19 -pix_fmt yuv420p -r 25 -movflags +faststart (Join-Path $out 'CoduoPOS-Demo.mp4')
+Write-Host "Done: $(Join-Path $out 'CoduoPOS-Demo.mp4')"

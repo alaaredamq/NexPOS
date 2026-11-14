@@ -15,7 +15,7 @@ public class EnrollmentLinkTests
     [InlineData("https://cloud.example.com/enroll/7K4MQ2PDX9RT")]                        // no dashes
     [InlineData("cloud.example.com/enroll/7K4M-Q2PD-X9RT")]                               // no scheme
     [InlineData("<https://cloud.example.com/enroll/7K4M-Q2PD-X9RT>")]                     // chat apps wrap links
-    [InlineData("NexPOS Online: paste this link and press Connect.\nلتفعيل NexPOS Online: الصق الرابط\nhttps://cloud.example.com/enroll/7K4M-Q2PD-X9RT")] // the whole WhatsApp message
+    [InlineData("Coduo POS Online: paste this link and press Connect.\nلتفعيل Coduo POS Online: الصق الرابط\nhttps://cloud.example.com/enroll/7K4M-Q2PD-X9RT")] // the whole WhatsApp message
     [InlineData("https://cloud.example.com/enroll/7K4M-Q2PD-X9RT?utm=chat")]
     [InlineData("https://cloud.example.com/enroll/7K4M%2DQ2PD%2DX9RT")]
     public void Common_ways_of_pasting_all_work(string pasted)

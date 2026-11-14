@@ -1,8 +1,8 @@
-# NexPOS Online: platform design
+# Coduo POS Online: platform design
 
 Branch `online/platform`. Written 2026-11-05.
 
-NexPOS stays an offline-first desktop product: the till PC runs its own server and its own SQLite database, and
+Coduo POS stays an offline-first desktop product: the till PC runs its own server and its own SQLite database, and
 selling never depends on the internet. **Online** is a separate, paid add-on that gives a client's owner a copy of their
 shop in the cloud, for phones and browsers.
 
@@ -63,7 +63,7 @@ rule. Online is priced as a subscription because it has running costs (hosting, 
 | O12 | The till writes **nothing extra and opens no network connection unless enrolled.** | A till that is not enrolled gets no extra tables or triggers (tested). Existing installs are unaffected by this branch. |
 | O13 | **Enrolment is one pasted link**, not a token and a file. The portal makes `https://<cloud>/enroll/XXXX-XXXX-XXXX`; the owner pastes it in Settings > Online and presses Connect. | Installation had to be easy for a non-technical owner and for you on the phone. A link travels well on WhatsApp, and pasting the whole message works. |
 | O14 | The link holds a **one-time code, not the credential**: 60 bits, stored hashed, works once, expires in 7 days, a new link cancels the old one, only unknown codes count toward the guess throttle. The device token is created when the till redeems it and is never shown to anyone. | A link sent over chat is a secret in transit. Making it single-use and short-lived limits the damage of a leak to "someone enrolled first", which the owner sees at once because their own attempt then fails with "already used". |
-| O15 | **Connecting and disconnecting take effect at once, with no restart.** The background service re-reads the settings every cycle and can be woken instantly. Disconnecting removes the capture triggers; reconnecting starts from a full snapshot. | The owner should never be told to restart NexPOS, and a disconnected till must stop paying the (small) cost of change capture. |
+| O15 | **Connecting and disconnecting take effect at once, with no restart.** The background service re-reads the settings every cycle and can be woken instantly. Disconnecting removes the capture triggers; reconnecting starts from a full snapshot. | The owner should never be told to restart Coduo POS, and a disconnected till must stop paying the (small) cost of change capture. |
 | O16 | The till **refuses plain `http://` links** except to this computer. | The code buys a credential; it must not cross a network in clear text. Loopback http is allowed so the platform can be tried on one PC. |
 | O17 | **Health is judged on contact, not on data.** A till is "in contact" if the cloud heard from it in the last 25 minutes, whether or not it had data to send. Each contact is counted per hour (kept 7 days) and drawn as a 24-hour strip. | A closed shop sends no data overnight; judging on data would show every quiet shop as down. A connected PC checks in about every 10 minutes, so silence is a real signal, and the strip shows exactly when a PC lost power or internet. |
 | O18 | The portal **leads with what needs you** (ended or ending subscriptions, silent tills, unused links) and shows times in the provider's zone (`Cloud__TimeZone`, default Asia/Beirut). Anything that cuts a shop off asks first and says the shop keeps selling. | A provider with dozens of clients should not have to scan a list to find the three that matter. |
@@ -71,7 +71,7 @@ rule. Online is priced as a subscription because it has running costs (hosting, 
 ## 4. How a change travels
 
 1. **Enrol.** In the portal you create a client: one form, which also creates the installation ("Main till") and shows
-   the connection link with **Copy link** and **Send on WhatsApp**. The owner opens NexPOS > Settings > Online,
+   the connection link with **Copy link** and **Send on WhatsApp**. The owner opens Coduo POS > Settings > Online,
    pastes the link and presses **Connect**. The till redeems the one-time code for its device token, saves it beside
    its database (`online.json`) and starts syncing, with no restart.
 2. **Start.** On connect (and on every start while connected, after migrations), the till installs one
@@ -183,7 +183,7 @@ dotnet run --project Cloud --urls http://localhost:5100
 ```
 
 Open `http://localhost:5100`, sign in, **New client** (name, months of Online) and press the button. The next screen
-shows the connection link. In NexPOS open **Settings > Online**, paste the link, press **Connect**. That is the whole
+shows the connection link. In Coduo POS open **Settings > Online**, paste the link, press **Connect**. That is the whole
 installation: the shop is uploaded within seconds and the installation's page in the portal shows **Connected**, the last
 sync and row counts. (Plain `http://localhost` links are accepted for this local trial; anything else must be `https`.)
 
@@ -197,7 +197,7 @@ valid, cloud unreachable, subscription ended, till disconnected by you. Each one
 
 **Manual fallback** (rarely needed): the installation page has an *Advanced* section that issues a raw device token. Put
 it in `%LocalAppData%\NexPOS\online.json` as `{ "Online": { "Enabled": true, "CloudUrl": "https://...", "DeviceToken": "nxp_..." } }`
-and restart NexPOS. The same file is what the Connect button writes.
+and restart Coduo POS. The same file is what the Connect button writes.
 
 ### Hosting (you have no host yet)
 

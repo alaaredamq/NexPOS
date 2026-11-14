@@ -1,5 +1,5 @@
 /**
- * Localization Helper for NexPos
+ * Localization Helper for Coduo POS
  * Manages loading and accessing translations from JSON files
  */
 

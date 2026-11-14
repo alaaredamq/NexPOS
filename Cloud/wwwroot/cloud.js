@@ -1,4 +1,4 @@
-// NexPOS Cloud portal: copy buttons, confirm dialog, toast, and the client list filter. No dependencies.
+// Coduo POS Cloud portal: copy buttons, confirm dialog, toast, and the client list filter. No dependencies.
 
 // ---- copy: <button data-copy="#selector"> copies that element's text ----
 document.addEventListener('click', async (event) => {

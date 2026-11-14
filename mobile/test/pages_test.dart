@@ -252,7 +252,7 @@ void main() {
     testWidgets('with the lock on, the app opens behind a lock screen that a failed fingerprint does not open', (tester) async {
       final app = await startApp(tester, appLock: true, fingerprintWorks: false);
 
-      expect(find.text('NexPOS is locked'), findsOneWidget);
+      expect(find.text('Coduo POS is locked'), findsOneWidget);
       expect(find.text('Today'), findsNothing, reason: 'nothing of the app is on screen behind the lock');
       expect(app.bio.asked, 1, reason: 'it asks straight away');
 
@@ -260,14 +260,14 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Unlock'));
       await tester.pumpAndSettle();
 
-      expect(find.text('NexPOS is locked'), findsNothing);
+      expect(find.text('Coduo POS is locked'), findsNothing);
       expect(tab('Today'), findsOneWidget);
     });
 
     testWidgets('with the lock on and the fingerprint working, the owner is simply let in', (tester) async {
       await startApp(tester, appLock: true);
 
-      expect(find.text('NexPOS is locked'), findsNothing);
+      expect(find.text('Coduo POS is locked'), findsNothing);
       expect(tab('Today'), findsOneWidget);
     });
 

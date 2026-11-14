@@ -33,7 +33,7 @@ const PROBLEM_KEYS: Record<string, string> = {
   schema_newer: 'schemaNewer',
 }
 
-/** `/app/settings/online` - connect this till to NexPOS Online with the provider's link, and see how it is doing. */
+/** `/app/settings/online` - connect this till to Coduo POS Online with the provider's link, and see how it is doing. */
 export default function OnlinePage() {
   const status = useOnlineStatus()
 

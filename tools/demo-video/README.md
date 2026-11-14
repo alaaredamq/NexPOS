@@ -7,7 +7,7 @@ dashboard → inventory → reports → close shift → Arabic) with on-screen c
 powershell -File tools\demo-video\record.ps1            # add -SkipBuild to reuse the last build
 ```
 
-Output: `tools\demo-video\out\NexPOS-Demo.mp4` (the script also leaves `raw.webm` and `demo.db` there).
+Output: `tools\demo-video\out\CoduoPOS-Demo.mp4` (the script also leaves `raw.webm` and `demo.db` there).
 
 It is fully isolated from your real data: the app runs against `out\demo.db`
 (`NEXPOS_DB_PATH`), is seeded by `DemoDataSeeder` (`--seed-demo`), and `NEXPOS_DEMO=1`

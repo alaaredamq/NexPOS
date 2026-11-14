@@ -49,7 +49,7 @@ class _LockScreenState extends State<LockScreen> {
   Future<void> _unlock() async {
     if (_asking || !mounted) return;
     final lock = context.read<AppLock>();
-    final reason = context.tr('Unlock NexPOS Owner', 'افتح NexPOS للمالك');
+    final reason = context.tr('Unlock Coduo POS Owner', 'افتح Coduo POS للمالك');
     setState(() => _asking = true);
     final ok = await lock.unlock(reason);
     if (!ok) Haptics.problem();
@@ -82,7 +82,7 @@ class _LockScreenState extends State<LockScreen> {
                         child: const Icon(Icons.lock_outline, color: Colors.white, size: 34),
                       ),
                       const SizedBox(height: 22),
-                      Text(context.tr('NexPOS is locked', 'NexPOS مقفل'),
+                      Text(context.tr('Coduo POS is locked', 'Coduo POS مقفل'),
                           style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
                       const SizedBox(height: 8),
                       Text(

@@ -1,4 +1,4 @@
-# One small server is enough to start: NexPOS Cloud behind Caddy, which gets and renews the HTTPS certificate by itself.
+# One small server is enough to start: Coduo POS Cloud behind Caddy, which gets and renews the HTTPS certificate by itself.
 #
 #   1. Point a DNS name (for example cloud.yourdomain.com) at the server.
 #   2. Create a .env file next to this one:

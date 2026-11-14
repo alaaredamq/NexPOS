@@ -1,4 +1,4 @@
-# NexPOS Cloud. Build from the REPOSITORY ROOT (the project references Sync, Infrastructure, Core, Common):
+# Coduo POS Cloud. Build from the REPOSITORY ROOT (the project references Sync, Infrastructure, Core, Common):
 #   docker build -f Cloud/Dockerfile -t nexpos-cloud .
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src

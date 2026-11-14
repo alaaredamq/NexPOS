@@ -109,7 +109,7 @@ public sealed class OnlineConnection(
         if (problem == EnrollmentLink.Problem.Insecure)
             throw new OnlineConnectException(OnlineConnectCodes.Insecure, "The link must start with https://.");
         if (problem != EnrollmentLink.Problem.None || parsed is null)
-            throw new OnlineConnectException(OnlineConnectCodes.LinkInvalid, "That does not look like a NexPOS Online link.");
+            throw new OnlineConnectException(OnlineConnectCodes.LinkInvalid, "That does not look like a Coduo POS Online link.");
 
         var request = new EnrollRequest(parsed.Code, ReadMachineId(), Environment.MachineName);
         EnrollResponse response;

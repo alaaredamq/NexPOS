@@ -34,7 +34,7 @@ public sealed class MirrorApplier(SyncSchema schema)
     public int Apply(string mirrorPath, SyncBatch batch, bool requireEncrypted = false)
     {
         if (requireEncrypted && batch.Changes.Any(c => !c.Deleted && c.Enc is null))
-            throw new SyncBatchException("This cloud only accepts end-to-end encrypted data. Update NexPOS on the till.");
+            throw new SyncBatchException("This cloud only accepts end-to-end encrypted data. Update Coduo POS on the till.");
         if (batch.Changes.Any(c => c.Enc is not null && (!c.Enc.StartsWith(RowCipher.Prefix, StringComparison.Ordinal) || c.Enc.Length > MaxPayloadChars)))
             throw new SyncBatchException("A change carries a payload that is not valid encrypted data.");
 

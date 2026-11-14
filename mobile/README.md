@@ -1,6 +1,6 @@
-# NexPOS Owner (phone app)
+# Coduo POS Owner (phone app)
 
-The shop owner's phone app: see **Today, Sales (with Reports), Stock and Debts** from the shop's copy in NexPOS Online; tap a sale, a
+The shop owner's phone app: see **Today, Sales (with Reports), Stock and Debts** from the shop's copy in Coduo POS Online; tap a sale, a
 customer or a product to open its page; **add products, customers and suppliers, edit a product, and adjust or count stock**, all sent to
 the shop PC and applied there. Optional **fingerprint / face / PIN lock** and **alerts** for new sales, low stock and answers to changes.
 Android and iOS from one Flutter codebase, English and Arabic (RTL).

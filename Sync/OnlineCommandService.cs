@@ -141,7 +141,7 @@ public sealed class OnlineCommandService(
                 .FirstOrDefault(h => string.Equals(h.Type, command.Type, StringComparison.Ordinal));
             result = handler is null
                 ? CommandResult.Reject(CommandErrorCodes.UnknownType,
-                    "This version of NexPOS on the shop PC does not know this kind of change. Update NexPOS and try again.")
+                    "This version of Coduo POS on the shop PC does not know this kind of change. Update Coduo POS and try again.")
                 : await handler.HandleAsync(payload, new CommandContext(command.Id, command.RequestedBy), ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }

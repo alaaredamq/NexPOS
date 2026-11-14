@@ -9,7 +9,7 @@ using Web.Helpers;
 namespace Web.Api.Online;
 
 /// <summary>
-/// Settings &gt; Online: connect this till to NexPOS Online with a link from the provider, see how it is doing, disconnect.
+/// Settings &gt; Online: connect this till to Coduo POS Online with a link from the provider, see how it is doing, disconnect.
 /// Needs <c>Settings.Manage</c>, like the other settings tabs.
 /// <para>
 /// Deliberately not behind <c>[RequireSalesLicense]</c>, and nothing here is on the selling path: Online is an add-on service,
@@ -76,7 +76,7 @@ public sealed class OnlineController : ApiControllerBase
         var code = _online.GetRecoveryCode();
         Response.Headers.CacheControl = "no-store";
         return code is null
-            ? Failure(StatusCodes.Status404NotFound, "no_recovery_code", "Connect this till to NexPOS Online first.")
+            ? Failure(StatusCodes.Status404NotFound, "no_recovery_code", "Connect this till to Coduo POS Online first.")
             : new RecoveryCodeDto { Code = code };
     }
 

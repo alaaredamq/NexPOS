@@ -537,7 +537,7 @@
   "Of": "من",
   "Online_Seal_key_exists": "هذا الجهاز لديه مفتاح مختلف بالفعل، لذلك لا يمكن استبداله.",
   "Online_Seal_no_key": "أظهر رمز الاسترداد أولاً ثم أكّد.",
-  "Online_Seal_not_connected": "اتصل بخدمة NexPOS Online أولاً.",
+  "Online_Seal_not_connected": "اتصل بخدمة Coduo POS Online أولاً.",
   "Online_Seal_pin_locked": "محاولات خاطئة كثيرة. حاول مرة أخرى بعد دقائق.",
   "Online_Seal_recovery_code_invalid": "هذا ليس رمز استرداد كاملاً. قارنه بالقسيمة.",
   "Online_Seal_wrong_pin": "الرمز السري غير صحيح.",

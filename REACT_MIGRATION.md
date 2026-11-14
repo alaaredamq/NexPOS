@@ -1,4 +1,4 @@
-# NexPOS → React migration plan
+# Coduo POS → React migration plan
 
 > Written for: Claude Code sessions (and the one human) working on this repo in parallel.
 > Each `##` section under **Phase 0**, **Tracks** and **Cutover** is self-contained: point a session at one
@@ -32,7 +32,7 @@ Change one only by editing this table and saying why in the status log.
 | D6 | **Contract-first with generated types.** Swashbuckle (already referenced) emits `swagger.json`; `openapi-typescript` generates `client/src/api/schema.d.ts`. Backend and UI sessions of one module can work in parallel off the agreed DTOs. | The enabler for parallel work. |
 | D7 | Strangler migration. SPA at **`/app/*`** while Razor pages live at their old URLs; both share the auth cookie. Migrated modules flip a one-line entry in `Web/Helpers/SpaMigration.cs` so the Razor sidebar links to `/app/...`. At cutover the SPA moves to `/`. | Ship and test module by module; `master` stays releasable. |
 | D8 | Language is client state (`localStorage`) sent as `Accept-Language`; URLs have **no** `/{lang}/` prefix in the SPA. RTL is done with CSS logical properties + `<html dir>`. Translations are converted from the `.resx`/`locales/*.json` by a re-runnable script (0E), never retyped. | The old app keeps being edited during the migration, so the conversion must be repeatable. |
-| D9 | Design tokens = BoussiCell's `tokens.css` verbatim at `client/src/styles/tokens.css`, plus NexPOS brand overrides (teal, not BoussiCell blue) in `client/src/styles/theme.css`, mirroring `Web/wwwroot/css/colors.css`. No per-page colours. | Visual parity with BoussiCell, one place to rebrand. |
+| D9 | Design tokens = BoussiCell's `tokens.css` verbatim at `client/src/styles/tokens.css`, plus Coduo POS brand overrides (teal, not BoussiCell blue) in `client/src/styles/theme.css`, mirroring `Web/wwwroot/css/colors.css`. No per-page colours. | Visual parity with BoussiCell, one place to rebrand. |
 | D10 | Money/stock/drawer/debt endpoints get xUnit tests **before** the UI is built. | These are the regressions that cost real money. |
 | D11 | Receipts, PDFs and thermal printing stay **server-side** (`IThermalPrinterService`, `PrintDocument`). React only calls print/PDF endpoints. | No rewrite of the print path. |
 | D12 | Route-level code splitting (`React.lazy`) is mandatory. Budgets: shell + login ≤ 250 KB gzip; POS route ≤ 350 KB gzip; route change < 100 ms on the counter PC. | The whole point is speed; budgets are checked in 0B and in Z. |
@@ -134,7 +134,7 @@ Gate **G0** = all of 0A–0F merged, and: log in as two roles in the SPA at `/ap
 **Owns:** `Web/Api/Infrastructure/**`, `Web/Api/Session/**`, `Web/Api/Auth/**`, `Tests/Api/Infrastructure/**`, the `Program.cs` edits listed below.
 - Conventions (write them into `Web/Api/README.md`): route `api/v1/<module>`; success returns the DTO directly (no `{success:true}` wrapper); errors are RFC 7807 `ProblemDetails` + `code` (stable machine string, e.g. `license_sales_stopped`, `drawer_not_open`) + `errors{field:[msg]}` for validation; lists return `{items,total,page,pageSize}` and accept `page,pageSize,sort,dir,q`.
 - **Auth for APIs**: cookie challenge on `/api/*` must return **401/403 JSON, not a redirect** (`OnRedirectToLogin`/`OnRedirectToAccessDenied`). Check that `RequirePermissionAttribute` / `RequireRoleAttribute` also answer JSON for `/api/*` (they currently target MVC) — add an API-aware path rather than a copy.
-- **CSRF**: cookie is `SameSite=Lax`; additionally require header `X-NexPOS-Client: web` on every non-GET `/api/*` (custom header ⇒ cross-site forms can't send it). Tested. Antiforgery tokens are *not* used for the API.
+- **CSRF**: cookie is `SameSite=Lax`; additionally require header `X-Coduo POS-Client: web` on every non-GET `/api/*` (custom header ⇒ cross-site forms can't send it). Tested. Antiforgery tokens are *not* used for the API.
 - Culture: honour `Accept-Language` for API requests inside `LanguageMiddleware` so server messages (validation, errors) come back in the user's language.
 - Make `LicenseEnforcementMiddleware`, `AuditRequestMiddleware` and `ExceptionHandlingMiddleware` behave correctly for `/api/*` (JSON error with `code`; audit row per request already works — verify action/controller naming is readable).
 - `POST api/v1/auth/login` (user + PIN/password exactly as `AccountController` does today, incl. rate-limit and lockout), `POST auth/logout`, `GET api/v1/session` → bootstrap payload: user, role, **permissions[]**, nav pages (from `NavCatalog`, already permission-filtered, with SPA path from `SpaMigration`), licence state, branding (`BrandingService`), language, drawer status, unread notification count. One round trip = the whole shell.

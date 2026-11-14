@@ -11,7 +11,7 @@ public sealed record OnlineSettings
     public const string SectionName = "Online";
 
     public bool Enabled { get; set; }
-    /// <summary>Base address of the NexPOS Cloud site, e.g. https://cloud.example.com</summary>
+    /// <summary>Base address of the Coduo POS Cloud site, e.g. https://cloud.example.com</summary>
     public string CloudUrl { get; set; } = "";
     /// <summary>Device token for this installation. Written by the enrolment flow; treat like a password.</summary>
     public string DeviceToken { get; set; } = "";

@@ -1,5 +1,5 @@
 /**
- * Main Application JavaScript - NexPos
+ * Main Application JavaScript - Coduo POS
  * Handles common functionality across all pages
  */
 

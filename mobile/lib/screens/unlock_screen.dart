@@ -125,8 +125,8 @@ class _UnlockScreenState extends State<UnlockScreen> {
             color: Tokens.successBg,
             textColor: Tokens.success,
             text: context.tr(
-              'Your data is encrypted on the shop PC before it is sent. Neither NexPOS nor the cloud can read it, and nobody can recover this code for you, so keep the printed copy safe.',
-              'تُشفَّر بياناتك على جهاز المحل قبل إرسالها. لا يستطيع NexPOS ولا السحابة قراءتها، ولا يمكن لأحد استرجاع هذا الرمز لك، لذا احفظ النسخة المطبوعة جيدًا.',
+              'Your data is encrypted on the shop PC before it is sent. Neither Coduo POS nor the cloud can read it, and nobody can recover this code for you, so keep the printed copy safe.',
+              'تُشفَّر بياناتك على جهاز المحل قبل إرسالها. لا يستطيع Coduo POS ولا السحابة قراءتها، ولا يمكن لأحد استرجاع هذا الرمز لك، لذا احفظ النسخة المطبوعة جيدًا.',
             ),
           ),
         ],

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds NexPOS Cloud and uploads it to MonsterASP.NET (Windows / IIS) over FTP.
+    Builds Coduo POS Cloud and uploads it to MonsterASP.NET (Windows / IIS) over FTP.
 
 .DESCRIPTION
     1. dotnet publish (Release, framework-dependent: MonsterASP provides the .NET 9 runtime).

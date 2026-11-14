@@ -48,7 +48,7 @@ class OwnerApp extends StatelessWidget {
       ],
       child: Consumer<Session>(
         builder: (context, session, _) => MaterialApp(
-          title: 'NexPOS Owner',
+          title: 'Coduo POS Owner',
           debugShowCheckedModeBanner: false,
           theme: buildTheme(),
           locale: session.locale,

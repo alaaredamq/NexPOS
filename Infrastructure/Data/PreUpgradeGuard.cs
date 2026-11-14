@@ -91,7 +91,7 @@ public sealed class PreUpgradeGuard
         {
             throw new PreUpgradeBackupException(
                 $"The database could not be copied before the upgrade ({ex.Message}). The upgrade was NOT run and your data is untouched. " +
-                "Free some disk space or check the folder permissions, then start NexPOS again.", ex);
+                "Free some disk space or check the folder permissions, then start Coduo POS again.", ex);
         }
 
         // The copy has to be as good as the original, or it is no protection at all.
@@ -189,11 +189,11 @@ public sealed class PreUpgradeGuard
         {
             using var copy = Open(backup, readOnly: true);
             if (Scalar(copy, "PRAGMA integrity_check") as string != "ok")
-                throw new PreUpgradeBackupException($"A previous upgrade was interrupted and its safety copy ({backup}) is damaged. Nothing was changed; contact support before starting NexPOS again.");
+                throw new PreUpgradeBackupException($"A previous upgrade was interrupted and its safety copy ({backup}) is damaged. Nothing was changed; contact support before starting Coduo POS again.");
         }
         catch (SqliteException ex)
         {
-            throw new PreUpgradeBackupException($"A previous upgrade was interrupted and its safety copy ({backup}) cannot be read ({ex.Message}). Nothing was changed; contact support before starting NexPOS again.", ex);
+            throw new PreUpgradeBackupException($"A previous upgrade was interrupted and its safety copy ({backup}) cannot be read ({ex.Message}). Nothing was changed; contact support before starting Coduo POS again.", ex);
         }
 
         SqliteConnection.ClearAllPools();

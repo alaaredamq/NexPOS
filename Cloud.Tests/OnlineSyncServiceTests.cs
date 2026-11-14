@@ -346,7 +346,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         var link = await _cloud.IssueLinkAsync(site.SiteId);
         await using var rig = await TillRig.StartAsync(_cloud);
 
-        var status = await rig.Connection.ConnectAsync($"NexPOS Online: open NexPOS > Settings > Online, paste this link.\nلتفعيل NexPOS Online\n{link}\n", default);
+        var status = await rig.Connection.ConnectAsync($"Coduo POS Online: open Coduo POS > Settings > Online, paste this link.\nلتفعيل Coduo POS Online\n{link}\n", default);
 
         Assert.True(status.Enabled);
     }

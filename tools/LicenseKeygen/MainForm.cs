@@ -137,12 +137,12 @@ internal sealed class MainForm : Form
         if (seats == 1)
         {
             _seatsHint.ForeColor = SystemColors.GrayText;
-            _seatsHint.Text = "One PC. Works with every NexPOS build.";
+            _seatsHint.Text = "One PC. Works with every Coduo POS build.";
         }
         else
         {
             _seatsHint.ForeColor = Color.DarkOrange;
-            _seatsHint.Text = $"The server + {seats - 1} till{(seats == 2 ? "" : "s")}. Needs a NexPOS build that knows multi-seat keys.";
+            _seatsHint.Text = $"The server + {seats - 1} till{(seats == 2 ? "" : "s")}. Needs a Coduo POS build that knows multi-seat keys.";
         }
     }
 

@@ -56,7 +56,7 @@ lags by a few seconds, so a sudden crash can lose the last sales that were not y
 
 1. **Printing and the cash drawer.** Receipt printing and the drawer pulse run on the machine that runs the server (decision
    D11 of the React migration). With tills as screens, a receipt would print at the **server PC**. Each till needs its own
-   printer: the server must hand the print job to the till's own NexPOS app, which prints it locally. This is real work.
+   printer: the server must hand the print job to the till's own Coduo POS app, which prints it locally. This is real work.
 2. **Licensing and pricing.** Decided 2026-11-06: **seats in the offline key.** The key stays bound to the store server's
    machine and carries a signed `Seats` count (the package size: server plus tills); a multi-seat key is a new key format
    version, a 1-seat key is unchanged. **Built:** the field, the issuer tools (`--seats`), showing it on the License page, and the
