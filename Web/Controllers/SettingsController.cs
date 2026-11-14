@@ -83,7 +83,7 @@ namespace Web.Controllers
         public IActionResult Branding() => View();
 
         /// <summary>
-        /// White-label branding: app name, logo and favicon. Blank / "remove" falls back to the NexPos defaults.
+        /// White-label branding: app name, logo and favicon. Blank / "remove" falls back to the Coduo POS defaults.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -2,7 +2,7 @@
 # This script publishes the .NET app and then builds the Electron package
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  NexPos Desktop App Build Script" -ForegroundColor Cyan
+Write-Host "  Coduo POS Desktop App Build Script" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

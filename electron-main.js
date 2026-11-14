@@ -4,11 +4,16 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
+// The product was renamed NexPos -> Coduo POS, which would move Electron's default data folder (%AppData%\<productName>).
+// That folder holds the login key (jwt.key), the logs and the window's saved preferences, so keep using the old one:
+// an update then does not log everyone out or lose their settings. Must run before the single-instance lock below.
+app.setPath('userData', path.join(app.getPath('appData'), 'NexPos'));
+
 // Web.exe binds a fixed port, so a second copy can't start - focus the first window instead.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 }
-// Starting NexPos again (shortcut, taskbar) brings the window back, also when it is hidden in the tray.
+// Starting Coduo POS again (shortcut, taskbar) brings the window back, also when it is hidden in the tray.
 app.on('second-instance', () => showMainWindow());
 
 // The web app refuses to start without Jwt:SecretKey. An installed copy has no user-secrets,
@@ -126,7 +131,7 @@ function startDotNetApp() {
         }
       }
     } else {
-      // Production: extraFiles copies publish/app to <install dir>/app, next to NexPos.exe.
+      // Production: extraFiles copies publish/app to <install dir>/app, next to Coduo POS.exe.
       const prodPaths = [
         path.join(path.dirname(process.execPath), 'app', 'Web.exe'),
         path.join(process.resourcesPath, 'app', 'Web.exe'),
@@ -279,7 +284,7 @@ function showTrayHint() {
   if (!tray || process.platform !== 'win32') return;
   tray.displayBalloon({
     iconType: 'info',
-    title: 'NexPOS is still running',
+    title: 'Coduo POS is still running',
     content: 'It keeps running in the tray. Right-click the icon to open it or quit.\nالنظام ما زال يعمل. انقر بزر الماوس الأيمن على الأيقونة.',
   });
 }
@@ -292,11 +297,11 @@ async function confirmQuit() {
     buttons: ['Quit', 'Cancel'],
     defaultId: 1,
     cancelId: 1,
-    title: 'NexPOS',
-    message: 'Quit NexPOS?',
+    title: 'Coduo POS',
+    message: 'Quit Coduo POS?',
     detail: external
       ? 'The server was started by Visual Studio and keeps running until you stop debugging there.'
-      : 'Nothing can be sold, printed or backed up until NexPOS is opened again.',
+      : 'Nothing can be sold, printed or backed up until Coduo POS is opened again.',
   });
   if (response === 0) app.quit();
 }
@@ -308,15 +313,15 @@ function createTray() {
   if (process.platform !== 'win32') image = image.resize({ width: 16, height: 16 });
 
   tray = new Tray(image);
-  tray.setToolTip('NexPOS - running');
+  tray.setToolTip('Coduo POS - running');
 
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: 'NexPOS is running  |  النظام يعمل', enabled: false },
+      { label: 'Coduo POS is running  |  النظام يعمل', enabled: false },
       { type: 'separator' },
-      { label: 'Open NexPOS  |  فتح', click: () => showMainWindow() },
+      { label: 'Open Coduo POS  |  فتح', click: () => showMainWindow() },
       { type: 'separator' },
-      { label: 'Quit NexPOS  |  إغلاق', click: () => void confirmQuit() },
+      { label: 'Quit Coduo POS  |  إغلاق', click: () => void confirmQuit() },
     ]),
   );
   tray.on('click', () => showMainWindow());
@@ -508,7 +513,7 @@ app.whenReady().then(async () => {
     createWindow();
   } catch (error) {
     console.error('Failed to start application:', error);
-    dialog.showErrorBox('NexPos failed to start',
+    dialog.showErrorBox('Coduo POS failed to start',
       `${error.message}\n\nLogs: ${path.join(app.getPath('userData'), 'logs')}`);
     app.quit();
   }

@@ -1,4 +1,4 @@
-# NexPOS demo video
+# Coduo POS demo video
 
 Records a ~4 minute client walkthrough (sign in → open till → sales → customers → orders →
 dashboard → inventory → reports → close shift → Arabic) with on-screen captions.

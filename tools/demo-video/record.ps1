@@ -1,6 +1,6 @@
 <#
-  Builds NexPOS, seeds a fresh demo database, records the client demo video and converts it to MP4.
-  Nothing here touches your real NexPOS database or printers:
+  Builds Coduo POS, seeds a fresh demo database, records the client demo video and converts it to MP4.
+  Nothing here touches your real Coduo POS database or printers:
     - the database lives in out\demo.db (NEXPOS_DB_PATH)
     - NEXPOS_DEMO=1 swaps the receipt printer for a no-op
   Usage:  powershell -File tools\demo-video\record.ps1            (add -SkipBuild to reuse the last build)

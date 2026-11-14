@@ -1,7 +1,7 @@
 {
   "name": "nexpos-desktop-app",
   "version": "2.2.1",
-  "description": "NexPos Desktop Application",
+  "description": "Coduo POS Desktop Application",
   "main": "electron-main.js",
   "scripts": {
     "start": "electron .",
@@ -16,7 +16,8 @@
     "electron",
     "desktop",
     "pos",
-    "nexpos"
+    "nexpos",
+    "coduo-pos"
   ],
   "author": "Your Name",
   "license": "MIT",
@@ -27,7 +28,7 @@
   },
   "build": {
     "appId": "com.nexpos.desktop",
-    "productName": "NexPos",
+    "productName": "Coduo POS",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -73,7 +74,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "NexPos"
+      "shortcutName": "Coduo POS"
     },
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"

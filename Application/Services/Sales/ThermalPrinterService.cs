@@ -88,7 +88,7 @@ public class ThermalPrinterService : IThermalPrinterService
     public async Task<PrintDocument> GetOrderReceiptDocumentAsync(Order order)
         => await GetReceiptDocumentAsync(await GetReceiptForOrderAsync(order));
 
-    public async Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "NexPOS Document")
+    public async Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "Coduo POS Document")
     {
         try
         {

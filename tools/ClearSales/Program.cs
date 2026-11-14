@@ -1,10 +1,10 @@
 using System.Net.Sockets;
 using Microsoft.Data.Sqlite;
 
-// Clears every sale from a NexPOS database - orders, receipts and the carts behind them - so the
+// Clears every sale from a Coduo POS database - orders, receipts and the carts behind them - so the
 // dashboard starts from zero. Products, customers, suppliers, users and settings are left alone.
 //
-//   ClearSales                   -> %LocalAppData%\NexPOS\nexpos.db (NexPOS must be closed)
+//   ClearSales                   -> %LocalAppData%\NexPOS\nexpos.db (Coduo POS must be closed)
 //   ClearSales <path-to-db>      -> that file instead
 //   ClearSales ... --yes         -> skip the "type YES" question
 
@@ -15,9 +15,9 @@ var dbPath = pathArg ?? Path.Combine(
 
 if (!File.Exists(dbPath)) return Fail($"Database not found: {dbPath}");
 
-// NexPOS keeps the file open while it runs; writing underneath it would corrupt the WAL.
+// Coduo POS keeps the file open while it runs; writing underneath it would corrupt the WAL.
 if (pathArg is null && IsNexPosRunning())
-    return Fail("NexPOS is running. Close it completely (check Task Manager for NexPos / Web), then run this again.");
+    return Fail("Coduo POS is running. Close it completely (check Task Manager for Coduo POS / Web), then run this again.");
 
 using var db = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = dbPath, Pooling = false }.ToString());
 db.Open();
@@ -86,7 +86,7 @@ foreach (var t in new[] { "Orders", "Receipts", "ReceiptItems", "ReceiptPayments
 Console.WriteLine($"  {"Products",-16}{Count(db, "Products")}");
 Console.WriteLine($"  {"Customers",-16}{Count(db, "Customers")}");
 if (bad > 0) Console.WriteLine($"\nWARNING: {bad} broken reference(s) found. Restore the backup above and send it to support.");
-Console.WriteLine("\nStart NexPOS - the dashboard will show 0.");
+Console.WriteLine("\nStart Coduo POS - the dashboard will show 0.");
 return bad > 0 ? 2 : 0;
 
 static int Fail(string message) { Console.Error.WriteLine(message); return 1; }

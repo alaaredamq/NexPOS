@@ -22,10 +22,10 @@ public static class ApiSwagger
         {
             options.SwaggerDoc(DocumentName, new OpenApiInfo
             {
-                Title = "NexPOS API",
+                Title = "Coduo POS API",
                 Version = "v1",
                 Description =
-                    "JSON API of the NexPOS single-page app. Sign in with POST /api/v1/auth/login; the session lives in an HttpOnly cookie. " +
+                    "JSON API of the Coduo POS single-page app. Sign in with POST /api/v1/auth/login; the session lives in an HttpOnly cookie. " +
                     "Every non-GET request must send the header 'X-NexPOS-Client: web'. Send 'Accept-Language: en|ar' for localized messages. " +
                     "Errors are RFC 7807 problem+json with a stable 'code'; lists return { items, total, page, pageSize }.",
             });
@@ -51,7 +51,7 @@ public static class ApiSwagger
         if (!app.Environment.IsDevelopment()) return app;
 
         app.UseSwagger();
-        app.UseSwaggerUI(options => options.SwaggerEndpoint($"/swagger/{DocumentName}/swagger.json", "NexPOS API v1"));
+        app.UseSwaggerUI(options => options.SwaggerEndpoint($"/swagger/{DocumentName}/swagger.json", "Coduo POS API v1"));
         return app;
     }
 

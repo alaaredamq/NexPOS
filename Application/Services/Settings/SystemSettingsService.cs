@@ -341,7 +341,7 @@ namespace Application.Services.Settings
             return new List<SystemSettings>
             {
                 // General Settings
-                new() { SettingKey = "CompanyName", SettingValue = "NexPos", SettingType = "string", Category = "General", Description = "Company Name", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+                new() { SettingKey = "CompanyName", SettingValue = "Coduo POS", SettingType = "string", Category = "General", Description = "Company Name", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "CompanyAddress", SettingValue = "", SettingType = "string", Category = "General", Description = "Company Address", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "CompanyPhone", SettingValue = "", SettingType = "string", Category = "General", Description = "Company Phone", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                 new() { SettingKey = "CompanyEmail", SettingValue = "", SettingType = "string", Category = "General", Description = "Company Email", IsEditable = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },

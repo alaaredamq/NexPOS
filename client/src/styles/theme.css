@@ -1,4 +1,4 @@
-/* NexPOS brand layer over BoussiCell's shared tokens.css — same split BoussiCell uses (shared tokens +
+/* Coduo POS brand layer over BoussiCell's shared tokens.css — same split BoussiCell uses (shared tokens +
    per-app theme.css), so a BoussiCell restyle still ports 1:1 into tokens.css. Values mirror the
    restyled Web/wwwroot/css/colors.css; --color-tradein*, --color-counter-* are BoussiCell-only and unused here. */
 :root {

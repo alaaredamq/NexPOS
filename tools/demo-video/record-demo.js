@@ -1,7 +1,7 @@
 /**
- * Records the NexPOS client demo video.
+ * Records the Coduo POS client demo video.
  *
- * Drives a running NexPOS instance (seeded with the demo data - see README.md) through a
+ * Drives a running Coduo POS instance (seeded with the demo data - see README.md) through a
  * typical day: sign in, open the till, ring up sales, look after customers, review the
  * numbers, close the shift. An overlay adds a visible cursor and on-screen captions, since
  * the recording has no narration.
@@ -93,14 +93,14 @@ const cardHtml = (inner) => `<!doctype html><html><head><meta charset="utf-8"><s
 </style></head><body><div class="wrap">${inner}</div></body></html>`;
 
 const introHtml = () => cardHtml(`
-  <img src="${BASE}/images/logo-light.svg" alt="NexPos">
+  <img src="${BASE}/images/logo-light.svg" alt="Coduo POS">
   <h1>Your store, running smoothly</h1>
   <p class="sub">Point of sale, inventory and customer accounts in one simple app</p>
   <div class="chips"><span>Fast checkout</span><span>Live inventory</span><span>Customer accounts</span><span>Sales reports</span><span>English &amp; العربية</span></div>
   <p style="margin-top:38px;font-size:22px;opacity:.75">A quick tour of a normal day</p>`);
 
 const outroHtml = () => cardHtml(`
-  <img src="${BASE}/images/logo-light.svg" alt="NexPos" style="width:420px">
+  <img src="${BASE}/images/logo-light.svg" alt="Coduo POS" style="width:420px">
   <h1>${OUTRO_TITLE}</h1>
   ${OUTRO_LINES.map(l => `<p>${l}</p>`).join('')}
   <p style="margin-top:40px;font-size:24px;opacity:.85">Ask us for a live demo on your own products.</p>`);

@@ -6,7 +6,7 @@ namespace Web.Controllers;
 
 /// <summary>
 /// Serves the white-label logo and favicon: the uploaded file when there is one, otherwise the
-/// built-in NexPos image. Anonymous because the login and loading screens need them too.
+/// built-in Coduo POS image. Anonymous because the login and loading screens need them too.
 /// </summary>
 [AllowAnonymous]
 public class BrandingController : Controller

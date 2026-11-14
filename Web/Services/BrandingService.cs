@@ -5,7 +5,7 @@ namespace Web.Services;
 
 /// <summary>
 /// White-label branding: a custom app name, logo and favicon. Anything not set falls back to
-/// the built-in NexPos defaults. Kept in the per-user app-data folder (next to the database) as
+/// the built-in Coduo POS defaults. Kept in the per-user app-data folder (next to the database) as
 /// plain files, so it needs no migration and survives reinstalls and updates.
 /// </summary>
 public interface IBrandingService
@@ -60,7 +60,7 @@ public class BrandingService : IBrandingService
         _appName = ReadName();
     }
 
-    public string DefaultAppName => "NexPos";
+    public string DefaultAppName => "Coduo POS";
     public string AppName => _appName ?? DefaultAppName;
     public bool HasCustomName => _appName != null;
     public bool HasCustomLogo => FindFile("logo") != null;

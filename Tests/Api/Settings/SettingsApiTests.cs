@@ -339,7 +339,7 @@ public sealed class SettingsApiTests : CatalogApiTestBase
         var body = await Body(await admin.GetAsync("/api/v1/settings/branding"));
 
         Assert.Equal("", body.GetProperty("appName").GetString());
-        Assert.Equal("NexPos", body.GetProperty("defaultAppName").GetString());
+        Assert.Equal("Coduo POS", body.GetProperty("defaultAppName").GetString());
         Assert.False(body.GetProperty("hasCustomLogo").GetBoolean());
         Assert.False(body.GetProperty("hasCustomFavicon").GetBoolean());
         Assert.Equal(40, body.GetProperty("maxNameLength").GetInt32());
@@ -384,7 +384,7 @@ public sealed class SettingsApiTests : CatalogApiTestBase
             Assert.Equal("", removed.GetProperty("appName").GetString());
             Assert.False(removed.GetProperty("hasCustomLogo").GetBoolean());
             Assert.False(removed.GetProperty("hasCustomFavicon").GetBoolean());
-            Assert.Equal("NexPos", (await SessionBranding(admin)).GetProperty("appName").GetString());
+            Assert.Equal("Coduo POS", (await SessionBranding(admin)).GetProperty("appName").GetString());
         }
         finally
         {

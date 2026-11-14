@@ -146,7 +146,7 @@ function KitContent({ lang, onLang }: { lang: KitLang; onLang: (l: KitLang) => v
   return (
     <div className={styles.page}>
       <header className={styles.top}>
-        <h1 className={styles.h1}>NexPOS UI kit</h1>
+        <h1 className={styles.h1}>Coduo POS UI kit</h1>
         <div className={styles.toggles}>
           <ChipGroup
             aria-label="Language"

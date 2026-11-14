@@ -5,7 +5,7 @@ using Common.Licensing;
 namespace LicenseKeygen;
 
 /// <summary>
-/// Issuer-side GUI for NexPOS licenses: Machine ID + number of days in, signed key out.
+/// Issuer-side GUI for Coduo POS licenses: Machine ID + number of days in, signed key out.
 /// Run it on YOUR machine only; it is never shipped to clients. It signs with the same private key
 /// and the same codec as tools/LicenseIssuer, so keys from either tool are interchangeable.
 /// </summary>
@@ -33,7 +33,7 @@ internal sealed class MainForm : Form
 
     public MainForm()
     {
-        Text = "NexPOS Keygen";
+        Text = "Coduo POS Keygen";
         Font = new Font("Segoe UI", 10f);
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(640, 560);
@@ -169,7 +169,7 @@ internal sealed class MainForm : Form
     {
         using var dialog = new OpenFileDialog
         {
-            Title = "Select the NexPOS private signing key",
+            Title = "Select the Coduo POS private signing key",
             Filter = "PEM key (*.pem)|*.pem|All files (*.*)|*.*",
             CheckFileExists = true
         };
@@ -267,7 +267,7 @@ internal sealed class MainForm : Form
         {
             _summary.ForeColor = Color.Firebrick;
             _summary.Text = "";
-            MessageBox.Show(this, ex.Message, "NexPOS Keygen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, ex.Message, "Coduo POS Keygen", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 

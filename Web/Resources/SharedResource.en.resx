@@ -836,7 +836,7 @@
     <value>Hold</value>
   </data>
   <data name="ERPSystem" xml:space="preserve">
-    <value>NexPos</value>
+    <value>Coduo POS</value>
   </data>
   <data name="Management" xml:space="preserve">
     <value>Management</value>
@@ -1636,7 +1636,7 @@
     <value>Configure</value>
   </data>
   <data name="Set_BrandingSubtitle" xml:space="preserve">
-    <value>Replace the NexPos name, logo and favicon with your own. Anything left empty uses the default.</value>
+    <value>Replace the Coduo POS name, logo and favicon with your own. Anything left empty uses the default.</value>
   </data>
   <data name="Set_AppName" xml:space="preserve">
     <value>App name</value>
@@ -2320,7 +2320,7 @@
   <data name="License_Title" xml:space="preserve"><value>License</value></data>
   <data name="AuditLog" xml:space="preserve"><value>Audit Log</value></data>
   <data name="License_Manage" xml:space="preserve"><value>Manage license</value></data>
-  <data name="License_BackToApp" xml:space="preserve"><value>Back to NexPOS</value></data>
+  <data name="License_BackToApp" xml:space="preserve"><value>Back to Coduo POS</value></data>
   <data name="License_StatusActive" xml:space="preserve"><value>Licensed</value></data>
   <data name="License_StatusExpiringSoon" xml:space="preserve"><value>License expires soon</value></data>
   <data name="License_StatusGracePeriod" xml:space="preserve"><value>License renewal needed</value></data>
@@ -2329,12 +2329,12 @@
   <data name="License_StatusInvalid" xml:space="preserve"><value>Invalid license</value></data>
   <data name="License_StatusWrongMachine" xml:space="preserve"><value>License is for another computer</value></data>
   <data name="License_StatusUpdatesNotCovered" xml:space="preserve"><value>Version not covered</value></data>
-  <data name="License_MsgActive" xml:space="preserve"><value>NexPOS is activated on this computer.</value></data>
+  <data name="License_MsgActive" xml:space="preserve"><value>Coduo POS is activated on this computer.</value></data>
   <data name="License_MsgDevBuild" xml:space="preserve"><value>Development build: the license is not enforced.</value></data>
-  <data name="License_MsgNotActivated" xml:space="preserve"><value>NexPOS is not activated on this computer, so the POS and new sales are stopped. Send the Machine ID below to your provider to get a license key, then paste it here.</value></data>
+  <data name="License_MsgNotActivated" xml:space="preserve"><value>Coduo POS is not activated on this computer, so the POS and new sales are stopped. Send the Machine ID below to your provider to get a license key, then paste it here.</value></data>
   <data name="License_MsgInvalid" xml:space="preserve"><value>The saved license key is invalid or was modified, so the POS and new sales are stopped. Paste a valid license key below.</value></data>
   <data name="License_MsgWrongMachine" xml:space="preserve"><value>The saved license key was issued for a different computer, so the POS and new sales are stopped. Send the Machine ID below to your provider to get a key for this computer.</value></data>
-  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>This version of NexPOS (built {0}) was released after your updates plan ended on {1}, so the POS and new sales are stopped. Renew your support plan to use this version, or reinstall your previous version.</value></data>
+  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>This version of Coduo POS (built {0}) was released after your updates plan ended on {1}, so the POS and new sales are stopped. Renew your support plan to use this version, or reinstall your previous version.</value></data>
   <data name="License_MsgExpiringSoon" xml:space="preserve"><value>Your license expires in {0} day(s), on {1}. Contact your provider to renew it.</value></data>
   <data name="License_MsgExpiringToday" xml:space="preserve"><value>Your license expires today ({0}). Contact your provider to renew it.</value></data>
   <data name="License_MsgGrace" xml:space="preserve"><value>Your license expired on {0}. Renew it now: the POS and new sales will stop after {1} ({2} day(s) left).</value></data>
@@ -2359,7 +2359,7 @@
   <data name="License_Success" xml:space="preserve"><value>License activated successfully.</value></data>
   <data name="License_Error_Malformed" xml:space="preserve"><value>The license key is incomplete or has extra characters. Paste the whole key exactly as you received it.</value></data>
   <data name="License_Error_BadSignature" xml:space="preserve"><value>This license key is not valid. It may have been changed.</value></data>
-  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>This license key needs a newer version of NexPOS.</value></data>
+  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>This license key needs a newer version of Coduo POS.</value></data>
   <data name="License_Error_WrongMachine" xml:space="preserve"><value>This license key was issued for a different computer.</value></data>
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>A newer license is already active on this computer.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>The license could not be saved on this computer.</value></data>
@@ -2389,7 +2389,7 @@
   <!-- api/v1 error messages (Web/Api/Infrastructure/ApiCodes.cs) -->
   <data name="Api_Unauthenticated" xml:space="preserve"><value>Your session has ended. Please sign in again.</value></data>
   <data name="Api_Forbidden" xml:space="preserve"><value>You do not have permission to do that.</value></data>
-  <data name="Api_ClientHeaderRequired" xml:space="preserve"><value>This request did not come from the NexPOS app.</value></data>
+  <data name="Api_ClientHeaderRequired" xml:space="preserve"><value>This request did not come from the Coduo POS app.</value></data>
   <data name="Api_NotFound" xml:space="preserve"><value>That item was not found.</value></data>
   <data name="Api_MethodNotAllowed" xml:space="preserve"><value>That action is not supported.</value></data>
   <data name="Api_ValidationFailed" xml:space="preserve"><value>Please correct the highlighted fields.</value></data>

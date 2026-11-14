@@ -1,4 +1,4 @@
-# NexPOS licensing
+# Coduo POS licensing
 
 Offline license keys, bound to one PC. Built 2026-10-17 (WORKLOG entry "L1"). Every client gets every feature; the key only decides whether the till may sell.
 
@@ -31,7 +31,7 @@ A key that is missing, damaged, or issued for another PC gives the same "selling
 
 ## Issuing a key
 
-1. Install NexPOS on the customer's PC and open the **License** page (sidebar, or `/en/License`; no login needed). Copy the **Machine ID** (`XXXXX-XXXXX-XXXXX-XXXXX`), or read it over AnyDesk.
+1. Install Coduo POS on the customer's PC and open the **License** page (sidebar, or `/en/License`; no login needed). Copy the **Machine ID** (`XXXXX-XXXXX-XXXXX-XXXXX`), or read it over AnyDesk.
 2. On your PC, from the repo root:
 
    ```powershell

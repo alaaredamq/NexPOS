@@ -6,13 +6,13 @@ using Common.Licensing;
 namespace LicenseIssuer;
 
 /// <summary>
-/// Issuer-side tool for NexPOS licenses. Run it on YOUR machine only; it is never shipped to clients.
+/// Issuer-side tool for Coduo POS licenses. Run it on YOUR machine only; it is never shipped to clients.
 /// The private signing key lives outside the repository (default: %USERPROFILE%\.nexpos-license\private.pem).
 /// </summary>
 internal static class Program
 {
     private const string Usage = """
-        NexPOS License Issuer
+        Coduo POS License Issuer
 
           keygen   [--key <path>] [--encrypt] [--force]
                    Create the signing key pair. Run once; back the private key up in two offline places.

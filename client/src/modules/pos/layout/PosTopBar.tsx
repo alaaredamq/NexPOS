@@ -38,7 +38,15 @@ export function PosTopBar({ onShowShortcuts, onReviewCart }: PosTopBarProps) {
 
   return (
     <header className={styles.topBar}>
-      <img className={styles.logo} src={branding.logoUrl} alt={branding.appName} />
+      {branding.hasCustomLogo ? (
+        <img className={styles.logo} src={branding.logoUrl} alt={branding.appName} />
+      ) : (
+        // The built-in logo is a stacked lockup, too tall for this bar: show the mark with the name beside it.
+        <span className={styles.brand}>
+          <img className={styles.brandMark} src={branding.markUrl} alt="" />
+          <span className={styles.brandName}>{branding.appName}</span>
+        </span>
+      )}
       <h1 className={styles.srOnly}>{t('PointOfSale')}</h1>
 
       {management &&

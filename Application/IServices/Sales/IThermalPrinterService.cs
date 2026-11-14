@@ -22,7 +22,7 @@ public interface IThermalPrinterService
     /// Sends any document to the receipt printer chosen in Settings (or <paramref name="printerName"/>).
     /// Returns false - never throws - when the printer rejects the job or isn't there.
     /// </summary>
-    Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "NexPOS Document");
+    Task<bool> PrintDocumentAsync(PrintDocument document, string? printerName = null, string jobName = "Coduo POS Document");
 
     /// <summary>The same document as a PDF file - what the "PDF" option of every print menu returns.</summary>
     byte[] GeneratePdf(PrintDocument document, PdfPaper paper = PdfPaper.Receipt);

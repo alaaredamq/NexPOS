@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="assets/icon.png" alt="NexPOS logo" width="110" />
+<img src="assets/icon.png" alt="Coduo POS logo" width="110" />
 
-# NexPOS
+# Coduo POS
 
 **A fast, offline-first point of sale and back-office for retail shops.**
 Sell at the till, track stock and debts, close the shift, and see the numbers, in English or Arabic.
@@ -28,7 +28,7 @@ Sell at the till, track stock and debts, close the shift, and see the numbers, i
 <br />
 
 > [!NOTE]
-> NexPOS ships as a single Windows installer. There is no database server to set up and no internet needed to run it: the app, its SQLite database and its license check all live on the shop's own PC.
+> Coduo POS ships as a single Windows installer. There is no database server to set up and no internet needed to run it: the app, its SQLite database and its license check all live on the shop's own PC.
 
 ---
 
@@ -287,6 +287,6 @@ ERP/
 
 Built by [**@alaaredamq**](https://github.com/alaaredamq) 
 
-<sub>NexPOS · .NET 9 · Electron · SQLite</sub>
+<sub>Coduo POS · .NET 9 · Electron · SQLite</sub>
 
 </div>

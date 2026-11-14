@@ -2,7 +2,7 @@
   "name": "nexpos-demo-video",
   "private": true,
   "version": "1.0.0",
-  "description": "Records the NexPOS client demo video against a seeded demo database",
+  "description": "Records the Coduo POS client demo video against a seeded demo database",
   "scripts": {
     "record": "node record-demo.js"
   },

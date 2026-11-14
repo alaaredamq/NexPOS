@@ -836,7 +836,7 @@
     <value>تعليق</value>
   </data>
   <data name="ERPSystem" xml:space="preserve">
-    <value>NexPos</value>
+    <value>Coduo POS</value>
   </data>
   <data name="Management" xml:space="preserve">
     <value>الإدارة</value>
@@ -1636,7 +1636,7 @@
     <value>إعداد</value>
   </data>
   <data name="Set_BrandingSubtitle" xml:space="preserve">
-    <value>استبدل اسم NexPos والشعار والأيقونة بما يخصك. أي حقل يُترك فارغاً يستخدم القيمة الافتراضية.</value>
+    <value>استبدل اسم Coduo POS والشعار والأيقونة بما يخصك. أي حقل يُترك فارغاً يستخدم القيمة الافتراضية.</value>
   </data>
   <data name="Set_AppName" xml:space="preserve">
     <value>اسم التطبيق</value>
@@ -2320,7 +2320,7 @@
   <data name="License_Title" xml:space="preserve"><value>الترخيص</value></data>
   <data name="AuditLog" xml:space="preserve"><value>سجل التدقيق</value></data>
   <data name="License_Manage" xml:space="preserve"><value>إدارة الترخيص</value></data>
-  <data name="License_BackToApp" xml:space="preserve"><value>العودة إلى NexPOS</value></data>
+  <data name="License_BackToApp" xml:space="preserve"><value>العودة إلى Coduo POS</value></data>
   <data name="License_StatusActive" xml:space="preserve"><value>مرخّص</value></data>
   <data name="License_StatusExpiringSoon" xml:space="preserve"><value>الترخيص على وشك الانتهاء</value></data>
   <data name="License_StatusGracePeriod" xml:space="preserve"><value>الترخيص يحتاج إلى تجديد</value></data>
@@ -2329,12 +2329,12 @@
   <data name="License_StatusInvalid" xml:space="preserve"><value>ترخيص غير صالح</value></data>
   <data name="License_StatusWrongMachine" xml:space="preserve"><value>الترخيص لجهاز آخر</value></data>
   <data name="License_StatusUpdatesNotCovered" xml:space="preserve"><value>الإصدار غير مشمول</value></data>
-  <data name="License_MsgActive" xml:space="preserve"><value>تم تفعيل NexPOS على هذا الجهاز.</value></data>
+  <data name="License_MsgActive" xml:space="preserve"><value>تم تفعيل Coduo POS على هذا الجهاز.</value></data>
   <data name="License_MsgDevBuild" xml:space="preserve"><value>نسخة تطوير: لا يتم فرض الترخيص.</value></data>
-  <data name="License_MsgNotActivated" xml:space="preserve"><value>NexPOS غير مفعّل على هذا الجهاز، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. أرسل معرّف الجهاز الظاهر أدناه إلى مزوّدك للحصول على مفتاح الترخيص، ثم الصقه هنا.</value></data>
+  <data name="License_MsgNotActivated" xml:space="preserve"><value>Coduo POS غير مفعّل على هذا الجهاز، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. أرسل معرّف الجهاز الظاهر أدناه إلى مزوّدك للحصول على مفتاح الترخيص، ثم الصقه هنا.</value></data>
   <data name="License_MsgInvalid" xml:space="preserve"><value>مفتاح الترخيص المحفوظ غير صالح أو تم تعديله، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. الصق مفتاح ترخيص صالحاً أدناه.</value></data>
   <data name="License_MsgWrongMachine" xml:space="preserve"><value>تم إصدار مفتاح الترخيص المحفوظ لجهاز آخر، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. أرسل معرّف الجهاز الظاهر أدناه إلى مزوّدك للحصول على مفتاح لهذا الجهاز.</value></data>
-  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>تم إصدار هذه النسخة من NexPOS (تاريخ البناء {0}) بعد انتهاء خطة التحديثات الخاصة بك في {1}، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. جدّد خطة الدعم لاستخدام هذه النسخة، أو أعد تثبيت نسختك السابقة.</value></data>
+  <data name="License_MsgUpdatesNotCovered" xml:space="preserve"><value>تم إصدار هذه النسخة من Coduo POS (تاريخ البناء {0}) بعد انتهاء خطة التحديثات الخاصة بك في {1}، لذلك تم إيقاف نقاط البيع والمبيعات الجديدة. جدّد خطة الدعم لاستخدام هذه النسخة، أو أعد تثبيت نسختك السابقة.</value></data>
   <data name="License_MsgExpiringSoon" xml:space="preserve"><value>ينتهي ترخيصك بعد {0} يوم (بتاريخ {1}). تواصل مع مزوّدك لتجديده.</value></data>
   <data name="License_MsgExpiringToday" xml:space="preserve"><value>ينتهي ترخيصك اليوم ({0}). تواصل مع مزوّدك لتجديده.</value></data>
   <data name="License_MsgGrace" xml:space="preserve"><value>انتهى ترخيصك بتاريخ {0}. جدّده الآن: ستتوقف نقاط البيع والمبيعات الجديدة بعد {1} (متبقٍ {2} يوم).</value></data>
@@ -2359,7 +2359,7 @@
   <data name="License_Success" xml:space="preserve"><value>تم تفعيل الترخيص بنجاح.</value></data>
   <data name="License_Error_Malformed" xml:space="preserve"><value>مفتاح الترخيص ناقص أو يحتوي على رموز زائدة. الصق المفتاح كاملاً كما استلمته.</value></data>
   <data name="License_Error_BadSignature" xml:space="preserve"><value>مفتاح الترخيص هذا غير صالح. ربما تم تعديله.</value></data>
-  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>مفتاح الترخيص هذا يتطلب نسخة أحدث من NexPOS.</value></data>
+  <data name="License_Error_UnsupportedVersion" xml:space="preserve"><value>مفتاح الترخيص هذا يتطلب نسخة أحدث من Coduo POS.</value></data>
   <data name="License_Error_WrongMachine" xml:space="preserve"><value>تم إصدار مفتاح الترخيص هذا لجهاز آخر.</value></data>
   <data name="License_Error_OlderThanCurrent" xml:space="preserve"><value>يوجد ترخيص أحدث مفعّل بالفعل على هذا الجهاز.</value></data>
   <data name="License_Error_StorageFailed" xml:space="preserve"><value>تعذّر حفظ الترخيص على هذا الجهاز.</value></data>
@@ -2389,7 +2389,7 @@
   <!-- api/v1 error messages (Web/Api/Infrastructure/ApiCodes.cs) -->
   <data name="Api_Unauthenticated" xml:space="preserve"><value>انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.</value></data>
   <data name="Api_Forbidden" xml:space="preserve"><value>ليس لديك صلاحية للقيام بذلك.</value></data>
-  <data name="Api_ClientHeaderRequired" xml:space="preserve"><value>هذا الطلب لم يصدر من تطبيق NexPOS.</value></data>
+  <data name="Api_ClientHeaderRequired" xml:space="preserve"><value>هذا الطلب لم يصدر من تطبيق Coduo POS.</value></data>
   <data name="Api_NotFound" xml:space="preserve"><value>لم يتم العثور على العنصر المطلوب.</value></data>
   <data name="Api_MethodNotAllowed" xml:space="preserve"><value>هذا الإجراء غير مدعوم.</value></data>
   <data name="Api_ValidationFailed" xml:space="preserve"><value>يرجى تصحيح الحقول المحددة.</value></data>

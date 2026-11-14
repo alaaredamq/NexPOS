@@ -151,7 +151,7 @@ export default function LoginPage() {
               <img className={styles.logoMark} src={branding.markUrl} alt="" />
             </span>
           ))}
-        <h1 className={styles.appName}>{branding?.appName ?? 'NexPOS'}</h1>
+        <h1 className={styles.appName}>{branding?.appName ?? 'Coduo POS'}</h1>
         <p className={styles.tagline}>{t('PointOfSaleSystem')}</p>
         <p className={styles.description}>{t('SystemDescription')}</p>
 
@@ -232,7 +232,7 @@ export default function LoginPage() {
           </div>
 
           <small className={styles.footer}>
-            © {new Date().getFullYear()} {branding?.appName ?? 'NexPOS'}. {t('Copyright')}
+            © {new Date().getFullYear()} {branding?.appName ?? 'Coduo POS'}. {t('Copyright')}
           </small>
 
           <LanguageButtons className={styles.mobileLanguages} />

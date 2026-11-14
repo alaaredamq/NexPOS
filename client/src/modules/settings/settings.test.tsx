@@ -25,7 +25,7 @@ const printing = (overrides = {}) => ({ receiptPrinterName: '', stickerWidthMm: 
 
 const branding = (overrides = {}) => ({
   appName: '',
-  defaultAppName: 'NexPos',
+  defaultAppName: 'Coduo POS',
   hasCustomLogo: false,
   hasCustomFavicon: false,
   logoUrl: '/branding/logo?v=1',
@@ -215,7 +215,7 @@ describe('branding', () => {
 
     const name = await screen.findByLabelText('App name')
     expect(name).toHaveValue('')
-    expect(name).toHaveAttribute('placeholder', 'NexPos')
+    expect(name).toHaveAttribute('placeholder', 'Coduo POS')
     expect(screen.queryByLabelText('Remove and use the default logo')).not.toBeInTheDocument()
   })
 

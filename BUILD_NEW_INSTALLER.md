@@ -1,6 +1,6 @@
 # Building a New Installer After a Change
 
-Do these steps every time you change the program and want to give users a new `NexPos Setup X.Y.Z.exe`.
+Do these steps every time you change the program and want to give users a new `Coduo POS Setup X.Y.Z.exe`.
 
 ---
 
@@ -45,9 +45,9 @@ Open `package.json` and increase `"version"`:
 
 The version appears in the installer's file name and in Windows "Apps & features". If you don't bump it, the new installer has the same name as the old one and you can't tell them apart.
 
-## 4. Close NexPos
+## 4. Close Coduo POS
 
-Close any running NexPos window, and stop the app in Visual Studio if it's running. Otherwise the build can fail because files are locked.
+Close any running Coduo POS window, and stop the app in Visual Studio if it's running. Otherwise the build can fail because files are locked.
 
 ## 5. Build
 
@@ -76,19 +76,19 @@ powershell -ExecutionPolicy Bypass -File .\build-electron.ps1 win-installer
 The new installer is in the **`dist`** folder:
 
 ```
-dist\NexPos Setup 1.0.1.exe
+dist\Coduo POS Setup 1.0.1.exe
 ```
 
 That's the only file you give to users. The rest of `dist` (`win-unpacked`, `.blockmap`, `.yml`) is build output you can ignore.
 
 ## 7. Test it before you send it
 
-1. Run the new `NexPos Setup X.Y.Z.exe` on your machine, over the top of the previous version.
-2. Open NexPos and check that:
+1. Run the new `Coduo POS Setup X.Y.Z.exe` on your machine, over the top of the previous version.
+2. Open Coduo POS and check that:
    - it starts and shows the login page
    - your change is there
    - your existing data (products, customers, sales) is still there
-3. Ideally, also test on a second PC that never had NexPos installed.
+3. Ideally, also test on a second PC that never had Coduo POS installed.
 
 ## 8. Commit
 
@@ -106,7 +106,7 @@ Tagging each release lets you find the exact code behind any installer later.
 
 | Thing                  | Location                                   | Kept on update/uninstall? |
 |------------------------|--------------------------------------------|---------------------------|
-| Program files          | `%LocalAppData%\Programs\NexPos` (default) | Replaced by the update    |
+| Program files          | `%LocalAppData%\Programs\Coduo POS` (default) | Replaced by the update    |
 | Database (`nexpos.db`) | `%LocalAppData%\NexPOS\`                   | **Kept**                  |
 | Login key (`jwt.key`)  | `%AppData%\NexPos\`                        | **Kept**                  |
 | Logs                   | `%AppData%\NexPos\logs\`                   | **Kept**                  |
@@ -119,7 +119,7 @@ Installing a new version over an old one keeps all the customer's data. To troub
 
 Release builds only let a shop sell once the PC has a license key (Debug builds never ask for one). Do this on every new install, and again when a customer renews or replaces their PC:
 
-1. Install NexPos on the customer's PC and open it. Go to **License** in the sidebar (or `http://localhost:5000/en/License`; no login needed). It shows the PC's **Machine ID** (`XXXXX-XXXXX-XXXXX-XXXXX`). Have the customer copy it to you, or read it over AnyDesk.
+1. Install Coduo POS on the customer's PC and open it. Go to **License** in the sidebar (or `http://localhost:5000/en/License`; no login needed). It shows the PC's **Machine ID** (`XXXXX-XXXXX-XXXXX-XXXXX`). Have the customer copy it to you, or read it over AnyDesk.
 2. On **your** PC, from the repo root:
 
    ```powershell
@@ -149,12 +149,12 @@ If a customer reinstalls Windows or swaps a disk the key usually keeps working (
 The installer isn't code-signed, so Windows SmartScreen warns about it. Click **More info → Run anyway**. The only way to remove the warning is to buy a code-signing certificate.
 
 **Build fails with "file is being used by another process" / access denied.**
-NexPos or `Web.exe` is still running. Close it (check Task Manager for `Web.exe`), delete the `dist` and `publish` folders, and build again.
+Coduo POS or `Web.exe` is still running. Close it (check Task Manager for `Web.exe`), delete the `dist` and `publish` folders, and build again.
 
 **Build fails with "Cannot create symbolic link" (winCodeSign).**
 Turn on Windows **Developer Mode** (Settings → System → For developers), or run PowerShell as Administrator once, then build again.
 
-**The installed app shows "NexPos failed to start".**
+**The installed app shows "Coduo POS failed to start".**
 Read the newest log in `%AppData%\NexPos\logs\`. A common cause is a broken migration: run the app from Visual Studio against a copy of the database to reproduce it.
 
 **Port 5000 already in use.**
@@ -167,8 +167,8 @@ Another program (or a leftover `Web.exe`) is using port 5000. End `Web.exe` in T
 - [ ] Change made and tested
 - [ ] Migration added (only if the database changed)
 - [ ] `version` bumped in `package.json`
-- [ ] NexPos / Visual Studio app closed
+- [ ] Coduo POS / Visual Studio app closed
 - [ ] `.\build-electron.ps1 win-installer`
-- [ ] Installed `dist\NexPos Setup X.Y.Z.exe` over the old version and tested it
+- [ ] Installed `dist\Coduo POS Setup X.Y.Z.exe` over the old version and tested it
 - [ ] Only give this installer to customers whose updates plan runs past today (a `full` key refuses builds compiled after its "updates until" date)
 - [ ] Committed and tagged `vX.Y.Z`

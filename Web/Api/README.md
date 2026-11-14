@@ -1,4 +1,4 @@
-# NexPOS JSON API (`api/v1`)
+# Coduo POS JSON API (`api/v1`)
 
 The API of the React app (`client/`). It sits next to the Razor pages and shares their database, services, licence and
 sign-in cookie. Foundation by track **0A** of `REACT_MIGRATION.md`; each module adds its folder under `Web/Api/<Module>/`.
