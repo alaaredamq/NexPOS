@@ -90,6 +90,11 @@ ERP/
    - [ ] Notes file written: what was dropped, what's odd, what to watch.
 9. **Verification recipe:** use the isolated demo-DB + Playwright runbook (`nexpos-ui-audit-runbook` memory). Do **not** test against `nexpos.db`.
 10. **Bash/Windows:** Visual Studio's debugger locks `Web\bin`; build a copy in the scratchpad if it's running.
+11. **Worktree cleanup.** Merging a branch does not remove its worktree folder. Once your branch is merged into `react/main` and your row is ☑, remove it
+    from the main checkout: `git worktree remove ../ERP-<ID>` then `git branch -d react/<ID>`. `worktree remove` refuses if there are uncommitted
+    changes — commit or discard them deliberately, never `--force` a worktree you didn't create. `git worktree list` shows what is still around.
+    `git branch -d` checks against the *current* branch, so from `master` it may say "not fully merged" even though `react/main` has it: confirm with
+    `git rev-list --count react/main..react/<ID>` (must print `0`), then use `git branch -D react/<ID>`.
 
 ## 5. Dependency map
 
@@ -369,6 +374,7 @@ merge (`npm run api:types`); client lint, typecheck and all 378 Vitest tests pas
 > Set my row on the status board to ◐ with this branch. Follow the repo rules in `Web/Requirements/rules.md`.
 > Touch only the paths under **Owns**. Start by committing the DTO/contract (or the stub interface) so parallel sessions can rely on it.
 > Finish the definition of done (4.8), write `docs/react-migration/notes/<ID>.md`, update my row to ◑, and tell me what to verify by hand.
+> After I've merged and marked the row ☑, remove the worktree and branch (rule 4.11).
 
 ## 13. Known unknowns to resolve early (cheap to check, expensive to discover late)
 
