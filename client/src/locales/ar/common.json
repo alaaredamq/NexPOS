@@ -799,6 +799,7 @@
   "Set_LogoHelp": "PNG أو JPG أو SVG أو WebP حتى 2 ميجابايت. الأفضل شعار عريض بخلفية شفافة.",
   "Set_NameTooLong": "يجب ألا يزيد اسم التطبيق على {{0}} حرفًا.",
   "Set_NotDetected": "(غير مكتشفة)",
+  "Set_Online": "أونلاين",
   "Set_PrintersLabels": "الطابعات والملصقات",
   "Set_PrintersLabelsDesc": "طابعة الإيصالات وطابعة ملصقات الباركود وحجمها.",
   "Set_PrintersSubtitle": "اختر طابعة الإيصالات وأعدّ ملصقات الباركود",

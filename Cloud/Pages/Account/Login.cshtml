@@ -1,0 +1,95 @@
+@page
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@model LoginModel
+@{
+    ViewData["Title"] = "Sign in";
+    ViewData["Bare"] = true;
+    // Only for show: a sample day for a shop that lost power for a few hours in the afternoon.
+    var sample = new[] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 };
+}
+
+<div class="auth">
+    <section class="side">
+        <a class="brand" href="/" aria-label="NexPOS Cloud">
+            <span class="mark" aria-hidden="true">N</span>
+            <span><b>NexPOS</b><span>Cloud</span></span>
+        </a>
+        <div>
+            <h1>Every till, <em>in sight.</em></h1>
+            <p>See which shops are connected, who is due to renew, and the hours a shop's PC went quiet.</p>
+            <ol class="pulse" aria-hidden="true">
+                @for (var i = 0; i < sample.Length; i++) { <li class="@(sample[i] == 1 ? "on" : "off")"></li> }
+            </ol>
+        </div>
+        <small class="muted" style="color:var(--rail-ink);opacity:.7">For the provider only.</small>
+    </section>
+    <section class="form">
+        <div class="box">
+            <h2>Sign in</h2>
+            <p class="muted">Use the account set up for this portal.</p>
+            <form method="post">
+                <label for="username">Username</label>
+                <input id="username" name="Username" value="@Model.Username" autocomplete="username" autofocus />
+                <label for="password">Password</label>
+                <input id="password" name="Password" type="password" autocomplete="current-password" />
+                @if (Model.Error is not null)
+                {
+                    <p class="error" role="alert">@Model.Error</p>
+                }
+                <p style="margin-top:18px"><button type="submit" class="btn" style="width:100%;min-height:44px">Sign in</button></p>
+            </form>
+        </div>
+    </section>
+</div>
+
+@functions {
+    public class LoginModel(ControlDbContext db, LoginThrottle throttle, TimeProvider time) : PageModel
+    {
+        [BindProperty(SupportsGet = true)] public string? ReturnUrl { get; set; }
+        [BindProperty] public string Username { get; set; } = "";
+        [BindProperty] public string Password { get; set; } = "";
+        public string? Error { get; private set; }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            // Throttle per client address AND per username, so neither guessing many names from one machine
+            // nor guessing one name from many machines gets unlimited tries.
+            var address = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var keys = new[] { "ip:" + address, "user:" + Username.Trim().ToLowerInvariant() };
+            if (keys.Any(throttle.IsBlocked))
+            {
+                Error = "Too many failed attempts. Try again in a few minutes.";
+                return Page();
+            }
+
+            var username = Username.Trim();
+            var admin = await db.AdminUsers.FirstOrDefaultAsync(a => a.Username == username);
+            // Verify even for an unknown user so response time does not reveal which usernames exist.
+            var ok = PasswordHasher.Verify(Password, admin?.PasswordHash ?? DummyHash);
+            if (admin is null || !ok)
+            {
+                foreach (var key in keys) throttle.RecordFailure(key);
+                Error = "Wrong username or password.";
+                return Page();
+            }
+
+            foreach (var key in keys) throttle.Reset(key);
+            var identity = new ClaimsIdentity(
+                [new Claim(ClaimTypes.Name, admin.Username), new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString())],
+                CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            return LocalRedirect(Url.IsLocalUrl(ReturnUrl) ? ReturnUrl! : "/");
+        }
+
+        public async Task<IActionResult> OnPostLogoutAsync()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToPage();
+        }
+
+        private static readonly string DummyHash = PasswordHasher.Hash("not-a-real-password");
+    }
+}

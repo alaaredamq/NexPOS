@@ -1496,6 +1496,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Connection state and the result of the last synchronisation. */
+        get: operations["getOnlineStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Connects with the provider's link and starts syncing at once (no restart). A refused link answers 400 with a stable code:
+         *     `enroll_link_invalid`, `cloud_insecure_url`, `enroll_code_invalid`, `enroll_code_expired`, `enroll_code_used`,
+         *     `site_disabled`, `rate_limited`; `cloud_unreachable` answers 502. Nothing changes on failure.
+         */
+        post: operations["connectOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stops syncing and forgets the credential. Nothing on this till is deleted. */
+        post: operations["disconnectOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online/sync-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asks the background sync to run now rather than at its next turn. Returns the state as it is; poll `GET` for the outcome. */
+        post: operations["syncOnlineNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders": {
         parameters: {
             query?: never;
@@ -4687,6 +4759,51 @@ export interface components {
             lowStockAlerts: number;
             /** Format: int32 */
             outOfStockAlerts: number;
+        };
+        OnlineConnectRequest: {
+            /** @description The connection link from the provider (`https://.../enroll/XXXX-XXXX-XXXX`). Pasting the whole WhatsApp message also works. */
+            link: string;
+        };
+        /**
+         * @description The Online screen: whether this till is connected to NexPOS Online, to whom, and how the last synchronisation went.
+         *     The device token is never part of it.
+         */
+        OnlineStatusDto: {
+            /** @description True when the till holds a credential and is syncing (or trying to). */
+            connected: boolean;
+            /** @description Address of the cloud, e.g. `cloud.example.com`. */
+            cloudHost?: string | null;
+            /** @description The installation's name as set up by the provider (e.g. "Main till"). */
+            siteName?: string | null;
+            /** @description The client (shop) the installation belongs to. */
+            clientName?: string | null;
+            /** Format: date-time */
+            connectedAtUtc?: string | null;
+            /** Format: date-time */
+            lastAttemptUtc?: string | null;
+            /**
+             * Format: date-time
+             * @description When the cloud last confirmed receiving changes. Null until the first successful sync.
+             */
+            lastSuccessUtc?: string | null;
+            /**
+             * @description Stable machine code of the problem, or null while all is well: `network`, `timeout`, `subscription_inactive`,
+             *     `unauthorized`, `schema_newer`, `bad_batch`, `server_error`. The screen maps it to a sentence in the user's language.
+             */
+            lastErrorCode?: string | null;
+            /** @description English detail from the cloud, for support. The screen shows its own localized sentence for `lastErrorCode`. */
+            lastError?: string | null;
+            /**
+             * Format: int64
+             * @description Changes waiting to be sent. They are safe locally; selling never waits for them.
+             */
+            pendingChanges: number;
+            /** @description `Active`, `Grace`, `Expired`, `Suspended` or `None`, as last reported by the cloud; null until known. */
+            subscriptionStatus?: string | null;
+            /** Format: date-time */
+            subscriptionExpiresAtUtc?: string | null;
+            /** @description Set when the settings file exists but cannot be read; Online then stays off until it is fixed or the till is reconnected. */
+            settingsProblem?: string | null;
         };
         /** @description Opens the signed-in user's drawer. */
         OpenDrawerRequest: {
@@ -12462,6 +12579,180 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOnlineStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineStatusDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    connectOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineConnectRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineStatusDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    disconnectOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineStatusDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    syncOnlineNow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineStatusDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

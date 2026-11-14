@@ -1,0 +1,94 @@
+@page
+@model CreateModel
+@{
+    ViewData["Title"] = "New client";
+    ViewData["Nav"] = "new";
+}
+
+<div class="page-head">
+    <div>
+        <a class="crumb" href="/"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
+        <h1>New client</h1>
+        <p class="sub">One form: the client, their first till, and the link to send the owner.</p>
+    </div>
+</div>
+
+<form method="post" class="card" style="max-width:720px">
+    <label for="name" style="margin-top:0">Shop name</label>
+    <input id="name" name="Name" value="@Model.Name" required maxlength="200" autofocus />
+    <div class="fields2">
+        <div>
+            <label for="phone">Phone <span class="opt">(optional)</span></label>
+            <input id="phone" name="Phone" value="@Model.Phone" />
+        </div>
+        <div>
+            <label for="email">Email <span class="opt">(optional)</span></label>
+            <input id="email" name="Email" type="email" value="@Model.Email" />
+        </div>
+    </div>
+    <label for="notes">Notes <span class="opt">(optional)</span></label>
+    <textarea id="notes" name="Notes">@Model.Notes</textarea>
+
+    <fieldset style="border:0;padding:0;margin:0">
+        <legend style="font-size:13px;font-weight:600;color:var(--ink-2);margin:18px 0 5px;padding:0">Months of Online, from today</legend>
+        <div class="plans">
+            @foreach (var (months, text) in new[] { (0, "None yet"), (1, "month"), (3, "months"), (6, "months"), (12, "months") })
+            {
+                <label>
+                    <input type="radio" name="Months" value="@months" checked="@(Model.Months == months)" />
+                    <span>@(months == 0 ? "0" : months.ToString())<small>@text</small></span>
+                </label>
+            }
+        </div>
+        <p class="help">What they paid for. You can add more any time. With none, their till cannot send data yet.</p>
+    </fieldset>
+
+    @if (Model.Error is not null)
+    {
+        <p class="error" role="alert">@Model.Error</p>
+    }
+    <p style="margin:22px 0 0"><button type="submit" class="btn tag" style="min-height:44px;padding:0 22px">Create client and get the connection link</button></p>
+</form>
+
+@functions {
+    public class CreateModel(ControlDbContext db, EnrollmentService enrollment, TimeProvider time,
+        Microsoft.Extensions.Options.IOptions<CloudOptions> options) : PageModel
+    {
+        [BindProperty] public string Name { get; set; } = "";
+        [BindProperty] public string? Phone { get; set; }
+        [BindProperty] public string? Email { get; set; }
+        [BindProperty] public string? Notes { get; set; }
+        [BindProperty] public int Months { get; set; } = 1;
+        public string? Error { get; private set; }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (string.IsNullOrWhiteSpace(Name)) { Error = "Enter the shop's name."; return Page(); }
+            if (Months is < 0 or > 60) { Error = "Months must be between 0 and 60."; return Page(); }
+
+            var now = time.GetUtcNow().UtcDateTime;
+            var client = new Client
+            {
+                Name = Name.Trim(), Phone = Phone?.Trim(), Email = Email?.Trim(), Notes = Notes?.Trim(), CreatedAt = now,
+            };
+            if (Months > 0)
+                client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(Months) };
+            client.Events.Add(new ClientEvent { At = now, Text = Months > 0 ? $"Client created with {Months} month(s) of Online." : "Client created." });
+
+            // The usual case is one till, so set it up now: the next screen already holds the link to send.
+            var site = new Site { Id = Guid.NewGuid(), Name = "Main till", CreatedAt = now };
+            client.Sites.Add(site);
+            db.Clients.Add(client);
+            await db.SaveChangesAsync();
+
+            var issued = await enrollment.IssueAsync(site.Id);
+            var baseUrl = string.IsNullOrWhiteSpace(options.Value.PublicUrl)
+                ? $"{Request.Scheme}://{Request.Host}"
+                : options.Value.PublicUrl.TrimEnd('/');
+            TempData["NewLink"] = $"{baseUrl}/enroll/{issued.Display}";
+            TempData["NewLinkExpires"] = issued.ExpiresAt.ToString("yyyy-MM-dd");
+            this.Flash("Client created");
+            return Redirect($"/Sites/Details/{site.Id}");
+        }
+    }
+}

@@ -21,6 +21,9 @@ export function SettingsLayout({ children }: { children: ReactNode }) {
         <NavLink to="/settings/branding" className={styles.tab}>
           {t('Set_Branding', { ns: 'common' })}
         </NavLink>
+        <NavLink to="/settings/online" className={styles.tab}>
+          {t('Set_Online', { ns: 'common' })}
+        </NavLink>
       </nav>
       {children}
     </div>
