@@ -31,6 +31,12 @@
       detailsH: 'Name, address and look', mTitle: 'Menu name', mTag: 'One line under the name', mNote: 'At the bottom (address, opening hours, phone)',
       mLang: 'Menu language', mCur: 'Currency for items added here', mSlug: 'Address', slugHint: 'Small English letters, digits and dashes.',
       logo: 'Logo', chooseLogo: 'Choose logo', remove: 'Remove', save: 'Save', saved: 'Saved',
+      lsH: 'How dishes are listed', lsP: 'Pick the look customers see. You can change it any time; nothing else changes.', lsOn: 'In use', lsSaved: 'Look changed',
+      ls_compact: 'Compact rows', ls_compact_d: 'Many dishes on one screen. Fine with or without pictures.',
+      ls_grid: 'Photo grid', ls_grid_d: 'Two columns of picture cards. Best when most dishes have a photo.',
+      ls_cards: 'Big photo cards', ls_cards_d: 'One large picture per dish, with its description.',
+      ls_classic: 'Classic menu', ls_classic_d: 'No pictures: name, dotted line, price, like a printed menu.',
+      ls_rails: 'Swipe rows', ls_rails_d: 'Each section is a row that customers swipe sideways.',
       itemsH: 'Menu', showMore: 'Show more ({0} left)', nItems: '{0} items', itemsP: 'Use the arrows to change the order. Hidden items stay here but not on the menu.', posOrder: 'Sections and their order come from the Online Menu screen in the POS. Change them there; pictures, descriptions and hiding are set here.',
       addSection: 'Section', addItem: 'Item', noSection: 'No section', emptySec: 'Nothing in this section yet.', emptyMenu: 'Nothing on the menu yet. Add a section, then items.',
       emptyLinked: 'Nothing yet. Products appear here a few minutes after the shop PC checks in.',
@@ -62,6 +68,12 @@
       detailsH: 'الاسم والعنوان والشكل', mTitle: 'اسم القائمة', mTag: 'سطر تحت الاسم', mNote: 'في الأسفل (العنوان، ساعات العمل، الهاتف)',
       mLang: 'لغة القائمة', mCur: 'عملة الأصناف المضافة هنا', mSlug: 'العنوان', slugHint: 'أحرف إنجليزية صغيرة وأرقام وشرطات.',
       logo: 'الشعار', chooseLogo: 'اختر الشعار', remove: 'إزالة', save: 'حفظ', saved: 'تم الحفظ',
+      lsH: 'طريقة عرض الأصناف', lsP: 'اختر الشكل الذي يراه الزبائن. يمكنك تغييره في أي وقت، ولا يتغير شيء آخر.', lsOn: 'مستخدم', lsSaved: 'تغيّر الشكل',
+      ls_compact: 'صفوف مضغوطة', ls_compact_d: 'أصناف كثيرة في شاشة واحدة. مناسب مع الصور وبدونها.',
+      ls_grid: 'شبكة صور', ls_grid_d: 'عمودان من بطاقات الصور. الأفضل حين يكون لمعظم الأصناف صورة.',
+      ls_cards: 'بطاقات صور كبيرة', ls_cards_d: 'صورة كبيرة لكل صنف مع وصفه.',
+      ls_classic: 'قائمة كلاسيكية', ls_classic_d: 'بدون صور: الاسم ونقاط ثم السعر، مثل القائمة المطبوعة.',
+      ls_rails: 'صفوف تُسحب', ls_rails_d: 'كل قسم صف يسحبه الزبون جانبياً.',
       itemsH: 'القائمة', showMore: 'عرض المزيد (بقي {0})', nItems: '{0} أصناف', itemsP: 'استخدم الأسهم لتغيير الترتيب. الأصناف المخفية تبقى هنا ولا تظهر في القائمة.', posOrder: 'الأقسام وترتيبها تأتي من شاشة القائمة الإلكترونية في نقطة البيع. غيّرها هناك؛ الصور والأوصاف والإخفاء تُحدَّد هنا.',
       addSection: 'قسم', addItem: 'صنف', noSection: 'بلا قسم', emptySec: 'لا شيء في هذا القسم بعد.', emptyMenu: 'القائمة فارغة. أضف قسماً ثم أصنافاً.',
       emptyLinked: 'لا شيء بعد. تظهر المنتجات هنا بعد دقائق من اتصال كمبيوتر المتجر.',
@@ -213,7 +225,7 @@
         '<form id="fcreate" class="row" style="margin-top:14px"><div class="f" style="flex:1;min-width:220px"><label for="ct">' + t('createName') + '</label><input id="ct" maxlength="120" value="' + esc(S.clientName) + '" required></div>' +
         '<button class="btn pri" style="align-self:flex-end">' + t('create') + '</button></form></div>';
     } else {
-      h += shareCard() + sourceCard() + detailsCard() + itemsCard();
+      h += shareCard() + sourceCard() + styleCard() + detailsCard() + itemsCard();
     }
     $('#app').innerHTML = h + '</div>';
     bindBar();
@@ -247,6 +259,33 @@
       h += '<p class="note">' + t('posNote') + '</p>';
     }
     return h + '</section>';
+  }
+
+  // ---- how dishes are listed: picture cards that behave as radio buttons (real radios underneath, so keys and screen readers work) ----
+  var STYLES = ['compact', 'grid', 'cards', 'classic', 'rails'];
+  function mini(style) {
+    var line = function (w) { return '<i class="ln" style="width:' + w + '%"></i>'; };
+    var rows = function (n, fn) { var s = ''; for (var k = 0; k < n; k++) s += fn(k); return s; };
+    switch (style) {
+      case 'grid':
+        return '<span class="mini m-grid">' + rows(4, function () { return '<span class="cell"><i class="ph"></i>' + line(70) + line(35) + '</span>'; }) + '</span>';
+      case 'cards':
+        return '<span class="mini m-cards">' + rows(2, function () { return '<span class="cell"><i class="ph"></i>' + line(60) + line(85) + '</span>'; }) + '</span>';
+      case 'classic':
+        return '<span class="mini m-classic"><i class="ln hd"></i>' + rows(5, function () { return '<span class="row">' + line(38) + '<i class="dots"></i><i class="ln pr"></i></span>'; }) + '</span>';
+      case 'rails':
+        return '<span class="mini m-rails">' + rows(2, function () { return line(30) + '<span class="rail"><i class="ph"></i><i class="ph"></i><i class="ph"></i></span>'; }) + '</span>';
+      default:
+        return '<span class="mini m-compact">' + rows(5, function () { return '<span class="row"><i class="dot"></i><span class="tx">' + line(70) + line(45) + '</span><i class="pill"></i></span>'; }) + '</span>';
+    }
+  }
+  function styleCard() {
+    var current = S.menu.listingStyle || 'compact';
+    return '<section class="card"><fieldset class="styles"><legend><h2>' + t('lsH') + '</h2></legend><p class="sub">' + t('lsP') + '</p><div class="stygrid">' +
+      STYLES.map(function (s) {
+        return '<label class="sty"><input type="radio" name="lstyle" value="' + s + '"' + (s === current ? ' checked' : '') + '>' +
+          mini(s) + '<b>' + t('ls_' + s) + (s === current ? ' <span class="pill good">' + t('lsOn') + '</span>' : '') + '</b><span>' + t('ls_' + s + '_d') + '</span></label>';
+      }).join('') + '</div></fieldset></section>';
   }
 
   function detailsCard() {
@@ -330,6 +369,9 @@
     on('#site', 'change', function (e) { if (confirm(t('unlinkQ'))) act(api('PUT', '/settings', { linkedSiteId: e.target.value })); else render(); });
 
     on('#det', 'toggle', function (e) { openDetails = e.target.open; });
+    document.querySelectorAll('input[name=lstyle]').forEach(function (r) {
+      r.addEventListener('change', function () { act(api('PUT', '/settings', { listingStyle: r.value })).then(function () { toast(t('lsSaved')); }, function () {}); });
+    });
     on('#fset', 'submit', function (e) {
       e.preventDefault();
       act(api('PUT', '/settings', {

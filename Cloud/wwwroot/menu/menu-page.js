@@ -18,6 +18,14 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function itemNode(i) {
     var li = el('li', 'item' + (i.soldOut ? ' out' : ''));
+    // Same markup as the server renders: picture (or a letter where there is none) first, then the words. menu.css lays it out per style.
+    if (i.imageUrl) {
+      var img = el('img', 'pic'); img.src = i.imageUrl; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.width = 300; img.height = 300;
+      li.appendChild(img);
+    } else {
+      var none = el('span', 'pic blank', (i.name || '').trim().charAt(0).toUpperCase()); none.setAttribute('aria-hidden', 'true');
+      li.appendChild(none);
+    }
     var txt = el('div', 'txt');
     var h = el('h3', null, i.name); h.dir = 'auto'; txt.appendChild(h);
     if (i.description) { var p = el('p', null, i.description); p.dir = 'auto'; txt.appendChild(p); }
@@ -26,10 +34,6 @@
     if (i.soldOut) price.appendChild(el('em', null, body.dataset.soldOut));
     txt.appendChild(price);
     li.appendChild(txt);
-    if (i.imageUrl) {
-      var img = el('img'); img.src = i.imageUrl; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.width = 112; img.height = 112;
-      li.appendChild(img);
-    }
     return li;
   }
 
@@ -64,7 +68,11 @@
         slot.onclick = function () { slot.onclick = null; slot.textContent = ''; load(slot); };
       });
   }
-  function near(slot) { var r = slot.getBoundingClientRect(); return r.top < innerHeight + 900 && r.bottom > -900; }
+  // Near in both directions: in the swipe-rails style a section scrolls sideways, and must not load whole the moment it is in view.
+  function near(slot) {
+    var r = slot.getBoundingClientRect();
+    return r.top < innerHeight + 900 && r.bottom > -900 && r.left < innerWidth + 400 && r.right > -400;
+  }
 
   var slots = [].slice.call(document.querySelectorAll('[data-more]'));
   var observer = 'IntersectionObserver' in window

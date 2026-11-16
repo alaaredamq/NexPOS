@@ -31,6 +31,12 @@ public class MenuModel(ControlDbContext db) : PageModel
     public string? PreviewKey { get; private set; }
     public bool Arabic => Menu.Language == "ar";
 
+    /// <summary>The shop's chosen listing style (a class on the page; menu.css draws each).</summary>
+    public string Style => MenuListingStyles.IsValid(Menu.ListingStyle) ? Menu.ListingStyle : MenuListingStyles.Default;
+
+    /// <summary>The letter shown where a dish has no picture.</summary>
+    public static string Initial(string name) => string.IsNullOrWhiteSpace(name) ? "" : name.Trim()[..1].ToUpperInvariant();
+
     public async Task<IActionResult> OnGetAsync(string slug, string? preview)
     {
         var menu = await db.Menus.AsNoTracking().Include(m => m.Client).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());

@@ -1,5 +1,6 @@
 @page "/m/{slug}"
 @model Cloud.Pages.Public.MenuModel
+@using Cloud.Pages.Public
 @{
     Layout = null;
     var m = Model.Menu;
@@ -37,7 +38,7 @@ else
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/menu/menu.css" asp-append-version="true">
 </head>
-<body data-items="/m/@m.Slug/items" data-preview="@Model.PreviewKey" data-sold-out="@Model.T("Sold out", "نفد")" data-error="@Model.T("Could not load more. Tap to try again.", "تعذّر تحميل المزيد. اضغط للمحاولة مجدداً.")">
+<body class="style-@Model.Style" data-items="/m/@m.Slug/items" data-preview="@Model.PreviewKey" data-sold-out="@Model.T("Sold out", "نفد")" data-error="@Model.T("Could not load more. Tap to try again.", "تعذّر تحميل المزيد. اضغط للمحاولة مجدداً.")">
 @if (Model.IsPreview)
 {
 <div class="preview">@Model.T("Preview: only people with this link can see the menu until it is published.", "معاينة: لا يرى القائمة إلا من لديه هذا الرابط حتى تُنشر.")</div>
@@ -90,6 +91,14 @@ else
       {
       var desc = i.Description ?? i.PosDescription;
       <li class="item@(i.IsSoldOut ? " out" : "")">
+        @if (i.ImageFile is not null)
+        {
+        <img class="pic" src="/m/img/@i.ImageFile" alt="" loading="lazy" decoding="async" width="300" height="300">
+        }
+        else
+        {
+        <span class="pic blank" aria-hidden="true">@MenuModel.Initial(i.Name)</span>
+        }
         <div class="txt">
           <h3 dir="auto">@i.Name</h3>
           @if (desc is not null)
@@ -99,10 +108,6 @@ else
           <div class="price"><span dir="ltr">@Model.PriceOf(i)</span>@if (i.IsSoldOut)
           {<em>@Model.T("Sold out", "نفد")</em>}</div>
         </div>
-        @if (i.ImageFile is not null)
-        {
-        <img src="/m/img/@i.ImageFile" alt="" loading="lazy" decoding="async" width="112" height="112">
-        }
       </li>
       }
       @if (g.Remaining > 0)
@@ -126,7 +131,8 @@ else
     {
     <p class="note" dir="auto">@m.Note</p>
     }
-    <p class="by"><a href="/">@Model.T("Menu by Coduo POS", "القائمة من Coduo POS")</a></p>
+    @* "Coduo", not "Coduo POS": a shop can run its menu without our POS (items added by hand). *@
+    <p class="by"><a href="/">@Model.T("Menu by Coduo", "القائمة من Coduo")</a></p>
   </div>
 </footer>
 <script src="/menu/menu-page.js" asp-append-version="true" defer></script>

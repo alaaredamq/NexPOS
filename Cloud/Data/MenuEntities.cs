@@ -22,6 +22,8 @@ public class Menu
     public string Language { get; set; } = "en";
     /// <summary>For items added by hand: what their prices are in ("$", "LBP").</summary>
     public string Currency { get; set; } = "$";
+    /// <summary>How the dishes are laid out on the public page; one of <see cref="MenuListingStyles.All"/>. Each shop picks its own.</summary>
+    public string ListingStyle { get; set; } = MenuListingStyles.Default;
     public string? LogoFile { get; set; }
     /// <summary>Off = the address answers 404, so the owner can prepare the menu before sharing it.</summary>
     public bool IsPublished { get; set; }
@@ -77,4 +79,25 @@ public class MenuItem
     public bool IsHidden { get; set; }
     public bool IsSoldOut { get; set; }
     public int? PosProductId { get; set; }
+}
+
+/// <summary>The ways a public menu can list its dishes. The page draws them all from the same markup; only menu.css differs.</summary>
+public static class MenuListingStyles
+{
+    /// <summary>Round thumbnails, one line of description, price on the right: dense, and fine with or without pictures.</summary>
+    public const string Compact = "compact";
+    /// <summary>Two columns of square picture cards.</summary>
+    public const string Grid = "grid";
+    /// <summary>One large picture card per dish, with its description.</summary>
+    public const string Cards = "cards";
+    /// <summary>No pictures: name, dotted leader, price, like a printed menu.</summary>
+    public const string Classic = "classic";
+    /// <summary>Each section a row of cards that swipes sideways.</summary>
+    public const string Rails = "rails";
+
+    public const string Default = Compact;
+
+    public static readonly string[] All = [Compact, Grid, Cards, Classic, Rails];
+
+    public static bool IsValid(string? style) => style is not null && All.Contains(style);
 }

@@ -114,6 +114,8 @@ public class ControlDbContext : DbContext
             e.Property(x => x.LogoFile).HasMaxLength(60);
             e.Property(x => x.CatalogHash).HasMaxLength(64);
             e.Property(x => x.PreviewKey).HasMaxLength(32);
+            // Menus made before the choice existed get the default.
+            e.Property(x => x.ListingStyle).HasMaxLength(12).HasDefaultValue(MenuListingStyles.Default);
             e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.Sections).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.Items).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);

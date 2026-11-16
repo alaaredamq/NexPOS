@@ -1,8 +1,10 @@
 /* A shop's public menu (/m/{slug}). It should read as the shop's own menu, so our brand stays out of the way: warm paper, dark ink,
-   one quiet accent for the active section, and prices in a steady monospace so a column of them lines up by eye. */
+   one quiet accent for the active section, and prices in a steady monospace so a column of them lines up by eye.
+   Every item has the same markup (picture or a letter, then name / description / price); the shop's listing style is a class on <body>
+   (style-compact, style-grid, style-cards, style-classic, style-rails) and only this file changes how it is laid out. */
 :root{
   --paper:#F6F4EF; --card:#FFFFFF; --ink:#16181D; --soft:#5B5F69; --faint:#8A8E98; --line:#E4E0D6;
-  --accent:#1E3A8A; --accent-soft:#E6EBF7; --chipbar:rgba(246,244,239,.86); --warn:#9A4B0F; --warn-bg:#FBEBDD;
+  --accent:#1E3A8A; --accent-soft:#E6EBF7; --chipbar:rgba(246,244,239,.86); --warn:#9A4B0F; --warn-bg:#FBEBDD; --none:#ECE7DC;
   --display:'Schibsted Grotesk','Noto Sans Arabic',system-ui,sans-serif;
   --body:'Geist','Noto Sans Arabic',system-ui,sans-serif;
   --mono:'Geist Mono',ui-monospace,monospace;
@@ -11,12 +13,13 @@
 @media (prefers-color-scheme:dark){
   :root{
     --paper:#121418; --card:#1A1D23; --ink:#ECEDEF; --soft:#A9ADB6; --faint:#7D818B; --line:#2A2E36;
-    --accent:#8FA8F5; --accent-soft:#1F2740; --chipbar:rgba(18,20,24,.86); --warn:#F2B27A; --warn-bg:#3A2614;
+    --accent:#8FA8F5; --accent-soft:#1F2740; --chipbar:rgba(18,20,24,.86); --warn:#F2B27A; --warn-bg:#3A2614; --none:#252932;
     color-scheme:dark;
   }
 }
 [dir=rtl]{--display:'Noto Sans Arabic','Schibsted Grotesk',system-ui,sans-serif;--body:'Noto Sans Arabic','Geist',system-ui,sans-serif}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:128px}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px}
@@ -41,19 +44,104 @@ a{color:inherit}
 .chips a[aria-current=true]{color:var(--accent);background:var(--accent-soft);border-color:transparent}
 
 .sec{padding-top:28px}
-.sec h2{font:700 22px/1.2 var(--display);letter-spacing:-.01em;margin:0 0 6px}
+.sec h2{font:700 22px/1.2 var(--display);letter-spacing:-.01em;margin:0 0 10px}
 .sec ul{list-style:none;margin:0;padding:0}
-.item{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;padding:16px 0;border-bottom:1px solid var(--line)}
-.item:last-child{border-bottom:0}
+
+/* ---- the parts every style shares ---- */
+.item{position:relative}
 .item h3{font:600 17px/1.3 var(--body);margin:0}
-.item p{color:var(--soft);font-size:14.5px;margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.item img{width:112px;height:112px;border-radius:14px;object-fit:cover;background:var(--line);display:block}
+.item p{color:var(--soft);font-size:14.5px;margin:4px 0 0}
+.pic{display:block;object-fit:cover;background:var(--none)}
+.pic.blank{display:grid;place-items:center;color:var(--faint);font:700 22px/1 var(--display)}
 .price{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .price span{font:500 15px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
 .price em{font-style:normal;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--warn);background:var(--warn-bg);padding:3px 8px;border-radius:999px}
 .item.out h3,.item.out .price span{color:var(--faint)}
-.item.out img{filter:grayscale(1);opacity:.6}
-@media (max-width:420px){.item img{width:92px;height:92px;border-radius:12px}}
+.item.out .pic{filter:grayscale(1);opacity:.6}
+
+/* Room for items still to load: about the height (or, in rails, the width) of what is left, so the page and chips are right before
+   they arrive. --row is one item's footprint in the current style. */
+.more{list-style:none;--row:73px;height:min(calc(var(--n,1) * var(--row)), calc(40 * var(--row)));
+  /* Skeleton rows: per row (one tile, --row tall) a picture block and two text bars, so it reads as "dishes on their way". */
+  background-image:
+    linear-gradient(to bottom,var(--none) 0 52px,transparent 52px),
+    linear-gradient(to bottom,transparent 0 10px,var(--none) 10px 22px,transparent 22px),
+    linear-gradient(to bottom,transparent 0 32px,var(--none) 32px 42px,transparent 42px);
+  background-size:52px var(--row),48% var(--row),30% var(--row);
+  background-position:0 10px,64px 10px,64px 10px;
+  background-repeat:repeat-y;
+  animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.more{animation:none}}
+.more.err{height:auto;background:none;opacity:1;color:var(--soft);text-align:center;padding:20px 0;cursor:pointer}
+
+/* ---- compact: round thumbnail, one line of description, price on the end (the default) ---- */
+.style-compact .item{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.style-compact .item:last-of-type{border-bottom:0}
+.style-compact .pic{width:52px;height:52px;border-radius:50%}
+.style-compact .pic.blank{font-size:18px}
+.style-compact .txt{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center}
+.style-compact .item h3{font-size:16px}
+.style-compact .item p{grid-column:1;font-size:13.5px;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.style-compact .price{grid-column:2;grid-row:1 / span 2;margin:0;flex-direction:column;align-items:flex-end;gap:4px}
+.style-compact .price span{background:var(--card);border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:14px}
+
+/* ---- grid: two columns of square picture cards ---- */
+.style-grid .sec ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.style-grid .item{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgb(22 24 29 / .06)}
+.style-grid .pic{width:100%;height:auto;aspect-ratio:1/1}
+.style-grid .pic.blank{font-size:34px}
+.style-grid .txt{padding:10px 12px 12px}
+.style-grid .item h3{font-size:15px}
+.style-grid .item p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px}
+.style-grid .price span{color:var(--accent)}
+.style-grid .more{grid-column:1/-1;--row:140px;
+  background-image:linear-gradient(to bottom,var(--none) 0 190px,transparent 190px),linear-gradient(to bottom,var(--none) 0 190px,transparent 190px);
+  background-size:calc(50% - 6px) 280px,calc(50% - 6px) 280px;background-position:0 0,100% 0}
+@media (min-width:640px){.style-grid .sec ul{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ---- cards: one large picture card per dish ---- */
+.style-cards .sec ul{display:grid;gap:16px}
+.style-cards .item{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgb(22 24 29 / .06),0 12px 28px -18px rgb(22 24 29 / .3)}
+.style-cards .pic{width:100%;height:auto;aspect-ratio:16/10}
+.style-cards .pic.blank{aspect-ratio:16/6;font-size:40px}
+.style-cards .txt{padding:14px 16px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:baseline}
+.style-cards .item h3{font-size:18px}
+.style-cards .item p{grid-column:1/-1;grid-row:2;font-size:14px;line-height:1.45}
+.style-cards .price{grid-column:2;grid-row:1;margin:0}
+.style-cards .price span{font-size:16px}
+.style-cards .more{--row:330px;background-image:linear-gradient(to bottom,var(--none) 0 220px,transparent 220px);background-size:100% 330px;background-position:0 0}
+
+/* ---- classic: no pictures; name, dotted leader, price, like a printed menu ---- */
+.style-classic .pic{display:none}
+.style-classic .sec h2{text-align:center;font-weight:500;font-style:italic;color:var(--accent)}
+.style-classic .item{padding:9px 0}
+.style-classic .txt{display:grid;grid-template-columns:auto minmax(12px,1fr) auto;column-gap:8px;align-items:baseline}
+.style-classic .txt::after{content:"";grid-column:2;grid-row:1;border-bottom:2px dotted var(--line);transform:translateY(-5px)}
+.style-classic .item h3{grid-column:1;grid-row:1;font-size:16px}
+.style-classic .price{grid-column:3;grid-row:1;margin:0}
+.style-classic .item p{grid-column:1/-1;grid-row:2;font-size:13.5px;margin-top:2px}
+.style-classic .more{--row:62px;
+  background-image:linear-gradient(to bottom,transparent 0 12px,var(--none) 12px 26px,transparent 26px),linear-gradient(to bottom,transparent 0 34px,var(--none) 34px 44px,transparent 44px);
+  background-size:100% 62px,80% 62px;background-position:0 0,0 0}
+
+/* ---- rails: each section a row that swipes sideways ---- */
+.style-rails .sec ul{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:16px;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none}
+.style-rails .sec ul::-webkit-scrollbar{display:none}
+.style-rails .item{flex:none;width:156px;scroll-snap-align:start}
+.style-rails .pic{width:156px;height:156px;border-radius:18px}
+.style-rails .pic.blank{font-size:34px}
+.style-rails .txt{padding-top:8px}
+.style-rails .item h3{font-size:15px}
+.style-rails .item p{display:none}
+.style-rails .price{margin-top:4px}
+.style-rails .price span{color:var(--accent)}
+.style-rails .more{flex:none;--row:168px;height:156px;width:min(calc(var(--n,1) * var(--row)), calc(10 * var(--row)));border-radius:18px;
+  background:repeating-linear-gradient(to right,var(--none) 0 156px,transparent 156px var(--row))}
+/* Search results are a plain list in every style. */
+.style-rails #results ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin:0;padding:0}
+.style-rails #results .item,.style-rails #results .pic{width:100%}
+.style-rails #results .pic{height:auto;aspect-ratio:1/1}
 
 .empty,.none{color:var(--soft);text-align:center;padding:48px 16px}
 .foot{margin-top:40px;padding:28px 0 calc(32px + env(safe-area-inset-bottom));border-top:1px solid var(--line);text-align:center}
@@ -62,8 +150,3 @@ a{color:inherit}
 .by a{text-decoration:none}
 .by a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-/* Room for items still to load: sized from how many are left, so the page length and section chips are right before they arrive. */
-.more{list-style:none;height:min(calc(var(--n,1) * 129px), 5160px);background:repeating-linear-gradient(to bottom,transparent 0 16px,var(--line) 16px 17px,transparent 17px 128px,var(--line) 128px 129px);opacity:.5}
-.more.err{height:auto;background:none;opacity:1;color:var(--soft);text-align:center;padding:20px 0;cursor:pointer}
-@media (max-width:420px){.more{height:min(calc(var(--n,1) * 125px), 5000px)}}

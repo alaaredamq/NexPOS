@@ -173,7 +173,7 @@ public static class MenuEndpoints
             menu = new
             {
                 slug = menu.Slug, url = origin + "/m/" + menu.Slug, previewUrl = origin + "/m/" + menu.Slug + "?preview=" + menu.PreviewKey, title = menu.Title, tagline = menu.Tagline, note = menu.Note,
-                language = menu.Language, currency = menu.Currency, logoUrl = menu.LogoFile is null ? null : "/m/img/" + menu.LogoFile,
+                language = menu.Language, currency = menu.Currency, listingStyle = menu.ListingStyle, logoUrl = menu.LogoFile is null ? null : "/m/img/" + menu.LogoFile,
                 isPublished = menu.IsPublished, linkedSiteId = menu.LinkedSiteId, posArranged = menu.LinkedSiteId != null && menu.PosArranged,
                 catalogAtUtc = menu.CatalogAt is null ? (DateTime?)null : DateTime.SpecifyKind(menu.CatalogAt.Value, DateTimeKind.Utc),
             },
@@ -272,7 +272,7 @@ public static class MenuEndpoints
 
     public sealed record SettingsRequest(
         string? Title, string? Tagline, string? Note, string? Language, string? Currency, string? Slug, bool? IsPublished,
-        string? LinkedSiteId);
+        string? LinkedSiteId, string? ListingStyle = null);
 
     private static async Task<IResult> SaveSettings(SettingsRequest body, HttpContext http, ControlDbContext db, TimeProvider time,
         MenuCatalogMerge merge, int? client)
@@ -284,6 +284,12 @@ public static class MenuEndpoints
         if (body.Tagline is not null) menu!.Tagline = MenuRules.Clean(body.Tagline, 200);
         if (body.Note is not null) menu!.Note = MenuRules.Clean(body.Note, 1000);
         if (body.Language is "en" or "ar") menu!.Language = body.Language;
+        if (body.ListingStyle is not null)
+        {
+            if (!MenuListingStyles.IsValid(body.ListingStyle))
+                return Error(StatusCodes.Status400BadRequest, "bad_style", "Unknown listing style.");
+            menu!.ListingStyle = body.ListingStyle;
+        }
         if (body.Currency is not null) menu!.Currency = MenuRules.Clean(body.Currency, 10) ?? "";
         if (body.IsPublished is { } published) menu!.IsPublished = published;
 

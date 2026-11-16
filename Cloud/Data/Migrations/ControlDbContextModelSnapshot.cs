@@ -202,6 +202,13 @@ namespace Cloud.Data.Migrations
                     b.Property<Guid?>("LinkedSiteId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ListingStyle")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("compact");
+
                     b.Property<string>("LogoFile")
                         .HasMaxLength(60)
                         .HasColumnType("TEXT");

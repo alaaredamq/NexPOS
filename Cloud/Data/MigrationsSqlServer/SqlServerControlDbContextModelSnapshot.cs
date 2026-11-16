@@ -219,6 +219,13 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.Property<Guid?>("LinkedSiteId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ListingStyle")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)")
+                        .HasDefaultValue("compact");
+
                     b.Property<string>("LogoFile")
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");

@@ -146,3 +146,43 @@ dialog .foot .sp{flex:1}
   .sh h3{flex:1 1 100%;white-space:normal}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- listing style picker: picture cards that are radio buttons ---- */
+fieldset.styles{border:0;margin:0;padding:0;min-width:0}
+fieldset.styles legend{padding:0}
+.stygrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}
+.sty{position:relative;display:grid;gap:4px;align-content:start;padding:10px;border:1.5px solid var(--line);border-radius:var(--r);cursor:pointer;background:var(--surface)}
+.sty:hover{border-color:var(--muted)}
+.sty input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sty:has(input:checked){border-color:var(--primary);background:var(--info-bg)}
+.sty:has(input:focus-visible){outline:2px solid var(--primary);outline-offset:2px}
+.sty b{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.sty b .pill{font-size:11px;padding:1px 7px}
+.sty > span:last-child{font-size:12.5px;line-height:1.4;color:var(--muted)}
+
+/* the drawings: a tiny phone screen per style, in grey blocks */
+.mini{display:block;aspect-ratio:3/4;border-radius:8px;background:var(--bg);border:1px solid var(--line);padding:7px;overflow:hidden}
+.mini i{display:block;background:var(--line);border-radius:3px}
+.mini .ln{height:4px;margin-top:3px}
+.mini .ph{background:var(--c3, #9AA7C8);opacity:.55}
+.m-compact .row{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--line)}
+.m-compact .row:last-child{border-bottom:0}
+.m-compact .dot{width:14px;height:14px;border-radius:50%;flex:none;background:var(--c3, #9AA7C8);opacity:.55}
+.m-compact .tx{flex:1;min-width:0}
+.m-compact .tx .ln:first-child{margin-top:0}
+.m-compact .pill{width:14px;height:7px;border-radius:4px;flex:none}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;align-content:start}
+.m-grid .cell .ph{aspect-ratio:1/1;border-radius:4px}
+.m-cards{display:grid;gap:6px;align-content:start}
+.m-cards .cell .ph{aspect-ratio:16/9;border-radius:4px}
+.m-classic .hd{width:50%;height:5px;margin:2px auto 7px}
+.m-classic .row{display:flex;align-items:flex-end;gap:2px;padding:3px 0}
+.m-classic .row .ln{flex:none;margin:0}
+.m-classic .dots{flex:1;height:0;background:none;border-bottom:1.5px dotted var(--muted);opacity:.6;border-radius:0}
+.m-classic .pr{width:12%!important}
+.m-rails{display:grid;gap:3px;align-content:start}
+.m-rails .rail{display:flex;gap:4px;margin:2px -7px 5px 0}
+.m-rails .rail .ph{width:38%;flex:none;aspect-ratio:1/1;border-radius:4px}
+
+@media (max-width:760px){.stygrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:460px){.stygrid{grid-template-columns:repeat(2,minmax(0,1fr))}}

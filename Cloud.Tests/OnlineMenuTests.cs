@@ -169,6 +169,31 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
     }
 
     [Fact]
+    public async Task Each_shop_picks_how_its_dishes_are_listed()
+    {
+        var (_, owner) = await ShopAsync("styleshop");
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Style Shop" }));
+        Assert.Equal(MenuListingStyles.Default, state.GetProperty("menu").GetProperty("listingStyle").GetString());
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var anonymous = _cloud.CreateClient();
+        Assert.Contains("class=\"style-compact\"", await anonymous.GetStringAsync("/m/style-shop"));
+
+        foreach (var style in MenuListingStyles.All)
+        {
+            state = await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = style }));
+            Assert.Equal(style, state.GetProperty("menu").GetProperty("listingStyle").GetString());
+            Assert.Contains($"class=\"style-{style}\"", await anonymous.GetStringAsync("/m/style-shop"));
+        }
+
+        // Only the known looks; anything else is refused and changes nothing.
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = "neon" })).StatusCode);
+        Assert.Contains("class=\"style-rails\"", await anonymous.GetStringAsync("/m/style-shop"));
+        // A dish without a picture still gets its letter, so picture styles keep their shape.
+        Assert.Contains("<span class=\"pic blank\" aria-hidden=\"true\">T</span>", await anonymous.GetStringAsync("/m/style-shop"));
+    }
+
+    [Fact]
     public async Task A_login_that_cannot_edit_products_cannot_touch_the_menu()
     {
         var (_, staff) = await ShopAsync("staffshop", "staff");
