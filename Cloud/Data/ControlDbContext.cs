@@ -26,6 +26,9 @@ public class ControlDbContext : DbContext
     public DbSet<OwnerUser> OwnerUsers => Set<OwnerUser>();
     public DbSet<OwnerSession> OwnerSessions => Set<OwnerSession>();
     public DbSet<SiteCommand> SiteCommands => Set<SiteCommand>();
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<MenuSection> MenuSections => Set<MenuSection>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -95,6 +98,44 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => new { x.SiteId, x.IdempotencyKey }).IsUnique();
             e.HasIndex(x => new { x.SiteId, x.Status, x.CreatedAt });
             e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId);
+        });
+
+        b.Entity<Menu>(e =>
+        {
+            e.HasIndex(x => x.ClientId).IsUnique();
+            e.HasIndex(x => x.Slug).IsUnique();
+            e.HasIndex(x => x.LinkedSiteId);
+            e.Property(x => x.Slug).HasMaxLength(60);
+            e.Property(x => x.Title).HasMaxLength(120);
+            e.Property(x => x.Tagline).HasMaxLength(200);
+            e.Property(x => x.Note).HasMaxLength(1000);
+            e.Property(x => x.Language).HasMaxLength(2);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.LogoFile).HasMaxLength(60);
+            e.Property(x => x.CatalogHash).HasMaxLength(64);
+            e.Property(x => x.PreviewKey).HasMaxLength(32);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Sections).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Items).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuSection>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.PosKey).HasMaxLength(20);
+            e.HasIndex(x => new { x.MenuId, x.SortOrder });
+        });
+
+        b.Entity<MenuItem>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(500);
+            e.Property(x => x.PosDescription).HasMaxLength(500);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.ImageFile).HasMaxLength(60);
+            e.Property(x => x.Price).HasPrecision(18, 4);
+            e.HasIndex(x => new { x.MenuId, x.SortOrder });
+            e.HasIndex(x => new { x.MenuId, x.PosProductId });
         });
     }
 }

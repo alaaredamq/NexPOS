@@ -15,6 +15,8 @@ const NAV_ICON_PATHS: Record<string, string> = {
   'fa-receipt': 'M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z M9 8h6 M9 12h6',
   'fa-box': 'M4 8l8-4 8 4v8l-8 4-8-4z M4 8l8 4 8-4 M12 12v8',
   'fa-tags': 'M3 12V4h8l9 9-8 8z M7.5 8h.01',
+  // Fork and knife: the online menu.
+  'fa-utensils': 'M7 3v8 M4.5 3v5a2.5 2.5 0 005 0V3 M7 11v10 M17 3c-2 1-3 3.5-3 6.5V13h3v8',
   'fa-sort-amount-down': 'M4 6h10 M4 12h7 M4 18h4 M17 5v14 M14 16l3 3 3-3',
   'fa-warehouse': 'M3 10l9-6 9 6v10H3z M8 20v-6h8v6',
   'fa-file-invoice': 'M6 3h9l4 4v14H6z M15 3v4h4 M9 12h6 M9 16h6 M9 8h2',

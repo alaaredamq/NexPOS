@@ -538,7 +538,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One session with its figures and cash drops (any user's, as the Razor close and Z report pages allowed). */
+        /** One session with its figures and cash drops (any user's for Sales.View, as the Razor close and Z report pages allowed; otherwise only your own). */
         get: operations["getDrawerSession"];
         put?: never;
         post?: never;
@@ -1697,6 +1697,177 @@ export interface paths {
         put?: never;
         /** Asks the background sync to run now rather than at its next turn. Returns the state as it is; poll `GET` for the outcome. */
         post: operations["syncOnlineNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sections in order with what they hold, the counts, and whether the menu is linked. */
+        get: operations["getOnlineMenu"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adds an empty section at the end. */
+        post: operations["addOnlineMenuSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["renameOnlineMenuSection"];
+        post?: never;
+        /** Removes the section and its picks. The products themselves are untouched. */
+        delete: operations["deleteOnlineMenuSection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The sections listed first, in that order. */
+        put: operations["reorderOnlineMenuSections"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of a section's picks, in order (take at most 50). The overview does not include them: a section can hold thousands. */
+        get: operations["listOnlineMenuEntries"];
+        put?: never;
+        /** Puts products and whole categories at the end of the section; ones already in another section move here. */
+        post: operations["placeInOnlineMenuSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/entries/{id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moves a pick one step up or down in its section. */
+        post: operations["moveOnlineMenuEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Takes a product or category out of its section (and so off the online menu). */
+        delete: operations["removeOnlineMenuEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active products by name or barcode, `skip`/`take` paged (take at most 50), with where each is on the menu now. */
+        get: operations["listOnlineMenuProductOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every category with its active product count and the section it was picked into. */
+        get: operations["listOnlineMenuCategoryOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/send-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asks this till to check its online menu and send its products now, instead of within the minute. */
+        post: operations["sendOnlineMenuNow"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4963,6 +5134,141 @@ export interface components {
         OnlineConnectRequest: {
             /** @description The connection link from the provider (`https://.../enroll/XXXX-XXXX-XXXX`). Pasting the whole WhatsApp message also works. */
             link: string;
+        };
+        OnlineMenuCategoryOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** Format: int32 */
+            activeProducts: number;
+            /**
+             * Format: int32
+             * @description The section it was picked into, if any.
+             */
+            sectionId?: number | null;
+            sectionName?: string | null;
+        };
+        /** @description The online-menu screen: its sections in order, and how the shop's online menu is doing. */
+        OnlineMenuDto: {
+            sections: components["schemas"]["OnlineMenuSectionDto"][];
+            /**
+             * Format: int32
+             * @description How many active products the online menu shows (each counted once). With no sections, every active product.
+             */
+            productsShown: number;
+            /**
+             * Format: int32
+             * @description Active products in no section, so not on the online menu. 0 while there are no sections (the menu then shows everything by category).
+             */
+            productsLeftOut: number;
+            status: components["schemas"]["OnlineMenuStatusDto"];
+        };
+        /** @description One page of a section's picks. */
+        OnlineMenuEntriesDto: {
+            items: components["schemas"]["OnlineMenuEntryDto"][];
+            hasMore: boolean;
+        };
+        /** @description One pick in a section: a product, or a whole category. */
+        OnlineMenuEntryDto: {
+            /**
+             * Format: int32
+             * @description Id of the pick (not of the product or category); used to remove or reorder it.
+             */
+            id: number;
+            /** @description `product` or `category`. */
+            kind: string;
+            /** Format: int32 */
+            productId?: number | null;
+            /** Format: int32 */
+            categoryId?: number | null;
+            name: string;
+            /**
+             * Format: double
+             * @description Product: its selling price. Category: null.
+             */
+            price?: number | null;
+            currencyNotation?: string | null;
+            image?: string | null;
+            /**
+             * Format: int32
+             * @description Category: how many active products it brings. Product: 1, or 0 when the product is switched off.
+             */
+            productCount: number;
+            /** @description Product: false when it is switched off or deleted, so the menu skips it for now. */
+            isActive: boolean;
+        };
+        /** @description Moves a pick one step within its section. */
+        OnlineMenuMoveRequest: {
+            /**
+             * Format: int32
+             * @description -1 = up, 1 = down.
+             */
+            direction: number;
+        };
+        OnlineMenuOrderRequest: {
+            ids: number[];
+        };
+        /** @description Products and whole categories to put at the end of a section. Ones already in another section move here. */
+        OnlineMenuPlaceRequest: {
+            productIds?: number[] | null;
+            categoryIds?: number[] | null;
+        };
+        /** @description A product to pick, and where it is on the menu now (if anywhere). */
+        OnlineMenuProductOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            categoryName?: string | null;
+            /** Format: double */
+            price: number;
+            currencyNotation: string;
+            image?: string | null;
+            /**
+             * Format: int32
+             * @description The section it was picked into on its own, if any.
+             */
+            sectionId?: number | null;
+            sectionName?: string | null;
+            /** @description The section it shows in through its category, if any (only when not picked on its own). */
+            viaCategorySectionName?: string | null;
+        };
+        OnlineMenuProductOptionsDto: {
+            items: components["schemas"]["OnlineMenuProductOptionDto"][];
+            hasMore: boolean;
+        };
+        OnlineMenuSectionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: int32
+             * @description How many picks it holds (products and whole categories). The picks themselves load a page at a time.
+             */
+            entryCount: number;
+            /**
+             * Format: int32
+             * @description How many active products the section shows (whole categories counted by their products).
+             */
+            productCount: number;
+        };
+        OnlineMenuSectionRequest: {
+            name: string;
+        };
+        /** @description Whether this till can feed an online menu right now. */
+        OnlineMenuStatusDto: {
+            /** @description This till is connected to Coduo POS Online (Settings > Online). */
+            connected: boolean;
+            /** @description The cloud says an online menu follows this branch. Null until the till has asked since it started. */
+            linked?: boolean | null;
+            /** @description The menu's public address, when linked. */
+            menuUrl?: string | null;
+            /** @description Where the owner adds pictures and descriptions: the cloud's menu editor. */
+            editorUrl?: string | null;
+            /**
+             * Format: date-time
+             * @description When this till last sent its products to the menu (since it started).
+             */
+            lastSentUtc?: string | null;
         };
         /**
          * @description The Online screen: whether this till is connected to Coduo POS Online, to whom, and how the last synchronisation went.
@@ -13315,6 +13621,559 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OnlineStatusDto"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOnlineMenu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuSectionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    renameOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    reorderOnlineMenuSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuEntries: {
+        parameters: {
+            query?: {
+                skip?: number;
+                take?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuEntriesDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    placeInOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuPlaceRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    moveOnlineMenuEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuMoveRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    removeOnlineMenuEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuProductOptions: {
+        parameters: {
+            query?: {
+                q?: string;
+                skip?: number;
+                take?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuProductOptionsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuCategoryOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuCategoryOptionDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    sendOnlineMenuNow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

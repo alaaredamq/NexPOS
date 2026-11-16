@@ -132,6 +132,12 @@ Password: @Model.NewLoginPassword</div>
     </section>
 }
 
+<section class="card" aria-labelledby="menu">
+    <h2 id="menu">Online menu</h2>
+    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. Fill it by hand, or link it to a branch so it follows the POS.</p>
+    <p><a class="btn secondary" href="/owner/menu.html?client=@Model.Client.Id">Open the menu editor</a></p>
+</section>
+
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
     <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>

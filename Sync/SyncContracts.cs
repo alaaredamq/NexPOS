@@ -30,7 +30,11 @@ public sealed record SyncBlob([property: JsonPropertyName("$b64")] string Base64
 
 public sealed record SyncAck(long ThroughSeq, int Applied, bool ResyncRequested);
 
-public sealed record SyncPing(string SiteName, string ClientName, string SubscriptionStatus, DateTime? ExpiresAtUtc);
+/// <param name="MenuLinked">The owner linked this branch to the online menu, so the till should publish its product list (<see cref="MenuCatalog"/>).</param>
+/// <param name="MenuCatalogHash">The fingerprint of the product list the cloud holds for the menu; the till sends again only when its own differs.</param>
+/// <param name="MenuUrl">The menu's public address, for the till's online-menu screen.</param>
+public sealed record SyncPing(string SiteName, string ClientName, string SubscriptionStatus, DateTime? ExpiresAtUtc,
+    bool MenuLinked = false, string? MenuCatalogHash = null, string? MenuUrl = null);
 
 /// <summary>Headers a till adds to its requests. A cloud that does not know one ignores it, so adding one never breaks an older cloud.</summary>
 public static class SyncHeaders

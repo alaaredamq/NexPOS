@@ -22,6 +22,7 @@ public static class SyncEndpoints
         group.MapGet("/ping", Ping);
         group.MapPost("/push", Push);
         DeviceCommandEndpoints.Map(group);
+        MenuEndpoints.MapDevice(group);
     }
 
     internal sealed record Device(DeviceToken Token, Site Site, Client Client, SubscriptionState State);
@@ -102,8 +103,12 @@ public static class SyncEndpoints
             }
         }
 
+        // Whether the owner linked this branch to the online menu, and which product list the cloud already has for it.
+        var menu = await db.Menus.Where(m => m.LinkedSiteId == device!.Site.Id && m.ClientId == device.Client.Id)
+            .Select(m => new { m.CatalogHash, m.Slug }).FirstOrDefaultAsync();
         return Results.Json(new SyncPing(device!.Site.Name, device.Client.Name, device.State.ToString(),
-            device.Client.Subscription?.ExpiresAt), SyncWire.Json);
+            device.Client.Subscription?.ExpiresAt, menu is not null, menu?.CatalogHash,
+            menu is null ? null : $"{PublicSite.OriginOf(http)}/m/{menu.Slug}"), SyncWire.Json);
     }
 
     /// <summary>

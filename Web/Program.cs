@@ -187,16 +187,18 @@ builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 // ✅ Authentication
-// No fallback for Jwt:SecretKey: the old fallback value was itself committed to
-// appsettings.json, so it's public. Fail fast at startup instead of silently signing/validating
-// tokens with a known key. Configure via `dotnet user-secrets set "Jwt:SecretKey" "<value>"` in
-// development or the Jwt__SecretKey environment variable in production/Electron packaging.
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
-    ?? throw new InvalidOperationException(
-        "Jwt:SecretKey is not configured. Set it via 'dotnet user-secrets set \"Jwt:SecretKey\" \"<value>\"' " +
-        "in development, or the Jwt__SecretKey environment variable in production. It must be at least 32 characters.");
+// Jwt:SecretKey: a configured one wins (user-secrets / Jwt__SecretKey). Otherwise each installation makes its own random key on the
+// first start and keeps it beside its database (JwtKeyStore), so a new PC or a fresh clone just works and no two installations share
+// a key. Never a shared default: the old one was committed to appsettings.json and so was public.
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtSecretKey))
+{
+    jwtSecretKey = Infrastructure.Security.JwtKeyStore.GetOrCreate(AppDataPathProvider.GetJwtKeyFilePath());
+    // JwtService reads the same configuration, so it signs with this key too.
+    builder.Configuration["Jwt:SecretKey"] = jwtSecretKey;
+}
 if (jwtSecretKey.Length < 32)
-    throw new InvalidOperationException("Jwt:SecretKey must be at least 32 characters long.");
+    throw new InvalidOperationException("Jwt:SecretKey must be at least 32 characters long (or remove it and let the app make its own).");
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
@@ -322,6 +324,7 @@ builder.Services.AddScoped<Core.IRepositories.Sales.ICashDrawerSessionRepository
 builder.Services.AddScoped<Core.IRepositories.Sales.ICashDropRepository, Infrastructure.Repositories.Sales.CashDropRepository>();
 builder.Services.AddScoped<Application.IServices.Sales.ICashDrawerService, Application.Services.Sales.CashDrawerService>();
 builder.Services.AddScoped<IProductDisplayOrderRepository, ProductDisplayOrderRepository>();
+builder.Services.AddScoped<IOnlineMenuRepository, OnlineMenuRepository>();
 
 // Configuration: AppSetting / CodeList stacks. Previously commented out ("namespace issues")
 // which left AppSettingsController and CodeListsController unresolvable at request time; the

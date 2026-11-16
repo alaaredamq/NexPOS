@@ -28,7 +28,7 @@ en: {
  inStock: 'In stock', lowS: 'Low', outS: 'Out', min: 'min',
  shopSub: 'Whether your shop PC is talking to the cloud. A till keeps selling when it loses contact.', lastContact: 'Last contact', lastCopy: 'Last copy of your data', plan: 'Online plan', renews: 'Runs until {0}',
  sActive: 'Active', sGrace: 'Ended recently, still updating', sExpired: 'Ended', sSuspended: 'Paused by your provider', sNone: 'Not started',
- planNote: 'If the plan ends the tills keep selling. This site stops updating after 7 days.', contactOk: 'In contact', contactLate: 'Quiet', contactOff: 'Offline',
+ planNote: 'If the plan ends the tills keep selling. This site stops updating after 7 days.', menuH: 'Online menu', menuP: 'A public page with your products, pictures and prices. Share it by link or print its QR code for the tables.', menuOpen: 'Open the menu editor', contactOk: 'In contact', contactLate: 'Quiet', contactOff: 'Offline',
  signTitle: 'Sign in', signSub: 'See your shop from your phone.', email: 'Email', pass: 'Password', show: 'Show', hide: 'Hide', signBtn: 'Sign in', signing: 'Signing in',
  errEmail: 'Enter your email.', errPass: 'Enter your password.', noOnline: 'No account yet? Ask your provider to set one up for you.',
  lpH: 'See the till without standing at it.', lpP: 'Sales, stock and the shop PC\'s status, copied from the till every few minutes.',
@@ -76,7 +76,7 @@ ar: {
  inStock: 'متوفر', lowS: 'منخفض', outS: 'نفد', min: 'أدنى',
  shopSub: 'هل يتحدث كمبيوتر المحل مع السحابة. الصندوق يتابع البيع إذا انقطع اتصاله.', lastContact: 'آخر اتصال', lastCopy: 'آخر نسخة من بياناتك', plan: 'خطة أونلاين', renews: 'تنتهي في {0}',
  sActive: 'فعّالة', sGrace: 'انتهت مؤخراً وما زالت تُحدَّث', sExpired: 'منتهية', sSuspended: 'موقوفة من المزوّد', sNone: 'لم تبدأ',
- planNote: 'إذا انتهت الخطة تتابع الصناديق البيع. يتوقف هذا الموقع عن التحديث بعد 7 أيام.', contactOk: 'متصل', contactLate: 'صامت', contactOff: 'غير متصل',
+ planNote: 'إذا انتهت الخطة تتابع الصناديق البيع. يتوقف هذا الموقع عن التحديث بعد 7 أيام.', menuH: 'القائمة على الإنترنت', menuP: 'صفحة عامة فيها منتجاتك وصورها وأسعارها. شاركها برابط أو اطبع رمز QR للطاولات.', menuOpen: 'افتح محرر القائمة', contactOk: 'متصل', contactLate: 'صامت', contactOff: 'غير متصل',
  signTitle: 'تسجيل الدخول', signSub: 'شاهد محلك من هاتفك.', email: 'البريد الإلكتروني', pass: 'كلمة المرور', show: 'إظهار', hide: 'إخفاء', signBtn: 'تسجيل الدخول', signing: 'جارٍ تسجيل الدخول',
  errEmail: 'أدخل بريدك الإلكتروني.', errPass: 'أدخل كلمة المرور.', noOnline: 'ليس لديك حساب بعد؟ اطلب من المزوّد إنشاء واحد لك.',
  lpH: 'شاهد الصندوق دون أن تقف عنده.', lpP: 'المبيعات والمخزون وحالة كمبيوتر المحل، منسوخة من الصندوق كل بضع دقائق.',
@@ -581,7 +581,8 @@ function shopView() {
   var inner = '<header class="head"><div><h1>' + t('shop') + '</h1><p>' + t('shopSub') + '</p></div></header><div class="g">' +
     '<section class="panel s8 till"><div class="th2"><h2>' + esc(m.siteName || session.siteName || t('shop')) + '</h2>' + contact + '</div>' +
     '<div class="meta"><span>' + t('lastContact') + ': <b class="num">' + (fr.seen ? esc(agoStr(fr.seen)) + ' (' + esc(timeStr(fr.seen)) + ')' : '-') + '</b></span><span>' + t('lastCopy') + ': <b class="num">' + (asOf ? esc(agoStr(asOf)) + ' (' + esc(timeStr(asOf)) + ')' : '-') + '</b></span></div></section>' +
-    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside></div>';
+    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside> +
+    (can(P.edit) ? '<section class="panel s12"><div class="ph"><h2>' + t('menuH') + '</h2></div><p class="muted" style="font-size:14px">' + t('menuP') + '</p><p style="margin-top:12px"><a class="btn" href="/owner/menu.html">' + t('menuOpen') + '</a></p></section>' : '') + </div>';
   return shell('shop', inner);
 }
 

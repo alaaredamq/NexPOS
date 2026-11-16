@@ -31,6 +31,11 @@ namespace Sync
         public const string HttpClientName = "NexPOS.Online";
         private static readonly TimeSpan PlanCheckEvery = TimeSpan.FromMinutes(10);
         private static readonly TimeSpan IdleCheck = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan MenuCheckEvery = TimeSpan.FromMinutes(1);
+
+        // From the last check-in: whether the owner linked this branch to the online menu, and which product list the cloud holds for it.
+        private bool _menuLinked;
+        private string? _menuHash;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -41,6 +46,7 @@ namespace Sync
 
             bool? installed = null;
             var lastPlanCheck = DateTime.MinValue;
+            var lastMenuCheck = DateTime.MinValue;
             var failureDelay = TimeSpan.Zero;
 
             while (!stoppingToken.IsCancellationRequested)
@@ -81,10 +87,18 @@ namespace Sync
                         wait = result.Ok ? interval : failureDelay;
 
                         var now = time.GetUtcNow().UtcDateTime;
-                        if (now - lastPlanCheck > PlanCheckEvery)
+                        // The online-menu screen asks for a fresh look right away (it was just linked, or its sections changed).
+                        var nudged = status.TakeMenuNudge();
+                        if (nudged || now - lastPlanCheck > PlanCheckEvery)
                         {
                             await RefreshPlanAsync(http, stoppingToken);
                             lastPlanCheck = now;
+                        }
+
+                        if (_menuLinked && result.Ok && (nudged || now - lastMenuCheck > MenuCheckEvery))
+                        {
+                            await PublishMenuAsync(http, connectionString, stoppingToken);
+                            lastMenuCheck = now;
                         }
                     }
                 }
@@ -140,11 +154,35 @@ namespace Sync
                 using var response = await http.SendAsync(request, ct);
                 response.EnsureSuccessStatusCode();
                 var ping = await response.Content.ReadFromJsonAsync<SyncPing>(SyncWire.Json, ct);
-                if (ping is not null) status.SetPlan(ping.SubscriptionStatus, ping.ExpiresAtUtc);
+                if (ping is not null)
+                {
+                    status.SetPlan(ping.SubscriptionStatus, ping.ExpiresAtUtc);
+                    _menuLinked = ping.MenuLinked;
+                    _menuHash = ping.MenuCatalogHash;
+                    status.SetMenu(ping.MenuLinked, ping.MenuUrl);
+                }
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or NotSupportedException)
             {
                 if (ct.IsCancellationRequested) throw;
+            }
+        }
+
+        /// <summary>Keeps the online menu in step with the POS products (see <see cref="MenuCatalog"/>). A failure waits for the next minute.</summary>
+        private async Task PublishMenuAsync(HttpClient http, string connectionString, CancellationToken ct)
+        {
+            try
+            {
+                if (await MenuCatalog.PublishIfChangedAsync(http, connectionString, _menuHash, ct) is { } sent)
+                {
+                    if (sent != _menuHash) status.MenuSent(time.GetUtcNow().UtcDateTime);
+                    _menuHash = sent;
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SqliteException)
+            {
+                if (ct.IsCancellationRequested) throw;
+                logger.LogWarning(ex, "Could not update the online menu; will try again.");
             }
         }
     }

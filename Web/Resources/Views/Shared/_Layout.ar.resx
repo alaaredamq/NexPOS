@@ -94,6 +94,9 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>ترتيب عرض المنتجات</value>
   </data>
+  <data name="OnlineMenu" xml:space="preserve">
+    <value>القائمة الإلكترونية</value>
+  </data>
   <data name="Notifications" xml:space="preserve">
     <value>الإشعارات</value>
   </data>

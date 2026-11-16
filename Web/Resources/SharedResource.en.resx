@@ -727,6 +727,9 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>Product Display Order</value>
   </data>
+  <data name="OnlineMenu" xml:space="preserve">
+    <value>Online Menu</value>
+  </data>
   <data name="LowStockReport" xml:space="preserve">
     <value>Low Stock Report</value>
   </data>

@@ -1157,6 +1157,70 @@ namespace Infrastructure.Migrations
                     b.ToTable("MainScreenProducts", (string)null);
                 });
 
+            modelBuilder.Entity("Core.Entities.Products.OnlineMenuEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId")
+                        .IsUnique();
+
+                    b.HasIndex("ProductId")
+                        .IsUnique();
+
+                    b.HasIndex("SectionId", "SortOrder");
+
+                    b.ToTable("OnlineMenuEntries", (string)null);
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.OnlineMenuSection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("OnlineMenuSections", (string)null);
+                });
+
             modelBuilder.Entity("Core.Entities.Products.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -3243,6 +3307,31 @@ namespace Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Core.Entities.Products.OnlineMenuEntry", b =>
+                {
+                    b.HasOne("Core.Entities.Products.ProductCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Core.Entities.Products.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Core.Entities.Products.OnlineMenuSection", "Section")
+                        .WithMany("Entries")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Section");
+                });
+
             modelBuilder.Entity("Core.Entities.Products.Product", b =>
                 {
                     b.HasOne("Core.Entities.Products.ProductCategory", "Category")
@@ -3694,6 +3783,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Core.Entities.Inventory.CartSession", b =>
                 {
                     b.Navigation("CartItems");
+                });
+
+            modelBuilder.Entity("Core.Entities.Products.OnlineMenuSection", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("Core.Entities.Products.Product", b =>

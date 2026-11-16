@@ -45,6 +45,8 @@ builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SiteRemoval>();
+builder.Services.AddSingleton<MenuImages>();
+builder.Services.AddScoped<MenuCatalogMerge>();
 
 // Keep the cookie/TempData encryption keys on the data volume, or every redeploy would sign the admin out.
 builder.Services.AddDataProtection().SetApplicationName("NexPOS.Cloud");
@@ -82,6 +84,8 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddRazorPages(options => {
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Enroll");
+    // Public pages (a shop's online menu at /m/{slug}) need no sign-in and stay out of /admin.
+    options.Conventions.AllowAnonymousToFolder("/Public");
     // The provider portal lives under /admin; "/" is the public landing page (see PublicSite).
     options.Conventions.Add(new PublicSite.AdminPrefixConvention());
 });
@@ -127,6 +131,7 @@ app.MapGet("/owner", () => Results.Redirect("/owner/index.html")).AllowAnonymous
 app.MapSyncApi();
 app.MapOwnerApi();
 app.MapEnrollApi();
+app.MapMenuApi();
 app.MapPublicSite();
 app.MapRazorPages();
 

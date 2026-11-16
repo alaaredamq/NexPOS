@@ -32,6 +32,8 @@ public class ErpDbContext : DbContext
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<MainScreenProduct> MainScreenProducts { get; set; }
         public DbSet<ProductDisplayOrder> ProductDisplayOrders { get; set; }
+    public DbSet<OnlineMenuSection> OnlineMenuSections { get; set; }
+    public DbSet<OnlineMenuEntry> OnlineMenuEntries { get; set; }
     public DbSet<ProductPrice> ProductPrices { get; set; }
     public DbSet<ProductHistory> ProductHistories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
@@ -372,6 +374,26 @@ public class ErpDbContext : DbContext
                 entity.HasIndex(e => new { e.ProductId }).IsUnique();
                 entity.HasIndex(e => e.DisplayOrder);
             });
+
+        // The online menu's own sections (see OnlineMenuSection). Removing a product or category removes it from the menu.
+        modelBuilder.Entity<OnlineMenuSection>(entity =>
+        {
+            entity.ToTable("OnlineMenuSections");
+            entity.Property(e => e.Name).HasMaxLength(120).IsRequired();
+            entity.HasIndex(e => e.SortOrder);
+            entity.HasMany(e => e.Entries).WithOne(e => e.Section).HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<OnlineMenuEntry>(entity =>
+        {
+            entity.ToTable("OnlineMenuEntries");
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Category).WithMany().HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.SectionId, e.SortOrder });
+            // A product or a category is placed once on the whole menu.
+            entity.HasIndex(e => e.ProductId).IsUnique();
+            entity.HasIndex(e => e.CategoryId).IsUnique();
+        });
 
         modelBuilder.Entity<ProductPrice>(entity =>
         {

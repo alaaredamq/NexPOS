@@ -64,6 +64,8 @@ public static class NavCatalog
         new NavPage("Products", "Products", "fa-box", NavSection.Catalog, P(PermissionHelper.Permissions.Products_View)),
         new NavPage("Categories", "Categories", "fa-tags", NavSection.Catalog, P(PermissionHelper.Permissions.Categories_View)),
         new NavPage("ProductDisplayOrder", "ProductDisplayOrder", "fa-sort-amount-down", NavSection.Catalog, P(PermissionHelper.Permissions.MainScreenProducts_Manage)),
+        // React-only page: sections for the shop's public online menu (no Razor version).
+        new NavPage("OnlineMenu", "OnlineMenu", "fa-utensils", NavSection.Catalog, P(PermissionHelper.Permissions.Products_Edit)),
         new NavPage("Inventory", "Inventory", "fa-warehouse", NavSection.Catalog, P(PermissionHelper.Permissions.Inventory_View), Feature: ProFeature.Inventory),
         new NavPage("Suppliers", "Suppliers", "fa-truck", NavSection.Catalog, P(PermissionHelper.Permissions.Suppliers_View), Feature: ProFeature.Suppliers),
         new NavPage("Purchases", "Purchases", "fa-file-invoice", NavSection.Catalog, P(PermissionHelper.Permissions.Purchases_View), Feature: ProFeature.Purchases),

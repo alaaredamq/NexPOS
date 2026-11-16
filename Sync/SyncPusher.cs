@@ -83,6 +83,33 @@ public sealed class SyncStatus
         lock (_gate) { _planStatus = status; _planExpires = expiresAtUtc; }
     }
 
+    private bool _menuLinked, _menuNudged;
+    private string? _menuUrl;
+    private DateTime? _menuSent;
+
+    /// <summary>The online menu as the cloud last described it: linked to this branch or not, its public address, and when this PC last sent its products.</summary>
+    public (bool Linked, string? Url, DateTime? LastSentUtc) Menu()
+    {
+        lock (_gate) return (_menuLinked, _menuUrl, _menuSent);
+    }
+
+    public void SetMenu(bool linked, string? url) { lock (_gate) { _menuLinked = linked; _menuUrl = url; } }
+    public void MenuSent(DateTime now) { lock (_gate) _menuSent = now; }
+
+    /// <summary>The online-menu screen changed something: send the product list on the next round instead of within the minute.</summary>
+    public void NudgeMenu() { lock (_gate) _menuNudged = true; }
+
+    /// <summary>True once after <see cref="NudgeMenu"/>.</summary>
+    public bool TakeMenuNudge()
+    {
+        lock (_gate)
+        {
+            var nudged = _menuNudged;
+            _menuNudged = false;
+            return nudged;
+        }
+    }
+
     /// <summary>Forgets everything learned about the previous connection (after connecting to, or leaving, a cloud).</summary>
     public void Reset()
     {
@@ -90,6 +117,7 @@ public sealed class SyncStatus
         {
             _lastAttempt = null; _lastSuccess = null; _lastError = null; _lastErrorCode = null; _pending = 0;
             _planStatus = null; _planExpires = null;
+            _menuLinked = false; _menuUrl = null; _menuSent = null;
         }
     }
 

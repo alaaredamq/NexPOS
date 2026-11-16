@@ -727,6 +727,9 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>ترتيب عرض المنتجات</value>
   </data>
+  <data name="OnlineMenu" xml:space="preserve">
+    <value>القائمة الإلكترونية</value>
+  </data>
   <data name="LowStockReport" xml:space="preserve">
     <value>تقرير المخزون المنخفض</value>
   </data>

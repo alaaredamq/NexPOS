@@ -90,18 +90,24 @@ public static class PublicSite
             return Results.Text(sb.ToString(), "text/plain; charset=utf-8");
         }).AllowAnonymous();
 
-        app.MapGet("/sitemap.xml", (HttpContext ctx, IWebHostEnvironment env) =>
+        app.MapGet("/sitemap.xml", async (HttpContext ctx, IWebHostEnvironment env, Cloud.Data.ControlDbContext db) =>
         {
             var file = env.WebRootFileProvider.GetFileInfo(LandingFile);
             var lastMod = (file.Exists ? file.LastModified : DateTimeOffset.UtcNow).UtcDateTime
                 .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            var xml =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n" +
-                $"  <url>\n    <loc>{System.Security.SecurityElement.Escape(Origin(ctx))}/</loc>\n    <lastmod>{lastMod}</lastmod>\n" +
-                "    <changefreq>monthly</changefreq>\n    <priority>1.0</priority>\n  </url>\n" +
-                "</urlset>\n";
-            return Results.Text(xml, "application/xml; charset=utf-8");
+            var origin = System.Security.SecurityElement.Escape(Origin(ctx));
+            var sb = new StringBuilder();
+            sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            sb.Append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+            sb.Append($"  <url>\n    <loc>{origin}/</loc>\n    <lastmod>{lastMod}</lastmod>\n");
+            sb.Append("    <changefreq>monthly</changefreq>\n    <priority>1.0</priority>\n  </url>\n");
+            // Every published shop menu: a shop gains from being found by its name.
+            var menus = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+                db.Menus.Where(m => m.IsPublished && m.Client.IsActive).Select(m => new { m.Slug, m.UpdatedAt }));
+            foreach (var m in menus)
+                sb.Append($"  <url>\n    <loc>{origin}/m/{m.Slug}</loc>\n    <lastmod>{m.UpdatedAt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}</lastmod>\n  </url>\n");
+            sb.Append("</urlset>\n");
+            return Results.Text(sb.ToString(), "application/xml; charset=utf-8");
         }).AllowAnonymous();
 
         return app;
@@ -112,7 +118,8 @@ public static class PublicSite
     {
         public void Apply(Microsoft.AspNetCore.Mvc.ApplicationModels.PageRouteModel model)
         {
-            if (model.ViewEnginePath.Equals("/Enroll", StringComparison.OrdinalIgnoreCase))
+            if (model.ViewEnginePath.Equals("/Enroll", StringComparison.OrdinalIgnoreCase)
+                || model.ViewEnginePath.StartsWith("/Public/", StringComparison.OrdinalIgnoreCase))
                 return;
             foreach (var selector in model.Selectors)
             {
@@ -125,6 +132,8 @@ public static class PublicSite
     }
 
     /// <summary>Cloud:PublicUrl when set (production), otherwise the address the request came in on.</summary>
+    public static string OriginOf(HttpContext ctx) => Origin(ctx);
+
     private static string Origin(HttpContext ctx)
     {
         var configured = ctx.RequestServices.GetRequiredService<IOptions<CloudOptions>>().Value.PublicUrl;

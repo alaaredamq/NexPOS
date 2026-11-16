@@ -1,0 +1,69 @@
+/* A shop's public menu (/m/{slug}). It should read as the shop's own menu, so our brand stays out of the way: warm paper, dark ink,
+   one quiet accent for the active section, and prices in a steady monospace so a column of them lines up by eye. */
+:root{
+  --paper:#F6F4EF; --card:#FFFFFF; --ink:#16181D; --soft:#5B5F69; --faint:#8A8E98; --line:#E4E0D6;
+  --accent:#1E3A8A; --accent-soft:#E6EBF7; --chipbar:rgba(246,244,239,.86); --warn:#9A4B0F; --warn-bg:#FBEBDD;
+  --display:'Schibsted Grotesk','Noto Sans Arabic',system-ui,sans-serif;
+  --body:'Geist','Noto Sans Arabic',system-ui,sans-serif;
+  --mono:'Geist Mono',ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#121418; --card:#1A1D23; --ink:#ECEDEF; --soft:#A9ADB6; --faint:#7D818B; --line:#2A2E36;
+    --accent:#8FA8F5; --accent-soft:#1F2740; --chipbar:rgba(18,20,24,.86); --warn:#F2B27A; --warn-bg:#3A2614;
+    color-scheme:dark;
+  }
+}
+[dir=rtl]{--display:'Noto Sans Arabic','Schibsted Grotesk',system-ui,sans-serif;--body:'Noto Sans Arabic','Geist',system-ui,sans-serif}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:128px}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+a{color:inherit}
+
+.preview{background:var(--warn-bg);color:var(--warn);font-size:14px;text-align:center;padding:8px 16px}
+
+.top{padding:40px 0 20px;text-align:center}
+.logo{width:72px;height:72px;border-radius:18px;object-fit:cover;display:block;margin:0 auto 14px;background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.top h1{font:800 clamp(30px,7vw,44px)/1.08 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.tag{color:var(--soft);margin:10px auto 0;max-width:46ch;text-wrap:pretty}
+
+.cats{position:sticky;top:0;z-index:5;background:var(--chipbar);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
+.cats .wrap{padding-top:10px;padding-bottom:10px;display:grid;gap:10px}
+.find{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 12px;height:42px}
+.find:focus-within{border-color:var(--accent)}
+.find svg{width:18px;height:18px;fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;flex:none}
+.find input{border:0;outline:0;background:none;font:inherit;color:inherit;width:100%;height:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.chips::-webkit-scrollbar{display:none}
+.chips a{flex:none;text-decoration:none;font-size:14px;font-weight:500;color:var(--soft);padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.chips a[aria-current=true]{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+
+.sec{padding-top:28px}
+.sec h2{font:700 22px/1.2 var(--display);letter-spacing:-.01em;margin:0 0 6px}
+.sec ul{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;padding:16px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item h3{font:600 17px/1.3 var(--body);margin:0}
+.item p{color:var(--soft);font-size:14.5px;margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.item img{width:112px;height:112px;border-radius:14px;object-fit:cover;background:var(--line);display:block}
+.price{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.price span{font:500 15px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.price em{font-style:normal;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--warn);background:var(--warn-bg);padding:3px 8px;border-radius:999px}
+.item.out h3,.item.out .price span{color:var(--faint)}
+.item.out img{filter:grayscale(1);opacity:.6}
+@media (max-width:420px){.item img{width:92px;height:92px;border-radius:12px}}
+
+.empty,.none{color:var(--soft);text-align:center;padding:48px 16px}
+.foot{margin-top:40px;padding:28px 0 calc(32px + env(safe-area-inset-bottom));border-top:1px solid var(--line);text-align:center}
+.note{white-space:pre-line;color:var(--soft);margin:0 0 18px}
+.by{margin:0;font-size:13px;color:var(--faint)}
+.by a{text-decoration:none}
+.by a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Room for items still to load: sized from how many are left, so the page length and section chips are right before they arrive. */
+.more{list-style:none;height:min(calc(var(--n,1) * 129px), 5160px);background:repeating-linear-gradient(to bottom,transparent 0 16px,var(--line) 16px 17px,transparent 17px 128px,var(--line) 128px 129px);opacity:.5}
+.more.err{height:auto;background:none;opacity:1;color:var(--soft);text-align:center;padding:20px 0;cursor:pointer}
+@media (max-width:420px){.more{height:min(calc(var(--n,1) * 125px), 5000px)}}
