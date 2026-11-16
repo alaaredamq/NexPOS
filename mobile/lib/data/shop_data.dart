@@ -110,6 +110,7 @@ class ShopData extends ChangeNotifier {
   Object? _error;
   DateTime? _asOf;
   DateTime? _loadedAt;
+  String? _shopPlan;
 
   bool get hasKey => _key != null;
 
@@ -125,6 +126,10 @@ class ShopData extends ChangeNotifier {
 
   /// Set once a refresh has fully completed on this phone.
   bool get hasData => _loadedAt != null;
+
+  /// The shop runs the Basic licence plan: no stock tracking and no suppliers, so the app hides them. Unknown (an older shop PC or
+  /// cloud) counts as Pro, which is what every shop was before plans. The shop PC refuses a Pro change itself either way.
+  bool get isBasic => _shopPlan == 'Basic';
 
   Future<void> restore() async {
     if (_session.signedIn) {
@@ -251,6 +256,7 @@ class ShopData extends ChangeNotifier {
       }
       _cursors[table] = page.nextCursor;
       if (page.asOf != null) _asOf = page.asOf;
+      if (page.shopPlan != null) _shopPlan = page.shopPlan;
       if (!page.hasMore) return;
     }
   }
@@ -271,6 +277,10 @@ class ShopData extends ChangeNotifier {
     _rows[table]![id] = row;
     _loadedAt ??= DateTime.now();
   }
+
+  /// Sets the plan as if the cloud had reported it. For tests of what the screens show on Basic.
+  @visibleForTesting
+  void seedPlan(String plan) => _shopPlan = plan;
 
   // ---- reading ----
 

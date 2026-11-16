@@ -15,7 +15,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
     private async Task<HttpClient> SignedInAsync(CloudFactory? factory = null)
     {
         var c = (factory ?? _cloud).CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
-        var login = await HtmlForms.PostAsync(c, "/Account/Login", "/Account/Login",
+        var login = await HtmlForms.PostAsync(c, "/admin/Account/Login", "/admin/Account/Login",
             ("Username", CloudFactory.AdminUser), ("Password", CloudFactory.AdminPassword));
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
         return c;
@@ -82,7 +82,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
         var site = await _cloud.SeedSiteAsync(clientName: "Strip Shop");
         await _cloud.DeviceClient(site.Token).GetAsync("/api/sync/ping");
 
-        var page = await c.GetStringAsync($"/Sites/Details/{site.SiteId}");
+        var page = await c.GetStringAsync($"/admin/Sites/Details/{site.SiteId}");
 
         Assert.Contains("class=\"pulse lg\"", page);
         Assert.Contains("Contact in each of the last 24 hours: 1 of 24 hours", page);
@@ -102,7 +102,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
             return await db.SaveChangesAsync();
         });
 
-        var page = await c.GetStringAsync("/");
+        var page = await c.GetStringAsync("/admin");
 
         Assert.Contains("Needs you", page);
         Assert.Contains("Lapsed Grocer", page);
@@ -118,7 +118,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
         using var empty = new CloudFactory();
         var c = await SignedInAsync(empty);
 
-        var page = await c.GetStringAsync("/");
+        var page = await c.GetStringAsync("/admin");
 
         Assert.Contains("No clients yet", page);
         Assert.Contains("Add the first client", page);
@@ -129,7 +129,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
     {
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(clientName: "Toast Shop");
-        var url = $"/Clients/Details/{seeded.ClientId}";
+        var url = $"/admin/Clients/Details/{seeded.ClientId}";
 
         var response = await HtmlForms.PostAsync(c, url, $"{url}?handler=Extend&months=3");
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
@@ -146,14 +146,14 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(clientName: "Careful Shop");
 
-        var site = await c.GetStringAsync($"/Sites/Details/{seeded.SiteId}");
+        var site = await c.GetStringAsync($"/admin/Sites/Details/{seeded.SiteId}");
         Assert.Contains("data-confirm-title=\"Disconnect this branch?\"", site);
         Assert.Contains("The shop keeps selling", site);
         Assert.Contains("data-confirm-title=\"Disable this branch?\"", site);
         Assert.Contains("data-confirm-title=\"Remove Main till?\"", site);
         Assert.Contains("This cannot be undone.", site);
 
-        var client = await c.GetStringAsync($"/Clients/Details/{seeded.ClientId}");
+        var client = await c.GetStringAsync($"/admin/Clients/Details/{seeded.ClientId}");
         Assert.Contains("data-confirm-title=\"Suspend Online?\"", client);
         Assert.Contains("data-confirm-title=\"Deactivate this client?\"", client);
         Assert.Contains("data-confirm-title=\"Remove Careful Shop?\"", client);
@@ -164,11 +164,11 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
     public async Task The_signed_in_pages_share_one_shell_and_the_public_pages_do_not()
     {
         var c = await SignedInAsync();
-        var home = await c.GetStringAsync("/");
+        var home = await c.GetStringAsync("/admin");
         Assert.Contains("class=\"rail\"", home);
         Assert.Contains("aria-label=\"Sign out\"", home);
 
-        var login = await _cloud.CreateClient().GetStringAsync("/Account/Login");
+        var login = await _cloud.CreateClient().GetStringAsync("/admin/Account/Login");
         var enroll = await _cloud.CreateClient().GetStringAsync("/enroll/ABCD-EFGH-JKMN");
         Assert.DoesNotContain("class=\"rail\"", login);
         Assert.DoesNotContain("class=\"rail\"", enroll);
@@ -179,7 +179,7 @@ public class PortalExperienceTests : IClassFixture<CloudFactory>
     public async Task The_new_client_form_offers_the_plan_lengths_and_defaults_to_one_month()
     {
         var c = await SignedInAsync();
-        var page = await c.GetStringAsync("/Clients/Create");
+        var page = await c.GetStringAsync("/admin/Clients/Create");
 
         foreach (var months in new[] { 0, 1, 3, 6, 12 })
             Assert.Contains($"name=\"Months\" value=\"{months}\"", page);

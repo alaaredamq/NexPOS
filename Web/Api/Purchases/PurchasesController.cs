@@ -1,3 +1,4 @@
+using Common.Licensing;
 using Application.IServices.Purchasing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
@@ -15,6 +16,7 @@ namespace Web.Api.Purchases;
 /// </summary>
 [Route("api/v1/purchases")]
 [SwaggerTag("Purchases")]
+[RequirePlan(ProFeature.Purchases)]
 public sealed class PurchasesController : ApiControllerBase
 {
     private readonly IPurchaseApiService _purchases;

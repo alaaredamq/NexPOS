@@ -58,6 +58,18 @@ public class Site
     public string? LastSchemaVersion { get; set; }
     /// <summary>Set from the portal; the till sees it in its next acknowledgement and re-sends everything.</summary>
     public bool ResyncRequested { get; set; }
+    /// <summary>
+    /// The shop's licence plan (<c>Basic</c> or <c>Pro</c>), read from the signed licence key the till hands over on its check-in after the
+    /// issuer's signature was verified here; null until a till that sends its key has checked in. The phone and the owner website show
+    /// only what it includes; the shop PC itself refuses a Pro change.
+    /// </summary>
+    public string? ShopPlan { get; set; }
+    /// <summary>From the same verified key: <c>Full</c>, <c>Provisional</c> or <c>Trial</c>. For the admin portal.</summary>
+    public string? ShopLicenseKind { get; set; }
+    /// <summary>From the same verified key: Full = last day of the updates plan; Provisional/Trial = the day it expires.</summary>
+    public DateOnly? ShopLicenseUntil { get; set; }
+    /// <summary>From the same verified key: how many PCs the package covers (always 1 on Basic).</summary>
+    public int? ShopLicenseSeats { get; set; }
     public bool IsDisabled { get; set; }
 
     public List<DeviceToken> Tokens { get; set; } = [];

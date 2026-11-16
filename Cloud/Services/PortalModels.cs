@@ -131,7 +131,7 @@ public static class AttentionRules
         var items = new List<AttentionItem>();
         if (!client.IsActive) return items; // switched off on purpose
 
-        var clientHref = $"/Clients/Details/{client.Id}";
+        var clientHref = $"/admin/Clients/Details/{client.Id}";
         var state = SubscriptionRules.Evaluate(client.Subscription, now);
         var sub = client.Subscription;
 
@@ -146,7 +146,7 @@ public static class AttentionRules
 
         foreach (var site in client.Sites.Where(s => !s.IsDisabled))
         {
-            var href = $"/Sites/Details/{site.Id}";
+            var href = $"/admin/Sites/Details/{site.Id}";
             var name = client.Sites.Count > 1 ? $"{client.Name} · {site.Name}" : client.Name;
             switch (SiteInsight.Connection(site, now))
             {

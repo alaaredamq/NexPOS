@@ -1,3 +1,4 @@
+@inject Application.IServices.Licensing.ILicenseService License
 @{
     var noSidebar = ViewBag.NoSidebar as bool? ?? false;
     if (!noSidebar && Context.Request.Query.ContainsKey("noSidebar"))
@@ -9,6 +10,7 @@
     // The links come from NavCatalog (shared with the Ctrl+K palette), filtered to what the signed-in user's role
     // grants, so a custom role sees exactly the pages it was given instead of links that bounce to "access denied".
     var visiblePages = NavCatalog.VisibleTo(User);
+    var plan = License.GetState().Plan;
 }
 @if (!noSidebar)
 {
@@ -42,6 +44,10 @@
                                href="@(SpaMigration.IsMigrated(entry.Controller) ? SpaMigration.PlannedPath(entry.Controller) : Url.ActionWithCurrentLanguage(entry.Action, entry.Controller))">
                                 <i class="fas @entry.Icon"></i>
                                 <span class="nav-text">@SharedLocalizer[entry.LabelKey]</span>
+                                @if (entry.IsLockedOn(plan))
+                                {
+                                    <i class="fas fa-lock nav-lock nav-text" title="@SharedLocalizer["Plan_ProOnly"]"></i>
+                                }
                             </a>
                         </li>
                     }

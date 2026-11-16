@@ -151,6 +151,7 @@ builder.Services.AddDbContextFactory<ErpDbContext>(options =>
 // See docs/online/PLATFORM.md.
 builder.Services.AddOnlineSync(builder.Configuration, AppDataPathProvider.GetOnlineSettingsFilePath());
 builder.Services.AddOnlineCommandHandlers(); // changes the owner makes from the phone, applied through the same services as the till's screens
+builder.Services.AddSingleton<Sync.IShopLicenseSource, Web.Api.Online.ShopLicenseSource>(); // hands the cloud the signed key, so the phone shows the right pages
 
 builder.Services.AddMemoryCache();
 // Backs ISession (DistributedSessionStore). In-process only — CacheService no longer
@@ -433,6 +434,7 @@ builder.Services.AddSingleton<Common.Licensing.IMachineIdProvider, Infrastructur
 builder.Services.AddSingleton<Application.IServices.Licensing.ILicenseService, Application.Services.Licensing.LicenseService>();
 builder.Services.AddSingleton<Application.Services.Licensing.PairingThrottle>();
 builder.Services.AddScoped<Application.IServices.Licensing.ITillDeviceService, Application.Services.Licensing.TillDeviceService>();
+builder.Services.AddScoped<Application.IServices.Licensing.IUserLimitGuard, Application.Services.Licensing.UserLimitGuard>();
 
 // Build the app
 var app = builder.Build();

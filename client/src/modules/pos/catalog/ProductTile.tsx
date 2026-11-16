@@ -5,6 +5,7 @@ import { Icon } from '@/ui/Icon'
 import { formatMoney, formatQty } from '@/ui/format'
 import type { PosProduct } from './api'
 import { stockLevel } from './stock'
+import { useTracksStock } from '@/core/license/license'
 import styles from './catalog.module.css'
 
 interface ProductTileProps {
@@ -14,12 +15,14 @@ interface ProductTileProps {
 
 /**
  * A compact "keycap": name, a dashed tear rule, then price and stock. No picture on purpose (the register is scanned by name and price,
- * and without images the grid fits far more keys). The tint is the category's palette colour, the same one the dashboard donut uses.
+ * and without images the grid fits far more keys). The leading stripe is the category's palette colour, the same one the dashboard donut uses.
  * A sold-out key stays pressable: the cashier may still sell it, and the cart/checkout ask before selling past zero.
+ * On the Basic plan (no stock tracking) the stock part is left out: the key is name and price only.
  */
 export const ProductTile = memo(function ProductTile({ product, onPress }: ProductTileProps) {
   const { t } = useTranslation(['pos', 'common'])
-  const level = stockLevel(product)
+  const tracksStock = useTracksStock()
+  const level = tracksStock ? stockLevel(product) : 'ok'
   const style = { '--tile-accent': categoryColor(product.categoryName) } as CSSProperties
   const unit = product.unitKind === 'count' ? t('units', { ns: 'pos' }) : (product.unit ?? '')
 
@@ -31,6 +34,7 @@ export const ProductTile = memo(function ProductTile({ product, onPress }: Produ
       </span>
       <span className={styles.tileFoot}>
         <span className={styles.tilePrice}>{formatMoney(product.sellingPrice, product.currencyNotation)}</span>
+        {tracksStock && (
         <span className={styles.tileStock} data-level={level}>
           {level === 'ok' ? (
             <>
@@ -45,6 +49,7 @@ export const ProductTile = memo(function ProductTile({ product, onPress }: Produ
             </>
           )}
         </span>
+        )}
       </span>
     </button>
   )

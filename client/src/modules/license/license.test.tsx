@@ -21,6 +21,7 @@ const notActivated = {
   kind: null,
   serial: null,
   seats: 1,
+  plan: 'Basic',
   issuedOn: null,
   validUntil: null,
   isTimeLimited: false,

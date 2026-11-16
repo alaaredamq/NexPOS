@@ -43,7 +43,7 @@ public sealed class CashDrawerApiTests
         return admin;
     }
 
-    /// <summary>A user whose role holds exactly <c>Sales.View</c> (no shipped role holds even that besides Admin).</summary>
+    /// <summary>A user whose role holds exactly <c>Sales.View</c>.</summary>
     private async Task<HttpClient> Viewer()
     {
         var tag = Guid.NewGuid().ToString("N")[..8];
@@ -93,15 +93,31 @@ public sealed class CashDrawerApiTests
     }
 
     [Fact]
-    public async Task A_cashier_without_Sales_View_is_refused_everywhere()
+    public async Task A_cashier_opens_their_own_drawer_but_a_manager_closes_it()
     {
         var (cashier, _) = await Cashier(_host);
 
-        foreach (var url in Urls(1))
-            await AssertProblem(await cashier.GetAsync(url), HttpStatusCode.Forbidden, "forbidden");
-        await AssertProblem(await cashier.SendAsync(Json(HttpMethod.Post, $"{Base}/open", new { openingCash = 1 })), HttpStatusCode.Forbidden, "forbidden");
-        await AssertProblem(await cashier.SendAsync(Json(HttpMethod.Post, $"{Base}/sessions/1/close", new { actualCash = 1 })), HttpStatusCode.Forbidden, "forbidden");
-        await AssertProblem(await cashier.SendAsync(Json(HttpMethod.Post, $"{Base}/sessions/1/drops", new { amount = 1 })), HttpStatusCode.Forbidden, "forbidden");
+        // Their cash sales must land in a drawer (Nov 2026: before this, a cashier could not open one at all).
+        var current = await Current(cashier);
+        var id = current.GetProperty("status").GetProperty("isOpen").GetBoolean()
+            ? current.GetProperty("session").GetProperty("id").GetInt32()
+            : (await Open(cashier, 25m)).GetProperty("id").GetInt32();
+
+        Assert.Equal(HttpStatusCode.OK, (await cashier.GetAsync($"{Base}/sessions")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await cashier.GetAsync($"{Base}/sessions/{id}")).StatusCode);
+        await AssertProblem(await cashier.SendAsync(Json(HttpMethod.Post, $"{Base}/sessions/{id}/close", new { actualCash = 1 })), HttpStatusCode.Forbidden, "forbidden");
+        await AssertProblem(await cashier.SendAsync(Json(HttpMethod.Post, $"{Base}/sessions/{id}/drops", new { amount = 1 })), HttpStatusCode.Forbidden, "forbidden");
+        Assert.True((await Current(cashier)).GetProperty("status").GetProperty("isOpen").GetBoolean());
+
+        // Someone else's session is "not found" to a cashier (Sales.View is what shows every session, and the receipts list).
+        var admin = await Admin();
+        var adminNow = await Current(admin);
+        var adminSession = adminNow.GetProperty("status").GetProperty("isOpen").GetBoolean()
+            ? adminNow.GetProperty("session").GetProperty("id").GetInt32()
+            : (await Open(admin, 10m)).GetProperty("id").GetInt32();
+        foreach (var url in new[] { $"{Base}/sessions/{adminSession}", $"{Base}/sessions/{adminSession}/z-report", $"{Base}/sessions/{adminSession}/z-report.pdf" })
+            await AssertProblem(await cashier.GetAsync(url), HttpStatusCode.NotFound, "session_not_found");
+        Assert.Equal(HttpStatusCode.OK, (await admin.GetAsync($"{Base}/sessions/{id}")).StatusCode); // a manager still sees the cashier's
     }
 
     [Fact]

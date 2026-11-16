@@ -103,17 +103,22 @@ class _StockScreenState extends State<StockScreen> {
   @override
   Widget build(BuildContext context) {
     return DataGate(builder: (context) {
-      final all = stockItems(context.watch<ShopData>());
+      final shop = context.watch<ShopData>();
+      // Basic tracks no stock: just the product list (tap one to edit its prices), no restock filter or quantities.
+      final basic = shop.isBasic;
+      final all = stockItems(shop);
       final needing = all.where((s) => s.level != StockLevel.ok).length;
+      final onlyLow = _onlyLow && !basic;
       final q = _query.trim().toLowerCase();
       Iterable<StockItem> list = all;
-      if (_onlyLow && q.isEmpty) list = list.where((s) => s.level != StockLevel.ok);
+      if (onlyLow && q.isEmpty) list = list.where((s) => s.level != StockLevel.ok);
       if (q.isNotEmpty) list = list.where((s) => s.name.toLowerCase().contains(q) || s.barcode.toLowerCase().contains(q));
       final shown = list.take(300).toList();
 
       return [
-        ScreenTitle(context.tr('Stock', 'المخزون')),
+        ScreenTitle(basic ? context.tr('Products', 'المنتجات') : context.tr('Stock', 'المخزون')),
         _Search(hint: context.tr('Product name or barcode', 'اسم المنتج أو الباركود'), onChanged: (v) => setState(() => _query = v)),
+        if (!basic)
         Wrap(spacing: 8, children: [
           ChoiceChip(
             label: Text(context.tr('Needs restocking ($needing)', 'يحتاج تعبئة ($needing)')),
@@ -130,10 +135,10 @@ class _StockScreenState extends State<StockScreen> {
         RowGroup(
           emptyText: q.isNotEmpty
               ? context.tr('No product matches.', 'لا توجد منتجات مطابقة.')
-              : _onlyLow
+              : onlyLow
                   ? context.tr('Everything is above its minimum.', 'كل المنتجات فوق الحد الأدنى.')
                   : context.tr('No products yet.', 'لا توجد منتجات بعد.'),
-          children: [for (final s in shown) _StockTile(item: s)],
+          children: [for (final s in shown) _StockTile(item: s, showStock: !basic)],
         ),
       ];
     });
@@ -141,12 +146,15 @@ class _StockScreenState extends State<StockScreen> {
 }
 
 class _StockTile extends StatelessWidget {
-  const _StockTile({required this.item});
+  const _StockTile({required this.item, this.showStock = true});
   final StockItem item;
+
+  /// False on the Basic plan: no quantity, minimum or low/out badge.
+  final bool showStock;
 
   @override
   Widget build(BuildContext context) {
-    final (label, bg, fg) = switch (item.level) {
+    final (label, bg, fg) = !showStock ? ('', Colors.transparent, Tokens.muted) : switch (item.level) {
       StockLevel.out => (context.tr('Out', 'نفد'), Tokens.dangerBg, Tokens.danger),
       StockLevel.low => (context.tr('Low', 'منخفض'), Tokens.warningBg, Tokens.warning),
       StockLevel.ok => ('', Colors.transparent, Tokens.muted),
@@ -162,7 +170,7 @@ class _StockTile extends StatelessWidget {
             Text(
               [
                 if (item.barcode.isNotEmpty) item.barcode,
-                if (item.minimum != null) context.tr('min ${qty(item.minimum!)}', 'الحد الأدنى ${qty(item.minimum!)}'),
+                if (showStock && item.minimum != null) context.tr('min ${qty(item.minimum!)}', 'الحد الأدنى ${qty(item.minimum!)}'),
               ].join(' · '),
               style: const TextStyle(fontSize: 12, color: Tokens.muted),
             ),
@@ -176,6 +184,7 @@ class _StockTile extends StatelessWidget {
           ),
           const SizedBox(width: 10),
         ],
+        if (showStock)
         Text('${qty(item.quantity)}${item.unit.isEmpty ? '' : ' ${unitShort(context, item.unit)}'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       ]),
       ),
@@ -191,7 +200,8 @@ class DebtsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DataGate(builder: (context) {
-      final report = debtsReport(context.watch<ShopData>());
+      final shop = context.watch<ShopData>();
+      final report = debtsReport(shop);
       return [
         ScreenTitle(context.tr('Debts', 'الديون')),
         _Total(
@@ -206,19 +216,22 @@ class DebtsScreen extends StatelessWidget {
           emptyText: context.tr('Nobody owes the shop.', 'لا أحد مدين للمحل.'),
           children: [for (final d in report.owedToShop) _DebtTile(entry: d, onTap: () => openCustomer(context, d.id))],
         ),
-        const SizedBox(height: 22),
-        _Total(
-          label: context.tr('The shop owes suppliers', 'المحل مدين للموردين'),
-          totals: report.shopOwesTotals,
-          count: report.shopOwes.length,
-          unit: context.tr('supplier(s)', 'مورّد'),
-          color: const Color(0xFF454C5A),
-        ),
-        const SizedBox(height: 10),
-        RowGroup(
-          emptyText: context.tr('The shop owes no supplier.', 'المحل غير مدين لأي مورّد.'),
-          children: [for (final d in report.shopOwes) _DebtTile(entry: d)],
-        ),
+        // Suppliers are part of the Pro plan.
+        if (!shop.isBasic) ...[
+          const SizedBox(height: 22),
+          _Total(
+            label: context.tr('The shop owes suppliers', 'المحل مدين للموردين'),
+            totals: report.shopOwesTotals,
+            count: report.shopOwes.length,
+            unit: context.tr('supplier(s)', 'مورّد'),
+            color: const Color(0xFF454C5A),
+          ),
+          const SizedBox(height: 10),
+          RowGroup(
+            emptyText: context.tr('The shop owes no supplier.', 'المحل غير مدين لأي مورّد.'),
+            children: [for (final d in report.shopOwes) _DebtTile(entry: d)],
+          ),
+        ],
       ];
     });
   }

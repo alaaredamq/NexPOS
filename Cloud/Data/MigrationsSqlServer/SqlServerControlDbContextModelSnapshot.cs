@@ -302,6 +302,20 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.Property<bool>("ResyncRequested")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ShopLicenseKind")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<int?>("ShopLicenseSeats")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("ShopLicenseUntil")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ShopPlan")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");

@@ -68,6 +68,8 @@ public sealed class LicenseApiService : ILicenseApiService
             Kind = state.Kind?.ToString(),
             Serial = state.Serial,
             Seats = state.Seats,
+            Plan = state.Plan.ToString(),
+            MaxActiveUsers = state.MaxActiveUsers,
             IssuedOn = Day(state.IssuedOn),
             ValidUntil = Day(state.ValidUntil),
             IsTimeLimited = state.Kind is LicenseKind.Provisional or LicenseKind.Trial,

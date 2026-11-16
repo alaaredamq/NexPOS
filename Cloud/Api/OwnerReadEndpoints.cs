@@ -84,6 +84,8 @@ internal static class OwnerReadEndpoints
         return Results.Json(new
         {
             asOfUtc = AsUtc(who.Site.LastSyncAt),
+            // Basic or Pro (null until the shop PC reports it): the phone hides what the plan does not include.
+            shopPlan = who.Site.ShopPlan,
             rows = page.Select(r => new { id = r.Id, payload = r.Payload }),
             nextCursor = next,
             hasMore = found.Count > take,

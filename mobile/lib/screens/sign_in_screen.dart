@@ -460,12 +460,7 @@ class _Logo extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF0FA3B0), Tokens.primary],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
                         color: Tokens.primary.withValues(alpha: 0.45),
@@ -474,14 +469,13 @@ class _Logo extends StatelessWidget {
                       ),
                     ],
                   ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'N',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  // The Coduo POS app icon: navy tile, white monitor, teal eyes.
+                  child: Image.asset(
+                    'assets/brand/coduo-pos-app-icon.png',
+                    width: 56,
+                    height: 56,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: 'Coduo POS',
                   ),
                 ),
               ),

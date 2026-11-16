@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using Application.IServices.Licensing;
+using Common.Licensing;
 using Core.Auditing;
 using Sync;
 using Web.Api.Customers;
@@ -51,6 +53,17 @@ public abstract class OnlineCommandHandler<TRequest>(IAuditContext audit) : IOnl
 
     protected static CommandResult Invalid(string field, string message)
         => Invalid(new Dictionary<string, string[]> { [ApiModelState.CamelCase(field)] = [message] });
+
+    /// <summary>
+    /// Null when the shop's plan includes <paramref name="feature"/>; otherwise the refusal to send back. The licence lives on the shop PC,
+    /// so this is the real check: the phone and the owner website only hide the buttons.
+    /// </summary>
+    protected static CommandResult? RefuseUnlessPlanIncludes(ILicenseService license, ProFeature feature)
+        => license.GetState().Includes(feature)
+            ? null
+            : CommandResult.Reject(CommandErrorCodes.PlanUpgradeRequired,
+                "This shop runs the Basic plan, which does not include this change. Upgrade to Pro to use it.",
+                new { feature = feature.ToString() });
 }
 
 public sealed class CreateCustomerHandler(ICustomerApiService customers, IAuditContext audit) : OnlineCommandHandler<CustomerRequest>(audit)
@@ -71,12 +84,14 @@ public sealed class CreateCustomerHandler(ICustomerApiService customers, IAuditC
     }
 }
 
-public sealed class CreateSupplierHandler(ISupplierApiService suppliers, IAuditContext audit) : OnlineCommandHandler<SupplierRequest>(audit)
+public sealed class CreateSupplierHandler(ISupplierApiService suppliers, ILicenseService license, IAuditContext audit) : OnlineCommandHandler<SupplierRequest>(audit)
 {
     public override string Type => "supplier.create";
 
     protected override async Task<CommandResult> ApplyAsync(SupplierRequest request, CancellationToken ct)
     {
+        if (RefuseUnlessPlanIncludes(license, ProFeature.Suppliers) is { } refused) return refused;
+
         try
         {
             var created = await suppliers.CreateAsync(request);
@@ -188,12 +203,14 @@ public sealed class StockChangeRequest
     public string? Reason { get; set; }
 }
 
-public sealed class AdjustStockHandler(IProductCatalogService catalog, IInventoryApiService inventory, IAuditContext audit) : OnlineCommandHandler<StockChangeRequest>(audit)
+public sealed class AdjustStockHandler(IProductCatalogService catalog, IInventoryApiService inventory, ILicenseService license, IAuditContext audit) : OnlineCommandHandler<StockChangeRequest>(audit)
 {
     public override string Type => "stock.adjust";
 
     protected override async Task<CommandResult> ApplyAsync(StockChangeRequest request, CancellationToken ct)
     {
+        if (RefuseUnlessPlanIncludes(license, ProFeature.Inventory) is { } refused) return refused;
+
         var current = await catalog.GetAsync(request.ProductId);
         if (current is null) return CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.");
 

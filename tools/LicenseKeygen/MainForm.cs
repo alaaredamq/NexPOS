@@ -20,6 +20,7 @@ internal sealed class MainForm : Form
     private readonly NumericUpDown _days = new() { Minimum = 1, Maximum = 3650, Value = 30 };
     private readonly NumericUpDown _seats = new() { Minimum = 1, Maximum = LicenseCodec.MaxSeats, Value = 1 };
     private readonly ComboBox _kind = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    private readonly ComboBox _plan = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly TextBox _customer = new() { PlaceholderText = "Optional - shown on the customer's License page" };
     private readonly TextBox _keyPath = new() { ReadOnly = true };
     private readonly TextBox _passphrase = new() { UseSystemPasswordChar = true, Enabled = false };
@@ -38,11 +39,15 @@ internal sealed class MainForm : Form
         Text = "Coduo POS Keygen";
         Font = new Font("Segoe UI", 10f);
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(640, 600);
-        MinimumSize = new Size(560, 560);
+        ClientSize = new Size(640, 640);
+        MinimumSize = new Size(560, 600);
 
         _kind.Items.AddRange(["Provisional - expires after N days (instalment sale)", "Trial - expires after N days (evaluation)", "Full - perpetual, N days of updates"]);
         _kind.SelectedIndex = 0;
+
+        // No default on purpose: a key must never come out as Pro because nobody looked at this box.
+        _plan.Items.AddRange(["Basic - 1 PC, up to 3 users, no stock / suppliers / purchases / audit log", "Pro - everything, extra tills, unlimited users"]);
+        _plan.SelectedIndex = -1;
 
         _keyPath.Text = LoadKeyPath();
 
@@ -90,6 +95,7 @@ internal sealed class MainForm : Form
         grid.SetColumnSpan(_machineHint, 2);
 
         Row("Days", _days);
+        Row("Plan", _plan);
         Row("PCs (package)", _seats);
         grid.RowCount++;
         grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -121,6 +127,14 @@ internal sealed class MainForm : Form
     {
         _machine.TextChanged += (_, _) => RefreshMachineHint();
         _seats.ValueChanged += (_, _) => RefreshSeatsHint();
+        _plan.SelectedIndexChanged += (_, _) =>
+        {
+            // Basic is always one PC; extra tills are a Pro feature.
+            var basic = _plan.SelectedIndex == 0;
+            if (basic) _seats.Value = PlanRules.BasicSeats;
+            _seats.Enabled = !basic;
+            RefreshSeatsHint();
+        };
         _generate.Click += (_, _) => Generate();
         _copy.Click += (_, _) =>
         {
@@ -269,8 +283,14 @@ internal sealed class MainForm : Form
             var today = DateOnly.FromDateTime(DateTime.Now);
             var until = today.AddDays((int)_days.Value);
             var serial = BitConverter.ToUInt32(RandomNumberGenerator.GetBytes(4));
-            var seats = (int)_seats.Value;
-            var payload = new LicensePayload(kind, machine, today, until, serial, _customer.Text.Trim(), seats);
+            var plan = _plan.SelectedIndex switch
+            {
+                0 => LicensePlan.Basic,
+                1 => LicensePlan.Pro,
+                _ => throw new UserException("Choose a plan: Basic or Pro.")
+            };
+            var seats = plan == LicensePlan.Basic ? PlanRules.BasicSeats : (int)_seats.Value;
+            var payload = new LicensePayload(kind, machine, today, until, serial, _customer.Text.Trim(), seats, plan);
 
             using var key = LoadPrivateKey();
             var keyText = LicenseCodec.Encode(payload, key);
@@ -286,8 +306,8 @@ internal sealed class MainForm : Form
             _summary.ForeColor = SystemColors.ControlText;
             var pcs = seats == 1 ? "1 PC" : $"{seats} PCs";
             _summary.Text = kind == LicenseKind.Full
-                ? $"{machine.Format()}  |  Full  |  {pcs}  |  updates until {until:yyyy-MM-dd}  |  serial {payload.SerialText}"
-                : $"{machine.Format()}  |  {kind}  |  {pcs}  |  expires {until:yyyy-MM-dd} ({(int)_days.Value} days)  |  serial {payload.SerialText}";
+                ? $"{machine.Format()}  |  Full {plan}  |  {pcs}  |  updates until {until:yyyy-MM-dd}  |  serial {payload.SerialText}"
+                : $"{machine.Format()}  |  {kind} {plan}  |  {pcs}  |  expires {until:yyyy-MM-dd} ({(int)_days.Value} days)  |  serial {payload.SerialText}";
         }
         catch (UserException ex)
         {
@@ -309,7 +329,7 @@ internal sealed class MainForm : Form
     {
         var logPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(_keyPath.Text))!, "issued.csv");
         var sb = new StringBuilder();
-        if (!File.Exists(logPath)) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats");
+        if (!File.Exists(logPath)) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats,plan");
         sb.AppendLine(string.Join(',',
             p.IssuedOn.ToString("yyyy-MM-dd"),
             "\"" + p.Customer.Replace("\"", "\"\"") + "\"",
@@ -317,7 +337,8 @@ internal sealed class MainForm : Form
             p.ValidUntil.ToString("yyyy-MM-dd"),
             p.Machine.Format(),
             p.SerialText,
-            p.Seats));
+            p.Seats,
+            p.Plan));
         File.AppendAllText(logPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 

@@ -30,6 +30,9 @@ class FakeApi implements OwnerApi {
   int rowRequests = 0;
   DateTime? asOf = DateTime.now();
 
+  /// The shop's licence plan the cloud reports with every page (null: an older cloud or shop PC).
+  String? shopPlan;
+
   @override
   Future<SignedIn> signIn(String email, String password) async {
     if (signInFails) throw ApiException(401, 'invalid_credentials', 'The email or password is not right.');
@@ -49,7 +52,7 @@ class FakeApi implements OwnerApi {
     final from = cursor == null ? 0 : int.parse(cursor);
     final page = all.skip(from).take(limit).toList();
     final next = from + page.length;
-    return RowPage(rows: page, nextCursor: '$next', hasMore: next < all.length, asOf: asOf);
+    return RowPage(rows: page, nextCursor: '$next', hasMore: next < all.length, asOf: asOf, shopPlan: shopPlan);
   }
 
   @override

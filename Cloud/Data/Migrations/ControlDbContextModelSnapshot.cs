@@ -283,6 +283,20 @@ namespace Cloud.Data.Migrations
                     b.Property<bool>("ResyncRequested")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ShopLicenseKind")
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ShopLicenseSeats")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly?>("ShopLicenseUntil")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShopPlan")
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");

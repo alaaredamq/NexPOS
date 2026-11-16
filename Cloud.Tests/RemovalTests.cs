@@ -18,7 +18,7 @@ public class RemovalTests : IClassFixture<CloudFactory>
     private async Task<HttpClient> SignedInAsync()
     {
         var c = _cloud.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
-        var response = await HtmlForms.PostAsync(c, "/Account/Login", "/Account/Login",
+        var response = await HtmlForms.PostAsync(c, "/admin/Account/Login", "/admin/Account/Login",
             ("Username", CloudFactory.AdminUser), ("Password", CloudFactory.AdminPassword));
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         return c;
@@ -65,13 +65,13 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var doomed = await AddBusyBranchAsync(seeded.ClientId, "Testing");
         var kept = await AddBusyBranchAsync(seeded.ClientId, "Kept");
 
-        var response = await HtmlForms.PostAsync(c, $"/Sites/Details/{doomed}", $"/Sites/Details/{doomed}?handler=Remove");
+        var response = await HtmlForms.PostAsync(c, $"/admin/Sites/Details/{doomed}", $"/admin/Sites/Details/{doomed}?handler=Remove");
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal($"/Clients/Details/{seeded.ClientId}", response.Headers.Location!.OriginalString);
+        Assert.Equal($"/admin/Clients/Details/{seeded.ClientId}", response.Headers.Location!.OriginalString);
         Assert.Equal((0, 0, 0, 0, 0), await RowsOfAsync(doomed));
         Assert.False(MirrorFilesExist(doomed));
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/Sites/Details/{doomed}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/admin/Sites/Details/{doomed}")).StatusCode);
 
         // Its neighbours are untouched.
         Assert.Equal((1, 1, 1, 1, 1), await RowsOfAsync(kept));
@@ -89,7 +89,7 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var seeded = await _cloud.SeedSiteAsync();
         Assert.Equal(HttpStatusCode.OK, (await _cloud.DeviceClient(seeded.Token).GetAsync("/api/sync/ping")).StatusCode);
 
-        await HtmlForms.PostAsync(c, $"/Sites/Details/{seeded.SiteId}", $"/Sites/Details/{seeded.SiteId}?handler=Remove");
+        await HtmlForms.PostAsync(c, $"/admin/Sites/Details/{seeded.SiteId}", $"/admin/Sites/Details/{seeded.SiteId}?handler=Remove");
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await _cloud.DeviceClient(seeded.Token).GetAsync("/api/sync/ping")).StatusCode);
     }
@@ -102,11 +102,11 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var second = await AddBusyBranchAsync(seeded.ClientId, "Second");
         var other = await _cloud.SeedSiteAsync(clientName: "Staying Open");
 
-        var response = await HtmlForms.PostAsync(c, $"/Clients/Details/{seeded.ClientId}", $"/Clients/Details/{seeded.ClientId}?handler=Remove");
+        var response = await HtmlForms.PostAsync(c, $"/admin/Clients/Details/{seeded.ClientId}", $"/admin/Clients/Details/{seeded.ClientId}?handler=Remove");
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/", response.Headers.Location!.OriginalString);
-        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/Clients/Details/{seeded.ClientId}")).StatusCode);
+        Assert.Equal("/admin", response.Headers.Location!.OriginalString);
+        Assert.Equal(HttpStatusCode.NotFound, (await c.GetAsync($"/admin/Clients/Details/{seeded.ClientId}")).StatusCode);
         Assert.Equal((0, 0, 0, 0, 0), await RowsOfAsync(second));
         Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.Sites.CountAsync(s => s.ClientId == seeded.ClientId)));
         Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.Subscriptions.CountAsync(s => s.ClientId == seeded.ClientId)));
@@ -115,9 +115,9 @@ public class RemovalTests : IClassFixture<CloudFactory>
 
         // Another client is untouched, and the home page no longer lists the removed one.
         Assert.Equal(1, await _cloud.WithControlDbAsync(db => db.Sites.CountAsync(s => s.Id == other.SiteId)));
-        var home = await c.GetStringAsync("/");
-        Assert.DoesNotContain($"/Clients/Details/{seeded.ClientId}\"", home);
-        Assert.Contains($"/Clients/Details/{other.ClientId}\"", home);
+        var home = await c.GetStringAsync("/admin");
+        Assert.DoesNotContain($"/admin/Clients/Details/{seeded.ClientId}\"", home);
+        Assert.Contains($"/admin/Clients/Details/{other.ClientId}\"", home);
     }
 
     [Fact]
@@ -126,8 +126,8 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var seeded = await _cloud.SeedSiteAsync();
         var anonymous = _cloud.CreateClient(new() { AllowAutoRedirect = false });
 
-        var branch = await anonymous.PostAsync($"/Sites/Details/{seeded.SiteId}?handler=Remove", new FormUrlEncodedContent([]));
-        var client = await anonymous.PostAsync($"/Clients/Details/{seeded.ClientId}?handler=Remove", new FormUrlEncodedContent([]));
+        var branch = await anonymous.PostAsync($"/admin/Sites/Details/{seeded.SiteId}?handler=Remove", new FormUrlEncodedContent([]));
+        var client = await anonymous.PostAsync($"/admin/Clients/Details/{seeded.ClientId}?handler=Remove", new FormUrlEncodedContent([]));
 
         Assert.NotEqual(HttpStatusCode.OK, branch.StatusCode);
         Assert.NotEqual(HttpStatusCode.OK, client.StatusCode);
@@ -150,7 +150,7 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var products = SqlHelper.Scalar<long>(till.Path, "SELECT COUNT(*) FROM Products");
         var orders = SqlHelper.Scalar<long>(till.Path, "SELECT COUNT(*) FROM Orders");
 
-        var home = await c.GetStringAsync("/");
+        var home = await c.GetStringAsync("/admin");
 
         Assert.Contains($"<b>{products:N0}</b> products", home);
         Assert.Contains($"<b>{orders:N0}</b> orders", home);

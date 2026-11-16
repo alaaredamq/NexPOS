@@ -167,7 +167,7 @@ class CurrencyOption {
 
 /// One page of encrypted rows. [payload]s are ciphertext: only the shop's key opens them.
 class RowPage {
-  RowPage({required this.rows, required this.nextCursor, required this.hasMore, this.asOf});
+  RowPage({required this.rows, required this.nextCursor, required this.hasMore, this.asOf, this.shopPlan});
 
   factory RowPage.fromJson(Map<String, dynamic> json) => RowPage(
         rows: [
@@ -177,6 +177,7 @@ class RowPage {
         nextCursor: json['nextCursor'] as String?,
         hasMore: json['hasMore'] as bool,
         asOf: json['asOfUtc'] == null ? null : DateTime.parse(json['asOfUtc'] as String),
+        shopPlan: json['shopPlan'] as String?,
       );
 
   final List<({int id, String payload})> rows;
@@ -185,6 +186,9 @@ class RowPage {
 
   /// When the shop PC last sent anything. A switched-off till leaves this behind, so screens show it.
   final DateTime? asOf;
+
+  /// The shop's licence plan, `Basic` or `Pro`; null from a cloud or shop PC that does not report it yet.
+  final String? shopPlan;
 }
 
 /// The choices the forms need, built on the phone from the shop's categories, suppliers and currencies.

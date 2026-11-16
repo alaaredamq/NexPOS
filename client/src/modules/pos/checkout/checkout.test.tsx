@@ -365,7 +365,7 @@ describe('checkout', () => {
   })
 
   it('warns about a closed drawer and links to opening it, without blocking the sale', async () => {
-    open(makeSession({ permissions: ['Orders.View'], drawer: { isOpen: false, openingCash: 0 } }))
+    open(makeSession({ permissions: ['Orders.View'], drawer: { isOpen: false, openingCash: 0, cashInDrawer: 0 } }))
     await pay()
 
     expect(within(dialog()).getByRole('status')).toHaveTextContent('Your cash drawer is closed.')

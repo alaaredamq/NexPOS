@@ -38,6 +38,7 @@ internal static class PosTestKit
             Status = LicenseStatus.Active,
             MachineId = "TEST-TEST-TEST-TEST",
             BuildDate = DateOnly.FromDateTime(DateTime.Today),
+            Plan = Common.Licensing.LicensePlan.Pro,
         };
 
         public LicenseActivationResult Activate(string licenseKeyText) => throw new NotSupportedException();

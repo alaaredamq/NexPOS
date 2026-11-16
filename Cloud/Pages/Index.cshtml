@@ -10,7 +10,7 @@
         <h1>Clients</h1>
         <p class="sub">@Model.Summary</p>
     </div>
-    <a class="btn" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>New client</a>
+    <a class="btn" href="/admin/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>New client</a>
 </div>
 
 @if (Model.Rows.Count > 0)
@@ -86,7 +86,7 @@
     <div class="list"><div class="empty">
         <h3>No clients yet</h3>
         <p>Add the first shop. You get a link to send the owner; they paste it on the shop PC and the shop connects.</p>
-        <a class="btn" href="/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>Add the first client</a>
+        <a class="btn" href="/admin/Clients/Create"><svg class="icon"><use href="#i-plus"/></svg>Add the first client</a>
     </div></div>
 }
 else
@@ -109,7 +109,7 @@ else
         @foreach (var r in Model.Rows)
         {
             var (tone, label) = Pills.Plan(r.State);
-            <a class="item" href="/Clients/Details/@r.Id" data-row data-name="@r.Name.ToLowerInvariant()" data-tags="@string.Join(' ', r.Tags)">
+            <a class="item" href="/admin/Clients/Details/@r.Id" data-row data-name="@r.Name.ToLowerInvariant()" data-tags="@string.Join(' ', r.Tags)">
                 <span>
                     <span class="name">@r.Name @if (!r.IsActive) { <span class="pill none plain">inactive</span> }</span>
                     <span class="sub">@r.Sub</span>

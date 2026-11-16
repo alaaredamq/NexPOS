@@ -5,8 +5,11 @@ import { RequirePermission } from '@/core/permissions/permissions'
 
 /**
  * `/app/cash-drawer` (track S2): the drawer, open, close, history and the Z report. The guards are UX only - every API action carries
- * the same `[RequirePermission]` the old controller had: `Sales.View` for everything, plus `Sales.Edit` to close a session or drop cash.
+ * its own check: `Sales.View` or `Sales.Manage` (a cashier, who sees only their own sessions) for everything, plus `Sales.Edit` to
+ * close a session or drop cash.
  */
+const DRAWER_USERS = [Permissions.Sales_View, Permissions.Sales_Manage] as const
+
 const page = (load: () => Promise<{ default: React.ComponentType }>) => async () => ({
   Component: (await load()).default,
   loader: () => loadNamespaces('cashDrawer', 'common').then(() => null),
@@ -15,7 +18,7 @@ const page = (load: () => Promise<{ default: React.ComponentType }>) => async ()
 const routes: RouteObject[] = [
   {
     path: 'cash-drawer',
-    element: <RequirePermission permission={Permissions.Sales_View} />,
+    element: <RequirePermission permission={DRAWER_USERS} />,
     children: [
       { index: true, lazy: page(() => import('./DrawerPage')) },
       { path: 'open', lazy: page(() => import('./OpenDrawerPage')) },

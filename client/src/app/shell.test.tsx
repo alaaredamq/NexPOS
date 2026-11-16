@@ -8,7 +8,8 @@ import { queryClient } from '@/api/queryClient'
 import type { Session } from '@/api/types'
 import { RequirePermission } from '@/core/permissions/permissions'
 import { RequireSalesLicense } from '@/core/license/license'
-import { json, makeSession, problem } from '@/test/sessionFixture'
+import { json, makeSession, navItem, problem, section } from '@/test/sessionFixture'
+import { RequirePlan } from '@/shell/pages/pages'
 import { buildRoutes } from './routes'
 
 type Handler = (init: RequestInit | undefined) => Response | Promise<Response>
@@ -199,7 +200,7 @@ describe('licence', () => {
   it('shows the renewal banner while selling still works', async () => {
     signedIn(
       makeSession({
-        license: { status: 'GracePeriod', allowsSales: true, showsWarning: true, enforcementDisabled: false, title: 'License renewal needed', message: 'Renew now.', severity: 'warning' },
+        license: { status: 'GracePeriod', allowsSales: true, showsWarning: true, enforcementDisabled: false, plan: 'Pro', title: 'License renewal needed', message: 'Renew now.', severity: 'warning' },
       }),
     )
     mount('/orders', [{ path: 'orders', element: <p>orders page</p> }])
@@ -209,7 +210,7 @@ describe('licence', () => {
   it('sends sales routes to the licence-stopped page once selling is stopped, but leaves other pages open', async () => {
     signedIn(
       makeSession({
-        license: { status: 'Expired', allowsSales: false, showsWarning: false, enforcementDisabled: false, title: 'License expired', message: 'Selling is stopped.', severity: 'danger' },
+        license: { status: 'Expired', allowsSales: false, showsWarning: false, enforcementDisabled: false, plan: 'Pro', title: 'License expired', message: 'Selling is stopped.', severity: 'danger' },
       }),
     )
     mount('/sell', [
@@ -218,6 +219,40 @@ describe('licence', () => {
     ])
     expect(await screen.findByText('Selling is stopped')).toBeInTheDocument()
     expect(screen.queryByText('checkout')).not.toBeInTheDocument()
+  })
+})
+
+describe('plan', () => {
+  const basic = (overrides: Partial<Session> = {}) => {
+    const session = makeSession(overrides)
+    return { ...session, license: { ...session.license, plan: 'Basic', maxActiveUsers: 3 } }
+  }
+  const inventory = navItem('Inventory', { label: 'Inventory', migrated: true, href: '/app/inventory', feature: 'Inventory', locked: true })
+
+  it('keeps a Pro page in the rail with a lock and shows the upgrade screen in its place on Basic', async () => {
+    signedIn(basic({ nav: [section('Catalog', [inventory])] }))
+    mount('/inventory', [{ element: <RequirePlan feature="Inventory" />, children: [{ path: 'inventory', element: <p>inventory page</p> }] }])
+
+    expect(await screen.findByText('Inventory · Available in Pro')).toBeInTheDocument()
+    expect(screen.getByText(/Nothing you entered is lost/)).toBeInTheDocument()
+    expect(screen.queryByText('inventory page')).not.toBeInTheDocument()
+    const rail = screen.getByRole('navigation', { name: 'Navigation' })
+    expect(within(within(rail).getByRole('link', { name: /Inventory/ })).getByText('Available in Pro')).toBeInTheDocument()
+  })
+
+  it('opens the same page on Pro, with no lock', async () => {
+    signedIn(makeSession({ nav: [section('Catalog', [{ ...inventory, locked: false }])] }))
+    mount('/inventory', [{ element: <RequirePlan feature="Inventory" />, children: [{ path: 'inventory', element: <p>inventory page</p> }] }])
+
+    expect(await screen.findByText('inventory page')).toBeInTheDocument()
+    expect(screen.queryByText('Available in Pro')).not.toBeInTheDocument()
+  })
+
+  it('names the page on /upgrade, where the old Razor pages send people', async () => {
+    signedIn(basic({ nav: [section('Catalog', [inventory])] }))
+    mount('/upgrade?feature=Inventory')
+
+    expect(await screen.findByText('Inventory · Available in Pro')).toBeInTheDocument()
   })
 })
 

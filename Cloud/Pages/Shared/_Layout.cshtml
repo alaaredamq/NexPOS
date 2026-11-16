@@ -10,6 +10,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
+    <meta name="robots" content="noindex, nofollow" />
     <title>@(ViewData["Title"] is string t ? t + " · " : "")Coduo POS Cloud</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E3A8A'/%3E%3Cg transform='translate(32 32) scale(0.6) translate(0 -0.875)'%3E%3Crect x='-31' y='-30' width='62' height='46' rx='10' fill='none' stroke='%23FFFFFF' stroke-width='10.5'/%3E%3Ccircle cx='-9' cy='-8' r='7' fill='%233DDBCB'/%3E%3Ccircle cx='9' cy='-8' r='7' fill='%233DDBCB'/%3E%3Crect x='-7.5' y='16' width='15' height='12' fill='%23FFFFFF'/%3E%3Crect x='-21' y='27' width='42' height='10' rx='5' fill='%23FFFFFF'/%3E%3C/g%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,13 +42,13 @@ else
 {
     <div class="shell">
         <aside class="rail">
-            <a class="brand" href="/" aria-label="Coduo POS Cloud, clients">
+            <a class="brand" href="/admin" aria-label="Coduo POS Cloud, clients">
                 <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
                 <span><b>Coduo POS</b><span>Cloud</span></span>
             </a>
             <nav aria-label="Main">
-                <a href="/" aria-current="@(nav == "clients" ? "page" : null)"><svg class="icon"><use href="#i-store"/></svg><span class="t">Clients</span></a>
-                <a href="/Clients/Create" aria-current="@(nav == "new" ? "page" : null)"><svg class="icon"><use href="#i-plus"/></svg><span class="t">New client</span></a>
+                <a href="/admin" aria-current="@(nav == "clients" ? "page" : null)"><svg class="icon"><use href="#i-store"/></svg><span class="t">Clients</span></a>
+                <a href="/admin/Clients/Create" aria-current="@(nav == "new" ? "page" : null)"><svg class="icon"><use href="#i-plus"/></svg><span class="t">New client</span></a>
             </nav>
             <a class="ext" href="/owner" target="_blank" rel="noopener"><svg class="icon"><use href="#i-link"/></svg><span class="t">Owner website</span></a>
             <div class="who">

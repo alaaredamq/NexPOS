@@ -297,7 +297,7 @@ describe('new purchase', () => {
   })
 
   it('offers no drawer checkbox while nothing is paid, and cannot use a drawer that is closed', async () => {
-    openAs('/purchases/new?supplier=1', makeSession({ permissions: [...ALL], drawer: { isOpen: false, openingCash: 0 } }))
+    openAs('/purchases/new?supplier=1', makeSession({ permissions: [...ALL], drawer: { isOpen: false, openingCash: 0, cashInDrawer: 0 } }))
     await screen.findByRole('heading', { name: 'New purchase' })
     api.routes['POST /api/v1/purchases'] = () => json(detail({ id: 7, number: 'PUR-000007' }), 201)
     api.routes['GET /api/v1/purchases/7'] = () => json(detail({ id: 7, number: 'PUR-000007' }))

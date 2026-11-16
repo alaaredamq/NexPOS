@@ -19,19 +19,19 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
     private async Task<HttpClient> AdminAsync()
     {
         var c = _cloud.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
-        var r = await HtmlForms.PostAsync(c, "/Account/Login", "/Account/Login",
+        var r = await HtmlForms.PostAsync(c, "/admin/Account/Login", "/admin/Account/Login",
             ("Username", CloudFactory.AdminUser), ("Password", CloudFactory.AdminPassword));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         return c;
     }
 
     private static Task<HttpResponseMessage> Post(HttpClient c, int clientId, string handlerAndQuery, params (string, string)[] fields)
-        => HtmlForms.PostAsync(c, $"/Clients/Details/{clientId}", $"/Clients/Details/{clientId}?handler={handlerAndQuery}", fields);
+        => HtmlForms.PostAsync(c, $"/admin/Clients/Details/{clientId}", $"/admin/Clients/Details/{clientId}?handler={handlerAndQuery}", fields);
 
     /// <summary>What the next page load shows once: the email and password to hand to the owner.</summary>
     private static async Task<(string Email, string Password)?> HandedOverAsync(HttpClient c, int clientId)
     {
-        var html = await c.GetStringAsync($"/Clients/Details/{clientId}");
+        var html = await c.GetStringAsync($"/admin/Clients/Details/{clientId}");
         var m = Regex.Match(html, @"Email: (?<e>[^\s<]+)\s*Password: (?<p>[A-Za-z0-9]+)");
         return m.Success ? (m.Groups["e"].Value, m.Groups["p"].Value) : null;
     }
@@ -73,7 +73,7 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
         Assert.Equal("staff", (await Me(staff, "staff-pass-001")).GetProperty("role").GetString());
         Assert.Equal("owner", (await Me(plain, "owner-pass-001")).GetProperty("role").GetString());
 
-        var html = await admin.GetStringAsync($"/Clients/Details/{site.ClientId}");
+        var html = await admin.GetStringAsync($"/admin/Clients/Details/{site.ClientId}");
         Assert.Contains("Manager", html);
         Assert.Contains("Staff", html);
         Assert.Contains("What can they do?", html);
@@ -246,7 +246,7 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
         var site = await _cloud.SeedSiteAsync();
         var anonymous = _cloud.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
 
-        var response = await anonymous.PostAsync($"/Clients/Details/{site.ClientId}?handler=AddOwner",
+        var response = await anonymous.PostAsync($"/admin/Clients/Details/{site.ClientId}?handler=AddOwner",
             new FormUrlEncodedContent([new("Email", "x@y.example")]));
 
         Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
@@ -260,7 +260,7 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
         var admin = await AdminAsync();
         await Post(admin, site.ClientId, "AddOwner", ("Email", Unique("rc")), ("DisplayName", "Rima"), ("Password", ""));
 
-        var html = await admin.GetStringAsync($"/Clients/Details/{site.ClientId}");
+        var html = await admin.GetStringAsync($"/admin/Clients/Details/{site.ClientId}");
 
         Assert.Contains("recovery code", html);
         Assert.Contains("Settings &gt; Online &gt; Show recovery code", html);
@@ -275,7 +275,7 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
     {
         var site = await _cloud.SeedSiteAsync(clientName: "Encrypted Minimarket");
         var admin = await AdminAsync();
-        var plain = await admin.GetStringAsync($"/Sites/Details/{site.SiteId}");
+        var plain = await admin.GetStringAsync($"/admin/Sites/Details/{site.SiteId}");
         Assert.DoesNotContain("Encrypted by the shop", plain);
 
         var cipher = Sync.DataKey.Generate().Cipher();
@@ -284,7 +284,7 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
         var push = await _cloud.DeviceClient(site.Token).PostAsJsonAsync("api/sync/push", batch, Sync.SyncWire.Json);
         Assert.Equal(HttpStatusCode.OK, push.StatusCode);
 
-        var html = await admin.GetStringAsync($"/Sites/Details/{site.SiteId}");
+        var html = await admin.GetStringAsync($"/admin/Sites/Details/{site.SiteId}");
 
         Assert.Contains("Encrypted by the shop", html);
         Assert.Contains("nobody can recover this data", html);

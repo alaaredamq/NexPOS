@@ -131,6 +131,8 @@ public static class OwnerEndpoints
             expiresAtUtc = who.Client.Subscription?.ExpiresAt,
             shopLastSeenUtc = who.Site?.LastSeenAt,
             shopLastSyncUtc = who.Site?.LastSyncAt,
+            // Basic or Pro; null until the shop PC runs a version that reports it (then show everything, as before).
+            shopPlan = who.Site?.ShopPlan,
         }, SyncWire.Json);
     }
 

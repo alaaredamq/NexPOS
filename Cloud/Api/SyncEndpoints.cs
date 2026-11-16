@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Cloud.Data;
 using Cloud.Services;
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sync;
@@ -80,12 +81,47 @@ public static class SyncEndpoints
                 _ => "There is no online subscription for this client.",
             });
 
-    private static async Task<IResult> Ping(HttpContext http, ControlDbContext db, TimeProvider time)
+    private static async Task<IResult> Ping(HttpContext http, ControlDbContext db, TimeProvider time, Microsoft.Extensions.Options.IOptions<CloudOptions> options)
     {
         var (device, failure) = await AuthenticateAsync(http, db, time);
         if (failure is not null) return failure;
+
+        if (ReadLicense(http, options.Value) is { } licence)
+        {
+            var site = device!.Site;
+            var plan = licence.Plan.ToString();
+            var kind = licence.Kind.ToString();
+            var seats = PlanRules.EffectiveSeats(licence.Plan, licence.Seats);
+            if (site.ShopPlan != plan || site.ShopLicenseKind != kind || site.ShopLicenseUntil != licence.ValidUntil || site.ShopLicenseSeats != seats)
+            {
+                site.ShopPlan = plan;
+                site.ShopLicenseKind = kind;
+                site.ShopLicenseUntil = licence.ValidUntil;
+                site.ShopLicenseSeats = seats;
+                await db.SaveChangesAsync();
+            }
+        }
+
         return Results.Json(new SyncPing(device!.Site.Name, device.Client.Name, device.State.ToString(),
             device.Client.Subscription?.ExpiresAt), SyncWire.Json);
+    }
+
+    /// <summary>
+    /// The licence key the till handed over, if the issuer's signature holds. Anything else (no key, garbage, a forged or edited key, a
+    /// format this cloud does not know yet) is ignored and the last good details stay, so a till can never write a plan it was not sold.
+    /// Only the plan, kind, end date and PC count are kept; the key itself (and the customer name in it) is not stored.
+    /// </summary>
+    private static LicensePayload? ReadLicense(HttpContext http, CloudOptions options)
+    {
+        var text = http.Request.Headers[SyncHeaders.License].ToString();
+        if (string.IsNullOrWhiteSpace(text) || text.Length > 512) return null;
+
+        byte[] publicKey;
+        try { publicKey = Convert.FromBase64String(options.LicensePublicKey); }
+        catch (FormatException) { return null; }
+
+        var decoded = LicenseCodec.Decode(text, publicKey);
+        return decoded.Success ? decoded.Payload : null;
     }
 
     private static async Task<IResult> Push(

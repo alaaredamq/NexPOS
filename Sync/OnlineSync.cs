@@ -127,12 +127,19 @@ namespace Sync
             else SyncTriggers.Uninstall(connection, schema);
         }
 
-        /// <summary>Learns the subscription state (and the site's name) for the Online screen. Failures are not interesting: the push already reports them.</summary>
+        /// <summary>
+        /// Learns the subscription state (and the site's name) for the Online screen, and hands the cloud the shop's signed licence key so it knows the plan.
+        /// Failures are not interesting: the push already reports them.
+        /// </summary>
         private async Task RefreshPlanAsync(HttpClient http, CancellationToken ct)
         {
             try
             {
-                var ping = await http.GetFromJsonAsync<SyncPing>("api/sync/ping", SyncWire.Json, ct);
+                using var request = new HttpRequestMessage(HttpMethod.Get, "api/sync/ping");
+                if (services.GetService<IShopLicenseSource>()?.LicenseKey is { Length: > 0 } key) request.Headers.TryAddWithoutValidation(SyncHeaders.License, key);
+                using var response = await http.SendAsync(request, ct);
+                response.EnsureSuccessStatusCode();
+                var ping = await response.Content.ReadFromJsonAsync<SyncPing>(SyncWire.Json, ct);
                 if (ping is not null) status.SetPlan(ping.SubscriptionStatus, ping.ExpiresAtUtc);
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException or NotSupportedException)

@@ -61,8 +61,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "nexpos.cloud.admin";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/Login";
+        options.LoginPath = PublicSite.AdminLogin;
+        options.AccessDeniedPath = PublicSite.AdminLogin;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
@@ -82,6 +82,8 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddRazorPages(options => {
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Enroll");
+    // The provider portal lives under /admin; "/" is the public landing page (see PublicSite).
+    options.Conventions.Add(new PublicSite.AdminPrefixConvention());
 });
 
 // Behind Caddy/nginx: trust the proxy's X-Forwarded-* so the login throttle sees real client addresses and cookies see https.
@@ -106,7 +108,11 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseForwardedHeaders();
+app.UseLandingTemplateGuard();
+app.UseOldPortalRedirects();
 app.UseStaticFiles();
+// "/" is the public Coduo POS landing page for everyone; the portal is at /admin (see PublicSite).
+app.UseLandingPage();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -121,6 +127,7 @@ app.MapGet("/owner", () => Results.Redirect("/owner/index.html")).AllowAnonymous
 app.MapSyncApi();
 app.MapOwnerApi();
 app.MapEnrollApi();
+app.MapPublicSite();
 app.MapRazorPages();
 
 app.Run();

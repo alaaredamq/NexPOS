@@ -48,6 +48,8 @@ public class ControlDbContext : DbContext
         {
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.ShopPlan).HasMaxLength(8);
+            e.Property(x => x.ShopLicenseKind).HasMaxLength(12);
             e.HasMany(x => x.Tokens).WithOne(x => x.Site).HasForeignKey(x => x.SiteId);
         });
 

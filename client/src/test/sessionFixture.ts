@@ -13,6 +13,7 @@ export function navItem(key: string, overrides: Partial<NavItem> = {}): NavItem 
     legacyPath: `/en/${key}`,
     migrated: false,
     href: `/en/${key}`,
+    locked: false,
     ...overrides,
   }
 }
@@ -39,6 +40,7 @@ export function makeSession(overrides: Partial<Session> = {}): Session {
       allowsSales: true,
       showsWarning: false,
       enforcementDisabled: false,
+      plan: 'Pro',
       title: 'Licensed',
       message: 'Coduo POS is activated on this computer.',
       severity: 'success',
@@ -46,7 +48,7 @@ export function makeSession(overrides: Partial<Session> = {}): Session {
     branding: { appName: 'Coduo POS', hasCustomLogo: false, logoUrl: '/branding/logo', markUrl: '/branding/logo?variant=mark', faviconUrl: '/branding/favicon' },
     language: 'en',
     direction: 'ltr',
-    drawer: { isOpen: true, openingCash: 100, sessionId: 1 },
+    drawer: { isOpen: true, openingCash: 100, cashInDrawer: 165, sessionId: 1 },
     unreadNotifications: 3,
     ...overrides,
   }

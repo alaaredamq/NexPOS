@@ -4,6 +4,9 @@ import { ICON_PATHS } from '@/ui/Icon'
  * `session.nav[].icon` is the Font Awesome class of the Razor rail; the SPA draws its own stroke icons on the same
  * 24-grid as `ui/Icon`, so the packs never mix. Unknown classes fall back to a dot.
  */
+/** Marks a Pro page on a Basic plan. */
+export const LOCK_ICON = 'M6 11h12v9H6z M9 11V8a3 3 0 016 0v3'
+
 const NAV_ICON_PATHS: Record<string, string> = {
   'fa-cash-register': 'M6 4h12v5H6z M4 9h16v11H4z M8 13h2 M12 13h2 M16 13h.01 M8 16.5h8',
   'fa-tachometer-alt': 'M4 18a8.5 8.5 0 1116 0 M12 14l4-5 M7 18h.01 M17 18h.01',

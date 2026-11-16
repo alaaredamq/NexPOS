@@ -7,7 +7,7 @@
 
 <div class="page-head">
     <div>
-        <a class="crumb" href="/"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
+        <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
         <h1>New client</h1>
         <p class="sub">One form: the client, their first branch, and the link to send the owner.</p>
     </div>
@@ -88,7 +88,7 @@
             TempData["NewLink"] = $"{baseUrl}/enroll/{issued.Display}";
             TempData["NewLinkExpires"] = issued.ExpiresAt.ToString("yyyy-MM-dd");
             this.Flash("Client created");
-            return Redirect($"/Sites/Details/{site.Id}");
+            return Redirect($"/admin/Sites/Details/{site.Id}");
         }
     }
 }

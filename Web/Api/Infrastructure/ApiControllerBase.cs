@@ -36,6 +36,17 @@ public abstract class ApiControllerBase : ControllerBase
             ContentTypes = { ApiProblem.ContentType },
         };
 
+    /// <summary>
+    /// 403 <c>plan_upgrade_required</c> with <c>feature</c>, for a request that only part of an action's range is locked for (a report longer
+    /// than Basic covers). Whole controllers use <c>[RequirePlan]</c> instead.
+    /// </summary>
+    protected ObjectResult PlanUpgradeRequired(Common.Licensing.ProFeature feature)
+    {
+        var problem = ApiProblem.Create(HttpContext, StatusCodes.Status403Forbidden, ApiCodes.PlanUpgradeRequired);
+        problem.Extensions["feature"] = feature.ToString();
+        return new ObjectResult(problem) { StatusCode = StatusCodes.Status403Forbidden, ContentTypes = { ApiProblem.ContentType } };
+    }
+
     /// <summary>409 with a code the UI can branch on (<c>drawer_not_open</c>, <c>insufficient_stock</c>, ...).</summary>
     protected ObjectResult ConflictFailure(string code, string? message = null)
         => Failure(StatusCodes.Status409Conflict, code, message);

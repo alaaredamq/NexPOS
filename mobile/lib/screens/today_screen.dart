@@ -57,7 +57,7 @@ class TodayScreen extends StatelessWidget {
                 onPressed: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   final copied = context.tr('Summary copied. Paste it into WhatsApp or a message.', 'نُسخ الملخص. الصقه في واتساب أو رسالة.');
-                  await Clipboard.setData(ClipboardData(text: _summary(context, session, now, report, needAttention, debts)));
+                  await Clipboard.setData(ClipboardData(text: _summary(context, session, now, report, data.isBasic ? null : needAttention, debts)));
                   Haptics.success();
                   messenger.showSnackBar(SnackBar(content: Text(copied)));
                 },
@@ -71,7 +71,7 @@ class TodayScreen extends StatelessWidget {
         FadeUp(index: 2, child: Text(context.tr('Needs attention', 'يحتاج انتباهك'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700))),
         const SizedBox(height: 8),
         RowGroup(children: [
-          if (session.can(Perm.stock))
+          if (session.can(Perm.stock) && !data.isBasic) // Basic tracks no stock
           _AttentionRow(
             icon: Icons.inventory_2_outlined,
             tint: Tokens.warningBg,
@@ -85,8 +85,8 @@ class TodayScreen extends StatelessWidget {
           if (session.can(Perm.debts))
           _AttentionRow(
             icon: Icons.payments_outlined,
-            tint: const Color(0xFFE3F6F7),
-            ink: const Color(0xFF08636B),
+            tint: const Color(0xFFE8ECF6),
+            ink: const Color(0xFF172E6E),
             title: context.tr('Customer debts', 'ديون الزبائن'),
             subtitle: debts.owedToShop.isEmpty
                 ? context.tr('Nobody owes the shop', 'لا أحد مدين للمحل')
@@ -158,7 +158,8 @@ String _greeting(BuildContext context, DateTime now) {
 }
 
 /// Plain text for the owner to paste into WhatsApp: the day in a few lines.
-String _summary(BuildContext context, Session session, DateTime now, TodayReport report, int needAttention, DebtsReport debts) {
+/// [needAttention] is null on the Basic plan, which tracks no stock.
+String _summary(BuildContext context, Session session, DateTime now, TodayReport report, int? needAttention, DebtsReport debts) {
   final shop = session.clientName;
   final locale = Localizations.localeOf(context).languageCode;
   final change = report.versusLastWeekPercent;
@@ -170,7 +171,7 @@ String _summary(BuildContext context, Session session, DateTime now, TodayReport
     if (change != null)
       context.tr('${change.abs().round()}% ${change >= 0 ? 'up' : 'down'} on the same day last week',
           '${change.abs().round()}% ${change >= 0 ? 'أعلى' : 'أقل'} من نفس اليوم في الأسبوع الماضي'),
-    if (session.can(Perm.stock)) context.tr('Items to restock: $needAttention', 'منتجات تحتاج تعبئة: $needAttention'),
+    if (session.can(Perm.stock) && needAttention != null) context.tr('Items to restock: $needAttention', 'منتجات تحتاج تعبئة: $needAttention'),
     if (session.can(Perm.debts) && debts.owedToShop.isNotEmpty)
       context.tr('Owed by customers: ${debts.owedToShopTotals.map((m) => money(m.amount, m.notation)).join(' + ')}',
           'مستحق على الزبائن: ${debts.owedToShopTotals.map((m) => money(m.amount, m.notation)).join(' + ')}'),

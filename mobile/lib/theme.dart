@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
-/// The same tokens as the till (BoussiCell look): teal brand, near-black rail, soft teal canvas.
+/// The same tokens as the till (BoussiCell look): Coduo POS navy brand, ink rail, soft blue-grey canvas.
 class Tokens {
-  static const primary = Color(0xFF0A7B85);
-  static const readout = Color(0xFF5AD7E2);
-  static const nav = Color(0xFF101E20);
-  static const canvas = Color(0xFFF2F7F7);
-  static const ink = Color(0xFF171B26);
+  static const primary = Color(0xFF1E3A8A);
+  static const readout = Color(0xFF6D8DF0);
+  static const nav = Color(0xFF0B1633);
+  static const canvas = Color(0xFFF2F5FB);
+  static const ink = Color(0xFF0B1633);
   static const muted = Color(0xFF5C6472);
   static const border = Color(0xFFE3E7EE);
   static const success = Color(0xFF11703F);

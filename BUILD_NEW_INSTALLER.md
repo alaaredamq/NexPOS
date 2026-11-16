@@ -123,7 +123,7 @@ Release builds only let a shop sell once the PC has a license key (Debug builds 
 2. On **your** PC, from the repo root:
 
    ```powershell
-   dotnet run --project tools/LicenseIssuer -- issue --machine <MACHINE-ID> --customer "<shop name>" --kind full
+   dotnet run --project tools/LicenseIssuer -- issue --machine <MACHINE-ID> --customer "<shop name>" --kind full --plan pro
    ```
 
    | `--kind` | Meaning | Default length |

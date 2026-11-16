@@ -28,8 +28,8 @@ public class OwnerSiteTests : IClassFixture<CloudFactory>
     public async Task Provider_portal_still_needs_its_own_sign_in()
     {
         var http = _cloud.CreateClient(new() { AllowAutoRedirect = false });
-        var home = await http.GetAsync("/");
-        Assert.Equal(HttpStatusCode.Redirect, home.StatusCode);
-        Assert.Contains("/Account/Login", home.Headers.Location?.OriginalString);
+        var portal = await http.GetAsync("/admin/Clients/Create");
+        Assert.Equal(HttpStatusCode.Redirect, portal.StatusCode);
+        Assert.Contains("/admin/Account/Login", portal.Headers.Location?.OriginalString);
     }
 }

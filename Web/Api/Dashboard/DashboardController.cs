@@ -1,3 +1,5 @@
+using Application.IServices.Licensing;
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Web.Api.Dashboard.Contracts;
@@ -17,8 +19,13 @@ namespace Web.Api.Dashboard;
 public sealed class DashboardController : ApiControllerBase
 {
     private readonly IDashboardApiService _dashboard;
+    private readonly ILicenseService _license;
 
-    public DashboardController(IDashboardApiService dashboard) => _dashboard = dashboard;
+    public DashboardController(IDashboardApiService dashboard, ILicenseService license)
+    {
+        _dashboard = dashboard;
+        _license = license;
+    }
 
     /// <summary>Everything on the dashboard except the chart. Figures are cached for 2 minutes, like the Razor page.</summary>
     [HttpGet]
@@ -27,10 +34,19 @@ public sealed class DashboardController : ApiControllerBase
     [SwaggerOperation(OperationId = "getDashboard")]
     public async Task<DashboardDto> Get() => await _dashboard.GetAsync();
 
-    /// <summary>The sales chart. <c>period</c> is <c>week</c>, <c>month</c> (default), <c>quarter</c>, <c>year</c> or <c>all</c> (since the first sale); an unknown value means the month.</summary>
+    /// <summary>
+    /// The sales chart. <c>period</c> is <c>week</c>, <c>month</c> (default), <c>quarter</c>, <c>year</c> or <c>all</c> (since the first sale); an unknown value means the month.
+    /// The Basic plan has only <c>week</c>: any other period answers 403 <c>plan_upgrade_required</c> (feature <c>Reports</c>).
+    /// </summary>
     [HttpGet("sales-trend")]
     [RequirePermission(PermissionHelper.Permissions.Dashboard_View)]
     [ProducesResponseType<SalesTrendDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status403Forbidden, ApiProblem.ContentType)]
     [SwaggerOperation(OperationId = "getSalesTrend")]
-    public async Task<SalesTrendDto> SalesTrend([FromQuery] string? period) => await _dashboard.TrendAsync(period);
+    public async Task<ActionResult<SalesTrendDto>> SalesTrend([FromQuery] string? period)
+    {
+        if (!string.Equals(period, DashboardPeriod.Week, StringComparison.OrdinalIgnoreCase) && !_license.GetState().Includes(ProFeature.Reports))
+            return PlanUpgradeRequired(ProFeature.Reports);
+        return await _dashboard.TrendAsync(period);
+    }
 }

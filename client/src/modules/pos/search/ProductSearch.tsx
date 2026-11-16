@@ -7,6 +7,7 @@ import { formatMoney } from '@/ui/format'
 import { useDebouncedValue } from '@/ui/hooks/useDebouncedValue'
 import { lookupBarcode, usePosSearch, type PosProduct } from '../catalog/api'
 import { stockLevel } from '../catalog/stock'
+import { useTracksStock } from '@/core/license/license'
 import { KeystrokeTimer } from '../scan/rapidInput'
 import { posBus } from '../slots'
 import { onFocusSearch } from './focusSearch'
@@ -22,6 +23,7 @@ const NEAR_BOTTOM_PX = 80
  */
 export function ProductSearch() {
   const { t } = useTranslation(['pos', 'common'])
+  const tracksStock = useTracksStock()
   const listId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const timer = useRef(new KeystrokeTimer())
@@ -145,9 +147,11 @@ export function ProductSearch() {
               </span>
               <span className={styles.optionSide}>
                 <span className={styles.optionPrice}>{formatMoney(product.sellingPrice, product.currencyNotation)}</span>
-                <span className={styles.optionStock} data-level={stockLevel(product)}>
-                  {stockLevel(product) === 'out' ? t('OutOfStock', { ns: 'common' }) : product.stockQuantity}
-                </span>
+                {tracksStock && (
+                  <span className={styles.optionStock} data-level={stockLevel(product)}>
+                    {stockLevel(product) === 'out' ? t('OutOfStock', { ns: 'common' }) : product.stockQuantity}
+                  </span>
+                )}
               </span>
             </li>
           ))}

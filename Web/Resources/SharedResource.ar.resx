@@ -2389,7 +2389,8 @@
   <data name="JumpToNoResults" xml:space="preserve"><value>لا توجد صفحات مطابقة</value></data>
   <data name="CollapseMenu" xml:space="preserve"><value>طي القائمة</value></data>
   <data name="ExpandMenu" xml:space="preserve"><value>توسيع القائمة</value></data>
-  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>الدرج مفتوح · {0}</value></data>
+  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>الدرج مفتوح · فيه {0}</value></data>
+  <data name="DrawerStartedWith" xml:space="preserve"><value>بدأ بـ {0}</value></data>
   <data name="DrawerNotOpened" xml:space="preserve"><value>الدرج غير مفتوح</value></data>
   <!-- api/v1 error messages (Web/Api/Infrastructure/ApiCodes.cs) -->
   <data name="Api_Unauthenticated" xml:space="preserve"><value>انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.</value></data>
@@ -2508,4 +2509,17 @@
   <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>هذه القائمة تحتوي على هذه القيمة بالفعل.</value></data>
   <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>اختر يوم الأسبوع للجدول الأسبوعي.</value></data>
   <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>اختر يوم الشهر للجدول الشهري.</value></data>
+  <data name="Plan_Label" xml:space="preserve"><value>الخطة</value></data>
+  <data name="Plan_Basic" xml:space="preserve"><value>الأساسية</value></data>
+  <data name="Plan_Pro" xml:space="preserve"><value>Pro</value></data>
+  <data name="Plan_ProOnly" xml:space="preserve"><value>متوفر في خطة Pro</value></data>
+  <data name="Plan_UpgradeRequired" xml:space="preserve"><value>هذه الميزة جزء من خطة Pro. قم بترقية الترخيص لاستخدامها.</value></data>
+  <data name="Plan_UserLimit" xml:space="preserve"><value>تتضمن الخطة الأساسية 3 مستخدمين نشطين كحد أقصى: المالك و2 من أمناء الصندوق. عطّل مستخدماً أولاً، أو قم بالترقية إلى Pro.</value></data>
+  <data name="Plan_UpgradeTitle" xml:space="preserve"><value>متوفر في خطة Pro</value></data>
+  <data name="Plan_UpgradeBody" xml:space="preserve"><value>يعمل متجرك على الخطة الأساسية. تضيف خطة Pro تتبع المخزون، والموردين والمشتريات، وسجل التدقيق، وأجهزة بيع إضافية، وعدداً غير محدود من المستخدمين.</value></data>
+  <data name="Plan_UpgradeKeepsData" xml:space="preserve"><value>لن تفقد أي شيء أدخلته: سيعود كل شيء فور تفعيل خطة Pro.</value></data>
+  <data name="Plan_UpgradeHow" xml:space="preserve"><value>للترقية، أرسل معرّف الجهاز من صفحة الترخيص إلى مزوّدك، ثم فعّل المفتاح الجديد هناك.</value></data>
+  <data name="Plan_UsersUsed" xml:space="preserve"><value>المستخدمون النشطون: {0} من {1} (الخطة الأساسية)</value></data>
+  <data name="Plan_ReportsWeek" xml:space="preserve"><value>تعرض الخطة الأساسية تقارير لمدة 7 أيام كحد أقصى. اختر فترة أقصر، أو قم بالترقية إلى Pro لأي فترة.</value></data>
+  <data name="Plan_LongerPeriods" xml:space="preserve"><value>آخر 7 أيام. الشهر والربع والسنة وكل الفترات: متوفرة في Pro.</value></data>
 </root>

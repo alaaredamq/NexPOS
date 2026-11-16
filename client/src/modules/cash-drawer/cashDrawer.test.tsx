@@ -31,8 +31,8 @@ const session = (overrides = {}) => ({
   ...overrides,
 })
 
-const OPEN = { status: { isOpen: true, sessionId: 7, openingCash: 100 }, session: session() }
-const CLOSED = { status: { isOpen: false, openingCash: 0 } }
+const OPEN = { status: { isOpen: true, sessionId: 7, openingCash: 100, cashInDrawer: 76.4 }, session: session() }
+const CLOSED = { status: { isOpen: false, openingCash: 0, cashInDrawer: 0 } }
 
 const MANAGER = [Permissions.Sales_View, Permissions.Sales_Edit]
 
@@ -94,7 +94,16 @@ describe('the drawer page', () => {
     expect(screen.queryByRole('button', { name: 'Cash Drop' })).not.toBeInTheDocument()
   })
 
-  it('without Sales.View the route bounces to the forbidden page', async () => {
+  it('a cashier (Sales.Manage, the selling permission) opens their own drawer but cannot close it', async () => {
+    const router = open('/cash-drawer', CLOSED, Permissions.Sales_Manage)
+
+    expect(await screen.findByText('No Open Cash Drawer Session')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Open Cash Drawer' })[0]!)
+    await waitFor(() => expect(router.state.location.pathname).toBe('/cash-drawer/open'))
+    expect(screen.queryByRole('button', { name: 'Close Drawer' })).not.toBeInTheDocument()
+  })
+
+  it('without Sales.View or Sales.Manage the route bounces to the forbidden page', async () => {
     const router = open('/cash-drawer', OPEN, Permissions.Orders_View)
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/forbidden'))

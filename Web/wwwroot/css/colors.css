@@ -122,7 +122,7 @@
 
     --info-color: var(--color-info);
     --info-accent: #2361d8;
-    --info-bright: #5ad7e2;
+    --info-bright: #6d8df0;
     --info-muted: var(--color-info-bg);
     --info-dark: var(--color-primary-hover);
 
@@ -204,9 +204,9 @@
     --shadow-md: 0 4px 12px rgba(16, 20, 28, 0.08);
     --shadow-lg: var(--shadow-pop);
     --shadow: var(--shadow-md);
-    --shadow-teal-sm: 0 4px 12px rgba(10, 123, 133, 0.22);
-    --shadow-teal-md: 0 4px 16px rgba(10, 123, 133, 0.22);
-    --shadow-teal-lg: 0 4px 20px rgba(10, 123, 133, 0.26);
+    --shadow-teal-sm: 0 4px 12px rgba(30, 58, 138, 0.22);
+    --shadow-teal-md: 0 4px 16px rgba(30, 58, 138, 0.22);
+    --shadow-teal-lg: 0 4px 20px rgba(30, 58, 138, 0.26);
     --shadow-danger: 0 4px 12px rgba(210, 59, 78, 0.28);
     --shadow-success: 0 4px 16px rgba(23, 138, 80, 0.28);
 
@@ -218,11 +218,11 @@
     --overlay-white-25: rgba(255, 255, 255, 0.25);
     --overlay-white-30: rgba(255, 255, 255, 0.3);
     --overlay-white-50: rgba(255, 255, 255, 0.5);
-    --overlay-teal-05: rgba(10, 123, 133, 0.05);
-    --overlay-teal-10: rgba(10, 123, 133, 0.1);
-    --overlay-teal-15: rgba(10, 123, 133, 0.15);
-    --overlay-teal-25: rgba(10, 123, 133, 0.25);
-    --overlay-teal-30: rgba(10, 123, 133, 0.3);
+    --overlay-teal-05: rgba(30, 58, 138, 0.05);
+    --overlay-teal-10: rgba(30, 58, 138, 0.1);
+    --overlay-teal-15: rgba(30, 58, 138, 0.15);
+    --overlay-teal-25: rgba(30, 58, 138, 0.25);
+    --overlay-teal-30: rgba(30, 58, 138, 0.3);
     --overlay-danger-20: rgba(210, 59, 78, 0.2);
     --overlay-success-10: rgba(23, 138, 80, 0.1);
     --overlay-danger-10: rgba(210, 59, 78, 0.1);
@@ -282,14 +282,14 @@
     --primary-gradient: var(--gradient-primary);
 
     /* Additional Theme Tokens */
-    --focus-ring: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    --focus-ring: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
     --focus-ring-success: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
     --focus-ring-info: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
 
     /* Auth Background — brand teal into ink, matching the mark instead of a teal/green/blue mix */
     --auth-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 55%, var(--ink) 100%);
-    --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(140, 232, 228, 0.15) 0%, transparent 50%);
-    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(10, 123, 133, 0.12) 0%, transparent 50%);
+    --auth-highlight-1: radial-gradient(circle at 20% 80%, rgba(61, 219, 203, 0.15) 0%, transparent 50%);
+    --auth-highlight-2: radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.12) 0%, transparent 50%);
     --auth-highlight-3: radial-gradient(circle at 40% 40%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
 
     /* POS Legacy Aliases */
@@ -308,12 +308,12 @@
        .border-primary / links stop falling back to Bootstrap blue on pages that don't load site.css
        (the POS screen and its dialogs showed blue amounts and links). */
     --bs-primary: var(--primary-color);
-    --bs-primary-rgb: 10, 123, 133;
+    --bs-primary-rgb: 30, 58, 138;
     --bs-link-color: var(--primary-dark);
     --bs-link-color-rgb: 8, 99, 107;
     --bs-link-hover-color: var(--primary-darker);
     --bs-link-hover-color-rgb: 5, 74, 81;
-    --bs-focus-ring-color: rgba(10, 123, 133, 0.25);
+    --bs-focus-ring-color: rgba(30, 58, 138, 0.25);
 
     /* The rest of Bootstrap's palette and text defaults, so utility classes (.text-success, .bg-danger,
        .border, .text-muted, ...) match the tokens above on every page, including those that skip site.css. */
@@ -332,7 +332,7 @@
     --bs-warning: var(--color-warning);
     --bs-warning-rgb: 154, 103, 0;
     --bs-info: var(--color-info);
-    --bs-info-rgb: 10, 123, 133;
+    --bs-info-rgb: 30, 58, 138;
 }
 
 /* Tablet-width windows are the register: bigger touch targets, same as Boussi Cell's 1280px step */

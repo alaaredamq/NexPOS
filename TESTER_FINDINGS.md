@@ -129,6 +129,30 @@ every shop tracks quantity.
 - **Repo hygiene (not from this test):** untracked `tools/nexpos.db` and `tools/log-*.txt` look like a real database and logs —
   don't `git add` them (and consider `.gitignore`).
 
+### Round 5 — React app (`/app`) browser test, Nov 15 2026 (Playwright, throwaway DB, Basic plan)
+Smoke: 43 routes + 2 detail pages × {EN, AR, phone 390px} — no HTTP ≥400, no console/page errors, no crash screens, no raw
+i18n keys, RTL on every page. Sale → stock/drawer/order correct; Cancel → stock and drawer restored. Cashier: every admin
+API 403, admin pages → Forbidden.
+- **R1 (H) — FIXED (owner: "let cashiers open their drawers").** Cashiers could never open a drawer (Cashier role has
+  `Sales.Manage`, the drawer needed `Sales.View`), so their cash sales had `CashDrawerSessionId = null`. Now the drawer API
+  (`current`, `open`, own history, session, Z report), the session payload's drawer chip, the nav entry and the `/app/cash-drawer`
+  route accept `Sales.View` **or** `Sales.Manage`; without `Sales.View` only your own sessions are visible (another answers 404
+  `session_not_found`). Close and cash drop stay `Sales.Edit` (manager counts the shift). Cashier role unchanged — first try gave
+  it `Sales.View`, which also opened the full receipts list that `A_cashier_may_look_at_orders…sees_no_receipts` forbids.
+- **R2 — by design (owner, Nov 15 2026): stock stays at 0 when an out-of-stock item is sold.** The second "out of stock" alert
+  was only the demo seeder's param-less alert not de-duplicating with the real one (see R6).
+- **R3 — FIXED:** bell toasts z-index 95 (< Modal 100); save/error toasts (`ui/toast`, 200) still on top.
+- **R4 — FIXED:** with Cancelled chosen the close button reads "Keep order" (`details.keepOrder`, en+ar); test pins it.
+- **R5 — FIXED:** chip reads "Drawer open · started with $100.00" (`DrawerOpenWithAmount` in the .resx, Razor + SPA).
+- **R6 (L, open)** — demo seeder's alerts have no `params`, so their toasts stay English in Arabic (real alerts translate).
+- **R7 (L, open)** — Orders filters on phone: the "Status" label floats left of a wrapped chip block.
+- **R8 — FIXED:** Inventory/Suppliers/Purchases/Audit log routes check permission before plan, so a cashier on Basic gets
+  Forbidden; people who may use the page still get the "Available in Pro" screen.
+- **Fixed (uncommitted, CSS only, `client/src`):** phone top bar title squeezed to one letter (`TopBar.module.css`,
+  `LanguageToggle.module.css`: compact language switch, palette button hidden ≤575px); POS phone header 634px wide on a
+  390px screen — user menu/sign-out off-screen (`pos/layout/layout.module.css`). Verified by injecting the CSS; takes effect
+  on the next `client` build.
+
 ---
 
 ## Checked and fine

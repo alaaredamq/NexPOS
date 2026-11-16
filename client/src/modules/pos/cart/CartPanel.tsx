@@ -6,6 +6,7 @@ import { Icon } from '@/ui/Icon'
 import { IconButton } from '@/ui/IconButton'
 import { toast } from '@/ui/toast'
 import { formatPercent } from '@/ui/format'
+import { useTracksStock } from '@/core/license/license'
 import { useCartStore } from '../store/cartStore'
 import { AmountDialog } from './AmountDialog'
 import { CartLineRow } from './CartLineRow'
@@ -62,7 +63,9 @@ export function CartPanel({ onCheckout, checkoutLabel }: Props) {
 
   // Told once, as a toast (a banner would eat room on small screens): when the cart first holds an item past its stock, and again only after
   // that has cleared. The sale itself is allowed, the stock count stops at zero.
-  const stockShort = totals.hasInsufficientStock && totals.status === 'ready'
+  // Not on the Basic plan: it tracks no stock, so "short" means nothing there.
+  const tracksStock = useTracksStock()
+  const stockShort = tracksStock && totals.hasInsufficientStock && totals.status === 'ready'
   const toldStockShort = useRef(false)
   useEffect(() => {
     if (stockShort && !toldStockShort.current) toast.warning(t('cartStockWarning'), 6000)

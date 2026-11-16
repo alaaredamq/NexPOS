@@ -128,8 +128,9 @@ describe('audit log list', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
     await waitFor(() => expect(router.state.location.search).toBe(''))
-    expect(screen.getByRole('combobox', { name: /^Type$/ })).toHaveValue('')
-    expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+    // The URL commits before the filter bar re-renders from it.
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /^Type$/ })).toHaveValue(''))
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument())
   })
 
   it('the section chips filter by part of the product, and "All sections" clears it', async () => {
@@ -273,7 +274,8 @@ describe('entry drawer', () => {
     fireEvent.click(await within(drawer).findByRole('button', { name: 'Everything in this request (4)' }))
 
     await waitFor(() => expect(router.state.location.search).toBe('?dir=asc&request=req-abc'))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    // The URL commits a render before the drawer unmounts, so under load the drawer can still be there for a tick.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await waitFor(() => expect(lastList()).toContain('correlationId=req-abc'))
     // The category filter from before is gone: a drill-down starts clean. The chip shows what the list is limited to.
     expect(lastList()).not.toContain('category=')

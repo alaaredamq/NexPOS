@@ -5,6 +5,7 @@ using System.Text.Json;
 using Cloud.Data;
 using Cloud.Services;
 using Cloud.Tests.Support;
+using Common.Licensing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -71,6 +72,43 @@ public class CommandChannelTests : IClassFixture<CloudFactory>
         var unknown = await _cloud.CreateClient().PostAsJsonAsync("/owner/v1/auth/login", new { email = "nobody@shop.test", password = "nope" });
         Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
         Assert.Equal(await wrong.Content.ReadAsStringAsync(), await unknown.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task The_cloud_reads_the_plan_from_the_signed_licence_key_the_shop_PC_hands_over_and_the_phone_sees_it()
+    {
+        var owner = await SeedOwnerAsync("plan@shop.test");
+        Assert.Equal(JsonValueKind.Null, (await owner.Http.GetFromJsonAsync<JsonElement>("/owner/v1/me")).GetProperty("shopPlan").ValueKind);
+
+        async Task PingAsync(string? key)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/sync/ping");
+            if (key is not null) request.Headers.TryAddWithoutValidation(SyncHeaders.License, key);
+            (await _cloud.DeviceClient(owner.Site.Token).SendAsync(request)).EnsureSuccessStatusCode();
+        }
+        Task<Site> SiteAsync() => _cloud.WithControlDbAsync(db => db.Sites.AsNoTracking().SingleAsync(s => s.Id == owner.Site.SiteId));
+
+        // An older till sends no key: nothing is known, so the phone keeps showing everything.
+        await PingAsync(null);
+        Assert.Null((await SiteAsync()).ShopPlan);
+
+        await PingAsync(_cloud.IssueLicense(LicensePlan.Basic, LicenseKind.Provisional, until: new DateOnly(2026, 12, 20)));
+        Assert.Equal("Basic", (await owner.Http.GetFromJsonAsync<JsonElement>("/owner/v1/me")).GetProperty("shopPlan").GetString());
+        var basic = await SiteAsync();
+        Assert.Equal(("Provisional", new DateOnly(2026, 12, 20), 1), (basic.ShopLicenseKind, basic.ShopLicenseUntil, basic.ShopLicenseSeats));
+
+        // A key the issuer did not sign (here: a "Pro" key made with some other private key) is ignored, as is garbage: the last good plan stays.
+        using (var forger = LicenseCodec.CreatePrivateKey())
+            await PingAsync(_cloud.IssueLicense(LicensePlan.Pro, seats: 5, signer: forger));
+        await PingAsync("Pro");
+        await PingAsync("NXL1-" + new string('A', 600));
+        Assert.Equal("Basic", (await SiteAsync()).ShopPlan);
+
+        // The upgrade: the shop pastes its new Pro key, and the next check-in carries it.
+        await PingAsync(_cloud.IssueLicense(LicensePlan.Pro, seats: 3));
+        Assert.Equal("Pro", (await owner.Http.GetFromJsonAsync<JsonElement>("/owner/v1/me")).GetProperty("shopPlan").GetString());
+        var pro = await SiteAsync();
+        Assert.Equal(("Full", new DateOnly(2027, 11, 1), 3), (pro.ShopLicenseKind, pro.ShopLicenseUntil, pro.ShopLicenseSeats));
     }
 
     [Fact]

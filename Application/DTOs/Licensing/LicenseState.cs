@@ -46,8 +46,19 @@ namespace Application.DTOs.Licensing
         public string? Serial { get; init; }
         public DateOnly? IssuedOn { get; init; }
 
-        /// <summary>How many PCs the installed key covers (the store server plus its tills). 1 while nothing is installed.</summary>
+        /// <summary>How many PCs may sell (the store server plus its tills). 1 while nothing is installed, and always 1 on Basic.</summary>
         public int Seats { get; init; } = 1;
+
+        /// <summary>
+        /// The installed key's plan. Basic while nothing is installed. In a Debug build without a key it is Pro, so
+        /// development sees every page (install a Basic key to try Basic).
+        /// </summary>
+        public LicensePlan Plan { get; init; } = LicensePlan.Basic;
+
+        public bool Includes(ProFeature feature) => PlanRules.Includes(Plan, feature);
+
+        /// <summary>Most users that may be active at once; null = no limit.</summary>
+        public int? MaxActiveUsers => PlanRules.MaxActiveUsers(Plan);
 
         /// <summary>Full licenses: last day of the updates plan. Provisional/Trial: last valid day.</summary>
         public DateOnly? ValidUntil { get; init; }

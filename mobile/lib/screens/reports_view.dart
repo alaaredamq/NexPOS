@@ -23,7 +23,11 @@ class ReportsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = periodReport(context.watch<ShopData>(), DateTime.now(), days);
+    final shop = context.watch<ShopData>();
+    // The Basic plan covers a week (like the till's reports); 30 days is Pro.
+    final basic = shop.isBasic;
+    final days = basic ? 7 : this.days;
+    final r = periodReport(shop, DateTime.now(), days);
     final locale = Localizations.localeOf(context).languageCode;
     final n = r.notation;
     final change = r.changePercent;
@@ -36,6 +40,10 @@ class ReportsView extends StatelessWidget {
     final best = r.bestDay;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (basic)
+        Text(context.tr('Last 7 days. 30 days: available in Pro.', 'آخر 7 أيام. 30 يومًا: متوفرة في Pro.'),
+            style: const TextStyle(fontSize: 13, color: Tokens.muted))
+      else
       Wrap(spacing: 8, children: [
         for (final d in const [7, 30])
           ChoiceChip(

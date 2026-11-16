@@ -32,6 +32,25 @@ public sealed record SyncAck(long ThroughSeq, int Applied, bool ResyncRequested)
 
 public sealed record SyncPing(string SiteName, string ClientName, string SubscriptionStatus, DateTime? ExpiresAtUtc);
 
+/// <summary>Headers a till adds to its requests. A cloud that does not know one ignores it, so adding one never breaks an older cloud.</summary>
+public static class SyncHeaders
+{
+    /// <summary>
+    /// On the regular check-in (<c>GET api/sync/ping</c>): the shop's signed licence key (<c>NXL1-...</c>). The cloud checks the issuer's
+    /// signature and keeps only what the key says (plan, kind, end date, PCs), so the phone and the owner website show only what the
+    /// shop's plan includes. A forged or edited key fails the signature and is ignored. The key holds no shop data: just what the
+    /// issuer wrote (customer name, Machine ID, plan, dates). Display only: the shop PC still refuses a Pro change itself.
+    /// </summary>
+    public const string License = "X-Coduo-License";
+}
+
+/// <summary>Where the sync service reads the shop's licence key from (the Web project supplies it; the sync library cannot see the licence).</summary>
+public interface IShopLicenseSource
+{
+    /// <summary>The installed key's text, or null when none is installed.</summary>
+    string? LicenseKey { get; }
+}
+
 /// <summary>What a till sends to turn a one-time enrolment code into a device token.</summary>
 /// <param name="MachineId">The till's licence Machine ID. Recorded for support; never used to authenticate.</param>
 public sealed record EnrollRequest(string Code, string? MachineId, string? DeviceName);

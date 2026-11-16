@@ -7,7 +7,7 @@
 
 @if (Model.Client is null)
 {
-    <div class="list"><div class="empty"><h3>Client not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
+    <div class="list"><div class="empty"><h3>Client not found</h3><a class="btn secondary" href="/admin">Back to clients</a></div></div>
     return;
 }
 
@@ -19,7 +19,7 @@
 
 <div class="page-head">
     <div>
-        <a class="crumb" href="/"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
+        <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
         <h1>@Model.Client.Name @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
         <p class="sub">@(contact.Length > 0 ? contact : "No contact details")</p>
     </div>
@@ -85,8 +85,8 @@
                 <partial name="_Pulse" model="@(new PulseView(PulseData.Build(Model.Beats[site.Id], Model.Now), false, Fmt))" />
             </div>
             <div class="row">
-                <a class="btn secondary" href="/Sites/Details/@site.Id">Open</a>
-                <form method="post" asp-page="/Sites/Details" asp-page-handler="Remove" asp-route-id="@site.Id"
+                <a class="btn secondary" href="/admin/Sites/Details/@site.Id">Open</a>
+                <form method="post" asp-page="/admin/Sites/Details" asp-page-handler="Remove" asp-route-id="@site.Id"
                       data-confirm-title="Remove @site.Name?" data-confirm-yes="Remove branch"
                       data-confirm="@(state == ConnectionState.Connected ? "This branch is connected. Its cloud copy of the data is deleted for good and it stops syncing. The shop keeps selling and everything stays on its PC. " : "Its cloud copy of the data is deleted for good. ")This cannot be undone.">
                     <button type="submit" class="btn danger">Remove</button>
@@ -316,7 +316,7 @@ Password: @Model.NewLoginPassword</div>
             if (client is null) return NotFound();
             await removal.RemoveClientAsync(id);
             this.Flash($"{client.Name} removed");
-            return Redirect("/");
+            return Redirect("/admin");
         }
 
         public async Task<IActionResult> OnPostExtendAsync(int id, int months)
@@ -518,7 +518,7 @@ Password: @Model.NewLoginPassword</div>
             Log(client, $"Branch '{site.Name}' added.");
             await db.SaveChangesAsync();
             this.Flash("Branch added. Create its connection link below");
-            return Redirect($"/Sites/Details/{site.Id}");
+            return Redirect($"/admin/Sites/Details/{site.Id}");
         }
     }
 }

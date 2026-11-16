@@ -197,6 +197,9 @@ describe('status dialog', () => {
 
     await choose(dialog, 'Cancelled')
     expect(within(dialog).getByRole('alert')).toHaveTextContent(/reverses the whole sale/)
+    // The way out is not another "Cancel" beside "Cancel order".
+    expect(within(dialog).getByRole('button', { name: 'Keep order' })).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel order' }))
 
     await waitFor(() => expect(api.calls.find((c) => c.method === 'PUT')?.body).toEqual({ status: 4 }))

@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Web.Attributes;
 using Web.Helpers;
+using Application.Exceptions;
+using Application.IServices.Licensing;
 using Application.IServices.Users;
 using Core.Entities.Users;
+using Microsoft.Extensions.Localization;
 using Web.Services;
 
 namespace Web.Controllers;
@@ -15,12 +18,18 @@ public class UsersController : BaseController
 {
     private readonly IUserService _userService;
     private readonly IRoleAccessService _roleAccess;
+    private readonly IUserLimitGuard _limit;
+    private readonly IStringLocalizer<SharedResource> _text;
 
-    public UsersController(IUserService userService, IRoleAccessService roleAccess)
+    public UsersController(IUserService userService, IRoleAccessService roleAccess, IUserLimitGuard limit, IStringLocalizer<SharedResource> text)
     {
         _userService = userService;
         _roleAccess = roleAccess;
+        _limit = limit;
+        _text = text;
     }
+
+    private JsonResult PlanLimit() => Json(new { success = false, message = _text["Plan_UserLimit"].Value, code = "plan_user_limit" });
 
     private const string PinRuleMessage = "PIN must be exactly 4 digits";
 
@@ -67,6 +76,8 @@ public class UsersController : BaseController
                 return Json(new { success = false, message = "Email is already in use" });
             }
 
+            if (dto.IsActive) await _limit.EnsureRoomForActiveUserAsync();
+
             var user = new User(dto.Username, dto.Email, "temp_hash", roleId.Value, dto.FirstName, dto.LastName)
             {
                 IsActive = dto.IsActive
@@ -76,6 +87,10 @@ public class UsersController : BaseController
             await _userService.CreateWithPinAsync(user, dto.Pin);
 
             return Json(new { success = true, message = "User created successfully" });
+        }
+        catch (PlanLimitException)
+        {
+            return PlanLimit();
         }
         catch (Exception ex)
         {
@@ -359,6 +374,8 @@ public class UsersController : BaseController
                 return Json(new { success = false, message = "Unknown role" });
             }
 
+            if (dto.IsActive && !user.IsActive) await _limit.EnsureRoomForActiveUserAsync(id);
+
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
             user.Email = dto.Email;
@@ -368,6 +385,10 @@ public class UsersController : BaseController
             await _userService.UpdateAsync(id, user);
             _roleAccess.InvalidateAccess(); // role and active flag feed the signed-in user's permissions
             return Json(new { success = true, message = "User updated successfully" });
+        }
+        catch (PlanLimitException)
+        {
+            return PlanLimit();
         }
         catch (Exception ex)
         {
@@ -419,10 +440,15 @@ public class UsersController : BaseController
         try
         {
             var user = await _userService.GetByIdAsync(id);
+            if (!user.IsActive) await _limit.EnsureRoomForActiveUserAsync(id);
             user.IsActive = !user.IsActive;
             await _userService.UpdateAsync(id, user);
             _roleAccess.InvalidateAccess();
             return Json(new { success = true, message = "User status updated successfully", isActive = user.IsActive });
+        }
+        catch (PlanLimitException)
+        {
+            return PlanLimit();
         }
         catch (Exception ex)
         {

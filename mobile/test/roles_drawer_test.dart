@@ -215,6 +215,49 @@ void main() {
     });
   });
 
+  group('Basic plan', () {
+    void basicShop(ShopData shop) {
+      seedShop(shop);
+      shop.seedPlan('Basic');
+    }
+
+    testWidgets('a Basic shop gets a Products tab with no stock figures, no stock change and nothing about suppliers', (tester) async {
+      await startApp(tester, seed: basicShop);
+
+      expect(tab('Stock'), findsNothing);
+      expect(tab('Products'), findsOneWidget);
+      expect(find.text('Low stock'), findsNothing);
+
+      await tester.tap(tab('Products'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Needs restocking'), findsNothing);
+      await tester.tap(find.text('Fresh milk 1L'));
+      await tester.pumpAndSettle();
+      expect(find.text('Adjust stock'), findsNothing);
+      expect(find.text('In stock'), findsNothing);
+      expect(find.widgetWithText(OutlinedButton, 'Edit'), findsOneWidget); // prices can still be changed
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(tab('Debts'));
+      await tester.pumpAndSettle();
+      expect(find.text('The shop owes suppliers'), findsNothing);
+
+      await openManage(tester);
+      expect(find.text('Add a supplier'), findsNothing);
+      expect(find.text('Add a product'), findsOneWidget);
+      expect(find.text('Name, barcode and prices'), findsOneWidget);
+    });
+
+    testWidgets('a Pro shop (or one that has not reported a plan) keeps everything', (tester) async {
+      await startApp(tester, seed: seedShop);
+
+      expect(tab('Stock'), findsOneWidget);
+      await openManage(tester);
+      expect(find.text('Add a supplier'), findsOneWidget);
+    });
+  });
+
   group('sold by', () {
     testWidgets('the add-product form offers the till\'s units in a list, and sends the one chosen', (tester) async {
       final app = await startApp(tester);

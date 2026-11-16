@@ -21,7 +21,10 @@
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-inline-start: 4px solid var(--tone);
+  /* The colour stripe runs the full height, so the stripe side has square corners: a stripe never bends round a curve. */
   border-radius: var(--radius-card);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
   box-shadow: var(--shadow-pop);
   pointer-events: auto;
   animation: toast-in 0.18s ease-out;

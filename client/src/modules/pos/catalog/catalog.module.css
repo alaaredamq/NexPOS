@@ -7,7 +7,6 @@
   gap: var(--space-2);
   overflow-x: auto;
   padding-block: 2px var(--space-2);
-  scrollbar-width: thin;
 }
 
 .chip {
@@ -123,6 +122,7 @@
 /* ---- keycap tile ---- */
 .tile {
   --tile-accent: var(--color-primary);
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -131,16 +131,28 @@
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  padding: 8px 10px;
-  border: 1px solid color-mix(in srgb, var(--tile-accent) 35%, var(--color-border));
+  padding-block: 11px 8px;
+  padding-inline: 10px;
+  /* White key in the brand frame. The category colour is a band across the top edge: a band follows the rounded corners by nature, so nothing looks bent. */
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--tile-accent) 9%, var(--color-card));
+  background: var(--color-card);
   color: var(--color-ink);
   font: inherit;
   text-align: start;
   cursor: pointer;
   touch-action: manipulation;
   transition: border-color 0.12s ease-out, background-color 0.12s ease-out, transform 0.08s ease-out;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 4px;
+  background: var(--tile-accent);
+  pointer-events: none;
 }
 
 .tile:active {
@@ -154,8 +166,8 @@
 
 @media (hover: hover) {
   .tile:hover {
-    border-color: var(--tile-accent);
-    background: color-mix(in srgb, var(--tile-accent) 16%, var(--color-card));
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+    background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
   }
 }
 

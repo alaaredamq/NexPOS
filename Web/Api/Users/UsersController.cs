@@ -44,11 +44,13 @@ public sealed class UsersController : ApiControllerBase
     /// <summary>
     /// Creates a user with the PIN an admin chose; the user must change it at the first sign-in. A taken username or email,
     /// or an unknown role, answers 400 <c>validation_failed</c> with the field in <c>errors</c>.
+    /// 409 <c>plan_user_limit</c>: Basic already has its most active users (also from the edit and enable endpoints).
     /// </summary>
     [HttpPost]
     [RequirePermission(PermissionHelper.Permissions.Users_Create)]
     [ProducesResponseType<UserDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
     [SwaggerOperation(OperationId = "createUser")]
     public async Task<ActionResult<UserDto>> Create(UserCreateRequest request)
     {
@@ -69,6 +71,7 @@ public sealed class UsersController : ApiControllerBase
     [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
     [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
     [SwaggerOperation(OperationId = "updateUser")]
     public async Task<ActionResult<UserDto>> Update(int id, UserUpdateRequest request)
     {
@@ -87,6 +90,7 @@ public sealed class UsersController : ApiControllerBase
     [RequirePermission(PermissionHelper.Permissions.Users_Edit)]
     [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status409Conflict, ApiProblem.ContentType)]
     [SwaggerOperation(OperationId = "setUserActive")]
     public async Task<ActionResult<UserDto>> SetActive(int id, UserActiveRequest request)
         => await _users.SetActiveAsync(id, request.IsActive) is { } updated ? updated : NotFound();

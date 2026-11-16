@@ -77,6 +77,7 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
     private List<NavSectionDto> BuildNav(ClaimsPrincipal principal, string language)
     {
         var visible = NavCatalog.VisibleTo(principal);
+        var plan = _license.GetState().Plan;
         var sections = new List<NavSectionDto>();
 
         foreach (var section in NavCatalog.Sections)
@@ -96,6 +97,8 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
                     LegacyPath = SpaMigration.LegacyPath(page.Controller, language),
                     Migrated = migrated,
                     Href = SpaMigration.HrefFor(page.Controller, language),
+                    Feature = page.Feature?.ToString(),
+                    Locked = page.IsLockedOn(plan),
                 };
             }).ToList();
 
@@ -120,7 +123,9 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
             DaysUntilStop = state.DaysUntilStop,
             ValidUntil = state.ValidUntil?.ToString("yyyy-MM-dd"),
             EnforcementDisabled = state.EnforcementDisabled,
-            Title = LicenseMessageHelper.Title(state, _localizer),
+            Plan = state.Plan.ToString(),
+            MaxActiveUsers = state.MaxActiveUsers,
+            Title =LicenseMessageHelper.Title(state, _localizer),
             Message = LicenseMessageHelper.Message(state, _localizer),
             Severity = LicenseMessageHelper.Severity(state),
         };
@@ -143,7 +148,9 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
     // Same rule as the Razor drawer chip: only for people who can use a drawer, and "unknown" (null) rather than a failed page.
     private async Task<DrawerStatusDto?> BuildDrawerAsync(ClaimsPrincipal principal, int userId)
     {
-        if (!PermissionHelper.HasPermission(principal, PermissionHelper.Permissions.Sales_View) || userId == 0) return null;
+        // Sales.Manage too: a cashier sells, so they open (and see) their own drawer — the drawer API takes either.
+        if (!PermissionHelper.HasAnyPermission(principal, [PermissionHelper.Permissions.Sales_View, PermissionHelper.Permissions.Sales_Manage]) || userId == 0)
+            return null;
 
         try
         {
@@ -153,6 +160,7 @@ public sealed class SessionBootstrapService : ISessionBootstrapService
                 IsOpen = open is not null,
                 SessionId = open?.Id,
                 OpeningCash = open?.OpeningCash ?? 0m,
+                CashInDrawer = open is null ? 0m : await _drawer.CalculateExpectedCashAsync(open.Id),
                 OpenedAt = open?.OpenedAt,
             };
         }

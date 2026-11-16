@@ -1,3 +1,4 @@
+using Application.IServices.Licensing;
 using Application.IServices.Users;
 using Core.Entities.Users;
 using Microsoft.Extensions.Localization;
@@ -57,12 +58,14 @@ public sealed class UserApiService : IUserApiService
     private readonly IUserService _users;
     private readonly IRoleAccessService _roles;
     private readonly IStringLocalizer<SharedResource> _text;
+    private readonly IUserLimitGuard _limit;
 
-    public UserApiService(IUserService users, IRoleAccessService roles, IStringLocalizer<SharedResource> text)
+    public UserApiService(IUserService users, IRoleAccessService roles, IStringLocalizer<SharedResource> text, IUserLimitGuard limit)
     {
         _users = users;
         _roles = roles;
         _text = text;
+        _limit = limit;
     }
 
     public async Task<PagedResult<UserDto>> ListAsync(PagedQuery query)
@@ -116,6 +119,7 @@ public sealed class UserApiService : IUserApiService
         if (!roleNames.ContainsKey(request.RoleId)) throw new UserRuleException("roleId", _text["Usr_UnknownRole"]);
         if (!await _users.IsUsernameUniqueAsync(username)) throw new UserRuleException("username", _text["Usr_UsernameTaken"]);
         if (!await _users.IsEmailUniqueAsync(email)) throw new UserRuleException("email", _text["Usr_EmailTaken"]);
+        if (request.IsActive) await _limit.EnsureRoomForActiveUserAsync();
 
         var user = new User(username, email, "temp_hash", request.RoleId, Clean(request.FirstName), Clean(request.LastName))
         {
@@ -137,6 +141,7 @@ public sealed class UserApiService : IUserApiService
         var roleNames = await RoleNamesAsync();
         if (!await _users.IsEmailUniqueAsync(email, id)) throw new UserRuleException("email", _text["Usr_EmailTaken"]);
         if (!roleNames.ContainsKey(request.RoleId)) throw new UserRuleException("roleId", _text["Usr_UnknownRole"]);
+        if (request.IsActive && !user.IsActive) await _limit.EnsureRoomForActiveUserAsync(id);
 
         user.FirstName = Clean(request.FirstName);
         user.LastName = Clean(request.LastName);
@@ -180,6 +185,7 @@ public sealed class UserApiService : IUserApiService
     {
         var user = await FindAsync(id);
         if (user is null) return null;
+        if (isActive && !user.IsActive) await _limit.EnsureRoomForActiveUserAsync(id);
 
         user.IsActive = isActive;
         await _users.UpdateAsync(id, user);

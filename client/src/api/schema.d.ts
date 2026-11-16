@@ -966,7 +966,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month. */
+        /**
+         * The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month.
+         *     The Basic plan has only `week`: any other period answers 403 `plan_upgrade_required` (feature `Reports`).
+         */
         get: operations["getSalesTrend"];
         put?: never;
         post?: never;
@@ -2774,7 +2777,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days. */
+        /**
+         * The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days.
+         *                 403 `plan_upgrade_required` (feature `Reports`) on the Basic plan for a range over 7 days; the CSV and PDF follow the same rules.
+         */
         get: operations["getSalesReport"];
         put?: never;
         post?: never;
@@ -3217,6 +3223,7 @@ export interface paths {
         /**
          * Creates a user with the PIN an admin chose; the user must change it at the first sign-in. A taken username or email,
          *     or an unknown role, answers 400 `validation_failed` with the field in `errors`.
+         *     409 `plan_user_limit`: Basic already has its most active users (also from the edit and enable endpoints).
          */
         post: operations["createUser"];
         delete?: never;
@@ -4482,6 +4489,11 @@ export interface components {
              * @description Opening cash of the open session; 0 when closed.
              */
             openingCash: number;
+            /**
+             * Format: double
+             * @description What the drawer should hold now: opening cash + cash sales - cash drops (the "expected cash"); 0 when closed.
+             */
+            cashInDrawer: number;
             /** Format: date-time */
             openedAt?: string | null;
         };
@@ -4714,6 +4726,13 @@ export interface components {
              * @description How many PCs the licence covers: the store server plus its tills. 1 until a licence is installed, and for keys issued before seats existed.
              */
             seats: number;
+            /** @description `Basic` or `Pro`. Basic until a licence is installed; keys issued before plans existed are Pro. */
+            plan: string;
+            /**
+             * Format: int32
+             * @description Most users that may be active at once; null = no limit (Pro).
+             */
+            maxActiveUsers?: number | null;
             /** @description `yyyy-MM-dd`. */
             issuedOn?: string | null;
             /** @description `yyyy-MM-dd`. A time-limited licence: the last valid day. A full one: the last day of its updates plan. */
@@ -4747,6 +4766,13 @@ export interface components {
             validUntil?: string | null;
             /** @description A Debug build: nothing is enforced. */
             enforcementDisabled: boolean;
+            /** @description `Basic` or `Pro`. */
+            plan: string;
+            /**
+             * Format: int32
+             * @description Most users that may be active at once; null = no limit (Pro).
+             */
+            maxActiveUsers?: number | null;
             /** @description Banner headline, localized for this response (same text as the Razor banner). */
             title: string;
             /** @description Banner body with the dates filled in, localized for this response. */
@@ -4850,6 +4876,10 @@ export interface components {
             migrated: boolean;
             /** @description Where a link should go right now: Web.Api.Session.Contracts.NavItemDto.SpaPath when migrated, otherwise Web.Api.Session.Contracts.NavItemDto.LegacyPath (full navigation, same cookie). */
             href: string;
+            /** @description The Pro feature this page belongs to (`Inventory`, `Suppliers`, `Purchases`, `AuditLog`); null for pages in every plan. */
+            feature?: string | null;
+            /** @description The shop's plan does not include this page: show it with a lock; the route shows the upgrade screen. */
+            locked: boolean;
         };
         NavSectionDto: {
             /** @description `Sales`, `Catalog`, `Insights` or `Admin`. */
@@ -18461,6 +18491,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
         };
     };
     getUserSummary: {
@@ -18610,6 +18649,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
         };
     };
     deleteUser: {
@@ -18712,6 +18760,15 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -44,6 +44,12 @@ public sealed record LicenseDto
     /// <summary>How many PCs the licence covers: the store server plus its tills. 1 until a licence is installed, and for keys issued before seats existed.</summary>
     public required int Seats { get; init; }
 
+    /// <summary><c>Basic</c> or <c>Pro</c>. Basic until a licence is installed; keys issued before plans existed are Pro.</summary>
+    public required string Plan { get; init; }
+
+    /// <summary>Most users that may be active at once; null = no limit (Pro).</summary>
+    public int? MaxActiveUsers { get; init; }
+
     /// <summary><c>yyyy-MM-dd</c>.</summary>
     public string? IssuedOn { get; init; }
 

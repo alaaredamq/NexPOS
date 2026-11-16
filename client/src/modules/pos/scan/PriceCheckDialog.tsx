@@ -7,6 +7,7 @@ import { ScanInput } from '@/ui/ScanInput'
 import { formatMoney, formatPercent, formatQty } from '@/ui/format'
 import { usePosSearch, type PosProduct } from '../catalog/api'
 import { stockLevel } from '../catalog/stock'
+import { useTracksStock } from '@/core/license/license'
 import styles from './scan.module.css'
 
 interface PriceCheckDialogProps {
@@ -19,6 +20,7 @@ interface PriceCheckDialogProps {
  */
 export function PriceCheckDialog({ onClose }: PriceCheckDialogProps) {
   const { t } = useTranslation(['pos', 'common'])
+  const tracksStock = useTracksStock()
   const [value, setValue] = useState('')
   const [term, setTerm] = useState('')
   const [picked, setPicked] = useState<PosProduct | null>(null)
@@ -78,12 +80,16 @@ export function PriceCheckDialog({ onClose }: PriceCheckDialogProps) {
               <dd dir="ltr">{product.barcode || '—'}</dd>
               <dt>{t('category', { ns: 'pos' })}</dt>
               <dd>{product.categoryName || '—'}</dd>
-              <dt>{t('stock', { ns: 'pos' })}</dt>
-              <dd data-level={stockLevel(product)}>
-                {stockLevel(product) === 'out'
-                  ? t('OutOfStock', { ns: 'common' })
-                  : `${formatQty(product.stockQuantity)} ${product.unitKind === 'count' ? t('units', { ns: 'pos' }) : (product.unit ?? '')}`}
-              </dd>
+              {tracksStock && (
+                <>
+                  <dt>{t('stock', { ns: 'pos' })}</dt>
+                  <dd data-level={stockLevel(product)}>
+                    {stockLevel(product) === 'out'
+                      ? t('OutOfStock', { ns: 'common' })
+                      : `${formatQty(product.stockQuantity)} ${product.unitKind === 'count' ? t('units', { ns: 'pos' }) : (product.unit ?? '')}`}
+                  </dd>
+                </>
+              )}
               {product.supplierDiscountRate > 0 && (
                 <>
                   <dt>{t('supplierDiscount', { ns: 'pos' })}</dt>
