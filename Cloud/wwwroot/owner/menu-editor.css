@@ -27,8 +27,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .wrap{max-width:860px;margin:0 auto;padding:16px 16px 64px}
 .bar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.bar a.back{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-weight:500;padding:6px 8px 6px 2px;border-radius:8px}
-.bar a.back:hover{color:var(--ink)}
+.bar .back{background:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-weight:500;padding:6px 8px 6px 2px;border-radius:8px}
+.bar .back:hover{color:var(--ink)}
 .bar .sp{flex:1}
 .lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
 .lang button{border:0;background:none;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--muted)}
@@ -80,6 +80,33 @@ button,input,select,textarea{font:inherit;color:inherit}
 .opt:disabled{opacity:.5;cursor:default}
 .note{font-size:13.5px;color:var(--muted);background:var(--surface-2);border-radius:var(--r);padding:10px 12px;margin-top:12px}
 
+/* Branches that fill the menu: one row each, the main one marked. */
+fieldset.branches{border:0;padding:0;margin:16px 0 0;min-width:0}
+fieldset.branches legend{padding:0}
+fieldset.branches h3{font-size:15px;font-weight:600}
+fieldset.branches .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:70ch}
+fieldset.branches ul{list-style:none;margin:10px 0 0;padding:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+fieldset.branches li{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:10px 12px;min-height:52px}
+fieldset.branches li + li{border-top:1px solid var(--line)}
+fieldset.branches li .sp{flex:1}
+
+/* Order types: a header with its add button, then one row per type. */
+.cardhead{display:flex;align-items:flex-start;gap:12px}
+.cardhead > div{flex:1;min-width:0}
+.cardhead .sub{color:var(--muted);font-size:14px;margin-top:4px;max-width:70ch}
+ul.types{list-style:none;margin:12px 0 0;padding:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+ul.types li{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:8px 10px 8px 12px;min-height:52px}
+ul.types li + li{border-top:1px solid var(--line)}
+ul.types li .sp{flex:1}
+
+/* In the item dialog: each branch's POS price, and the dish's own price per order type. */
+.brprices{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:var(--r)}
+.brprices li{display:flex;justify-content:space-between;gap:12px;padding:8px 11px;font-size:14px}
+.brprices li + li{border-top:1px solid var(--line)}
+.brprices b{font-family:var(--mono);font-weight:500}
+fieldset.tprices{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px 12px;margin:0}
+fieldset.tprices legend{font-size:13px;font-weight:500;color:var(--muted);padding:0 4px}
+
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
 .fields .full{grid-column:1/-1}
 .f{display:grid;gap:5px;min-width:0;align-content:start}
@@ -87,6 +114,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .f input,.f select,.f textarea{width:100%;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:9px 11px;min-height:40px}
 .f textarea{resize:vertical;min-height:72px}
 .f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--info-bg)}
+/* Where the browser allows it (Chrome / Edge 135+), the open list of a select is drawn like the rest of the editor;
+   elsewhere it stays the system list, which still works. */
+@supports (appearance:base-select){
+  .f select,.f select::picker(select){appearance:base-select}
+  .f select{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+  .f select::picker-icon{color:var(--muted);transition:rotate .2s}
+  .f select:open::picker-icon{rotate:180deg}
+  .f select::picker(select){border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);padding:6px;margin-block:6px;max-height:min(320px,50dvh)}
+  .f select option{display:flex;align-items:center;gap:10px;min-height:40px;padding:8px 10px;border-radius:8px;cursor:pointer}
+  .f select option:hover,.f select option:focus-visible{background:var(--surface-2);outline:none}
+  .f select option:checked{background:var(--info-bg);color:var(--primary);font-weight:600}
+  .f select option::checkmark{order:1;margin-inline-start:auto}
+  /* "No section" reads as the empty choice, set apart from the real sections. */
+  #d-s option[value="0"]{color:var(--muted);border-bottom:1px solid var(--line);border-radius:8px 8px 0 0;margin-bottom:4px}
+}
 .f .hint{font-size:12.5px;color:var(--muted)}
 .f input[readonly]{background:var(--surface-2);color:var(--muted)}
 .slug{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface);direction:ltr}

@@ -13,9 +13,9 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
     {
         if (siteIds.Count == 0) return;
 
-        // A menu that followed a removed branch keeps its items, as hand-made ones.
-        foreach (var menu in await db.Menus.Where(m => m.LinkedSiteId != null && siteIds.Contains(m.LinkedSiteId.Value)).ToListAsync())
-            await menus.DetachAsync(menu);
+        // A menu that a removed branch filled loses that branch's prices; what only it sold stays, as hand-made dishes.
+        foreach (var link in await db.MenuBranches.Include(b => b.Menu).Where(b => siteIds.Contains(b.SiteId)).ToListAsync())
+            await menus.DetachAsync(link.Menu, link.SiteId);
 
         // Files first: if one cannot be deleted we stop with the control rows intact, instead of leaving a deleted
         // client's data behind with nothing in the portal pointing at it.
@@ -47,7 +47,9 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
         await db.OwnerUsers.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
         await db.Subscriptions.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
         await db.ClientEvents.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
-        await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
+        await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync(); // their branch and type prices go with them
+        await db.MenuOrderTypes.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
+        await db.MenuBranches.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
         await db.MenuSections.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
         await db.Menus.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
         await db.Clients.Where(x => x.Id == clientId).ExecuteDeleteAsync();

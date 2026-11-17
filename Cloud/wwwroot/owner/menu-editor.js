@@ -16,7 +16,7 @@
   var D = {
     en: {
       title: 'Online menu', sub: 'A page with your products, pictures and prices that anyone can open from a link or a QR code on the table.',
-      back: 'My shop', backAdmin: 'Client', loading: 'Loading…',
+      back: 'My shop', signOut: 'Sign out', backAdmin: 'Client', loading: 'Loading…',
       createH: 'Make your online menu', createP: 'Give it a name. You can change everything later, and nobody sees it until you publish it.',
       createName: 'Menu name', create: 'Make the menu',
       shareH: 'Share', published: 'Published', notPublished: 'Not published', publishLbl: 'Anyone with the link can see it',
@@ -25,7 +25,7 @@
       srcH: 'Where the products come from', srcPos: 'From my POS', srcPosP: 'Names, prices and sections follow the shop PC by themselves.',
       srcHand: 'Added here', srcHandP: 'You type each item and its price on this page.',
       branch: 'Branch', noBranch: 'No shop PC is connected to this account, so the menu can only be filled here.',
-      posNote: 'Linking sends this branch\'s active products to the cloud readable: names, selling prices, currencies and categories. Never cost prices, stock or anything else. Pictures, descriptions and what to hide are set here.',
+      posNote: 'Each ticked branch sends its active products to the cloud readable: names, selling prices, currencies and categories. Never cost prices, stock or anything else. Pictures, descriptions and what to hide are set here.',
       lastFrom: 'Last update from the shop PC: {0}', waiting: 'Waiting for the shop PC. It checks in every few minutes while it is on and connected to Online.',
       unlinkQ: 'Stop following the POS? The items stay on the menu and become ordinary items you edit here.',
       detailsH: 'Name, address and look', mTitle: 'Menu name', mTag: 'One line under the name', mNote: 'At the bottom (address, opening hours, phone)',
@@ -49,11 +49,20 @@
       choosePic: 'Choose picture', cancel: 'Cancel', delItemQ: 'Delete "{0}"?',
       picBig: 'That picture could not be read. Try a JPEG or PNG.', signIn: 'Please sign in on the owner website first.', signInBtn: 'Sign in',
       errNet: 'No connection. Check the internet and try again.', errNoEdit: 'This login cannot change the menu. Ask the shop owner.',
+      brH: 'Branches', brP: 'Tick the branches whose POS fills the menu. Customers pick their branch; each sees its own prices and what it sells. The first one is the main branch: it decides the names and where dishes sit.',
+      brMain: 'Main', brMakeMain: 'Make main', brOffQ: 'Take "{0}" off the menu? Its prices go; dishes only it sells stay as ordinary items you edit here.',
+      qrFor: 'QR and link for', qrAll: 'All branches (customers pick)',
+      otH: 'Order types', otP: 'Dine in, take out, delivery... Customers pick one and every price follows it. With none, each dish has one price.',
+      otAdd: 'Order type', otNew: 'New order type', otEdit: 'Edit order type', otName: 'Name', otRule: 'Prices', otValue: 'By',
+      otNone: 'Same as the normal price', otPct: 'Normal price + a percentage', otAmt: 'Normal price + an amount',
+      otNoneS: 'Normal price', otPctS: '{0}% on the normal price', otAmtS: '{0} on the normal price', otDelQ: 'Delete the order type "{0}"? Prices set for it on dishes go too.',
+      otEmpty: 'No order types: every dish has one price.', otValueHint: 'Use a minus to take off, e.g. -10.',
+      tpH: 'Prices by order type', tpHint: 'Empty = by the rule ({0})', brPrices: 'At each branch',
       ago0: 'just now', agoM: '{0} min ago', agoH: '{0} h ago', agoD: '{0} days ago',
     },
     ar: {
       title: 'القائمة على الإنترنت', sub: 'صفحة فيها منتجاتك وصورها وأسعارها، يفتحها أي شخص من رابط أو من رمز QR على الطاولة.',
-      back: 'متجري', backAdmin: 'العميل', loading: 'جارٍ التحميل…',
+      back: 'متجري', signOut: 'تسجيل الخروج', backAdmin: 'العميل', loading: 'جارٍ التحميل…',
       createH: 'أنشئ قائمتك على الإنترنت', createP: 'أعطها اسماً. يمكنك تغيير كل شيء لاحقاً، ولا يراها أحد قبل أن تنشرها.',
       createName: 'اسم القائمة', create: 'أنشئ القائمة',
       shareH: 'المشاركة', published: 'منشورة', notPublished: 'غير منشورة', publishLbl: 'يراها كل من لديه الرابط',
@@ -62,7 +71,7 @@
       srcH: 'من أين تأتي المنتجات', srcPos: 'من نقطة البيع', srcPosP: 'الأسماء والأسعار والأقسام تتبع كمبيوتر المتجر تلقائياً.',
       srcHand: 'تُضاف هنا', srcHandP: 'تكتب كل صنف وسعره في هذه الصفحة.',
       branch: 'الفرع', noBranch: 'لا يوجد كمبيوتر متجر متصل بهذا الحساب، لذا تُملأ القائمة من هنا فقط.',
-      posNote: 'الربط يرسل منتجات هذا الفرع النشطة إلى السحابة مقروءة: الأسماء وأسعار البيع والعملات والفئات. لا أسعار كلفة ولا مخزون ولا أي شيء آخر. الصور والأوصاف وما يُخفى تُحدَّد هنا.',
+      posNote: 'كل فرع مختار يرسل منتجاته النشطة إلى السحابة مقروءة: الأسماء وأسعار البيع والعملات والفئات. لا أسعار كلفة ولا مخزون ولا أي شيء آخر. الصور والأوصاف وما يُخفى تُحدَّد هنا.',
       lastFrom: 'آخر تحديث من كمبيوتر المتجر: {0}', waiting: 'بانتظار كمبيوتر المتجر. يتصل كل بضع دقائق ما دام يعمل ومتصلاً بـ Online.',
       unlinkQ: 'إيقاف المتابعة من نقطة البيع؟ تبقى الأصناف في القائمة وتصبح أصنافاً عادية تعدّلها هنا.',
       detailsH: 'الاسم والعنوان والشكل', mTitle: 'اسم القائمة', mTag: 'سطر تحت الاسم', mNote: 'في الأسفل (العنوان، ساعات العمل، الهاتف)',
@@ -86,6 +95,15 @@
       choosePic: 'اختر صورة', cancel: 'إلغاء', delItemQ: 'حذف "{0}"؟',
       picBig: 'تعذّرت قراءة الصورة. جرّب JPEG أو PNG.', signIn: 'سجّل الدخول في موقع المالك أولاً.', signInBtn: 'تسجيل الدخول',
       errNet: 'لا يوجد اتصال. تحقق من الإنترنت وحاول مجدداً.', errNoEdit: 'هذا الحساب لا يستطيع تعديل القائمة. اطلب ذلك من صاحب المتجر.',
+      brH: 'الفروع', brP: 'اختر الفروع التي تملأ نقطة البيع فيها القائمة. يختار الزبون فرعه ويرى أسعاره وما يبيعه. الفرع الأول هو الرئيسي: يحدد الأسماء ومكان الأصناف.',
+      brMain: 'رئيسي', brMakeMain: 'اجعله رئيسياً', brOffQ: 'إزالة "{0}" من القائمة؟ تُحذف أسعاره، والأصناف التي يبيعها وحده تبقى أصنافاً عادية تعدّلها هنا.',
+      qrFor: 'رمز QR والرابط لـ', qrAll: 'كل الفروع (يختار الزبون)',
+      otH: 'طرق الطلب', otP: 'داخل المطعم، سفري، توصيل... يختار الزبون واحدة وتتبعها كل الأسعار. بدونها لكل صنف سعر واحد.',
+      otAdd: 'طريقة طلب', otNew: 'طريقة طلب جديدة', otEdit: 'تعديل طريقة الطلب', otName: 'الاسم', otRule: 'الأسعار', otValue: 'بمقدار',
+      otNone: 'مثل السعر العادي', otPct: 'السعر العادي + نسبة مئوية', otAmt: 'السعر العادي + مبلغ',
+      otNoneS: 'السعر العادي', otPctS: '{0}% على السعر العادي', otAmtS: '{0} على السعر العادي', otDelQ: 'حذف طريقة الطلب "{0}"؟ تُحذف معها الأسعار المحددة لها في الأصناف.',
+      otEmpty: 'لا طرق طلب: لكل صنف سعر واحد.', otValueHint: 'استخدم السالب للخصم، مثلاً -10.',
+      tpH: 'الأسعار حسب طريقة الطلب', tpHint: 'فارغ = حسب القاعدة ({0})', brPrices: 'في كل فرع',
       ago0: 'الآن', agoM: 'قبل {0} د', agoH: 'قبل {0} س', agoD: 'قبل {0} أيام',
     },
   };
@@ -206,12 +224,22 @@
 
   // ---- views ----
   function bar() {
+    // A shop with no POS has nothing else on the owner website, so it gets a way out rather than a way "back".
     var back = ADMIN ? '<a class="back" href="/admin/Clients/Details/' + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
+      : session && session.hasTill === false ? '<button type="button" class="back" id="signout">' + t('signOut') + '</button>'
       : '<a class="back" href="/owner/index.html">' + ic('back', 'flip') + t('back') + '</a>';
     return '<div class="bar">' + back + '<span class="sp"></span><div class="lang" role="group" aria-label="Language">' +
       '<button type="button" data-lang="en" aria-pressed="' + (lang === 'en') + '">EN</button><button type="button" data-lang="ar" aria-pressed="' + (lang === 'ar') + '">ع</button></div></div>';
   }
   function bindBar() {
+    var out = document.getElementById('signout');
+    if (out) out.onclick = function () {
+      var token = session && session.token;
+      try { localStorage.removeItem('coduo-owner'); } catch (e) {}
+      var done = function () { location.href = '/owner/index.html'; };
+      if (!token) return done();
+      fetch('/owner/v1/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).then(done, done);
+    };
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       b.onclick = function () { lang = b.dataset.lang; try { localStorage.setItem('coduo-lang', lang); } catch (e) {} setLang(); if (S) render(); else if (!ADMIN && !session) needSignIn(); };
     });
@@ -225,21 +253,33 @@
         '<form id="fcreate" class="row" style="margin-top:14px"><div class="f" style="flex:1;min-width:220px"><label for="ct">' + t('createName') + '</label><input id="ct" maxlength="120" value="' + esc(S.clientName) + '" required></div>' +
         '<button class="btn pri" style="align-self:flex-end">' + t('create') + '</button></form></div>';
     } else {
-      h += shareCard() + sourceCard() + styleCard() + detailsCard() + itemsCard();
+      h += shareCard() + sourceCard() + typesCard() + styleCard() + detailsCard() + itemsCard();
     }
     $('#app').innerHTML = h + '</div>';
     bindBar();
     bind();
   }
 
+  // With several branches, the link and QR can open at one branch (?b=), e.g. for that branch's tables, or ask the customer.
+  var qrBranch = '';
+  function branchOf(slug) { return (S.branches || []).filter(function (b) { return b.slug === slug; })[0] || null; }
+  function shareUrl() { var b = branchOf(qrBranch); return b ? b.url : S.menu.url; }
+  function openUrl() {
+    var m = S.menu, b = branchOf(qrBranch);
+    if (m.isPublished) return shareUrl();
+    return m.previewUrl + (b ? '&b=' + encodeURIComponent(b.slug) : '');
+  }
   function shareCard() {
-    var m = S.menu;
+    var m = S.menu, many = (S.branches || []).length > 1;
+    if (!branchOf(qrBranch)) qrBranch = '';
     return '<section class="card"><div class="share"><div style="min-width:0">' +
       '<h2>' + t('shareH') + ' ' + (m.isPublished ? '<span class="pill good">' + t('published') + '</span>' : '<span class="pill warn">' + t('notPublished') + '</span>') + '</h2>' +
       '<label class="switch" style="margin-top:12px"><input type="checkbox" id="pub"' + (m.isPublished ? ' checked' : '') + '><span>' + t('publishLbl') + '</span></label>' +
-      '<div class="url"><code dir="ltr" id="murl">' + esc(m.url) + '</code>' +
+      (many ? '<div class="f" style="margin-top:12px;max-width:320px"><label for="qrfor">' + t('qrFor') + '</label><select id="qrfor"><option value="">' + t('qrAll') + '</option>' +
+        S.branches.map(function (b) { return '<option value="' + esc(b.slug) + '"' + (b.slug === qrBranch ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></div>' : '') +
+      '<div class="url"><code dir="ltr" id="murl">' + esc(shareUrl()) + '</code>' +
       '<button type="button" class="btn sm" id="copy">' + ic('copy') + t('copy') + '</button>' +
-      '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(m.isPublished ? m.url : m.previewUrl) + '">' + ic('open') + (m.isPublished ? t('open') : t('preview')) + '</a></div>' +
+      '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(openUrl()) + '">' + ic('open') + (m.isPublished ? t('open') : t('preview')) + '</a></div>' +
       (m.isPublished ? '' : '<p class="small muted" style="margin-top:8px">' + t('previewNote') + '</p>') +
       '</div><div class="qr"><div class="box" id="qrbox" aria-label="QR"></div><div><button type="button" class="btn sm" id="qrdl">' + ic('qr') + t('qrDl') + '</button>' +
       '<p class="small muted" style="margin-top:6px">' + t('qrNote') + '</p></div></div></div></section>';
@@ -252,13 +292,72 @@
       '<button type="button" class="opt" id="src-hand" aria-pressed="' + !linked + '"><b>' + ic('hand') + t('srcHand') + '</b><span>' + t('srcHandP') + '</span></button></div>';
     if (!hasSites) h += '<p class="note">' + t('noBranch') + '</p>';
     if (linked) {
-      if (S.sites.length > 1)
-        h += '<div class="f" style="margin-top:12px;max-width:320px"><label for="site">' + t('branch') + '</label><select id="site">' +
-          S.sites.map(function (s) { return '<option value="' + s.id + '"' + (s.id === m.linkedSiteId ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>';
-      h += '<p style="margin-top:12px">' + (m.catalogAtUtc ? '<span class="pill good">' + esc(t('lastFrom', ago(m.catalogAtUtc))) + '</span>' : '<span class="pill info">' + t('waiting') + '</span>') + '</p>';
+      // Every branch of the shop, linked ones first in their order (the first is the main one), then the others.
+      var linkedIds = S.branches.map(function (b) { return b.siteId; });
+      var rows = S.branches.map(function (b) { return { id: b.siteId, name: b.name, on: true, at: b.catalogAtUtc }; })
+        .concat(S.sites.filter(function (s) { return linkedIds.indexOf(s.id) < 0; }).map(function (s) { return { id: s.id, name: s.name, on: false }; }));
+      h += '<fieldset class="branches"><legend><h3>' + t('brH') + '</h3></legend>' + (S.sites.length > 1 ? '<p class="sub">' + t('brP') + '</p>' : '') + '<ul>' +
+        rows.map(function (r, n) {
+          var status = !r.on ? '' : r.at ? '<span class="pill good">' + esc(t('lastFrom', ago(r.at))) + '</span>' : '<span class="pill info">' + t('waiting') + '</span>';
+          return '<li><label class="switch"><input type="checkbox" data-br="' + esc(r.id) + '"' + (r.on ? ' checked' : '') + (r.on && linkedIds.length === 1 ? ' disabled' : '') + '><span>' + esc(r.name) + '</span></label>' +
+            (r.on && n === 0 && linkedIds.length > 1 ? '<span class="pill mute">' + t('brMain') + '</span>' : '') +
+            (r.on && n > 0 ? '<button type="button" class="btn sm" data-brmain="' + esc(r.id) + '">' + t('brMakeMain') + '</button>' : '') +
+            '<span class="sp"></span>' + status + '</li>';
+        }).join('') + '</ul></fieldset>';
       h += '<p class="note">' + t('posNote') + '</p>';
     }
     return h + '</section>';
+  }
+
+  // ---- order types: dine in, take out, delivery... ----
+  function ruleText(type) {
+    var v = type.adjustValue, sign = v > 0 ? '+' : '';
+    return type.adjust === 'percent' ? t('otPctS', sign + v) : type.adjust === 'amount' ? t('otAmtS', sign + v) : t('otNoneS');
+  }
+  function typesCard() {
+    var types = S.orderTypes || [];
+    return '<section class="card"><div class="cardhead"><div><h2>' + t('otH') + '</h2><p class="sub">' + t('otP') + '</p></div>' +
+      '<button type="button" class="btn sm" id="addtype">' + ic('plus') + t('otAdd') + '</button></div>' +
+      (types.length ? '<ul class="types">' + types.map(function (ty, n) {
+        return '<li><b dir="auto">' + esc(ty.name) + '</b><span class="muted small">' + esc(ruleText(ty)) + '</span><span class="sp"></span>' +
+          '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (n === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
+          '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="1" aria-label="' + t('down') + '"' + (n === types.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button>' +
+          '<button type="button" class="btn sm" data-tedit="' + ty.id + '">' + t('edit') + '</button>' +
+          '<button type="button" class="btn sm danger" data-tdel="' + ty.id + '">' + t('del') + '</button></li>';
+      }).join('') + '</ul>' : '<p class="small muted" style="margin-top:10px">' + t('otEmpty') + '</p>') + '</section>';
+  }
+  function typeById(id) { return (S.orderTypes || []).filter(function (x) { return x.id === id; })[0]; }
+  function typeDialog(ty) {
+    var rule = ty ? ty.adjust : 'none';
+    var opt = function (v, k) { return '<option value="' + v + '"' + (rule === v ? ' selected' : '') + '>' + t(k) + '</option>'; };
+    dialog('<form><h2 id="dlg-t">' + (ty ? t('otEdit') : t('otNew')) + '</h2><div class="fields">' +
+      '<div class="f full"><label for="d-tn">' + t('otName') + '</label><input id="d-tn" maxlength="60" required dir="auto" value="' + esc(ty ? ty.name : '') + '"></div>' +
+      '<div class="f"><label for="d-tr">' + t('otRule') + '</label><select id="d-tr">' + opt('none', 'otNone') + opt('percent', 'otPct') + opt('amount', 'otAmt') + '</select></div>' +
+      '<div class="f" id="d-tvf"><label for="d-tv">' + t('otValue') + '</label><input id="d-tv" inputmode="decimal" dir="ltr" value="' + esc(ty && ty.adjust !== 'none' ? ty.adjustValue : '') + '"><span class="hint">' + t('otValueHint') + '</span></div>' +
+      '</div><p class="err" hidden></p><div class="foot"><button type="button" class="btn" data-close>' + t('cancel') + '</button><button class="btn pri">' + t('save') + '</button></div></form>',
+      function () {
+        var adjust = $('#d-tr').value, value = parseFloat(String($('#d-tv').value).replace(/,/g, ''));
+        if (adjust !== 'none' && isNaN(value)) return Promise.reject(new Error(t('otValue') + '?'));
+        var body = { name: $('#d-tn').value, adjust: adjust, adjustValue: adjust === 'none' ? 0 : value };
+        return (ty ? api('PUT', '/types/' + ty.id, body) : api('POST', '/types', body)).then(apply);
+      },
+      function (d) {
+        var sel = d.querySelector('#d-tr'), box = d.querySelector('#d-tvf');
+        var sync = function () { box.hidden = sel.value === 'none'; };
+        sel.onchange = sync; sync();
+      });
+  }
+  function moveType(id, dir) {
+    var ids = S.orderTypes.map(function (x) { return x.id; }), i = ids.indexOf(id), j = i + dir;
+    if (j < 0 || j >= ids.length) return;
+    ids[i] = ids[j]; ids[j] = id;
+    act(api('PUT', '/order', { types: ids }));
+  }
+  /** The price a type gives a dish by its rule (shown as the hint where the dish has no price of its own). */
+  function byRule(price, ty) {
+    var p = +price || 0;
+    var v = ty.adjust === 'percent' ? Math.round(p * (1 + ty.adjustValue / 100) * 100) / 100 : ty.adjust === 'amount' ? p + ty.adjustValue : p;
+    return Math.max(0, Math.round(v * 100) / 100);
   }
 
   // ---- how dishes are listed: picture cards that behave as radio buttons (real radios underneath, so keys and screen readers work) ----
@@ -357,16 +456,35 @@
 
     on('#pub', 'change', function (e) { act(api('PUT', '/settings', { isPublished: e.target.checked })); });
     on('#copy', 'click', function () {
-      (navigator.clipboard ? navigator.clipboard.writeText(m.url) : Promise.reject()).then(function () { toast(t('copied')); }, function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(shareUrl()) : Promise.reject()).then(function () { toast(t('copied')); }, function () {
         var r = document.createRange(); r.selectNodeContents($('#murl')); var s = getSelection(); s.removeAllRanges(); s.addRange(r);
       });
     });
     drawQr();
     on('#qrdl', 'click', downloadQr);
 
-    on('#src-pos', 'click', function () { if (!m.linkedSiteId && S.sites.length) act(api('PUT', '/settings', { linkedSiteId: S.sites[0].id })); });
-    on('#src-hand', 'click', function () { if (m.linkedSiteId && confirm(t('unlinkQ'))) act(api('PUT', '/settings', { linkedSiteId: '' })); });
-    on('#site', 'change', function (e) { if (confirm(t('unlinkQ'))) act(api('PUT', '/settings', { linkedSiteId: e.target.value })); else render(); });
+    // From my POS: every branch of the shop fills the menu (any can be taken off below). Added here: none.
+    on('#src-pos', 'click', function () { if (!m.linkedSiteId && S.sites.length) act(api('PUT', '/settings', { branchIds: S.sites.map(function (s) { return s.id; }) })); });
+    on('#src-hand', 'click', function () { if (m.linkedSiteId && confirm(t('unlinkQ'))) act(api('PUT', '/settings', { branchIds: [] })); });
+    var linkedIds = function () { return S.branches.map(function (b) { return b.siteId; }); };
+    document.querySelectorAll('[data-br]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        var id = box.dataset.br, ids = linkedIds();
+        if (box.checked) { ids.push(id); act(api('PUT', '/settings', { branchIds: ids })); return; }
+        var b = S.branches.filter(function (x) { return x.siteId === id; })[0];
+        if (!confirm(t('brOffQ', b ? b.name : ''))) { box.checked = true; return; }
+        act(api('PUT', '/settings', { branchIds: ids.filter(function (x) { return x !== id; }) }));
+      });
+    });
+    document.querySelectorAll('[data-brmain]').forEach(function (b) {
+      b.onclick = function () { var id = b.dataset.brmain; act(api('PUT', '/settings', { branchIds: [id].concat(linkedIds().filter(function (x) { return x !== id; })) })); };
+    });
+    on('#qrfor', 'change', function (e) { qrBranch = e.target.value; render(); });
+
+    on('#addtype', 'click', function () { typeDialog(null); });
+    each('data-tedit', function (id) { typeDialog(typeById(id)); });
+    each('data-tdel', function (id) { var ty = typeById(id); if (confirm(t('otDelQ', ty.name))) actItems(api('DELETE', '/types/' + id)); });
+    each('data-tmv', function (id, b) { moveType(id, +b.dataset.dir); });
 
     on('#det', 'toggle', function (e) { openDetails = e.target.open; });
     document.querySelectorAll('input[name=lstyle]').forEach(function (r) {
@@ -442,6 +560,16 @@
       '<div class="f"><label for="d-p">' + t('iPrice') + '</label><input id="d-p" inputmode="decimal" dir="ltr" required' + (linked ? ' readonly' : '') + ' value="' + esc(i ? i.price : '') + '"></div>' +
       '<div class="f"><label for="d-c">' + t('iCur') + '</label><input id="d-c" maxlength="10" dir="ltr"' + (linked ? ' readonly' : '') + ' value="' + esc(i ? i.currency || '' : '') + '" placeholder="' + esc(m.currency) + '"><span class="hint">' + esc(t('iCurHint', m.currency || '-')) + '</span></div>' +
       (linked ? '' : '<div class="f full"><label for="d-s">' + t('iSec') + '</label><select id="d-s">' + secOpts + '</select></div>') +
+      // Where a POS dish is sold and at what price (read-only: the branches' POS set them).
+      (i && i.branches && i.branches.length > 1 ? '<div class="f full"><label>' + t('brPrices') + '</label><ul class="brprices">' +
+        i.branches.map(function (b) { return '<li><span>' + esc(b.name) + '</span><b dir="ltr">' + esc(b.priceText) + '</b></li>'; }).join('') + '</ul></div>' : '') +
+      // Its own price per order type; empty = the type's rule.
+      ((S.orderTypes || []).length ? '<fieldset class="f full tprices"><legend>' + t('tpH') + '</legend><div class="fields">' +
+        S.orderTypes.map(function (ty) {
+          var own = i && i.typePrices ? i.typePrices[ty.id] : null;
+          return '<div class="f"><label for="d-tp' + ty.id + '" dir="auto">' + esc(ty.name) + '</label><input id="d-tp' + ty.id + '" data-tp="' + ty.id + '" inputmode="decimal" dir="ltr" value="' + (own == null ? '' : esc(own)) + '"' +
+            ' placeholder="' + esc(i ? byRule(i.price, ty) : '') + '"><span class="hint">' + esc(t('tpHint', ruleText(ty))) + '</span></div>';
+        }).join('') + '</div></fieldset>' : '') +
       '<div class="f full"><label>' + t('picture') + '</label><div class="pic"><span class="th" id="d-th">' + (i && i.imageUrl ? '<img src="' + esc(i.imageUrl) + '" alt="">' : ic('photo')) + '</span>' +
       '<button type="button" class="btn sm" id="d-pick">' + t('choosePic') + '</button>' + (i && i.imageUrl ? '<button type="button" class="btn sm danger" id="d-nopic">' + t('remove') + '</button>' : '') + '</div></div>' +
       '<label class="switch full"><input type="checkbox" id="d-h"' + (i && i.isHidden ? ' checked' : '') + '><span>' + t('iHidden') + '</span></label>' +
@@ -455,6 +583,17 @@
         var price = parseFloat(String($('#d-p').value).replace(/,/g, ''));
         if (isNaN(price) || price < 0) return Promise.reject(new Error(t('iPrice') + '?'));
         body.name = $('#d-n').value; body.price = price; body.currency = $('#d-c').value; body.sectionId = +$('#d-s').value;
+      }
+      var tps = document.querySelectorAll('#dlg [data-tp]');
+      if (tps.length) {
+        body.typePrices = {};
+        for (var k = 0; k < tps.length; k++) {
+          var raw = String(tps[k].value).replace(/,/g, '').trim();
+          if (raw === '') { body.typePrices[tps[k].dataset.tp] = null; continue; }
+          var v = parseFloat(raw);
+          if (isNaN(v) || v < 0) { tps[k].focus(); return Promise.reject(new Error(t('tpH') + '?')); }
+          body.typePrices[tps[k].dataset.tp] = v;
+        }
       }
       var saving = i ? api('PUT', '/items/' + i.id, body) : api('POST', '/items', body);
       return saving.then(function (state) {
@@ -479,20 +618,20 @@
     var box = $('#qrbox');
     if (!box || typeof QRCode === 'undefined') return;
     box.innerHTML = '';
-    new QRCode(box, { text: S.menu.url, width: 256, height: 256, colorDark: '#0B1633', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(box, { text: shareUrl(), width: 256, height: 256, colorDark: '#0B1633', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
   }
   function downloadQr() {
     if (typeof QRCode === 'undefined') return;
     // A large one, with a quiet margin, so it prints sharp on a table card.
     var holder = document.createElement('div');
-    new QRCode(holder, { text: S.menu.url, width: 1024, height: 1024, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(holder, { text: shareUrl(), width: 1024, height: 1024, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
     var src = holder.querySelector('canvas');
     if (!src) return;
     var pad = 96, c = document.createElement('canvas');
     c.width = c.height = 1024 + pad * 2;
     var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(src, pad, pad);
     var a = document.createElement('a');
-    a.href = c.toDataURL('image/png'); a.download = 'menu-qr-' + S.menu.slug + '.png';
+    a.href = c.toDataURL('image/png'); a.download = 'menu-qr-' + S.menu.slug + (qrBranch ? '-' + qrBranch : '') + '.png';
     document.body.appendChild(a); a.click(); a.remove();
   }
 

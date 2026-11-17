@@ -12,7 +12,7 @@
     <meta name="color-scheme" content="light" />
     <meta name="robots" content="noindex, nofollow" />
     <title>@(ViewData["Title"] is string t ? t + " · " : "")Coduo POS Cloud</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E3A8A'/%3E%3Cg transform='translate(32 32) scale(0.6) translate(0 -0.875)'%3E%3Crect x='-31' y='-30' width='62' height='46' rx='10' fill='none' stroke='%23FFFFFF' stroke-width='10.5'/%3E%3Ccircle cx='-9' cy='-8' r='7' fill='%233DDBCB'/%3E%3Ccircle cx='9' cy='-8' r='7' fill='%233DDBCB'/%3E%3Crect x='-7.5' y='16' width='15' height='12' fill='%23FFFFFF'/%3E%3Crect x='-21' y='27' width='42' height='10' rx='5' fill='%23FFFFFF'/%3E%3C/g%3E%3C/svg%3E" />
+    <link rel="icon" href="~/cloud-icon.svg" type="image/svg+xml" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
@@ -20,7 +20,8 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <symbol id="i-mark" viewBox="-108 -108 216 216"><g transform="scale(3) translate(0 -0.5)"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="#6D8DF0" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="#3DDBCB"/><circle cx="9" cy="-8" r="5.5" fill="#3DDBCB"/><rect x="-6" y="16" width="12" height="12" fill="#6D8DF0"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="#6D8DF0"/></g></symbol>
+    @* The Coduo Cloud mark, "for dark" colours from coduo-cloud-brand-kit/mark/svg. *@
+    <symbol id="i-mark" viewBox="-138 -146 276 276"><g transform="scale(3)"><g transform="translate(-1.12 5) scale(1.12)"><path d="M-20 18A14 14 0 0 1 -20.97 -9.97A19 19 0 0 1 16.43 -13.6A16 16 0 0 1 20 18Z" fill="none" stroke="#6D8DF0" stroke-width="7.143" stroke-linejoin="round"/></g><circle cx="-9.5" cy="1.64" r="5.5" fill="#3DDBCB"/><circle cx="9.5" cy="1.64" r="5.5" fill="#3DDBCB"/></g></symbol>
     <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
@@ -42,9 +43,9 @@ else
 {
     <div class="shell">
         <aside class="rail">
-            <a class="brand" href="/admin" aria-label="Coduo POS Cloud, clients">
+            <a class="brand" href="/admin" aria-label="Coduo Cloud, clients">
                 <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
-                <span><b>Coduo POS</b><span>Cloud</span></span>
+                <span><b>Coduo</b><span>Cloud</span></span>
             </a>
             <nav aria-label="Main">
                 <a href="/admin" aria-current="@(nav == "clients" ? "page" : null)"><svg class="icon"><use href="#i-store"/></svg><span class="t">Clients</span></a>

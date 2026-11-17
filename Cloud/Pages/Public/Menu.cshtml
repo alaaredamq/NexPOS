@@ -30,15 +30,15 @@ else
 <meta property="og:image" content="@img">
 }
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#F6F4EF" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121418" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F4F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111312" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/menu/menu.css" asp-append-version="true">
 </head>
-<body class="style-@Model.Style" data-items="/m/@m.Slug/items" data-preview="@Model.PreviewKey" data-sold-out="@Model.T("Sold out", "نفد")" data-error="@Model.T("Could not load more. Tap to try again.", "تعذّر تحميل المزيد. اضغط للمحاولة مجدداً.")">
+<body class="style-@Model.Style" data-items="/m/@m.Slug/items" data-preview="@Model.PreviewKey" data-b="@Model.Branch?.Slug" data-t="@Model.OrderType?.Id" data-branch-name="@Model.Branch?.Name" data-type-name="@Model.OrderType?.Name">
 @if (Model.IsPreview)
 {
 <div class="preview">@Model.T("Preview: only people with this link can see the menu until it is published.", "معاينة: لا يرى القائمة إلا من لديه هذا الرابط حتى تُنشر.")</div>
@@ -47,17 +47,37 @@ else
   <div class="wrap">
     @if (m.LogoFile is not null)
     {
-    <img class="logo" src="/m/img/@m.LogoFile" alt="" width="72" height="72">
+    <img class="logo" src="/m/img/@m.LogoFile" alt="" width="64" height="64">
     }
-    <h1 dir="auto">@m.Title</h1>
-    @if (m.Tagline is not null)
-    {
-    <p class="tag" dir="auto">@m.Tagline</p>
-    }
+    <div>
+      <h1 dir="auto">@m.Title</h1>
+      @if (m.Tagline is not null)
+      {
+      <p class="tag" dir="auto">@m.Tagline</p>
+      }
+      @if (Model.Branch is { } here && Model.Branches.Count > 1)
+      {
+      <p class="here"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><b dir="auto">@here.Name</b><a href="@Model.Link(null, Model.OrderType?.Id)" data-pick>@Model.T("Change branch", "غيّر الفرع")</a></p>
+      }
+    </div>
   </div>
 </header>
 
-@if (Model.Groups.Count == 0)
+@if (Model.NeedsBranch)
+{
+@* Several branches and none in the address: ask, since prices and what is sold differ. A table's QR code already carries its branch. *@
+<main class="wrap branches">
+  <h2>@Model.T("Which branch are you at?", "في أي فرع أنت؟")</h2>
+  <p>@Model.T("Prices and dishes can differ between branches.", "قد تختلف الأسعار والأصناف بين الفروع.")</p>
+  <ul>
+    @foreach (var choice in Model.Branches)
+    {
+    <li><a href="@Model.Link(choice.Slug, Model.OrderType?.Id)" data-branch="@choice.Slug"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><b dir="auto">@choice.Name</b><small hidden>@Model.T("Last time", "آخر مرة")</small><svg class="go-on" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a></li>
+    }
+  </ul>
+</main>
+}
+else if (Model.Groups.Count == 0)
 {
 <main class="wrap empty"><p>@Model.T("The menu is being prepared. Please check back soon.", "القائمة قيد التحضير. عُد قريباً.")</p></main>
 }
@@ -65,6 +85,16 @@ else
 {
 <nav class="cats" aria-label="@Model.T("Sections", "الأقسام")">
   <div class="wrap">
+    @if (Model.OrderTypes.Count > 0)
+    {
+    @* Dine in, take out, delivery...: prices follow the one picked. Links, so the page is priced by the server and works without script. *@
+    <div class="types" role="group" aria-label="@Model.T("How you are ordering", "طريقة الطلب")">
+      @foreach (var type in Model.OrderTypes)
+      {
+      <a href="@Model.Link(Model.Branch?.Slug, type.Id)" dir="auto" aria-current="@(type.Id == Model.OrderType?.Id ? "true" : null)">@type.Name</a>
+      }
+    </div>
+    }
     <label class="find">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg>
       <input type="search" id="q" placeholder="@Model.T("Search the menu", "ابحث في القائمة")" autocomplete="off" aria-label="@Model.T("Search the menu", "ابحث في القائمة")">
@@ -85,12 +115,13 @@ else
   @foreach (var g in Model.Groups)
   {
   <section class="sec" id="s@(g.Key)" aria-labelledby="h@(g.Key)">
-    <h2 id="h@(g.Key)" dir="auto">@(g.Section?.Name ?? Model.T("More", "المزيد"))</h2>
+    <h2 id="h@(g.Key)" dir="auto"><span>@(g.Section?.Name ?? Model.T("More", "المزيد"))</span> <small aria-hidden="true">@g.Total</small></h2>
     <ul>
       @foreach (var i in g.Items)
       {
       var desc = i.Description ?? i.PosDescription;
-      <li class="item@(i.IsSoldOut ? " out" : "")">
+      @* The same markup as itemNode() in menu-page.js. The name is a button stretched over the whole item, so tapping anywhere opens the dish. *@
+      <li class="item@(i.IsSoldOut ? " out" : "")" data-id="@i.Id" data-price="@Model.Amount(i)" data-cur="@Model.CurrencyOf(i)">
         @if (i.ImageFile is not null)
         {
         <img class="pic" src="/m/img/@i.ImageFile" alt="" loading="lazy" decoding="async" width="300" height="300">
@@ -100,13 +131,15 @@ else
         <span class="pic blank" aria-hidden="true">@MenuModel.Initial(i.Name)</span>
         }
         <div class="txt">
-          <h3 dir="auto">@i.Name</h3>
+          <h3 dir="auto"><button type="button" class="open">@i.Name</button></h3>
           @if (desc is not null)
           {
           <p dir="auto">@desc</p>
           }
           <div class="price"><span dir="ltr">@Model.PriceOf(i)</span>@if (i.IsSoldOut)
-          {<em>@Model.T("Sold out", "نفد")</em>}</div>
+          {<em>@Model.T("Sold out", "نفد")</em>}
+          else
+          {<button type="button" class="add" aria-label="@Model.T("Add", "أضف") @i.Name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><b></b></button>}</div>
         </div>
       </li>
       }
@@ -123,6 +156,59 @@ else
     <p class="none" id="none" hidden>@Model.T("Nothing matches that.", "لا شيء يطابق بحثك.")</p>
   </section>
 </main>
+
+@* The guest's order lives in their browser only: there is no ordering yet, so it is something to show to staff or send. *@
+<button type="button" class="bag" id="bag" aria-haspopup="dialog">
+  <span class="n" id="bag-n">0</span>
+  <span class="l">@Model.T("View order", "عرض الطلب")</span>
+  <span class="t" id="bag-t" dir="ltr"></span>
+</button>
+
+<dialog class="sheet dish" id="dish" aria-labelledby="dish-name">
+  <button type="button" class="x" data-close aria-label="@Model.T("Close", "إغلاق")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="sheet-scroll">
+    <div class="d-pic" data-drag><span class="grab" aria-hidden="true"></span><div id="dish-pic"></div></div>
+    <div class="d-body">
+      <h2 id="dish-name" dir="auto"></h2>
+      <p class="d-price"><span id="dish-price" dir="ltr"></span><em id="dish-out" hidden>@Model.T("Sold out", "نفد")</em></p>
+      <p class="d-desc" id="dish-desc" dir="auto"></p>
+    </div>
+  </div>
+  <div class="d-act" id="dish-act">
+    <div class="step" id="dish-step">
+      <button type="button" data-q="-1" aria-label="@Model.T("One less", "واحد أقل")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <output id="dish-q" aria-live="polite">1</output>
+      <button type="button" data-q="1" aria-label="@Model.T("One more", "واحد إضافي")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <button type="button" class="go" id="dish-go"><span class="go-l"></span><span class="go-p" dir="ltr"></span></button>
+  </div>
+</dialog>
+
+<dialog class="sheet ticket" id="order" aria-labelledby="order-h">
+  <button type="button" class="x" data-close aria-label="@Model.T("Close", "إغلاق")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="sheet-scroll">
+    <header class="t-head" data-drag>
+      <span class="grab" aria-hidden="true"></span>
+      <p class="t-eyebrow" dir="auto">@m.Title@(Model.Branch is { } br && Model.Branches.Count > 1 ? " · " + br.Name : "")</p>
+      <h2 id="order-h">@Model.T("Your order", "طلبك")</h2>
+      <p class="t-meta" id="order-meta"></p>
+    </header>
+    <ul class="t-lines" id="order-lines"></ul>
+    <div class="t-total" id="order-total"><span>@Model.T("Total", "المجموع")</span><b id="order-sum" dir="ltr"></b></div>
+    <p class="t-hint" id="order-hint">@Model.T("To order, show this to a member of staff, or send it to the shop.", "للطلب، اعرض هذا على أحد العاملين، أو أرسله إلى المحل.")</p>
+    <div class="t-empty" id="order-empty" hidden>
+      <p>@Model.T("Nothing here yet. Tap a dish to add it.", "لا شيء هنا بعد. اضغط على أي صنف لإضافته.")</p>
+      <button type="button" class="ghost" data-close>@Model.T("Back to the menu", "العودة إلى القائمة")</button>
+    </div>
+  </div>
+  <div class="t-act" id="order-act">
+    <button type="button" class="go solo" data-staff>@Model.T("Show to staff", "اعرضه على العامل")</button>
+    <button type="button" class="ghost" data-share><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6"/></svg><span>@Model.T("Send", "أرسل")</span></button>
+    <button type="button" class="link" data-clear>@Model.T("Clear order", "امسح الطلب")</button>
+    <button type="button" class="ghost back" data-unstaff>@Model.T("Back to my order", "العودة إلى طلبي")</button>
+  </div>
+</dialog>
+<p class="sr" id="say" aria-live="polite"></p>
 }
 
 <footer class="foot">
@@ -135,6 +221,7 @@ else
     <p class="by"><a href="/">@Model.T("Menu by Coduo", "القائمة من Coduo")</a></p>
   </div>
 </footer>
+<script type="application/json" id="words">@Json.Serialize(Model.Words)</script>
 <script src="/menu/menu-page.js" asp-append-version="true" defer></script>
 </body>
 </html>

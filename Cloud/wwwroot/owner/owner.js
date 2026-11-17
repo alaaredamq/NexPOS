@@ -22,7 +22,11 @@ en: {
  nLow: '{0} items to reorder', nLowD: '{0} below their minimum and {1} out of stock.', seeStock: 'See stock',
  nDebt: 'Customers owe {0}', nDebtD: '{0} customers have an unpaid balance.', nDebtD1: '1 customer has an unpaid balance.', findSale: 'Search receipts',
  shopQuiet: 'The shop PC has been quiet for {0}', shopQuietD: 'Sales made since then appear here once it reconnects. The till keeps selling.', seeShop: 'See shop PC',
- salesSub: 'Receipts copied from your tills. Newest first.', all: 'All', cTime: 'Time', cId: 'Receipt', cCust: 'Customer', cItems: 'Items', cPay: 'Payment', cTot: 'Total',
+ salesSub: 'Every receipt your tills copied to the cloud, newest first.', yesterday: 'Yesterday', byDay: 'Takings by day', daysShown: 'Last {0} days', daysShown1: 'That day', allPay: 'All payments', pickOne: 'Pick a receipt to see what was sold.', walkIn: 'Walk-in', nRcpt: '{0} receipts', nRcpt1: '1 receipt',
+ backTo: 'Showing receipts back to {0}.', older: 'Load older receipts', loadingOlder: 'Loading older receipts...', allHere: 'That is every receipt the cloud holds.',
+ lookedTo: 'Searched receipts back to {0}.', lookMore: 'Search further back', noReceipts: 'No receipts yet. They appear here once a till sells.', findHint: 'Receipt number or customer',
+ shownOf: 'Showing {0} of {1}.', showMore: 'Show more',
+ all: 'All', cTime: 'Time', cId: 'Receipt', cCust: 'Customer', cItems: 'Items', cPay: 'Payment', cTot: 'Total',
  noMatch: 'Nothing matches.', rcpt: 'Receipt {0}', rMeta: '{0}, {1}', rTotal: 'Total', discount: 'Discount', voided: 'Void', close: 'Close', loadingItems: 'Loading the items...', noItems: 'No item lines were copied for this receipt.',
  stockSub: 'Quantities as of the last copy. They change when a till sells.', find: 'Search items', low: 'Low', out: 'Out of stock', cName: 'Item', cQty: 'In stock', cMin: 'Minimum', cPrice: 'Price',
  inStock: 'In stock', lowS: 'Low', outS: 'Out', min: 'min',
@@ -34,6 +38,8 @@ en: {
  lpH: 'See the till without standing at it.', lpP: 'Sales, stock and the shop PC\'s status, copied from the till every few minutes.',
  lp1: 'What you sold today and how it compares with last week', lp2: 'What is running low', lp3: 'Whether the shop PC is connected',
  trust: 'Your shop\'s data is locked with a key that only you hold. We cannot read it, and neither can this server.',
+ startTitle: 'What would you like to open?', startSub: 'Signed in to {0}.', startShop: 'Your shop', startShopP: 'Sales, stock and debts from the shop PC. Asks for the recovery code once in this browser.',
+ startMenu: 'Online menu', startMenuP: 'Your public menu: dishes, pictures, prices and the QR code for the tables.', startBack: 'Back',
  unlockTitle: 'Unlock your shop data', unlockSub: 'Type the recovery code printed from the shop PC (Settings, then Online). It stays in this browser and is never sent to us.',
  code: 'Recovery code', unlockBtn: 'Unlock', unlocking: 'Checking the code', errInvalid: 'That is not a recovery code. Check for a typo; it has 56 letters and numbers.',
  errWrong: 'That code does not open this shop\'s data. It may belong to another shop or an older key.',
@@ -70,7 +76,11 @@ ar: {
  nLow: '{0} أصناف تحتاج إعادة طلب', nLowD: '{0} تحت الحد الأدنى و{1} نفدت.', seeStock: 'المخزون',
  nDebt: 'الزبائن مدينون بـ {0}', nDebtD: '{0} زبائن عليهم رصيد غير مدفوع.', nDebtD1: 'زبون واحد عليه رصيد غير مدفوع.', findSale: 'ابحث عن إيصال',
  shopQuiet: 'كمبيوتر المحل صامت منذ {0}', shopQuietD: 'المبيعات منذ ذلك الوقت تظهر هنا عند عودة الاتصال. الصندوق يتابع البيع.', seeShop: 'كمبيوتر المحل',
- salesSub: 'إيصالات منسوخة من صناديقك. الأحدث أولاً.', all: 'الكل', cTime: 'الوقت', cId: 'الإيصال', cCust: 'الزبون', cItems: 'الأصناف', cPay: 'الدفع', cTot: 'المجموع',
+ salesSub: 'كل إيصال نسخته صناديقك إلى السحابة، الأحدث أولاً.', yesterday: 'أمس', byDay: 'المبيعات حسب اليوم', daysShown: 'آخر {0} أيام', daysShown1: 'ذلك اليوم', allPay: 'كل طرق الدفع', pickOne: 'اختر إيصالاً لترى ما بيع فيه.', walkIn: 'زبون عابر', nRcpt: '{0} إيصال', nRcpt1: 'إيصال واحد',
+ backTo: 'الإيصالات معروضة حتى {0}.', older: 'حمّل إيصالات أقدم', loadingOlder: 'جارٍ تحميل إيصالات أقدم...', allHere: 'هذه كل الإيصالات المحفوظة في السحابة.',
+ lookedTo: 'تم البحث في الإيصالات حتى {0}.', lookMore: 'ابحث في الأقدم', noReceipts: 'لا إيصالات بعد. تظهر هنا عندما يبيع صندوق.', findHint: 'رقم الإيصال أو الزبون',
+ shownOf: 'يظهر {0} من {1}.', showMore: 'اعرض المزيد',
+ all: 'الكل', cTime: 'الوقت', cId: 'الإيصال', cCust: 'الزبون', cItems: 'الأصناف', cPay: 'الدفع', cTot: 'المجموع',
  noMatch: 'لا نتائج.', rcpt: 'إيصال {0}', rMeta: '{0}، {1}', rTotal: 'المجموع', discount: 'الخصم', voided: 'ملغى', close: 'إغلاق', loadingItems: 'جارٍ تحميل الأصناف...', noItems: 'لم تُنسخ أصناف هذا الإيصال.',
  stockSub: 'الكميات حتى آخر نسخة. تتغير عندما يبيع صندوق.', find: 'ابحث عن صنف', low: 'منخفض', out: 'نفد', cName: 'الصنف', cQty: 'المتوفر', cMin: 'الحد الأدنى', cPrice: 'السعر',
  inStock: 'متوفر', lowS: 'منخفض', outS: 'نفد', min: 'أدنى',
@@ -82,6 +92,8 @@ ar: {
  lpH: 'شاهد الصندوق دون أن تقف عنده.', lpP: 'المبيعات والمخزون وحالة كمبيوتر المحل، منسوخة من الصندوق كل بضع دقائق.',
  lp1: 'ما بعته اليوم ومقارنته بالأسبوع الماضي', lp2: 'ما يوشك على النفاد', lp3: 'هل كمبيوتر المحل متصل',
  trust: 'بيانات محلك مقفلة بمفتاح لا يملكه غيرك. لا نستطيع قراءتها ولا هذا الخادم.',
+ startTitle: 'ماذا تريد أن تفتح؟', startSub: 'دخلت إلى {0}.', startShop: 'محلك', startShopP: 'المبيعات والمخزون والديون من كمبيوتر المحل. يطلب رمز الاسترداد مرة واحدة في هذا المتصفح.',
+ startMenu: 'القائمة على الإنترنت', startMenuP: 'قائمتك العامة: الأصناف والصور والأسعار ورمز QR للطاولات.', startBack: 'رجوع',
  unlockTitle: 'افتح بيانات محلك', unlockSub: 'اكتب رمز الاسترداد المطبوع من كمبيوتر المحل (الإعدادات ثم أونلاين). يبقى في هذا المتصفح ولا يُرسل إلينا.',
  code: 'رمز الاسترداد', unlockBtn: 'فتح', unlocking: 'جارٍ فحص الرمز', errInvalid: 'هذا ليس رمز استرداد. تحقق من الأخطاء؛ يتكون من 56 حرفاً ورقماً.',
  errWrong: 'هذا الرمز لا يفتح بيانات هذا المحل. ربما يخص محلاً آخر أو مفتاحاً قديماً.',
@@ -252,7 +264,10 @@ var KEEP = {
   Receipts: ['ReceiptNumber', 'ReceiptDate', 'TotalAmount', 'DiscountAmount', 'CurrencyId', 'CustomerName', 'PaymentMethodId', 'IsVoid', 'VoidReason', 'IsDeleted'],
   ReceiptItems: ['ReceiptId', 'ProductName', 'Quantity', 'Unit', 'UnitPrice', 'LineTotal', 'IsDeleted']
 };
-var ORDER = ['Currencies', 'PaymentMethods', 'Products', 'ProductCategories', 'Suppliers', 'Customers', 'Receipts'];
+/* Tables read whole: they are the shop's lists, which stay small. Receipts and their lines only ever grow, so they are read
+   differently (below): newest first a page at a time, and lines only for the receipt that is opened. 'Receipts' here marks when. */
+var ORDER = ['Currencies', 'PaymentMethods', 'Receipts', 'Products', 'ProductCategories', 'Suppliers', 'Customers'];
+var PAGE = 150;
 /* Permission bits, the cloud's OwnerPermissions (the cloud enforces them; this only hides what a login cannot use). */
 var P = { sales: 1, stock: 2, debts: 4, add: 8, edit: 16, financials: 32 };
 function perms() { var p = me && me.permissions != null ? me.permissions : session && session.permissions; return p == null ? 0 : +p; }
@@ -260,38 +275,123 @@ function can(bit) { return (perms() & bit) !== 0; }
 /* The shop runs the Basic licence plan: no stock tracking and no suppliers, so they are left out (the shop PC refuses those changes anyway).
    Unknown (an older shop PC or cloud) counts as Pro, which is what every shop was before plans. */
 function basic() { return (shopPlan || (me && me.shopPlan)) === 'Basic'; }
-var cryptoKey = null, rows = {}, cursors = {}, denied = {}, asOf = null, shopPlan = null, me = null, busy = false, loadError = null, itemsLoaded = false;
-function resetData() { rows = {}; cursors = {}; denied = {}; asOf = null; busy = false; loadError = null; itemsLoaded = false; Object.keys(KEEP).forEach(function (k) { rows[k] = {}; }); }
+var cryptoKey = null, rows = {}, cursors = {}, denied = {}, asOf = null, shopPlan = null, me = null, busy = false, loadError = null, feed, lines;
+function freshFeed() { return { before: null, hasMore: true, oldest: null, loading: null, started: false }; }
+function resetData() {
+  rows = {}; cursors = {}; denied = {}; asOf = null; busy = false; loadError = null; Object.keys(KEEP).forEach(function (k) { rows[k] = {}; });
+  feed = freshFeed();
+  lines = { of: {}, seen: {}, done: {}, known: [] };
+}
 resetData();
 
-function pullTable(table) {
+function noted(p) { if (p.asOfUtc) asOf = new Date(p.asOfUtc); if (p.shopPlan) shopPlan = p.shopPlan; return p; }
+/* Decrypts a page of rows, keeps the columns this site uses, and hands back [id, row] pairs. */
+function openRows(table, list) {
+  return Promise.all((list || []).map(function (r) {
+    return decryptRow(cryptoKey, table, r.id, r.payload).then(function (plain) {
+      var o = {}; KEEP[table].forEach(function (c) { o[c] = plain[c]; }); rows[table][r.id] = o; return [r.id, o];
+    });
+  }));
+}
+function refused(table) { return function (e) { if (e instanceof ApiError && e.status === 403) { denied[table] = true; return 'denied'; } throw e; }; }
+/* Everything that arrived or changed since the last read (all of it the first time). maxPages: give up past that and say 'toolong'. */
+function pullTable(table, maxPages) {
+  var n = 0;
   function page() {
+    if (maxPages && ++n > maxPages) return Promise.resolve('toolong');
     var q = '/rows?table=' + encodeURIComponent(table) + '&limit=1000' + (cursors[table] ? '&cursor=' + encodeURIComponent(cursors[table]) : '');
-    return api(q).then(function (p) {
-      if (p.asOfUtc) asOf = new Date(p.asOfUtc);
-      if (p.shopPlan) shopPlan = p.shopPlan;
-      return Promise.all((p.rows || []).map(function (r) {
-        return decryptRow(cryptoKey, table, r.id, r.payload).then(function (plain) {
-          var o = {}; KEEP[table].forEach(function (c) { o[c] = plain[c]; }); rows[table][r.id] = o;
-        });
-      })).then(function () { cursors[table] = p.nextCursor; if (p.hasMore) return page(); });
+    return api(q).then(noted).then(function (p) {
+      return openRows(table, p.rows).then(function () { cursors[table] = p.nextCursor; if (p.hasMore) return page(); });
     });
   }
-  return page().catch(function (e) { if (e instanceof ApiError && e.status === 403) { denied[table] = true; return; } throw e; });
+  return page().catch(refused(table));
 }
+
+/* ---- receipts: newest first, a page at a time ----
+   The cloud cannot search or sort what it cannot read, so it hands receipts out by the till's own numbering, newest first, and this
+   page asks for older ones only when they are needed: the Today screen needs back to the same day last week, the Sales list more as
+   you scroll or search. A refresh then asks only for what arrived or changed since (new receipts, voids), never the history again. */
+function olderReceipts() {
+  if (feed.loading) return feed.loading;
+  if (!feed.hasMore || denied.Receipts) return Promise.resolve();
+  var mine = feed, first = !feed.started;
+  var q = '/rows?table=Receipts&newest=true&limit=' + PAGE + (feed.before != null ? '&before=' + feed.before : '');
+  mine.loading = api(q).then(noted).then(function (p) {
+    if (first) cursors.Receipts = p.changesCursor || null;
+    return openRows('Receipts', p.rows).then(function (got) {
+      if (feed !== mine) return;
+      got.forEach(function (e) { var d = utcDate(e[1].ReceiptDate); if (d && (!mine.oldest || d < mine.oldest)) mine.oldest = d; });
+      mine.started = true; mine.before = p.nextBefore; mine.hasMore = !!p.hasMore && got.length > 0;
+    });
+  }).catch(refused('Receipts')).then(function (r) { mine.loading = null; return r; }, function (e) { mine.loading = null; throw e; });
+  return mine.loading;
+}
+/* Reads older pages until the oldest receipt held is from before `date` (or there are no more). */
+function receiptsSince(date) {
+  if (denied.Receipts || !feed.hasMore || (feed.oldest && feed.oldest < date)) return Promise.resolve();
+  return olderReceipts().then(function () { return receiptsSince(date); });
+}
+function weekBack() { var d = startOfDay(new Date()); d.setDate(d.getDate() - 7); return d; }
+function newReceipts() {
+  if (!feed.started || !cursors.Receipts) { if (feed.started) { rows.Receipts = {}; feed = freshFeed(); } return receiptsSince(weekBack()); }
+  // A whole new copy from the shop PC changes every row at once: then start over from the newest instead of reading it all.
+  return pullTable('Receipts', 3).then(function (r) { if (r === 'toolong') { rows.Receipts = {}; feed = freshFeed(); return receiptsSince(weekBack()); } });
+}
+/* The receipts held in one unbroken run from the newest down (a change to an older one can arrive on its own: it waits its turn). */
+function inRun(id) { return !feed.hasMore || feed.before == null || id >= feed.before; }
+
+/* ---- a receipt's lines, fetched when it is opened ----
+   Lines are numbered by the till as they are rung up, so a receipt's lines sit together, just above those of earlier receipts.
+   The cloud cannot look a receipt up, so this finds the spot by halving the range with one-row reads (about 20 for a million lines),
+   then reads the few pages around it. SLACK covers two tills ringing up at once. */
+var SLACK = 3;
+function linePage(before, limit) {
+  return api('/rows?table=ReceiptItems&newest=true&limit=' + limit + (before != null ? '&before=' + before : '')).then(noted).then(function (p) {
+    return openRows('ReceiptItems', p.rows).then(function (got) {
+      got.forEach(function (e) {
+        var rid = toInt(e[1].ReceiptId); lines.known.push([e[0], rid]);
+        if (!lines.seen[e[0]]) { lines.seen[e[0]] = true; (lines.of[rid] = lines.of[rid] || []).push(e[0]); }
+      });
+      return { got: got, more: !!p.hasMore, next: p.nextBefore };
+    });
+  });
+}
+function linesFor(rid) {
+  if (lines.done[rid]) return Promise.resolve();
+  var top = rid + SLACK, lo = 0, hi = null;
+  lines.known.forEach(function (k) { if (k[1] > top) { if (hi == null || k[0] < hi) hi = k[0]; } else if (k[0] > lo) lo = k[0]; });
+  function narrow() {
+    if (hi == null) return linePage(null, 1).then(function (r) {
+      if (!r.got.length) return 'none';
+      var last = r.got[0]; if (toInt(last[1].ReceiptId) <= top) { hi = last[0] + 1; return; }
+      hi = last[0]; return narrow();
+    });
+    if (hi - lo <= 200) return Promise.resolve();
+    var mid = Math.floor((lo + hi) / 2);
+    return linePage(mid + 1, 1).then(function (r) {
+      var p = r.got[0];
+      if (p && p[0] > lo && toInt(p[1].ReceiptId) > top) hi = p[0]; else lo = mid;
+      return narrow();
+    });
+  }
+  function walk(before) {
+    return linePage(before, 200).then(function (r) {
+      var past = r.got.some(function (e) { return toInt(e[1].ReceiptId) < rid - SLACK; });
+      if (r.more && !past) return walk(r.next);
+    });
+  }
+  return narrow().then(function (x) { if (x !== 'none') return walk(hi); }).then(function () { lines.done[rid] = true; });
+}
+
 function refresh() {
   if (!cryptoKey || busy) return Promise.resolve();
   busy = true; loadError = null; render();
   var chain = api('/me').then(function (m) { me = m; render(); });
-  ORDER.forEach(function (table) { chain = chain.then(function () { return pullTable(table); }).then(function () { render(); }); });
+  ORDER.forEach(function (table) { chain = chain.then(function () { return table === 'Receipts' ? newReceipts() : pullTable(table); }).then(function () { render(); }); });
   return chain.catch(function (e) {
     if (e && e.message === 'wrongkey') { lockData(); return; }
     loadError = e;
   }).then(function () { busy = false; render(); });
-}
-function loadItems() {
-  if (itemsLoaded) return Promise.resolve();
-  return pullTable('ReceiptItems').then(function () { itemsLoaded = true; });
 }
 function lockData() { cryptoKey = null; return keyDel().then(function () { resetData(); go('unlock'); }); }
 function signOut(expired) {
@@ -348,7 +448,7 @@ function todayReport(now) {
 }
 function sales(limit) {
   var cur = currencies();
-  var list = live('Receipts').map(function (e) {
+  var list = live('Receipts').filter(function (e) { return inRun(e[0]); }).map(function (e) {
     var r = e[1], cid = toInt(r.CurrencyId);
     return { id: e[0], number: text(r.ReceiptNumber), when: utcDate(r.ReceiptDate), total: toNum(r.TotalAmount), discount: toNum(r.DiscountAmount), cur: cur.of(cid), customer: text(r.CustomerName), pay: methodName(toInt(r.PaymentMethodId)), isVoid: flag(r.IsVoid), voidReason: text(r.VoidReason) };
   }).sort(function (a, b) { return (b.when ? b.when.getTime() : 0) - (a.when ? a.when.getTime() : 0); });
@@ -376,14 +476,18 @@ function freshness() {
 }
 
 /* ---------- router ---------- */
-var state = { salesFilter: 'all', stockFilter: 'all', stockQ: '', salesQ: '' };
+var state = { salesFilter: 'all', stockFilter: 'all', stockQ: '', salesQ: '', salesLook: 4, stockShow: 200, sel: null };
 var APP_ROUTES = ['today', 'sales', 'stock', 'changes', 'shop'];
 function route() {
   var h = (location.hash || '').slice(1);
   if (!session) return 'signin';
-  if (!cryptoKey) return 'unlock';
+  // A shop with no POS (no till has ever reached us) only has its online menu: that is where it goes.
+  if (session.hasTill === false) return 'menu';
+  // Not unlocked here yet: first a choice between the shop's data (needs the recovery code) and the menu (does not).
+  if (!cryptoKey) return h === 'unlock' || !can(P.edit) ? 'unlock' : 'start';
   return APP_ROUTES.indexOf(h) > -1 ? h : 'today';
 }
+var MENU_URL = '/owner/menu.html';
 function go(r) { if (location.hash.slice(1) === r) render(); else location.hash = '#' + r; }
 
 function topBar() {
@@ -418,9 +522,24 @@ function bindSignin() {
     fetch(API + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em.value.trim(), password: pw.value }) })
       .then(handle, function () { throw new ApiError(0, 'network', t('errNet')); })
       .then(function (j) { session = j; save('coduo-owner', j); return keyGet(); })
-      .then(function (k) { if (k) { cryptoKey = k; refresh(); go('today'); } else go('unlock'); })
+      .then(function (k) {
+        if (session.hasTill === false) { location.replace(MENU_URL); return; }
+        if (k) { cryptoKey = k; refresh(); go('today'); } else go(can(P.edit) ? 'start' : 'unlock');
+      })
       .catch(function (err) { fe.innerHTML = ic('alert', 'sm') + esc(explain(err)); fe.hidden = false; b.disabled = false; b.textContent = t('signBtn'); });
   };
+}
+
+/* ---------- start: the shop's data or its online menu ---------- */
+function startView() {
+  var pick = function (href, icon, title, text) {
+    return '<a class="pick" href="' + href + '">' + '<span class="pi">' + ic(icon) + '</span><span><b>' + title + '</b><small>' + text + '</small></span>' + ic('next', 'flip') + '</a>';
+  };
+  return '<div class="login"><section class="lf"><div class="lgrow">' + BRAND.logo + '<span class="chip info">' + t('online') + '</span></div>' +
+    '<div><h1>' + t('startTitle') + '</h1><p class="muted" style="margin-bottom:22px">' + esc(t('startSub', session.clientName || '')) + '</p>' +
+    '<div class="picks">' + pick('#unlock', 'key', t('startShop'), t('startShopP')) + pick(MENU_URL, 'menu', t('startMenu'), t('startMenuP')) + '</div></div>' +
+    '<p class="foot"><button type="button" class="linkbtn" id="sout">' + t('signout') + '</button></p></section>' +
+    '<section class="lp"><h2>' + t('lpH') + '</h2><p class="lead">' + t('trust') + '</p></section></div>';
 }
 
 /* ---------- unlock ---------- */
@@ -429,7 +548,7 @@ function unlockView() {
     '<form id="uform" novalidate><h1>' + t('unlockTitle') + '</h1><p class="muted" style="margin-bottom:22px;max-width:46ch">' + t('unlockSub') + '</p>' +
     '<div class="fld"><label for="code">' + t('code') + '</label><input class="inp mono" id="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" dir="ltr" aria-describedby="cerr chint"><p class="help" id="chint">' + t('hint') + '</p><div id="cerr" class="err" role="alert" hidden></div></div>' +
     '<button class="btn pri" id="ubtn" type="submit">' + t('unlockBtn') + '</button></form>' +
-    '<p class="foot"><button type="button" class="linkbtn" id="uout">' + t('signout') + '</button></p></section>' +
+    '<p class="foot">' + (can(P.edit) ? '<a class="linkbtn" href="#start">' + t('startBack') + '</a> · ' : '') + '<button type="button" class="linkbtn" id="uout">' + t('signout') + '</button></p></section>' +
     '<section class="lp"><h2>' + t('lpH') + '</h2><p class="lead">' + t('trust') + '</p></section></div>';
 }
 function bindUnlock() {
@@ -534,20 +653,112 @@ function todayView() {
 }
 
 /* Sales */
+function salesFiltered() { return !!state.salesQ.trim() || state.salesFilter !== 'all'; }
+function dayLabel(d) {
+  var today = startOfDay(new Date()), y = new Date(today); y.setDate(y.getDate() - 1);
+  var full = d.toLocaleDateString(loc(), { weekday: 'short', day: 'numeric', month: 'short' });
+  if (sameDay(d, today)) return '<b>' + t('legToday') + '</b><span>' + esc(full) + '</span>';
+  if (sameDay(d, y)) return '<b>' + t('yesterday') + '</b><span>' + esc(full) + '</span>';
+  return '<b>' + esc(d.toLocaleDateString(loc(), { weekday: 'long' })) + '</b><span>' + esc(d.toLocaleDateString(loc(), { day: 'numeric', month: 'short', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' })) + '</span>';
+}
+function compact(n) { return n >= 1000 ? new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n) : Math.round(n).toLocaleString('en-US'); }
+/* Wide screens show the list and the chosen receipt side by side; narrower ones open the receipt as a sheet. */
+function wideSales() { return matchMedia('(min-width:1180px)').matches; }
 function salesView() {
-  var all = sales(), pays = []; all.forEach(function (s) { if (s.pay && pays.indexOf(s.pay) < 0) pays.push(s.pay); });
-  var counts = { all: all.length }; all.forEach(function (s) { counts[s.pay] = (counts[s.pay] || 0) + 1; });
-  var fc = ['all'].concat(pays).map(function (k) { return '<button type="button" class="fc" data-sf="' + esc(k) + '" aria-pressed="' + (state.salesFilter === k) + '">' + (k === 'all' ? t('all') : esc(k)) + ' <em>' + (counts[k] || 0) + '</em></button>'; }).join('');
-  var q = state.salesQ.toLowerCase();
-  var list = all.filter(function (s) { return (state.salesFilter === 'all' || s.pay === state.salesFilter) && (!q || (s.number + ' ' + s.customer).toLowerCase().indexOf(q) > -1); }).slice(0, 300);
-  var body = list.length ? list.map(function (s) {
-    return '<button type="button" class="srow" data-sale="' + s.id + '"><span class="c-main"><span class="c-time num">' + (s.when ? s.when.toLocaleString(loc(), { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '') + '</span><span class="c-id">' + esc(s.number) + '</span></span>' +
-      '<span class="c-till">' + esc(s.customer) + '</span><span class="c-pay">' + (s.isVoid ? chip('bad', 'alert', t('voided')) : s.pay ? '<span class="chip mute">' + esc(s.pay) + '</span>' : '') + '</span><span class="c-tot num">' + money(s.total, s.cur) + '</span></button>';
-  }).join('') : '<p class="empty">' + t('noMatch') + '</p>';
-  var inner = '<header class="head"><div><h1>' + t('sales') + '</h1><p>' + t('salesSub') + '</p></div>' + copyChip() + '</header>' +
-    '<div class="tools"><div class="srch"><label class="sr" for="sq">' + t('findSale') + '</label>' + ic('search', 'sm') + '<input id="sq" type="search" placeholder="' + t('findSale') + '" value="' + esc(state.salesQ) + '" autocomplete="off"></div>' + fc + '</div>' +
-    '<section class="panel tbl"><div class="th s5c"><span>' + t('cTime') + '</span><span>' + t('cId') + '</span><span>' + t('cCust') + '</span><span>' + t('cPay') + '</span><span class="r">' + t('cTot') + '</span></div>' + body + '</section>';
+  var all = sales(), main = currencies().main;
+  // The filter offers the shop's own payment methods (plus any a receipt names that is no longer on the list).
+  var pays = live('PaymentMethods').map(function (e) { return text(e[1].Name); }).filter(Boolean);
+  all.forEach(function (s) { if (s.pay && pays.indexOf(s.pay) < 0) pays.push(s.pay); });
+  if (state.salesFilter !== 'all' && pays.indexOf(state.salesFilter) < 0) state.salesFilter = 'all';
+  var seg = ['all'].concat(pays).map(function (k) { return '<button type="button" data-sf="' + esc(k) + '" aria-pressed="' + (state.salesFilter === k) + '">' + (k === 'all' ? t('all') : esc(k)) + '</button>'; }).join('');
+  var q = state.salesQ.trim().toLowerCase();
+  var list = all.filter(function (s) { return (state.salesFilter === 'all' || s.pay === state.salesFilter) && (!q || (s.number + ' ' + s.customer).toLowerCase().indexOf(q) > -1); });
+
+  // One group per day, with the day's count and takings (voids left out), so the list reads like the till's own day reports.
+  var groups = [], g = null;
+  list.forEach(function (s) {
+    var day = s.when ? startOfDay(s.when).getTime() : 0;
+    if (!g || g.day !== day) { g = { day: day, items: [], total: 0, n: 0 }; groups.push(g); }
+    g.items.push(s);
+    if (!s.isVoid) { g.n++; if (s.cur.id === main.id || main.id == null) g.total += s.total; }
+  });
+  var lastPartial = function (i) { return i === groups.length - 1 && feed.hasMore; };
+
+  var wide = wideSales();
+  if (wide && list.length && !list.some(function (s) { return s.id === state.sel; })) state.sel = list[0].id;
+  if (!wide) state.sel = null;
+
+  // Takings by day: the newest fortnight held, oldest on the start side. A bar is also the way to that day in the list.
+  var strip = groups.filter(function (gr) { return gr.day; }).slice(0, 14).reverse(), top = 0;
+  strip.forEach(function (gr) { top = Math.max(top, gr.total); });
+  var bars = strip.map(function (gr) {
+    var d = new Date(gr.day), now = sameDay(d, new Date()), part = lastPartial(groups.indexOf(gr));
+    return '<button type="button" class="dbar' + (now ? ' now' : '') + (part ? ' part' : '') + '" data-day="' + gr.day + '" style="--h:' + (top ? gr.total / top : 0).toFixed(3) + '" aria-label="' + esc(d.toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' }) + ': ' + money(gr.total, main)) + '">' +
+      '<span class="v num">' + compact(gr.total) + '</span><span class="b"></span><span class="w">' + esc(now ? t('legToday') : d.toLocaleDateString(loc(), { weekday: 'short' })) + '</span><span class="n num">' + d.getDate() + '</span></button>';
+  }).join('');
+  // The period totals leave out the oldest day while it may still be missing receipts (unless it is the only one).
+  var newest = groups[0], sum = 0, cnt = 0, days = 0;
+  groups.forEach(function (gr, i) { if (!lastPartial(i) || groups.length === 1) { sum += gr.total; cnt += gr.n; days++; } });
+  var band = strip.length ? '<section class="panel band" aria-labelledby="h-days">' +
+    '<div class="kpis"><div><span>' + (newest && sameDay(new Date(newest.day), new Date()) ? t('legToday') : esc(new Date(newest.day).toLocaleDateString(loc(), { weekday: 'long' }))) + '</span><b class="num">' + money(newest.total, main) + '</b><small>' + (newest.n === 1 ? t('nRcpt1') : t('nRcpt', newest.n)) + '</small></div>' +
+    '<div><span>' + (days === 1 ? t('daysShown1') : t('daysShown', days)) + '</span><b class="num">' + money(sum, main) + '</b><small>' + (cnt === 1 ? t('nRcpt1') : t('nRcpt', cnt)) + '</small></div>' +
+    '<div><span>' + t('avgBasket') + '</span><b class="num">' + (cnt ? money(sum / cnt, main) : '-') + '</b><small>' + esc(state.salesFilter === 'all' ? t('allPay') : state.salesFilter) + '</small></div></div>' +
+    '<div class="dstrip" dir="ltr"><h2 id="h-days" class="sr">' + t('byDay') + '</h2>' + bars + '</div></section>' : '';
+
+  var body = groups.map(function (gr, i) {
+    var head = '<div class="dayh" id="d-' + gr.day + '"><span class="dl">' + (gr.day ? dayLabel(new Date(gr.day)) : '<b>-</b>') + '</span>' +
+      '<span class="dn num">' + (gr.n === 1 ? t('nRcpt1') : t('nRcpt', gr.n)) + '</span><span class="dt num">' + money(gr.total, main) + (lastPartial(i) ? ' <small>' + t('soFar') + '</small>' : '') + '</span></div>';
+    return head + gr.items.map(function (s) {
+      return '<button type="button" class="srow' + (s.isVoid ? ' void' : '') + (s.id === state.sel ? ' sel' : '') + '" data-sale="' + s.id + '"' + (s.id === state.sel ? ' aria-current="true"' : '') + '>' +
+        '<span class="c-time num">' + (s.when ? esc(timeStr(s.when)) : '') + '</span>' +
+        '<span class="c-who"><span class="c-id mono" dir="ltr">' + esc(s.number) + '</span><span class="c-cust' + (s.customer ? '' : ' none') + '">' + esc(s.customer || t('walkIn')) + '</span></span>' +
+        '<span class="c-pay">' + (s.isVoid ? chip('bad', 'alert', t('voided')) : s.pay ? '<span class="pdot" data-p="' + Math.max(0, pays.indexOf(s.pay)) % 4 + '"></span>' + esc(s.pay) : '') + '</span>' +
+        '<span class="c-tot num">' + money(s.total, s.cur) + '</span></button>';
+    }).join('');
+  }).join('');
+
+  var back = feed.oldest ? esc(feed.oldest.toLocaleDateString(loc(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })) : '';
+  var foot;
+  if (denied.Receipts) foot = '<p>' + t('errMayNot') + '</p>';
+  else if (feed.loading) foot = '<p class="ld">' + ic('refresh', 'sm spin') + t('loadingOlder') + '</p>';
+  else if (!feed.hasMore) foot = feed.started && all.length ? '<p>' + t('allHere') + '</p>' : '';
+  else foot = '<p>' + (salesFiltered() ? t('lookedTo', back) : t('backTo', back)) + '</p><button type="button" class="btn sm" id="older">' + t(salesFiltered() ? 'lookMore' : 'older') + '</button>';
+
+  var empty = !list.length && !feed.loading && !busy ? '<p class="empty">' + (all.length ? t('noMatch') : t('noReceipts')) + '</p>' : '';
+  var chosen = wide && state.sel != null ? all.filter(function (s) { return s.id === state.sel; })[0] : null;
+  var pane = wide ? '<aside class="rpane" aria-label="' + t('cId') + '">' + (chosen ? receiptCard(chosen, lines.done[chosen.id] ? itemsOf(chosen.id) : null) : '<div class="slip"><p class="muted">' + t('pickOne') + '</p></div>') + '</aside>' : '';
+
+  var inner = '<header class="head"><div><h1>' + t('sales') + '</h1><p>' + t('salesSub') + '</p></div><div class="hacts">' + copyChip() + '<button type="button" class="btn sm" id="rfr">' + ic('refresh', 'sm') + t('refresh') + '</button></div></header>' +
+    band +
+    '<div class="tools"><div class="srch"><label class="sr" for="sq">' + t('findSale') + '</label>' + ic('search', 'sm') + '<input id="sq" type="search" placeholder="' + t('findHint') + '" value="' + esc(state.salesQ) + '" autocomplete="off"></div>' +
+    '<div class="segf" role="group" aria-label="' + t('cPay') + '">' + seg + '</div></div>' +
+    '<div class="split' + (wide ? ' two' : '') + '"><section class="panel ledger" aria-label="' + t('sales') + '">' +
+    body + empty + (foot ? '<div class="lfoot" id="more">' + foot + '</div>' : '') + '</section>' + pane + '</div>';
   return shell('sales', inner);
+}
+/* The chosen receipt in the side pane fetches its lines once, then draws again. */
+function fillPane() {
+  if (route() !== 'sales' || state.sel == null || lines.done[state.sel] || lines.busy === state.sel) return;
+  var id = state.sel; lines.busy = id;
+  linesFor(id).catch(function () { lines.done[id] = true; }).then(function () { lines.busy = null; if (state.sel === id) render(); });
+}
+/* Older receipts: when the end of the list comes into view, or on the button. A search or filter reads a few pages on its own
+   (so a match from last month still turns up), then waits for the button rather than walking the whole history unasked. */
+function loadOlder() {
+  if (feed.loading || !feed.hasMore) return;
+  var p = olderReceipts(); render();
+  p.then(function () { render(); }, function (e) { loadError = e; render(); });
+}
+var seeEnd = null;
+function watchEnd() {
+  if (seeEnd) { seeEnd.disconnect(); seeEnd = null; }
+  var end = $('#more'); if (!end || !('IntersectionObserver' in window) || route() !== 'sales' || busy) return;
+  seeEnd = new IntersectionObserver(function (es) {
+    if (!es[0].isIntersecting || feed.loading || !feed.hasMore) return;
+    if (salesFiltered()) { if (state.salesLook <= 0) return; state.salesLook--; }
+    loadOlder();
+  }, { rootMargin: '400px 0px' });
+  seeEnd.observe(end);
 }
 
 /* Stock */
@@ -557,7 +768,10 @@ function stockView() {
   var all = stockItems(), low = all.filter(function (i) { return i.level === 1; }).length, out = all.filter(function (i) { return i.level === 0; }).length;
   var fc = [['all', t('all'), all.length], ['low', t('low'), low], ['out', t('out'), out]].map(function (a) { return '<button type="button" class="fc" data-kf="' + a[0] + '" aria-pressed="' + (state.stockFilter === a[0]) + '">' + a[1] + ' <em>' + a[2] + '</em></button>'; }).join('');
   var q = state.stockQ.toLowerCase();
-  var list = all.filter(function (it) { return (state.stockFilter === 'all' || (state.stockFilter === 'low' && it.level === 1) || (state.stockFilter === 'out' && it.level === 0)) && (!q || (it.name + ' ' + it.barcode).toLowerCase().indexOf(q) > -1); }).slice(0, 300);
+  var matched = all.filter(function (it) { return (state.stockFilter === 'all' || (state.stockFilter === 'low' && it.level === 1) || (state.stockFilter === 'out' && it.level === 0)) && (!q || (it.name + ' ' + it.barcode).toLowerCase().indexOf(q) > -1); });
+  var list = matched.slice(0, state.stockShow);
+  // Drawing thousands of rows at once is what makes a long list slow; show them in steps.
+  var more = matched.length > list.length ? '<div class="lfoot"><p>' + t('shownOf', list.length.toLocaleString('en-US'), matched.length.toLocaleString('en-US')) + '</p><button type="button" class="btn sm" id="kmore">' + t('showMore') + '</button></div>' : '';
   var rowsHtml = list.length ? list.map(function (it) {
     var st = !nb ? null : it.level === 0 ? ['bad', 'alert', t('outS')] : it.level === 1 ? ['warn', 'alert', t('lowS')] : ['good', 'check', t('inStock')];
     var q2 = it.qty.toLocaleString('en-US', { maximumFractionDigits: 3 }), m2 = it.min == null ? '-' : it.min.toLocaleString('en-US', { maximumFractionDigits: 3 });
@@ -569,7 +783,7 @@ function stockView() {
   var addBtn = canAddProduct() ? '<button type="button" class="btn sm pri" data-new="product">' + ic('plus', 'sm') + t('newProduct') + '</button>' : '';
   var inner = '<header class="head"><div><h1>' + t(nb ? 'stock' : 'products') + '</h1><p>' + t(nb ? 'stockSub' : 'productsSub') + '</p></div><div class="hacts">' + copyChip() + addBtn + '</div></header>' +
     '<div class="tools"><div class="srch"><label class="sr" for="kq">' + t('find') + '</label>' + ic('search', 'sm') + '<input id="kq" type="search" placeholder="' + t('find') + '" value="' + esc(state.stockQ) + '" autocomplete="off"></div>' + (nb ? fc : '') + '</div>' +
-    '<section class="panel tbl"><div class="kth k4"><span>' + t('cName') + '</span><span class="r">' + (nb ? t('cQty') : '') + '</span><span class="r">' + (nb ? t('cMin') : '') + '</span><span class="r">' + t('cPrice') + '</span><span></span></div>' + rowsHtml + '</section>';
+    '<section class="panel tbl"><div class="kth k4"><span>' + t('cName') + '</span><span class="r">' + (nb ? t('cQty') : '') + '</span><span class="r">' + (nb ? t('cMin') : '') + '</span><span class="r">' + t('cPrice') + '</span><span></span></div>' + rowsHtml + more + '</section>';
   return shell('stock', inner);
 }
 
@@ -581,29 +795,48 @@ function shopView() {
   var inner = '<header class="head"><div><h1>' + t('shop') + '</h1><p>' + t('shopSub') + '</p></div></header><div class="g">' +
     '<section class="panel s8 till"><div class="th2"><h2>' + esc(m.siteName || session.siteName || t('shop')) + '</h2>' + contact + '</div>' +
     '<div class="meta"><span>' + t('lastContact') + ': <b class="num">' + (fr.seen ? esc(agoStr(fr.seen)) + ' (' + esc(timeStr(fr.seen)) + ')' : '-') + '</b></span><span>' + t('lastCopy') + ': <b class="num">' + (asOf ? esc(agoStr(asOf)) + ' (' + esc(timeStr(asOf)) + ')' : '-') + '</b></span></div></section>' +
-    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside> +
-    (can(P.edit) ? '<section class="panel s12"><div class="ph"><h2>' + t('menuH') + '</h2></div><p class="muted" style="font-size:14px">' + t('menuP') + '</p><p style="margin-top:12px"><a class="btn" href="/owner/menu.html">' + t('menuOpen') + '</a></p></section>' : '') + </div>';
+    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside>' +
+    (can(P.edit) ? '<section class="panel s12"><div class="ph"><h2>' + t('menuH') + '</h2></div><p class="muted" style="font-size:14px">' + t('menuP') + '</p><p style="margin-top:12px"><a class="btn" href="/owner/menu.html">' + t('menuOpen') + '</a></p></section>' : '') + '</div>';
   return shell('shop', inner);
 }
 
-/* receipt dialog */
+/* receipt: drawn as the till's slip, in the side pane on wide screens and in a sheet otherwise */
+function receiptCard(s, items, closable) {
+  var cur = s.cur;
+  var rows2 = items === null ? '<div class="sk"><i></i><i></i><i></i></div><p class="muted ldl">' + t('loadingItems') + '</p>'
+    : items.length ? items.map(function (x) {
+      return '<div class="ln"><div class="a">' + esc(x.name) + '<small class="num"><bdi dir="ltr">' + x.qty.toLocaleString('en-US', { maximumFractionDigits: 3 }) + (x.unit ? ' ' + esc(x.unit) : '') + ' × ' + money(x.price, cur) + '</bdi></small></div><b class="num">' + money(x.total, cur) + '</b></div>';
+    }).join('') : '<p class="muted">' + t('noItems') + '</p>';
+  var when = s.when ? s.when.toLocaleString(loc(), { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '';
+  var count = items && items.length ? items.reduce(function (a, x) { return a + x.qty; }, 0) : null;
+  return '<div class="slip' + (s.isVoid ? ' void' : '') + '">' +
+    '<div class="sh"><span class="k">' + t('cId') + '</span>' + (s.isVoid ? chip('bad', 'alert', t('voided')) : s.pay ? '<span class="chip mute">' + esc(s.pay) + '</span>' : '') + '</div>' +
+    '<h2 id="dlg-t" class="mono" dir="ltr">' + esc(s.number) + '</h2>' +
+    '<p class="sm2">' + esc(when) + '</p>' +
+    '<dl class="who"><div><dt>' + t('cCust') + '</dt><dd>' + esc(s.customer || t('walkIn')) + '</dd></div>' + (count != null ? '<div><dt>' + t('cItems') + '</dt><dd class="num">' + count.toLocaleString('en-US', { maximumFractionDigits: 3 }) + '</dd></div>' : '') + '</dl>' +
+    '<div class="lines">' + rows2 + '</div>' +
+    (s.discount > 0 ? '<div class="ln disc"><div class="a">' + t('discount') + '</div><b class="num">-' + money(s.discount, cur) + '</b></div>' : '') +
+    '<div class="tt"><span>' + t('rTotal') + '</span><span class="num">' + money(s.total, cur) + '</span></div>' +
+    (s.isVoid && s.voidReason ? '<p class="vr">' + ic('alert', 'sm') + esc(s.voidReason) + '</p>' : '') +
+    (closable ? '<div class="df"><button type="button" class="btn pri" data-close>' + t('close') + '</button></div>' : '') +
+    '</div>';
+}
 function openSale(id) {
+  // Wide Sales screen: the receipt opens in the side pane instead of on top of the list.
+  if (route() === 'sales' && wideSales()) { state.sel = id; render(); fillPane(); return; }
   var s = sales().filter(function (x) { return x.id === id; })[0]; if (!s) return;
   var d = $('#dlg');
-  function body(items) {
-    var lines = items === null ? '<p class="muted">' + t('loadingItems') + '</p>' : items.length ? items.map(function (x) { return '<div class="ln"><div class="a">' + esc(x.name) + '<small class="num">' + x.qty + (x.unit ? ' ' + esc(x.unit) : '') + ' x ' + money(x.price, s.cur) + '</small></div><b class="num" style="font-weight:500">' + money(x.total, s.cur) + '</b></div>'; }).join('') : '<p class="muted">' + t('noItems') + '</p>';
-    d.innerHTML = '<div class="dh"><div><h2 id="dlg-t" style="font-size:19px">' + t('rcpt', esc(s.number)) + '</h2><p class="muted" style="font-size:14px;margin-top:2px">' + t('rMeta', s.when ? esc(s.when.toLocaleString(loc(), { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })) : '', esc(s.customer || s.pay)) + '</p></div>' + (s.isVoid ? chip('bad', 'alert', t('voided')) : s.pay ? '<span class="chip mute">' + esc(s.pay) + '</span>' : '') + '</div>' +
-      '<div class="db">' + lines + (s.discount > 0 ? '<div class="ln"><div class="a muted">' + t('discount') + '</div><b class="num" style="font-weight:500">-' + money(s.discount, s.cur) + '</b></div>' : '') + '<div class="tt"><span>' + t('rTotal') + '</span><span class="num">' + money(s.total, s.cur) + '</span></div>' + (s.isVoid && s.voidReason ? '<p class="help" style="margin-top:8px">' + esc(s.voidReason) + '</p>' : '') + '</div>' +
-      '<div class="df"><button type="button" class="btn pri" data-close>' + t('close') + '</button></div>';
-  }
-  body(itemsLoaded ? itemsOf(id) : null);
+  function body(items) { d.innerHTML = receiptCard(s, items, true); }
+  var ready = lines.done[id];
+  body(ready ? itemsOf(id) : null);
   if (!d.open) d.showModal();
-  if (!itemsLoaded) loadItems().then(function () { if (d.open) body(itemsOf(id)); }, function () { if (d.open) body([]); });
+  d.dataset.sale = id;
+  if (!ready) linesFor(id).then(function () { if (d.open && d.dataset.sale == id) body(itemsOf(id)); }, function () { if (d.open && d.dataset.sale == id) body([]); });
 }
+
 function itemsOf(receiptId) {
-  var out = [];
-  live('ReceiptItems').forEach(function (e) { var r = e[1]; if (toInt(r.ReceiptId) === receiptId) out.push({ name: text(r.ProductName), qty: toNum(r.Quantity), unit: text(r.Unit), price: toNum(r.UnitPrice), total: toNum(r.LineTotal) }); });
-  return out;
+  return (lines.of[receiptId] || []).slice().sort(function (a, b) { return a - b; }).map(function (lid) { return rows.ReceiptItems[lid]; }).filter(function (r) { return r && !flag(r.IsDeleted); })
+    .map(function (r) { return { name: text(r.ProductName), qty: toNum(r.Quantity), unit: text(r.Unit), price: toNum(r.UnitPrice), total: toNum(r.LineTotal) }; });
 }
 
 /* ---------- changes: the phone app's five, sealed to the shop ---------- */
@@ -889,6 +1122,9 @@ function withdraw(id, btn) {
 /* ---------- render ---------- */
 function render() {
   var r = route();
+  // Data arriving while someone types in a search box must not take the cursor away.
+  var fa = document.activeElement, fid = fa && (fa.id === 'sq' || fa.id === 'kq') ? fa.id : null, pos = fid ? fa.selectionStart : 0;
+  if (r === 'menu') { location.replace(MENU_URL); return; }
   document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   $('#topbar').innerHTML = topBar();
   var lg = $('#login'), ap = $('#app');
@@ -896,8 +1132,11 @@ function render() {
   lg.hidden = isApp; ap.hidden = !isApp;
   if (r === 'signin') { lg.innerHTML = signinView(); bindSignin(); }
   else if (r === 'unlock') { lg.innerHTML = unlockView(); bindUnlock(); }
+  else if (r === 'start') { lg.innerHTML = startView(); $('#sout').onclick = function () { signOut(); }; }
   else ap.innerHTML = ({ today: todayView, sales: salesView, stock: stockView, changes: changesView, shop: shopView })[r]();
   bind();
+  if (fid) { var n = $('#' + fid); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } }
+  watchEnd(); fillPane();
 }
 function bind() {
   document.querySelectorAll('[data-lang]').forEach(function (b) { b.onclick = function () { lang = b.dataset.lang; try { localStorage.setItem('coduo-lang', lang); } catch (e) {} render(); }; });
@@ -907,16 +1146,24 @@ function bind() {
   var rf = $('#rfr'); if (rf) rf.onclick = function () { refresh(); };
   var rt = $('#retry'); if (rt) rt.onclick = function () { refresh(); };
   document.querySelectorAll('[data-sale]').forEach(function (b) { b.onclick = function () { openSale(+b.dataset.sale); }; });
-  document.querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { state.salesFilter = b.dataset.sf; render(); }; });
-  document.querySelectorAll('[data-kf]').forEach(function (b) { b.onclick = function () { state.stockFilter = b.dataset.kf; render(); }; });
-  function wire(id, key) { var q = $('#' + id); if (q) q.oninput = function () { state[key] = q.value; var pos = q.selectionStart; render(); var n = $('#' + id); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }; }
+  document.querySelectorAll('[data-sf]').forEach(function (b) { b.onclick = function () { state.salesFilter = b.dataset.sf; state.salesLook = 4; render(); }; });
+  document.querySelectorAll('[data-kf]').forEach(function (b) { b.onclick = function () { state.stockFilter = b.dataset.kf; state.stockShow = 200; render(); }; });
+  function wire(id, key) { var q = $('#' + id); if (q) q.oninput = function () { state[key] = q.value; state.salesLook = 4; state.stockShow = 200; render(); }; }
   wire('sq', 'salesQ'); wire('kq', 'stockQ');
+  var ol = $('#older'); if (ol) ol.onclick = function () { state.salesLook = 4; loadOlder(); };
+  document.querySelectorAll('[data-day]').forEach(function (b) { b.onclick = function () { var h = document.getElementById('d-' + b.dataset.day); if (h) h.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }; });
+  // A narrow screen shows the newest days first; where someone scrolled the bars to stays put when the page draws again.
+  var ds = document.querySelector('.dstrip');
+  if (ds) { ds.scrollLeft = state.stripLeft == null ? ds.scrollWidth : state.stripLeft; ds.onscroll = function () { state.stripLeft = ds.scrollLeft >= ds.scrollWidth - ds.clientWidth - 2 ? null : ds.scrollLeft; }; }
+  var km = $('#kmore'); if (km) km.onclick = function () { state.stockShow += 200; render(); };
   document.querySelectorAll('[data-prod]').forEach(function (b) { b.onclick = function () { openProduct(+b.dataset.prod); }; });
   document.querySelectorAll('[data-new]').forEach(function (b) { b.onclick = function () { ({ product: newProduct, customer: newCustomer, supplier: newSupplier })[b.dataset.new](); }; });
   document.querySelectorAll('[data-withdraw]').forEach(function (b) { b.onclick = function () { withdraw(b.dataset.withdraw, b); }; });
   var cr = $('#cretry'); if (cr) cr.onclick = function () { loadChanges(); };
 }
 $('#dlg').addEventListener('click', function (e) { if ((e.target.hasAttribute && e.target.hasAttribute('data-close')) || e.target === this) this.close(); });
+/* The Sales screen changes shape (side pane or sheet) at a width: draw again when the window crosses it. */
+matchMedia('(min-width:1180px)').addEventListener('change', function () { if (route() === 'sales' && !$('#dlg').open) render(); });
 window.addEventListener('hashchange', function () {
   var d = $('#dlg'); if (d.open) d.close();
   if (route() === 'changes') loadChanges(); else clearTimeout(cmds.timer);
@@ -925,8 +1172,13 @@ window.addEventListener('hashchange', function () {
 
 /* ---------- start ---------- */
 if (session) {
-  keyGet().then(function (k) {
-    if (k) { cryptoKey = k; refresh(); if (route() === 'changes') loadChanges(); }
+  // Whether the shop has a POS can change (a menu-only shop installs one later), and older sessions do not say: ask before choosing a page.
+  var asked = session.hasTill === true ? Promise.resolve() : api('/me').then(function (m) {
+    me = m; if (session) { session.hasTill = m.hasTill; save('coduo-owner', session); }
+  }, function () {});
+  Promise.all([keyGet(), asked]).then(function (r) {
+    var k = r[0];
+    if (k && session && session.hasTill !== false) { cryptoKey = k; refresh(); if (route() === 'changes') loadChanges(); }
     render();
   });
 } else render();

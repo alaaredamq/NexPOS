@@ -173,13 +173,6 @@ namespace Cloud.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("CatalogAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CatalogHash")
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("ClientId")
                         .HasColumnType("INTEGER");
 
@@ -199,9 +192,6 @@ namespace Cloud.Data.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("LinkedSiteId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("ListingStyle")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -216,9 +206,6 @@ namespace Cloud.Data.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("PosArranged")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PreviewKey")
                         .IsRequired()
@@ -247,12 +234,51 @@ namespace Cloud.Data.Migrations
                     b.HasIndex("ClientId")
                         .IsUnique();
 
-                    b.HasIndex("LinkedSiteId");
-
                     b.HasIndex("Slug")
                         .IsUnique();
 
                     b.ToTable("Menus");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuBranch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CatalogAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CatalogHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("PosArranged")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId")
+                        .IsUnique();
+
+                    b.HasIndex("MenuId", "Slug")
+                        .IsUnique();
+
+                    b.ToTable("MenuBranches");
                 });
 
             modelBuilder.Entity("Cloud.Data.MenuItem", b =>
@@ -291,9 +317,6 @@ namespace Cloud.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PosProductId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
@@ -306,11 +329,103 @@ namespace Cloud.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MenuId", "PosProductId");
-
                     b.HasIndex("MenuId", "SortOrder");
 
                     b.ToTable("MenuItems");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuItemBranch", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Currency")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PosProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId", "SiteId")
+                        .IsUnique();
+
+                    b.HasIndex("SiteId", "PosProductId");
+
+                    b.ToTable("MenuItemBranches");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuItemTypePrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderTypeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderTypeId");
+
+                    b.HasIndex("MenuItemId", "OrderTypeId")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemTypePrices");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuOrderType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Adjust")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("none");
+
+                    b.Property<decimal>("AdjustValue")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MenuId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuId", "SortOrder");
+
+                    b.ToTable("MenuOrderTypes");
                 });
 
             modelBuilder.Entity("Cloud.Data.MenuSection", b =>
@@ -678,10 +793,70 @@ namespace Cloud.Data.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("Cloud.Data.MenuBranch", b =>
+                {
+                    b.HasOne("Cloud.Data.Menu", "Menu")
+                        .WithMany("Branches")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cloud.Data.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Menu");
+
+                    b.Navigation("Site");
+                });
+
             modelBuilder.Entity("Cloud.Data.MenuItem", b =>
                 {
                     b.HasOne("Cloud.Data.Menu", "Menu")
                         .WithMany("Items")
+                        .HasForeignKey("MenuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Menu");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuItemBranch", b =>
+                {
+                    b.HasOne("Cloud.Data.MenuItem", "MenuItem")
+                        .WithMany("Branches")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuItemTypePrice", b =>
+                {
+                    b.HasOne("Cloud.Data.MenuItem", "MenuItem")
+                        .WithMany("TypePrices")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cloud.Data.MenuOrderType", "OrderType")
+                        .WithMany()
+                        .HasForeignKey("OrderTypeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("MenuItem");
+
+                    b.Navigation("OrderType");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuOrderType", b =>
+                {
+                    b.HasOne("Cloud.Data.Menu", "Menu")
+                        .WithMany("OrderTypes")
                         .HasForeignKey("MenuId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -777,9 +952,20 @@ namespace Cloud.Data.Migrations
 
             modelBuilder.Entity("Cloud.Data.Menu", b =>
                 {
+                    b.Navigation("Branches");
+
                     b.Navigation("Items");
 
+                    b.Navigation("OrderTypes");
+
                     b.Navigation("Sections");
+                });
+
+            modelBuilder.Entity("Cloud.Data.MenuItem", b =>
+                {
+                    b.Navigation("Branches");
+
+                    b.Navigation("TypePrices");
                 });
 
             modelBuilder.Entity("Cloud.Data.Site", b =>

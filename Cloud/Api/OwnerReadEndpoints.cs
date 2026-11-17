@@ -66,13 +66,14 @@ internal static class OwnerReadEndpoints
     /// <c>nextCursor</c> is opaque: send it back as <c>cursor</c> to continue. <c>hasMore</c> says whether another page exists.
     /// </summary>
     private static async Task<IResult> Rows(HttpContext http, ControlDbContext db, TimeProvider time, MirrorStore mirrors,
-        string? table, string? cursor, int? limit)
+        string? table, string? cursor, int? limit, bool? newest, long? before)
     {
         var (who, refusal) = await GateAsync(http, db, time);
         if (refusal is not null) return refusal;
         if (string.IsNullOrWhiteSpace(table) || table.Length > 100)
             return Results.Json(new SyncError("bad_request", "Say which table to read."), SyncWire.Json, statusCode: StatusCodes.Status400BadRequest);
         if (!OwnerRoles.MayRead(who!.User.Can, table)) return NotAllowed();
+        if (newest == true) return Newest(who, mirrors, table, before, limit);
         if (!TryParseCursor(cursor, out var afterUpdatedAt, out var afterId))
             return Results.Json(new SyncError("bad_request", "That cursor is not one the cloud gave out."), SyncWire.Json, statusCode: StatusCodes.Status400BadRequest);
 
@@ -89,6 +90,29 @@ internal static class OwnerReadEndpoints
             rows = page.Select(r => new { id = r.Id, payload = r.Payload }),
             nextCursor = next,
             hasMore = found.Count > take,
+        }, SyncWire.Json);
+    }
+
+    /// <summary>
+    /// <c>?newest=true</c>: one page of a table's rows, highest row id first, below <c>before</c>. This is how the owner site reads a
+    /// table that only grows (receipts and their lines): a page at a time, newest first, instead of the shop's whole history on every visit.
+    /// The first page (no <c>before</c>) also carries <c>changesCursor</c>: the ordinary <c>cursor</c> to ask later for what arrived or
+    /// changed since (a new receipt, a void), so a refresh does not start over.
+    /// </summary>
+    private static IResult Newest(OwnerPrincipal who, MirrorStore mirrors, string table, long? before, int? limit)
+    {
+        var take = Math.Clamp(limit ?? 100, 1, MaxRowsPerPage);
+        var found = mirrors.ReadNewestEncryptedRows(who.Site!.Id, table, before, take + 1);
+        var page = found.Take(take).ToList();
+        var last = before is null ? mirrors.LastArrival(who.Site.Id, table) : null;
+        return Results.Json(new
+        {
+            asOfUtc = AsUtc(who.Site.LastSyncAt),
+            shopPlan = who.Site.ShopPlan,
+            rows = page.Select(r => new { id = r.Id, payload = r.Payload }),
+            hasMore = found.Count > take,
+            nextBefore = page.Count == 0 ? before : page[^1].Id,
+            changesCursor = last is null ? null : FormatCursor(last),
         }, SyncWire.Json);
     }
 
