@@ -402,10 +402,114 @@
     var text = shop + ' · ' + (W.order || '') + (where ? '\n' + where : '') + '\n\n' +
       order.lines.map(function (l) { return l.n + ' × ' + l.name + ' — ' + money(l.cents * l.n, l.cur); }).join('\n') +
       '\n\n' + (W.total || '') + ': ' + total(order.lines) + '\n' + link;
+    // A shop with WhatsApp gets the order there, already written; the guest only presses send.
+    if (body.dataset.wa) { window.open('https://wa.me/' + body.dataset.wa + '?text=' + encodeURIComponent(text), '_blank', 'noopener'); return; }
     var label = btn.querySelector('span'), was = label.textContent;
     function copied() { label.textContent = W.copied; setTimeout(function () { label.textContent = was; }, 2000); }
     if (navigator.share) { navigator.share({ title: shop, text: text }).catch(function () { }); return; }
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(copied, function () { });
+  }
+
+  /* ---- sending the order to the shop (when the shop takes orders), and following it ----
+     The phone sends only which dishes and how many; the cloud prices them. After that the order lives in the cloud, and this phone keeps
+     its token (never shown, never shared) to ask where it stands: every few seconds while the sheet is open, now and then otherwise. */
+  var ck = document.getElementById('checkout');
+  var ORDERS = base.replace(/\/items$/, '/orders'), SENT_KEY = 'coduo-sent:' + base, GUEST_KEY = 'coduo-guest';
+  var sent = null, heard = null, timer2 = 0;
+  try { sent = JSON.parse(localStorage.getItem(SENT_KEY)); } catch (e) { }
+  if (sent && !(sent.at > Date.now() - TTL)) sent = null;
+  var tracker = $('tracker');
+  function keepSent() { try { sent ? localStorage.setItem(SENT_KEY, JSON.stringify(sent)) : localStorage.removeItem(SENT_KEY); } catch (e) { } }
+  function closed(o) { return o && (o.status === 'done' || o.status === 'rejected'); }
+
+  function checkoutMode(done) {
+    $('ck-form').hidden = done; $('ck-done').hidden = !done;
+    $('ck-send').hidden = done; $('ck-back').hidden = !done;
+  }
+  function openCheckout() {
+    var g = {};
+    try { g = JSON.parse(localStorage.getItem(GUEST_KEY)) || {}; } catch (e) { }
+    ['name', 'phone', 'place'].forEach(function (k) { if (g[k] && !$('ck-' + k).value) $('ck-' + k).value = g[k]; });
+    var n = count();
+    $('ck-h').textContent = ck.dataset.title || (ck.dataset.title = $('ck-h').textContent);
+    $('ck-meta').textContent = (n === 1 ? W.one : (W.many || '').replace('{n}', n)) + (body.dataset.typeName ? ' · ' + body.dataset.typeName : '');
+    $('ck-total').textContent = total(order.lines);
+    $('ck-err').hidden = true;
+    checkoutMode(false);
+    show(ck);
+    setTimeout(function () { (!$('ck-name').value ? $('ck-name') : $('ck-send')).focus({ preventScroll: true }); }, 60);
+  }
+  function drawSent(o) {
+    heard = o;
+    $('ck-h').textContent = W.sentTitle || '';
+    $('ck-num').textContent = '#' + o.number;
+    $('ck-meta').textContent = [o.branch, o.orderType].filter(Boolean).join(' · ');
+    var reached = { 'new': 0, accepted: 1, ready: 2, done: 3, rejected: -1 }[o.status];
+    [].forEach.call($('ck-track').children, function (li, k) { li.classList.toggle('on', reached >= k); li.classList.toggle('now', reached === k || (reached === 3 && k === 2)); });
+    $('ck-track').classList.toggle('off', o.status === 'rejected');
+    $('ck-state').textContent = W['st_' + o.status] || '';
+    $('ck-state').className = 'ck-state s-' + o.status;
+    var list = $('ck-lines'); list.textContent = '';
+    o.lines.forEach(function (l) {
+      var li = el('li', 'ln'), q = el('span', 'q', l.quantity + '×'), nm = el('div'), b = el('b', null, l.name), sum = el('span', 'sum', l.total);
+      q.dir = 'ltr'; b.dir = 'auto'; sum.dir = 'ltr'; nm.appendChild(b); li.appendChild(q); li.appendChild(nm); li.appendChild(sum); list.appendChild(li);
+    });
+    $('ck-sum').textContent = o.total;
+    paintTracker();
+  }
+  function paintTracker() {
+    if (!tracker) return;
+    tracker.hidden = !sent || !heard;
+    if (tracker.hidden) return;
+    tracker.className = 'tracker s-' + heard.status;
+    $('tracker-t').textContent = (W.number || '#{n}').replace('{n}', heard.number) + ' · ' + (W['sh_' + heard.status] || '');
+  }
+  function follow() {
+    clearTimeout(timer2);
+    if (!sent) return;
+    fetch(ORDERS + '/' + encodeURIComponent(sent.token), { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then(function (r) { if (r.status === 404) { sent = null; keepSent(); paintTracker(); return null; } return r.ok ? r.json() : null; })
+      .then(function (o) { if (o) drawSent(o); }, function () { })
+      .then(function () {
+        if (!sent || closed(heard)) return;
+        timer2 = setTimeout(follow, ck && ck.open ? 6000 : 20000);
+      });
+  }
+
+  if (ck) {
+    sheet(ck);
+    orderSheet.addEventListener('click', function (e) { if (e.target.closest('[data-checkout]')) openCheckout(); });
+    if (tracker) tracker.addEventListener('click', function () { if (heard) { drawSent(heard); checkoutMode(true); show(ck); follow(); } });
+    // Once the guest has seen the final word (done, or turned down) the bar goes.
+    ck.addEventListener('close', function () { if (closed(heard)) { sent = null; heard = null; keepSent(); paintTracker(); } });
+    $('ck-name').addEventListener('input', function () { $('ck-err').hidden = true; });
+    $('ck-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var err = $('ck-err'), go = $('ck-send'), name = $('ck-name').value.trim();
+      err.hidden = true;
+      if (!name) { err.textContent = W.needName; err.hidden = false; $('ck-name').focus(); return; }
+      if (!order.lines.length) return;
+      var guest = { name: name, phone: $('ck-phone').value.trim(), place: $('ck-place').value.trim() };
+      var payload = { b: branch || null, t: type ? +type : null, preview: preview || null, name: guest.name, phone: guest.phone, place: guest.place,
+        note: $('ck-note').value.trim(), lines: order.lines.map(function (l) { return { id: l.id, n: l.n }; }) };
+      var label = go.querySelector('.go-l'), was = label.textContent;
+      go.disabled = true; label.textContent = W.sending;
+      fetch(ORDERS, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(payload) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (!res.ok) { err.textContent = res.j.message || W.netErr; err.hidden = false; return; }
+          try { localStorage.setItem(GUEST_KEY, JSON.stringify(guest)); } catch (x) { }
+          $('ck-note').value = '';
+          sent = { token: res.j.token, number: res.j.number, at: Date.now() }; keepSent();
+          order.lines = []; save(); paint();
+          drawSent(res.j); checkoutMode(true);
+          ck.querySelector('.sheet-scroll').scrollTop = 0;
+          $('ck-back').focus({ preventScroll: true });
+          follow();
+        }, function () { err.textContent = W.netErr; err.hidden = false; })
+        .then(function () { go.disabled = false; label.textContent = was; });
+    });
+    follow();
   }
 
   paint();
@@ -422,8 +526,22 @@
     a.setAttribute('aria-current', 'true');
     chips.scrollTo({ left: a.offsetLeft - chips.clientWidth / 2 + a.clientWidth / 2, behavior: 'smooth' });
   }
-  var spy = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (e.isIntersecting) mark(e.target.id); });
-  }, { rootMargin: '-140px 0px -60% 0px' });
-  secs.forEach(function (s) { spy.observe(s); });
+  // The section on screen is the last one whose top has passed just under the bar stuck at the top. Worked out from where things
+  // are on every scroll (not from sections entering a band), so going back up to an earlier section marks it too.
+  var bar = document.querySelector('.cats'), ticking = false;
+  // A tapped chip scrolls its section to just under the bar; the bar's height depends on what it holds (order types, search, chips).
+  function pad() { document.documentElement.style.scrollPaddingTop = (bar.offsetHeight + 12) + 'px'; }
+  pad();
+  window.addEventListener('resize', pad);
+  function spy() {
+    ticking = false;
+    var line = bar.getBoundingClientRect().bottom + 16, on = secs[0];
+    var atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    secs.forEach(function (s) { if (!s.hidden && s.getBoundingClientRect().top <= line) on = s; });
+    if (atEnd) on = secs[secs.length - 1];
+    if (on) mark(on.id);
+  }
+  window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(spy); } }, { passive: true });
+  [].forEach.call(chips.querySelectorAll('a'), function (a) { a.addEventListener('click', function () { mark(a.getAttribute('href').slice(1)); }); });
+  spy();
 })();

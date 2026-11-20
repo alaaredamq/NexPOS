@@ -25,6 +25,28 @@ export interface ProductFormValues {
 /** The units the old form offered (labels are the `Prod_Unit_*` keys). */
 export const UNITS = ['piece', 'kg', 'lb', 'liter', 'gallon', 'box', 'pack'] as const
 
+/** Units a product is weighed or measured in; every other unit (or none) is counted. */
+const MEASURED: Record<string, { family: 'weight' | 'volume'; short: string }> = {
+  kg: { family: 'weight', short: 'kg' },
+  lb: { family: 'weight', short: 'lb' },
+  liter: { family: 'volume', short: 'L' },
+  gallon: { family: 'volume', short: 'gal' },
+}
+
+/**
+ * How a product is sold, from its stored unit: `measured` is the short symbol for quantities and prices (`12.5 kg`, `$4 / kg`)
+ * when it is weighed or measured, null when it is counted (piece, box, pack, or no unit).
+ */
+export function describeUnit(unit: string | null | undefined): {
+  key: string
+  family: 'weight' | 'volume' | 'count'
+  measured: string | null
+} {
+  const key = (unit ?? '').trim().toLowerCase() || 'piece'
+  const m = MEASURED[key]
+  return { key, family: m?.family ?? 'count', measured: m?.short ?? null }
+}
+
 /** Localized texts of every rule, so the schema itself stays free of i18n (and testable without it). */
 export interface ProductFormMessages {
   nameRequired: string

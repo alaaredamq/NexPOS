@@ -204,6 +204,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddHttpClient(OnlineSyncService.HttpClientName);
             services.AddSingleton<OnlineConnection>();
             services.AddSingleton<IOnlineConnection>(sp => sp.GetRequiredService<OnlineConnection>());
+            services.AddSingleton<MenuOrderInbox>();
             services.AddSingleton(new CommandLedger(
                 Path.Combine(Path.GetDirectoryName(Path.GetFullPath(settingsFilePath))!, "online-commands.json")));
             services.AddHostedService<OnlineSyncService>();

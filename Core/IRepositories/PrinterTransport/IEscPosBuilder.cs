@@ -21,6 +21,9 @@ public interface IEscPosBuilder
     /// <summary>ESC/POS job for any document - same text-vs-image choice as <see cref="BuildReceipt"/>.</summary>
     byte[] BuildPrintJob(PrintDocument document);
 
+    /// <summary>The document for a 2-in-1 printer in label mode (it ignores ESC/POS there): its picture as TSPL on continuous paper.</summary>
+    byte[] BuildLabelModeJob(PrintDocument document);
+
     /// <summary>
     /// The document as a PDF with the same layout (and Arabic shaping) as the printed slip.
     /// Receipt paper gives one receipt-width page; A4 paginates long reports.

@@ -7,6 +7,7 @@ import { LanguageToggle } from '@/shell/LanguageToggle'
 import { UserMenu } from '@/shell/UserMenu'
 import { flattenNav } from '@/shell/nav'
 import { Icon } from '@/ui/Icon'
+import { OnlineOrdersButton } from '../online/OnlineOrdersButton'
 import { usePosUi } from '../slots'
 import styles from './layout.module.css'
 
@@ -68,6 +69,7 @@ export function PosTopBar({ onShowShortcuts, onReviewCart }: PosTopBarProps) {
         <Icon name="cart" size={18} />
         <span className={styles.badge}>{cartCount}</span>
       </button>
+      <OnlineOrdersButton />
       <DrawerChip />
       <Clock />
       <button type="button" className={styles.iconBtn} onClick={onShowShortcuts} aria-label={t('KeyboardShortcuts')} title={t('KeyboardShortcuts')}>

@@ -62,6 +62,15 @@ export function useInstalledPrinters() {
   })
 }
 
+/** Records the mode a 2-in-1 printer is set to ("receipt" / "label"; null forgets it). Saved at once. */
+export function useSetPrinterMode() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { printerName: string; mode: 'receipt' | 'label' | null }) => http.put<PrintingSettings>('/settings/printers/mode', input),
+    onSuccess: (saved) => client.setQueryData(settingsKeys.printing, saved),
+  })
+}
+
 export function useTestPrinter() {
   return useMutation({ mutationFn: (printerName: string) => http.post<PrinterTestResult>('/settings/printers/test', { printerName }) })
 }

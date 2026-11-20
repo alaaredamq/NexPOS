@@ -16,6 +16,17 @@ public class CustomerRepository : Repository<Customer>, ICustomerRepository
     public async Task<List<Customer>> GetAllWithOrdersAsync() =>
         await GetAllQueryable().Include(c => c.Orders).AsSplitQuery().ToListAsync();
 
+    public async Task<List<Customer>> FindByPhoneAsync(string phone)
+    {
+        var key = PhoneMatch.Key(phone);
+        if (key is null) return [];
+        // The database cannot strip spaces and dashes for us, so narrow it down by the last three digits (they are always written
+        // together at the end) and compare the whole number here.
+        var tail = key[^3..];
+        var candidates = await GetAllQueryable().Where(c => c.PhoneNumber != null && c.PhoneNumber.Contains(tail)).ToListAsync();
+        return candidates.Where(c => PhoneMatch.Same(c.PhoneNumber, phone)).OrderBy(c => c.Id).ToList();
+    }
+
     public async Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take)
     {
         var query = GetAllQueryable();

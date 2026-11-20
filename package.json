@@ -1,6 +1,6 @@
 {
   "name": "nexpos-desktop-app",
-  "version": "2.6.0",
+  "version": "2.6.6",
   "description": "Coduo POS Desktop Application",
   "main": "electron-main.js",
   "scripts": {

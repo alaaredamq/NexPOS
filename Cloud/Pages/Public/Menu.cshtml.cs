@@ -19,7 +19,7 @@ namespace Cloud.Pages.Public;
 /// it scrolls into view. Search asks the server too, so it finds items that are not loaded yet.
 /// </para>
 /// </summary>
-public class MenuModel(ControlDbContext db) : PageModel
+public class MenuModel(ControlDbContext db, PortalFormat clock) : PageModel
 {
     public const int FirstPaint = 60;
 
@@ -29,7 +29,13 @@ public class MenuModel(ControlDbContext db) : PageModel
         public int Remaining => Total - Items.Count;
     }
 
-    public sealed record BranchChoice(string Slug, string Name);
+    public sealed record BranchChoice(string Slug, string Name, string? Address, string? Status, bool? Open);
+
+    /// <summary>A way to reach the shop, drawn as a round button in the header: what it is (an icon id), its label, and where it goes.</summary>
+    public sealed record Action(string Icon, string Label, string Href, bool External);
+
+    /// <summary>A line of the hours table: the day(s), their hours, and whether today is among them.</summary>
+    public sealed record HoursRow(string Days, string Hours, bool Today);
 
     public Menu Menu { get; private set; } = null!;
     public List<Group> Groups { get; } = [];
@@ -68,8 +74,14 @@ public class MenuModel(ControlDbContext db) : PageModel
         Response.Headers.CacheControl = IsPreview ? "no-store" : "public, max-age=60";
 
         var context = await MenuContext.LoadAsync(db, menu, b, t);
-        Branches.AddRange(context.Branches.Count > 1 ? context.Branches.Select(x => new BranchChoice(x.Slug, x.Name)) : []);
-        if (context.Branch is { } chosen) { Branch = new BranchChoice(chosen.Slug, chosen.Name); _site = chosen.SiteId; }
+        _local = clock.Local(clock.Now);
+        BranchChoice Choice(MenuContext.BranchRow x)
+        {
+            var status = MenuHours.At(x.Hours ?? menu.Hours, _local);
+            return new BranchChoice(x.Slug, x.Name, x.Address ?? menu.Address, StatusText(status), status?.Open);
+        }
+        Branches.AddRange(context.Branches.Count > 1 ? context.Branches.Select(Choice) : []);
+        if (context.Branch is { } chosen) { Branch = Choice(chosen); _site = chosen.SiteId; _place = chosen; }
         OrderTypes = context.Types;
         OrderType = context.Type;
         if (NeedsBranch) return Page();
@@ -143,26 +155,139 @@ public class MenuModel(ControlDbContext db) : PageModel
         // {n} is the number of dishes; Arabic avoids its plural forms by putting the number after a label.
         ["one"] = T("1 item", "الأصناف: 1"),
         ["many"] = T("{n} items", "الأصناف: {n}"),
+        // Sending the order to the shop, and following it.
+        ["needName"] = T("Write your name, so the staff know whose order it is.", "اكتب اسمك ليعرف العاملون صاحب الطلب."),
+        ["sending"] = T("Sending…", "جارٍ الإرسال…"),
+        ["sentTitle"] = T("Order sent", "أُرسل الطلب"),
+        ["netErr"] = T("Could not send. Check your connection and try again.", "تعذّر الإرسال. تحقق من الاتصال وحاول مجدداً."),
+        ["number"] = T("Order #{n}", "الطلب رقم {n}"),
+        ["st_new"] = T("Sent. Waiting for the shop to accept it.", "أُرسل. بانتظار قبول المحل."),
+        ["st_accepted"] = T("Accepted. It is being prepared.", "قُبل. يجري تحضيره."),
+        ["st_ready"] = T("Ready!", "جاهز!"),
+        ["st_done"] = T("Done. Thank you!", "تم. شكراً لك!"),
+        ["st_rejected"] = T("The shop could not take this order. Please ask a member of staff.", "تعذّر على المحل قبول هذا الطلب. يرجى سؤال أحد العاملين."),
+        ["sh_new"] = T("Waiting", "بالانتظار"),
+        ["sh_accepted"] = T("Accepted", "مقبول"),
+        ["sh_ready"] = T("Ready", "جاهز"),
+        ["sh_done"] = T("Done", "تم"),
+        ["sh_rejected"] = T("Turned down", "مرفوض"),
     };
 
     public string? ShareImage =>
-        Menu.LogoFile is not null ? $"{Origin}/m/img/{Menu.LogoFile}"
+        Menu.CoverFile is not null ? $"{Origin}/m/img/{Menu.CoverFile}"
+        : Menu.LogoFile is not null ? $"{Origin}/m/img/{Menu.LogoFile}"
         : Groups.SelectMany(g => g.Items).FirstOrDefault(i => i.ImageFile is not null) is { } first ? $"{Origin}/m/img/{first.ImageFile}"
         : null;
 
     public string Description =>
         Menu.Tagline ?? T($"{Menu.Title}: the menu, with prices.", $"{Menu.Title}: القائمة والأسعار.");
+
+    // ---- the shop: its look, where it is, when it is open, how to reach it ----
+
+    private DateTime _local;
+    private MenuContext.BranchRow? _place;
+
+    public string Theme => MenuThemes.IsValid(Menu.Theme) ? Menu.Theme : MenuThemes.Default;
+
+    /// <summary>The Google Fonts stylesheet for this theme's headings (each theme has its own), plus the body, figures and Arabic faces.</summary>
+    public string FontHref => "https://fonts.googleapis.com/css2?" + Theme switch
+    {
+        MenuThemes.Ember => "family=Barlow+Condensed:wght@600;700;800",
+        MenuThemes.Saffron => "family=Fraunces:opsz,wght@9..144,600..800",
+        MenuThemes.Harbor => "family=Sora:wght@600;700;800",
+        MenuThemes.Plum => "family=Playfair+Display:wght@600..800",
+        MenuThemes.Charcoal => "family=Instrument+Serif:ital@0;1",
+        _ => "family=Bricolage+Grotesque:opsz,wght@12..96,600..800",
+    } + "&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;600&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap";
+
+    // A branch's own details win; what it leaves empty comes from the shop.
+    public string? Address => _place?.Address ?? Menu.Address;
+    public string? Phone => _place?.Phone ?? Menu.Phone;
+    private string? HoursText => _place?.Hours ?? Menu.Hours;
+    public string? MapLink => MenuContact.MapLink(_place?.MapUrl ?? (_place?.Address is null ? Menu.MapUrl : null), Address);
+
+    public MenuHours.Status? Status => MenuHours.At(HoursText, _local);
+    public string? StatusLine => StatusText(Status);
+
+    private static readonly string[] DaysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    private static readonly string[] DaysAr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    private static readonly string[] ShortEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    private string Day(int d) => Arabic ? DaysAr[d] : DaysEn[d];
+    private static string Clock(TimeOnly t) => t.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>"Open now · until 23:00", "Closed · opens 09:00", "Closed · opens Monday 09:00"; null when no hours were given.</summary>
+    private string? StatusText(MenuHours.Status? s)
+    {
+        if (s is null) return null;
+        if (s.Open) return s.Until is { } u ? T($"Open now · until {Clock(u)}", $"مفتوح الآن · حتى {Clock(u)}") : T("Open now", "مفتوح الآن");
+        if (s.Opens is not { } o) return T("Closed", "مغلق");
+        var day = s.OpensOn == _local.DayOfWeek ? "" : (s.OpensOn == (DayOfWeek)(((int)_local.DayOfWeek + 1) % 7) ? T("tomorrow ", "غداً ") : Day((int)s.OpensOn!) + " ");
+        return T($"Closed · opens {day}{Clock(o)}", $"مغلق · يفتح {day}{Clock(o)}");
+    }
+
+    /// <summary>The week, Monday first, with days that keep the same hours run together ("Mon – Fri").</summary>
+    public List<HoursRow> HoursTable
+    {
+        get
+        {
+            var week = MenuHours.Parse(HoursText);
+            var rows = new List<HoursRow>();
+            if (week is null) return rows;
+            var order = new[] { 1, 2, 3, 4, 5, 6, 0 };
+            string Text(int d) => week[d].Count == 0 ? T("Closed", "مغلق") : string.Join(", ", week[d].Select(r => $"{Clock(r.Open)}–{Clock(r.Close)}"));
+            string Name(int d) => Arabic ? DaysAr[d] : ShortEn[d];
+            var today = (int)_local.DayOfWeek;
+            for (var i = 0; i < order.Length;)
+            {
+                var j = i;
+                while (j + 1 < order.Length && Text(order[j + 1]) == Text(order[i])) j++;
+                var days = i == j ? (Arabic ? DaysAr[order[i]] : DaysEn[order[i]]) : $"{Name(order[i])} – {Name(order[j])}";
+                rows.Add(new HoursRow(days, Text(order[i]), order[i..(j + 1)].Contains(today)));
+                i = j + 1;
+            }
+            return rows;
+        }
+    }
+
+    /// <summary>The header's buttons: call, WhatsApp, directions, then the shop's pages. Only what the owner filled in.</summary>
+    public List<Action> Actions
+    {
+        get
+        {
+            var list = new List<Action>();
+            void Add(string icon, string label, string? href, bool external = true) { if (href is not null) list.Add(new Action(icon, label, href, external)); }
+            Add("phone", T("Call", "اتصل"), MenuContact.PhoneLink(Phone), false);
+            Add("whatsapp", "WhatsApp", MenuContact.WhatsAppLink(Menu.WhatsApp));
+            Add("pin", T("Directions", "الموقع"), MapLink);
+            Add("instagram", "Instagram", MenuContact.InstagramLink(Menu.Instagram));
+            Add("facebook", "Facebook", MenuContact.FacebookLink(Menu.Facebook));
+            Add("tiktok", "TikTok", MenuContact.TikTokLink(Menu.TikTok));
+            Add("globe", T("Website", "الموقع الإلكتروني"), MenuContact.WebsiteLink(Menu.Website));
+            return list;
+        }
+    }
+
+    /// <summary>Digits of the WhatsApp number, for sending the order there.</summary>
+    public string? WhatsAppDigits => string.IsNullOrWhiteSpace(Menu.WhatsApp) ? null : new string(Menu.WhatsApp.Where(char.IsAsciiDigit).ToArray());
+    /// <summary>The order sheet's WhatsApp button: the owner left it on, and there is a number.</summary>
+    public string? OrderWhatsApp => Menu.ShowWhatsApp ? WhatsAppDigits : null;
+    /// <summary>Whether "Send order" sends it to the shop (its order list or its till), or the order is only shown to staff.</summary>
+    public bool TakesOrders => Menu.OrderMode is MenuOrderModes.Request or MenuOrderModes.Pos;
+
+    /// <summary>Whether there is anything for the "Find us" part at the bottom.</summary>
+    public bool HasVisit => Address is not null || Phone is not null || HoursTable.Count > 0 || Menu.Note is not null;
 }
 
 /// <summary>Which branch and order type a public menu request is for; shared by the page and its <c>/items</c> feed.</summary>
 public sealed record MenuContext(List<MenuContext.BranchRow> Branches, MenuContext.BranchRow? Branch, List<MenuOrderType> Types, MenuOrderType? Type)
 {
-    public sealed record BranchRow(Guid SiteId, string Slug, string Name);
+    public sealed record BranchRow(Guid SiteId, string Slug, string Name, string? Address = null, string? MapUrl = null, string? Phone = null, string? Hours = null);
 
     public static async Task<MenuContext> LoadAsync(ControlDbContext db, Menu menu, string? b, int? t)
     {
         var branches = await db.MenuBranches.AsNoTracking().Where(x => x.MenuId == menu.Id && !x.Site.IsDisabled)
-            .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).Select(x => new BranchRow(x.SiteId, x.Slug, x.Site.Name)).ToListAsync();
+            .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new BranchRow(x.SiteId, x.Slug, x.Site.Name, x.Address, x.MapUrl, x.Phone, x.Hours)).ToListAsync();
         // One branch: it is the branch, no question asked. Several: the one named, or none yet.
         var branch = branches.Count == 1 ? branches[0] : branches.FirstOrDefault(x => x.Slug == b?.ToLowerInvariant());
         var types = await db.MenuOrderTypes.AsNoTracking().Where(x => x.MenuId == menu.Id).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync();

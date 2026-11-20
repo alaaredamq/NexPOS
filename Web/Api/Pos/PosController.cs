@@ -121,6 +121,17 @@ public sealed class PosController : PosControllerBase
     public async Task<ActionResult<PosCustomerPageDto>> Customers([FromQuery] PagedQuery query)
         => await _lookup.SearchCustomersAsync(query.Q, query.Page, Math.Min(query.PageSize, PosLookupService.MaxCustomerPageSize));
 
+    /// <summary>
+    /// The customers whose phone is this number, however either is written ("+961 70 123 456" finds "70123456"). For an online order:
+    /// the till suggests the matching customer and the cashier confirms. Too few digits to tell anyone apart: an empty list.
+    /// </summary>
+    [HttpGet("customers/by-phone")]
+    [AnySignedInUser]
+    [ProducesResponseType<IReadOnlyList<PosCustomerDto>>(StatusCodes.Status200OK)]
+    [SwaggerOperation(OperationId = "findPosCustomersByPhone")]
+    public async Task<ActionResult<IReadOnlyList<PosCustomerDto>>> CustomersByPhone([FromQuery] string? phone)
+        => Ok(string.IsNullOrWhiteSpace(phone) ? [] : await _lookup.FindCustomersByPhoneAsync(phone));
+
     /// <summary>Adds a customer from inside the checkout / hold dialogs so the cashier never leaves (and loses) the cart. First and last name only.</summary>
     [HttpPost("customers")]
     [RequirePermission(PermissionHelper.Permissions.Customers_Create)]

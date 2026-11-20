@@ -26,6 +26,31 @@ public class Menu
     /// <summary>How the dishes are laid out on the public page; one of <see cref="MenuListingStyles.All"/>. Each shop picks its own.</summary>
     public string ListingStyle { get; set; } = MenuListingStyles.Default;
     public string? LogoFile { get; set; }
+    /// <summary>A wide photo across the top of the page (the shop front, the dining room, a signature dish).</summary>
+    public string? CoverFile { get; set; }
+    /// <summary>The page's colours; one of <see cref="MenuThemes.All"/>.</summary>
+    public string Theme { get; set; } = MenuThemes.Default;
+
+    // How to find and reach the shop. A branch can have its own (MenuBranch); these are the shop's, used where a branch has none.
+    public string? Address { get; set; }
+    /// <summary>A map link (Google Maps, Apple Maps...). Empty = a map search for <see cref="Address"/>.</summary>
+    public string? MapUrl { get; set; }
+    public string? Phone { get; set; }
+    /// <summary>The WhatsApp number, digits with the country code. Guests can also send their order there.</summary>
+    public string? WhatsApp { get; set; }
+    /// <summary>Handles or links, kept as the owner typed them and turned into links by <see cref="MenuContact"/>.</summary>
+    public string? Instagram { get; set; }
+    public string? Facebook { get; set; }
+    public string? TikTok { get; set; }
+    public string? Website { get; set; }
+    /// <summary>Opening hours for each weekday, in <see cref="MenuHours"/> form. Null = not given.</summary>
+    public string? Hours { get; set; }
+
+    /// <summary>What "Send order" does: one of <see cref="MenuOrderModes.All"/>.</summary>
+    public string OrderMode { get; set; } = MenuOrderModes.Default;
+    /// <summary>Whether the guest's order shows a WhatsApp button (needs <see cref="WhatsApp"/>).</summary>
+    public bool ShowWhatsApp { get; set; } = true;
+
     /// <summary>Off = the address answers 404, so the owner can prepare the menu before sharing it.</summary>
     public bool IsPublished { get; set; }
     /// <summary>Random letters that open the page before it is published (?preview=...), so the owner can check it first.</summary>
@@ -61,6 +86,12 @@ public class MenuBranch
     public DateTime? CatalogAt { get; set; }
     /// <summary>This branch's till decides the order of its sections and items (its online-menu screen is in use).</summary>
     public bool PosArranged { get; set; }
+
+    // Where this branch is and how to reach it; each one left empty falls back to the menu's own.
+    public string? Address { get; set; }
+    public string? MapUrl { get; set; }
+    public string? Phone { get; set; }
+    public string? Hours { get; set; }
 }
 
 /// <summary>A heading on the menu ("Burgers"). One that came from a POS takes its name from it.</summary>
@@ -70,6 +101,12 @@ public class MenuSection
     public int MenuId { get; set; }
     public Menu Menu { get; set; } = null!;
     public string Name { get; set; } = "";
+    /// <summary>A line under the heading ("Served until noon", "All burgers come with fries"). Set here, also for POS sections.</summary>
+    public string? Description { get; set; }
+    /// <summary>A picture for the heading and its chip at the top. Set here, also for POS sections.</summary>
+    public string? ImageFile { get; set; }
+    /// <summary>How <see cref="ImageFile"/> shows: a banner behind the heading, or a small logo before its name. See <see cref="MenuSectionPicture"/>.</summary>
+    public string PictureAs { get; set; } = MenuSectionPicture.Banner;
     public int SortOrder { get; set; }
     public bool IsHidden { get; set; }
     /// <summary>Set when a POS made it: what it mirrors at the branch that made it (<c>s12</c> = online-menu section 12, <c>c5</c> =
@@ -148,6 +185,16 @@ public class MenuItemTypePrice
     public int OrderTypeId { get; set; }
     public MenuOrderType OrderType { get; set; } = null!;
     public decimal Price { get; set; }
+}
+
+/// <summary>How a section's picture shows on the menu.</summary>
+public static class MenuSectionPicture
+{
+    /// <summary>A wide photo behind the heading, the name written on it.</summary>
+    public const string Banner = "banner";
+    /// <summary>A small square before the name (a logo, an icon, a brand's mark).</summary>
+    public const string Icon = "icon";
+    public static bool IsValid(string? s) => s is Banner or Icon;
 }
 
 public static class MenuPriceAdjust

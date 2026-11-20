@@ -33,6 +33,8 @@ public class ControlDbContext : DbContext
     public DbSet<MenuItemBranch> MenuItemBranches => Set<MenuItemBranch>();
     public DbSet<MenuOrderType> MenuOrderTypes => Set<MenuOrderType>();
     public DbSet<MenuItemTypePrice> MenuItemTypePrices => Set<MenuItemTypePrice>();
+    public DbSet<MenuOrder> MenuOrders => Set<MenuOrder>();
+    public DbSet<MenuOrderLine> MenuOrderLines => Set<MenuOrderLine>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -115,6 +117,20 @@ public class ControlDbContext : DbContext
             e.Property(x => x.Language).HasMaxLength(2);
             e.Property(x => x.Currency).HasMaxLength(10);
             e.Property(x => x.LogoFile).HasMaxLength(60);
+            e.Property(x => x.CoverFile).HasMaxLength(60);
+            e.Property(x => x.Theme).HasMaxLength(12).HasDefaultValue(MenuThemes.Default);
+            e.Property(x => x.Address).HasMaxLength(300);
+            e.Property(x => x.MapUrl).HasMaxLength(500);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.WhatsApp).HasMaxLength(30);
+            e.Property(x => x.Instagram).HasMaxLength(200);
+            e.Property(x => x.Facebook).HasMaxLength(200);
+            e.Property(x => x.TikTok).HasMaxLength(200);
+            e.Property(x => x.Website).HasMaxLength(200);
+            e.Property(x => x.Hours).HasMaxLength(400);
+            e.Property(x => x.OrderMode).HasMaxLength(10).HasDefaultValue(MenuOrderModes.Default);
+            // Sentinel true: EF leaves "true" to the column default and always writes "false" (a default of true otherwise eats false).
+            e.Property(x => x.ShowWhatsApp).HasDefaultValue(true).HasSentinel(true);
             e.Property(x => x.PreviewKey).HasMaxLength(32);
             // Menus made before the choice existed get the default.
             e.Property(x => x.ListingStyle).HasMaxLength(12).HasDefaultValue(MenuListingStyles.Default);
@@ -132,6 +148,10 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => new { x.MenuId, x.Slug }).IsUnique();
             e.Property(x => x.Slug).HasMaxLength(40);
             e.Property(x => x.CatalogHash).HasMaxLength(64);
+            e.Property(x => x.Address).HasMaxLength(300);
+            e.Property(x => x.MapUrl).HasMaxLength(500);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.Hours).HasMaxLength(400);
             // Restrict: a branch is removed through SiteRemoval, which takes it off the menu first.
             e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -153,6 +173,34 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => new { x.MenuId, x.SortOrder });
         });
 
+        b.Entity<MenuOrder>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.MenuId, x.Number }).IsUnique();
+            e.HasIndex(x => x.Token).IsUnique();
+            e.HasIndex(x => new { x.MenuId, x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.SiteId, x.Status });
+            e.Property(x => x.Token).HasMaxLength(32);
+            e.Property(x => x.Route).HasMaxLength(10);
+            e.Property(x => x.BranchName).HasMaxLength(200);
+            e.Property(x => x.OrderType).HasMaxLength(60);
+            e.Property(x => x.GuestName).HasMaxLength(80);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.Place).HasMaxLength(300);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.Status).HasMaxLength(10);
+            e.HasOne(x => x.Menu).WithMany().HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuOrderLine>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            e.HasOne(x => x.Order).WithMany(x => x.Lines).HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<MenuItemTypePrice>(e =>
         {
             e.HasIndex(x => new { x.MenuItemId, x.OrderTypeId }).IsUnique();
@@ -167,6 +215,9 @@ public class ControlDbContext : DbContext
         {
             e.Property(x => x.Name).HasMaxLength(120);
             e.Property(x => x.PosKey).HasMaxLength(20);
+            e.Property(x => x.Description).HasMaxLength(200);
+            e.Property(x => x.ImageFile).HasMaxLength(60);
+            e.Property(x => x.PictureAs).HasMaxLength(8).HasDefaultValue(MenuSectionPicture.Banner);
             e.HasIndex(x => new { x.MenuId, x.SortOrder });
         });
 

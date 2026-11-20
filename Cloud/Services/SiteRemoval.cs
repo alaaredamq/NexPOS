@@ -39,7 +39,9 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
         // The online menu and its pictures.
         var menuIds = await db.Menus.Where(m => m.ClientId == clientId).Select(m => m.Id).ToListAsync();
         var files = await db.MenuItems.Where(i => menuIds.Contains(i.MenuId) && i.ImageFile != null).Select(i => i.ImageFile)
-            .Concat(db.Menus.Where(m => m.ClientId == clientId && m.LogoFile != null).Select(m => m.LogoFile)).ToListAsync();
+            .Concat(db.Menus.Where(m => m.ClientId == clientId && m.LogoFile != null).Select(m => m.LogoFile))
+            .Concat(db.Menus.Where(m => m.ClientId == clientId && m.CoverFile != null).Select(m => m.CoverFile))
+            .Concat(db.MenuSections.Where(s => menuIds.Contains(s.MenuId) && s.ImageFile != null).Select(s => s.ImageFile)).ToListAsync();
 
         await using var tx = await db.Database.BeginTransactionAsync();
         // Phone sign-ins belong to the client (restricted FK), so they must go before the client row does.

@@ -15,7 +15,8 @@ import { Select } from '@/ui/Select'
 import { toast } from '@/ui/toast'
 import { zodResolver } from '../_shared/zodResolver'
 import { getPrinterName, setPrinterName } from '../products/labels/stickerLabel'
-import { useInstalledPrinters, usePrintingSettings, useSavePrintingSettings, useTestPrinter, type PrintingSettings } from './api'
+import { ChipGroup } from '@/ui/ChipGroup'
+import { useInstalledPrinters, usePrintingSettings, useSavePrintingSettings, useSetPrinterMode, useTestPrinter, type PrintingSettings } from './api'
 import { SettingsLayout } from './SettingsLayout'
 import styles from './settings.module.css'
 
@@ -130,6 +131,7 @@ function PrintersForm({ initial }: { initial: PrintingSettings }) {
           placeholder={t('Set_SelectPrinter', { ns: 'common' })}
           clearable
         />
+        {chosen && <PrinterModeSwitch printerName={chosen} />}
         <div className={styles.actions}>
           <Button onClick={() => void runTest()} loading={test.isPending} title={t('Set_TestTooltip', { ns: 'common' })}>
             {t('Set_Test', { ns: 'common' })}
@@ -186,6 +188,7 @@ function StickerPrinter() {
   const selected = options.find((o) => o.value === current) ?? null
 
   return (
+    <>
     <Field label={t('Set_StickerPrinter')} hint={desktop ? t('Set_StickerPrinterHelp') : t('Set_StickerDesktopOnly')}>
       {(a11y) => (
         <Select<string>
@@ -204,5 +207,46 @@ function StickerPrinter() {
         />
       )}
     </Field>
+    {current && <PrinterModeSwitch printerName={current} />}
+    </>
+  )
+}
+
+/**
+ * Which language a printer is listening for. Only matters for a 2-in-1 printer (Xprinter XP-365B), which is set to receipt or label mode
+ * on the printer itself and ignores the other: with this set, receipts and labels both go out in the language it is listening for.
+ * Kept per printer name for the whole shop, saved the moment it is picked.
+ */
+function PrinterModeSwitch({ printerName }: { printerName: string }) {
+  const { t } = useTranslation('settings')
+  const settings = usePrintingSettings()
+  const setMode = useSetPrinterMode()
+  const value = settings.data?.printerModes?.[printerName] ?? 'none'
+  const options = [
+    { value: 'none', label: t('PrinterModeNone') },
+    { value: 'receipt', label: t('PrinterModeReceipt') },
+    { value: 'label', label: t('PrinterModeLabel') },
+  ]
+  return (
+    <div className={styles.modeSwitch}>
+      <span className={styles.modeLabel}>{t('PrinterMode')}</span>
+      <ChipGroup
+        options={options}
+        value={value}
+        size="sm"
+        aria-label={t('PrinterMode')}
+        onChange={(next) => {
+          const mode = next === 'receipt' || next === 'label' ? next : null
+          setMode.mutate(
+            { printerName, mode },
+            {
+              onSuccess: () => toast.success(t('PrinterModeSaved')),
+              onError: (error) => toast.error(isApiError(error) ? error.message : t('common.actionFailed', { ns: 'common' })),
+            },
+          )
+        }}
+      />
+      <p className={styles.modeHint}>{t(value === 'label' ? 'PrinterModeLabelHint' : value === 'receipt' ? 'PrinterModeReceiptHint' : 'PrinterModeNoneHint')}</p>
+    </div>
   )
 }

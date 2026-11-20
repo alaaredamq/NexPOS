@@ -78,6 +78,23 @@ public sealed record PrintingSettingsDto
 
     /// <summary>Barcode sticker height in millimetres (10 - 150).</summary>
     public required int StickerHeightMm { get; init; }
+
+    /// <summary>
+    /// The mode each 2-in-1 printer is set to ("receipt" or "label"), by printer name. A printer that is not listed gets each job's default
+    /// language: receipts as receipt-printer commands, direct labels as label-printer commands.
+    /// </summary>
+    public required IReadOnlyDictionary<string, string> PrinterModes { get; init; }
+}
+
+/// <summary>Body of "this printer is set to receipt / label mode". <c>Mode</c> null forgets it.</summary>
+public sealed record PrinterModeRequest
+{
+    [Required]
+    [StringLength(200, MinimumLength = 1)]
+    public required string PrinterName { get; init; }
+
+    [RegularExpression("^(receipt|label)$")]
+    public string? Mode { get; init; }
 }
 
 /// <summary>Body of "save the printing settings".</summary>

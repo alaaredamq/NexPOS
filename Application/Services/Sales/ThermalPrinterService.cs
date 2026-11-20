@@ -54,6 +54,20 @@ public class ThermalPrinterService : IThermalPrinterService
 
     public List<string> GetAvailablePrinters() => _printer.GetAvailablePrinters();
 
+    public async Task<IReadOnlyDictionary<string, PrinterMode>> GetPrinterModesAsync()
+        => PrinterModes.Parse(await _systemSettingsService.GetSettingValueAsync(PrinterModes.SettingKey, ""));
+
+    public async Task<PrinterMode?> GetPrinterModeAsync(string printerName)
+        => (await GetPrinterModesAsync()).TryGetValue(printerName.Trim(), out var mode) ? mode : null;
+
+    public async Task SetPrinterModeAsync(string printerName, PrinterMode? mode)
+    {
+        var modes = new Dictionary<string, PrinterMode>(await GetPrinterModesAsync(), StringComparer.OrdinalIgnoreCase);
+        if (mode is { } set) modes[printerName.Trim()] = set;
+        else modes.Remove(printerName.Trim());
+        await _systemSettingsService.SetSettingValueAsync(PrinterModes.SettingKey, PrinterModes.Write(modes));
+    }
+
     public async Task<bool> TestPrintAsync(string printerName)
     {
         if (string.IsNullOrWhiteSpace(printerName))
@@ -92,8 +106,12 @@ public class ThermalPrinterService : IThermalPrinterService
     {
         try
         {
-            var bytes = _escPos.BuildPrintJob(document);
-            return _printer.SendBytes(printerName ?? await ResolveDefaultPrinterAsync(), bytes, jobName, quickFail);
+            printerName ??= await ResolveDefaultPrinterAsync();
+            // A 2-in-1 printer set to label mode ignores receipt commands: send it the slip as a label-printer picture instead.
+            var bytes = await GetPrinterModeAsync(printerName) == PrinterMode.Label
+                ? _escPos.BuildLabelModeJob(document)
+                : _escPos.BuildPrintJob(document);
+            return _printer.SendBytes(printerName, bytes, jobName, quickFail);
         }
         catch (Exception ex)
         {
@@ -108,6 +126,11 @@ public class ThermalPrinterService : IThermalPrinterService
     public async Task<bool> PrintTextAsync(string text, string? printerName = null)
     {
         printerName ??= await ResolveDefaultPrinterAsync();
+
+        // A printer in label mode gets the text as a picture in its own language (see PrintDocumentAsync).
+        if (await GetPrinterModeAsync(printerName) == PrinterMode.Label)
+            return _printer.SendBytes(printerName, _escPos.BuildLabelModeJob(new PrintDocument("Text Receipt",
+                text.TrimEnd().Split('\n').Select(l => PrintLine.Plain(l.TrimEnd('\r'))).ToList())), "Text Receipt");
 
         // Codepage 437 would turn Arabic (or any other non-437 character) into "?" -
         // print those as an image instead.

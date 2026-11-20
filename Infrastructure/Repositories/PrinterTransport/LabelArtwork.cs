@@ -44,7 +44,9 @@ internal static class LabelArtwork
             name = name.TrimEnd() + "…";
 
         var showPrice = label.ShowPrice && label.Price.Length > 0;
-        using var skuFont = Font(label.Code, Mm(1.7f), bold: false);
+        // On a printer (wholeDotBars) the small code is drawn bold: plain, its strokes are one dot wide and break up on paper,
+        // most of all on a 2-in-1 printer in receipt mode, which burns lighter. The PDF keeps the plain weight.
+        using var skuFont = Font(label.Code, Mm(1.7f), bold: wholeDotBars);
         using var priceFont = Font(label.Price, Mm(4f), bold: true);
 
         var nameHeight = nameFont.Size * 1.1f;

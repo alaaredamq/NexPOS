@@ -9,12 +9,20 @@ const crypto = require('crypto');
 // an update then does not log everyone out or lose their settings. Must run before the single-instance lock below.
 app.setPath('userData', path.join(app.getPath('appData'), 'NexPos'));
 
-// Web.exe binds a fixed port, so a second copy can't start - focus the first window instead.
-if (!app.requestSingleInstanceLock()) {
+// Only one Coduo POS may run: Web.exe binds a fixed port and owns the database. A second launch (shortcut, taskbar,
+// double-clicking twice while the first is still starting) hands over to the running copy and exits at once, before
+// it starts a server or opens a window. app.quit() alone is asynchronous, so whenReady below also checks this flag.
+const isPrimaryInstance = app.requestSingleInstanceLock();
+if (!isPrimaryInstance) {
   app.quit();
 }
-// Starting Coduo POS again (shortcut, taskbar) brings the window back, also when it is hidden in the tray.
-app.on('second-instance', () => showMainWindow());
+// Set once the server is up and the window exists. A second launch before that has nothing to show yet; the first
+// copy opens its window as soon as it is ready anyway.
+let startupDone = false;
+// Starting Coduo POS again brings the window back, also when it is hidden in the tray.
+app.on('second-instance', () => {
+  if (startupDone) showMainWindow();
+});
 
 // The web app refuses to start without Jwt:SecretKey. An installed copy has no user-secrets,
 // so generate a random per-machine key on first launch and keep it in the user's app-data folder.
@@ -80,8 +88,67 @@ function checkServerReady(retries = 0) {
   });
 }
 
+// True when something already answers on APP_URL. Fails fast (connection refused) in the normal case.
+function serverAnswers() {
+  return new Promise((resolve) => {
+    const req = require('http').get(APP_URL, (res) => { res.resume(); resolve(true); });
+    req.on('error', () => resolve(false));
+    req.setTimeout(1500, () => { req.destroy(); resolve(false); });
+  });
+}
+
+// We hold the single-instance lock, so a Web.exe from our own folder that is still running was left behind by a copy
+// that crashed or was ended in Task Manager. It still holds the port and the database (and after an update it is the
+// previous version), so end it before starting ours. Only that exact file is ended, never another program's Web.exe.
+async function endLeftoverServer(exePath) {
+  if (process.platform !== 'win32' || !(await serverAnswers())) return;
+  const { execFile } = require('child_process');
+  const script =
+    "Get-CimInstance Win32_Process -Filter \"Name='Web.exe'\" | " +
+    'Where-Object { $_.ExecutablePath -eq $env:NEXPOS_WEB_EXE } | ' +
+    'ForEach-Object { Stop-Process -Id $_.ProcessId -Force; $_.ProcessId }';
+  await new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+      windowsHide: true,
+      timeout: 10000,
+      env: Object.assign({}, process.env, { NEXPOS_WEB_EXE: exePath }),
+    }, (error, stdout) => {
+      if (error) console.error('Could not check for a leftover server:', error.message);
+      else if (stdout.trim()) console.log(`Ended leftover server process(es): ${stdout.trim()}`);
+      resolve();
+    });
+  });
+  // Give Windows a moment to release the port.
+  for (let i = 0; i < 10 && (await serverAnswers()); i++) await new Promise((r) => setTimeout(r, 300));
+}
+
 // Function to start the .NET application
-function startDotNetApp() {
+async function startDotNetApp() {
+  const exePath = findServerExe();
+  if (exePath) await endLeftoverServer(exePath);
+  return spawnDotNetApp();
+}
+
+// The Web.exe startDotNetApp will run, or null when it falls back to "dotnet run" / reports it missing.
+function findServerExe() {
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  const candidates = isDev
+    ? [
+        path.join(__dirname, 'publish', 'app', 'Web.exe'),
+        path.join(__dirname, 'Web', 'bin', 'Release', 'net9.0', 'win-x64', 'Web.exe'),
+        path.join(__dirname, 'Web', 'bin', 'Release', 'net9.0', 'Web.exe'),
+        path.join(__dirname, 'Web', 'bin', 'Debug', 'net9.0', 'Web.exe')
+      ]
+    : [
+        path.join(path.dirname(process.execPath), 'app', 'Web.exe'),
+        path.join(process.resourcesPath, 'app', 'Web.exe'),
+        path.join(__dirname, 'app', 'Web.exe'),
+        path.join(__dirname, 'Web.exe')
+      ];
+  return candidates.find((p) => fs.existsSync(p)) || null;
+}
+
+function spawnDotNetApp() {
   return new Promise((resolve, reject) => {
     // Determine the path to the .NET executable
     const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -491,6 +558,7 @@ function warmUp() {
 
 // App event handlers
 app.whenReady().then(async () => {
+  if (!isPrimaryInstance) return;
   try {
     if (EXTERNAL_SERVER_PID) {
       console.log('Using the web app started by Visual Studio...');
@@ -511,6 +579,7 @@ app.whenReady().then(async () => {
     console.log('Creating Electron window...');
     createTray();
     createWindow();
+    startupDone = true;
   } catch (error) {
     console.error('Failed to start application:', error);
     dialog.showErrorBox('Coduo POS failed to start',
