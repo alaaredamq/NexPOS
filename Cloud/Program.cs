@@ -40,6 +40,7 @@ builder.Services.AddSingleton(_ => MirrorStore.BuildSchema());
 builder.Services.AddSingleton<MirrorApplier>();
 builder.Services.AddSingleton<MirrorStore>();
 builder.Services.AddSingleton<LoginThrottle>();
+builder.Services.AddSingleton<Cloud.Api.MenuOrderThrottle>();
 builder.Services.AddSingleton<CommandBroker>();
 builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
@@ -114,7 +115,17 @@ using (var scope = app.Services.CreateScope())
 app.UseForwardedHeaders();
 app.UseLandingTemplateGuard();
 app.UseOldPortalRedirects();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // Pages, scripts and styles are not versioned in their URLs, so without this a browser keeps running the copy it saved
+    // for hours or days after a publish. "no-cache" still lets it keep the file; it just asks first and gets a cheap 304 if unchanged.
+    OnPrepareResponse = ctx =>
+    {
+        var ext = Path.GetExtension(ctx.File.Name);
+        if (ext is ".html" or ".js" or ".css" or ".json" or ".webmanifest")
+            ctx.Context.Response.Headers.CacheControl = "no-cache";
+    },
+});
 // "/" is the public Coduo POS landing page for everyone; the portal is at /admin (see PublicSite).
 app.UseLandingPage();
 app.UseRouting();

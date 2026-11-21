@@ -33,6 +33,15 @@ public interface IThermalPrinterService
     /// </summary>
     List<string> GetAvailablePrinters();
 
+    /// <summary>Each printer's mode as set on the Printers page (see <see cref="Core.Printing.PrinterModes"/>); unlisted printers have none.</summary>
+    Task<IReadOnlyDictionary<string, Core.Printing.PrinterMode>> GetPrinterModesAsync();
+
+    /// <summary>Records the mode a printer is set to (null forgets it, back to each job's default).</summary>
+    Task SetPrinterModeAsync(string printerName, Core.Printing.PrinterMode? mode);
+
+    /// <summary>The printer's recorded mode, or null when none was set.</summary>
+    Task<Core.Printing.PrinterMode?> GetPrinterModeAsync(string printerName);
+
     /// <summary>
     /// Prints a short test slip to the given printer, so a client can confirm their choice
     /// from Settings without ringing up a real sale.

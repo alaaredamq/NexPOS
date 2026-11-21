@@ -14,7 +14,7 @@ namespace Cloud.Api;
 /// <item>everyone: the page itself (Pages/Public/Menu) and its pictures (<c>/m/img/{file}</c>).</item>
 /// </list>
 /// </summary>
-public static class MenuEndpoints
+public static partial class MenuEndpoints
 {
     /// <summary>The admin portal's calls ride on its cookie; this header (which a cross-site form cannot send) keeps another site from making them.</summary>
     public const string AdminHeader = "X-Coduo-Menu";
@@ -27,16 +27,25 @@ public static class MenuEndpoints
         g.MapPut("/settings", SaveSettings);
         g.MapPut("/logo", (HttpContext h, ControlDbContext db, TimeProvider t, MenuImages img, int? client) => SetLogo(h, db, t, img, client));
         g.MapDelete("/logo", (HttpContext h, ControlDbContext db, TimeProvider t, MenuImages img, int? client) => DeleteLogo(h, db, t, img, client));
+        g.MapPut("/cover", (HttpContext h, ControlDbContext db, TimeProvider t, MenuImages img, int? client) => SetCover(h, db, t, img, client));
+        g.MapDelete("/cover", (HttpContext h, ControlDbContext db, TimeProvider t, MenuImages img, int? client) => DeleteCover(h, db, t, img, client));
+        g.MapPut("/branches/{siteId:guid}", EditBranch);
         g.MapPost("/sections", AddSection);
         g.MapPut("/sections/{id:int}", EditSection);
         g.MapDelete("/sections/{id:int}", DeleteSection);
+        g.MapPut("/sections/{id:int}/image", SetSectionImage);
+        g.MapDelete("/sections/{id:int}/image", DeleteSectionImage);
         g.MapPost("/items", AddItem);
         g.MapPut("/items/{id:int}", EditItem);
         g.MapDelete("/items/{id:int}", DeleteItem);
         g.MapPut("/items/{id:int}/image", SetItemImage);
         g.MapDelete("/items/{id:int}/image", DeleteItemImage);
         g.MapPut("/order", Reorder);
+        g.MapPost("/types", AddOrderType);
+        g.MapPut("/types/{id:int}", EditOrderType);
+        g.MapDelete("/types/{id:int}", DeleteOrderType);
         g.MapGet("/items", ListItems);
+        MapOrders(app, g);
         g.MapPost("/items/{id:int}/move", MoveItem);
 
         app.MapGet("/m/{slug}/items", PublicItems).AllowAnonymous();
@@ -58,15 +67,19 @@ public static class MenuEndpoints
     /// The public menu's items a page at a time, for menu-page.js: the rest of a section (<c>section</c> + <c>skip</c>; 0 = items in no section)
     /// or a search (<c>q</c>). Only what the page itself would show: published (or the right preview key), visible sections, visible items.
     /// </summary>
-    private static async Task<IResult> PublicItems(string slug, HttpContext http, ControlDbContext db, int? section, int? skip, int? take, string? q, string? preview)
+    private static async Task<IResult> PublicItems(string slug, HttpContext http, ControlDbContext db, int? section, int? skip, int? take, string? q, string? preview,
+        string? b, int? t)
     {
         var menu = await db.Menus.AsNoTracking().Include(m => m.Client).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
         if (menu is null || !menu.Client.IsActive || (!menu.IsPublished && (string.IsNullOrEmpty(preview) || preview != menu.PreviewKey)))
             return Results.NotFound();
+        // The same branch and order type as the page that asks.
+        var context = await Cloud.Pages.Public.MenuContext.LoadAsync(db, menu, b, t);
+        if (context.Branches.Count > 1 && context.Branch is null) return Results.NotFound();
+        var site = context.Branch?.SiteId;
 
         var sectionIds = db.MenuSections.Where(s => s.MenuId == menu.Id).Select(s => (int?)s.Id);
-        var hiddenIds = db.MenuSections.Where(s => s.MenuId == menu.Id && s.IsHidden).Select(s => (int?)s.Id);
-        var items = db.MenuItems.AsNoTracking().Where(i => i.MenuId == menu.Id && !i.IsHidden && (i.SectionId == null || !hiddenIds.Contains(i.SectionId)));
+        var items = MenuRules.Visible(db, menu.Id, site).AsNoTracking();
         var size = Math.Clamp(take ?? PageSize, 1, 60);
 
         if (!string.IsNullOrWhiteSpace(q))
@@ -79,24 +92,33 @@ public static class MenuEndpoints
         else
             items = items.Where(i => i.SectionId == section);
 
-        var rows = await items.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Skip(Math.Max(0, skip ?? 0)).Take(size + 1).ToListAsync();
+        var rows = await Cloud.Pages.Public.MenuContext.WithPrices(items.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Skip(Math.Max(0, skip ?? 0)).Take(size + 1), site, context.Type)
+            .ToListAsync();
         http.Response.Headers.CacheControl = menu.IsPublished ? "public, max-age=60" : "no-store";
         return Results.Json(new
         {
-            items = rows.Take(size).Select(i => new
+            items = rows.Take(size).Select(i => (Item: i, At: MenuRules.PriceAt(i, site, context.Type, menu.Currency))).Select(x => new
             {
-                name = i.Name,
-                description = i.Description ?? i.PosDescription,
-                priceText = MenuRules.Price(i.Price, i.Currency ?? menu.Currency),
-                imageUrl = MenuImages.PublicUrl(i.ImageFile, menu.ListingStyle),
-                soldOut = i.IsSoldOut,
+                // id, price and currency let the page add the dish to the guest's order and total it.
+                id = x.Item.Id,
+                price = x.At.Price,
+                currency = x.At.Currency,
+                name = x.Item.Name,
+                description = x.Item.Description ?? x.Item.PosDescription,
+                priceText = MenuRules.Price(x.At.Price, x.At.Currency),
+                imageUrl = MenuImages.PublicUrl(x.Item.ImageFile, menu.ListingStyle),
+                soldOut = x.Item.IsSoldOut,
             }),
             hasMore = rows.Count > size,
         }, SyncWire.Json);
     }
 
     /// <summary>On the till API group: the shop PC hands over its product list for the menu its branch is linked to.</summary>
-    public static void MapDevice(RouteGroupBuilder sync) => sync.MapPost("/menu-catalog", PushCatalog);
+    public static void MapDevice(RouteGroupBuilder sync)
+    {
+        sync.MapPost("/menu-catalog", PushCatalog);
+        MapDeviceOrders(sync);
+    }
 
     // ---- who is editing ----
 
@@ -161,10 +183,25 @@ public static class MenuEndpoints
             .Select(g => new { g.Key, Count = g.Count() }).ToListAsync();
         var countOf = counts.Where(c => c.Key != null).ToDictionary(c => c.Key!.Value, c => c.Count);
         var sections = (await db.MenuSections.Where(s => s.MenuId == menu.Id).OrderBy(s => s.SortOrder).ThenBy(s => s.Id).ToListAsync())
-            .Select(s => new { id = s.Id, name = s.Name, isHidden = s.IsHidden, linked = s.PosKey != null, itemCount = countOf.GetValueOrDefault(s.Id) })
+            .Select(s => new
+            {
+                id = s.Id, name = s.Name, isHidden = s.IsHidden, linked = s.PosKey != null, itemCount = countOf.GetValueOrDefault(s.Id),
+                description = s.Description, imageUrl = s.ImageFile is null ? null : "/m/img/" + s.ImageFile, pictureAs = s.PictureAs,
+            })
             .ToList();
         var known = sections.Select(s => s.id).ToHashSet();
         var looseCount = counts.Where(c => c.Key is null || !known.Contains(c.Key.Value)).Sum(c => c.Count);
+        var branches = (await db.MenuBranches.Where(b => b.MenuId == menu.Id).OrderBy(b => b.SortOrder).ThenBy(b => b.Id)
+            .Select(b => new { b.SiteId, b.Slug, b.Site.Name, b.CatalogAt, b.PosArranged, b.Address, b.MapUrl, b.Phone, b.Hours }).ToListAsync())
+            .Select(b => new
+            {
+                siteId = b.SiteId, name = b.Name, slug = b.Slug, url = origin + "/m/" + menu.Slug + "?b=" + b.Slug,
+                catalogAtUtc = b.CatalogAt is null ? (DateTime?)null : DateTime.SpecifyKind(b.CatalogAt.Value, DateTimeKind.Utc),
+                address = b.Address, mapUrl = b.MapUrl, phone = b.Phone, hours = HoursView(b.Hours),
+            }).ToList();
+        var main = await MainBranchAsync(db, menu.Id);
+        var types = await db.MenuOrderTypes.Where(x => x.MenuId == menu.Id).OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+            .Select(x => new { id = x.Id, name = x.Name, adjust = x.Adjust, adjustValue = x.AdjustValue }).ToListAsync();
         return new
         {
             clientName = editor.Client.Name,
@@ -174,23 +211,48 @@ public static class MenuEndpoints
             {
                 slug = menu.Slug, url = origin + "/m/" + menu.Slug, previewUrl = origin + "/m/" + menu.Slug + "?preview=" + menu.PreviewKey, title = menu.Title, tagline = menu.Tagline, note = menu.Note,
                 language = menu.Language, currency = menu.Currency, listingStyle = menu.ListingStyle, logoUrl = menu.LogoFile is null ? null : "/m/img/" + menu.LogoFile,
-                isPublished = menu.IsPublished, linkedSiteId = menu.LinkedSiteId, posArranged = menu.LinkedSiteId != null && menu.PosArranged,
-                catalogAtUtc = menu.CatalogAt is null ? (DateTime?)null : DateTime.SpecifyKind(menu.CatalogAt.Value, DateTimeKind.Utc),
+                coverUrl = menu.CoverFile is null ? null : "/m/img/" + menu.CoverFile, theme = menu.Theme,
+                address = menu.Address, mapUrl = menu.MapUrl, phone = menu.Phone, whatsApp = menu.WhatsApp,
+                instagram = menu.Instagram, facebook = menu.Facebook, tikTok = menu.TikTok, website = menu.Website, hours = HoursView(menu.Hours),
+                orderMode = menu.OrderMode, showWhatsApp = menu.ShowWhatsApp,
+                isPublished = menu.IsPublished,
+                // The main branch (the first); kept under its old name for clients that knew only one.
+                linkedSiteId = main?.SiteId, posArranged = main is { PosArranged: true },
+                catalogAtUtc = branches.Max(b => b.catalogAtUtc),
             },
+            branches,
+            orderTypes = types,
             sections,
             looseCount,
         };
     }
 
+    /// <summary>Hours as the editor shows them: seven strings, Sunday first ("" = closed), or null when none were given.</summary>
+    private static string[]? HoursView(string? hours) => MenuHours.Parse(hours) is null ? null : hours!.Split(';');
+
+    /// <summary>The menu's main branch (the first), or null when no branch fills it.</summary>
+    private static Task<MenuBranch?> MainBranchAsync(ControlDbContext db, int menuId)
+        => db.MenuBranches.Where(b => b.MenuId == menuId).OrderBy(b => b.SortOrder).ThenBy(b => b.Id).FirstOrDefaultAsync();
+
+    /// <summary>Whether the main branch's till decides the order, so the editor may not reorder what came from a POS.</summary>
+    private static async Task<bool> PosArrangedAsync(ControlDbContext db, int menuId) => (await MainBranchAsync(db, menuId)) is { PosArranged: true };
+
     public const int PageSize = 40;
 
-    private static object ItemView(MenuItem i, Menu menu) => new
+    private static object ItemView(MenuItem i, Menu menu, IReadOnlyDictionary<Guid, string> branchNames) => new
     {
         id = i.Id, sectionId = i.SectionId, name = i.Name, description = i.Description, posDescription = i.PosDescription,
         price = i.Price, currency = i.Currency, priceText = MenuRules.Price(i.Price, i.Currency ?? menu.Currency),
         imageUrl = i.ImageFile is null ? null : "/m/img/" + i.ImageFile,
-        isHidden = i.IsHidden, isSoldOut = i.IsSoldOut, linked = i.PosProductId != null,
+        isHidden = i.IsHidden, isSoldOut = i.IsSoldOut, linked = i.Branches.Count > 0,
+        // Where it is sold and at what price (POS dishes), and its own prices per order type.
+        branches = i.Branches.Where(r => branchNames.ContainsKey(r.SiteId)).OrderBy(r => branchNames[r.SiteId])
+            .Select(r => new { siteId = r.SiteId, name = branchNames[r.SiteId], priceText = MenuRules.Price(r.Price, r.Currency ?? menu.Currency) }),
+        typePrices = i.TypePrices.ToDictionary(p => p.OrderTypeId.ToString(System.Globalization.CultureInfo.InvariantCulture), p => p.Price),
     };
+
+    private static async Task<IReadOnlyDictionary<Guid, string>> BranchNamesAsync(ControlDbContext db, int menuId)
+        => await db.MenuBranches.Where(b => b.MenuId == menuId).ToDictionaryAsync(b => b.SiteId, b => b.Site.Name);
 
     /// <summary>One section's items, a page at a time. <c>section=0</c> = items in no section.</summary>
     private static async Task<IResult> ListItems(HttpContext http, ControlDbContext db, TimeProvider time, int? client, int section, int? skip, int? take)
@@ -198,15 +260,16 @@ public static class MenuEndpoints
         var (_, menu, failure) = await MenuAsync(http, db, time, client);
         if (failure is not null) return failure;
         var size = Math.Clamp(take ?? PageSize, 1, 100);
-        var query = db.MenuItems.AsNoTracking().Where(i => i.MenuId == menu!.Id);
+        var query = db.MenuItems.AsNoTracking().Include(i => i.Branches).Include(i => i.TypePrices).Where(i => i.MenuId == menu!.Id);
         if (section == 0)
         {
             var sectionIds = db.MenuSections.Where(s => s.MenuId == menu!.Id).Select(s => (int?)s.Id);
             query = query.Where(i => i.SectionId == null || !sectionIds.Contains(i.SectionId));
         }
         else query = query.Where(i => i.SectionId == section);
-        var rows = await query.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Skip(Math.Max(0, skip ?? 0)).Take(size + 1).ToListAsync();
-        return Results.Json(new { items = rows.Take(size).Select(i => ItemView(i, menu!)), hasMore = rows.Count > size }, SyncWire.Json);
+        var rows = await query.OrderBy(i => i.SortOrder).ThenBy(i => i.Id).Skip(Math.Max(0, skip ?? 0)).Take(size + 1).AsSplitQuery().ToListAsync();
+        var names = await BranchNamesAsync(db, menu!.Id);
+        return Results.Json(new { items = rows.Take(size).Select(i => ItemView(i, menu, names)), hasMore = rows.Count > size }, SyncWire.Json);
     }
 
     public sealed record MoveRequest(int Direction);
@@ -218,7 +281,7 @@ public static class MenuEndpoints
         if (failure is not null) return failure;
         var item = await db.MenuItems.FirstOrDefaultAsync(i => i.Id == id && i.MenuId == menu!.Id);
         if (item is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such item.");
-        if (menu!.PosArranged && item.PosProductId is not null)
+        if (await PosArrangedAsync(db, menu!.Id) && await db.MenuItemBranches.AnyAsync(r => r.MenuItemId == id))
             return Error(StatusCodes.Status409Conflict, "linked", "The order comes from the POS. Change it there.");
         var siblings = await db.MenuItems.Where(i => i.MenuId == menu.Id && i.SectionId == item.SectionId)
             .OrderBy(i => i.SortOrder).ThenBy(i => i.Id).ToListAsync();
@@ -272,7 +335,39 @@ public static class MenuEndpoints
 
     public sealed record SettingsRequest(
         string? Title, string? Tagline, string? Note, string? Language, string? Currency, string? Slug, bool? IsPublished,
-        string? LinkedSiteId, string? ListingStyle = null);
+        string? LinkedSiteId, string? ListingStyle = null, string[]? BranchIds = null,
+        string? Theme = null, string? Address = null, string? MapUrl = null, string? Phone = null, string? WhatsApp = null,
+        string? Instagram = null, string? Facebook = null, string? TikTok = null, string? Website = null, string?[]? Hours = null,
+        string? OrderMode = null, bool? ShowWhatsApp = null);
+
+    /// <summary>
+    /// A contact field from the editor: null = leave as is, "" = clear, else checked by <paramref name="ok"/>. Returns the refusal, if any.
+    /// </summary>
+    private static IResult? Contact(string? sent, int max, Func<string, bool> ok, string what, Action<string?> set)
+    {
+        if (sent is null) return null;
+        var value = MenuRules.Clean(sent, max);
+        if (value is not null && !ok(value)) return Error(StatusCodes.Status400BadRequest, "bad_contact", what);
+        set(value);
+        return null;
+    }
+
+    /// <summary>The fields a shop and each of its branches share: address, map link, phone, hours.</summary>
+    private static IResult? Place(string? address, string? mapUrl, string? phone, string?[]? hours,
+        Action<string?> setAddress, Action<string?> setMap, Action<string?> setPhone, Action<string?> setHours)
+    {
+        var refusal = Contact(address, 300, _ => true, "", setAddress)
+            ?? Contact(mapUrl, 500, MenuContact.IsLink, "The map link should start with https://, e.g. a Google Maps share link.", setMap)
+            ?? Contact(phone, 30, MenuContact.IsPhone, "Write the phone with digits, e.g. +961 1 234 567.", setPhone);
+        if (refusal is not null) return refusal;
+        if (hours is not null)
+        {
+            var (value, error) = MenuHours.Normalize(hours);
+            if (error is not null) return Error(StatusCodes.Status400BadRequest, "bad_hours", error);
+            setHours(value);
+        }
+        return null;
+    }
 
     private static async Task<IResult> SaveSettings(SettingsRequest body, HttpContext http, ControlDbContext db, TimeProvider time,
         MenuCatalogMerge merge, int? client)
@@ -292,6 +387,27 @@ public static class MenuEndpoints
         }
         if (body.Currency is not null) menu!.Currency = MenuRules.Clean(body.Currency, 10) ?? "";
         if (body.IsPublished is { } published) menu!.IsPublished = published;
+        if (body.Theme is not null)
+        {
+            if (!MenuThemes.IsValid(body.Theme)) return Error(StatusCodes.Status400BadRequest, "bad_theme", "Unknown colours.");
+            menu!.Theme = body.Theme;
+        }
+        if (body.OrderMode is not null)
+        {
+            if (!MenuOrderModes.IsValid(body.OrderMode)) return Error(StatusCodes.Status400BadRequest, "bad_mode", "Unknown way of taking orders.");
+            if (body.OrderMode == MenuOrderModes.Pos && !await db.MenuBranches.AnyAsync(b => b.MenuId == menu!.Id))
+                return Error(StatusCodes.Status409Conflict, "no_pos", "Sending orders to the POS needs the menu to follow a POS. Turn on From my POS first.");
+            menu!.OrderMode = body.OrderMode;
+        }
+        if (body.ShowWhatsApp is { } wa) menu!.ShowWhatsApp = wa;
+        var m = menu!;
+        var refused = Place(body.Address, body.MapUrl, body.Phone, body.Hours, v => m.Address = v, v => m.MapUrl = v, v => m.Phone = v, v => m.Hours = v)
+            ?? Contact(body.WhatsApp, 30, MenuContact.IsPhone, "Write the WhatsApp number with its country code, e.g. +961 70 123 456.", v => m.WhatsApp = v)
+            ?? Contact(body.Instagram, 200, MenuContact.IsHandle, "Write the Instagram name (@yourshop) or paste its link.", v => m.Instagram = v)
+            ?? Contact(body.Facebook, 200, MenuContact.IsHandle, "Write the Facebook page name or paste its link.", v => m.Facebook = v)
+            ?? Contact(body.TikTok, 200, MenuContact.IsHandle, "Write the TikTok name (@yourshop) or paste its link.", v => m.TikTok = v)
+            ?? Contact(body.Website, 200, MenuContact.IsSite, "That website address does not look right, e.g. yourshop.com.", v => m.Website = v);
+        if (refused is not null) return refused;
 
         if (body.Slug is not null)
         {
@@ -303,20 +419,64 @@ public static class MenuEndpoints
             menu!.Slug = slug;
         }
 
-        if (body.LinkedSiteId is not null)
+        // Which branches fill the menu, main one first. LinkedSiteId is the one-branch form ("" = none).
+        var wantedIds = body.BranchIds ?? (body.LinkedSiteId is null ? null : body.LinkedSiteId.Length == 0 ? [] : [body.LinkedSiteId]);
+        if (wantedIds is not null)
         {
-            Guid? wanted = body.LinkedSiteId.Length == 0 ? null : Guid.TryParse(body.LinkedSiteId, out var g) ? g : Guid.Empty;
-            if (wanted == Guid.Empty || (wanted is not null && !await db.Sites.AnyAsync(s => s.Id == wanted && s.ClientId == editor!.Client.Id && !s.IsDisabled)))
-                return Error(StatusCodes.Status400BadRequest, "bad_site", "That branch is not one of this shop's.");
-            if (wanted != menu!.LinkedSiteId)
+            var wanted = new List<Guid>();
+            foreach (var raw in wantedIds)
             {
-                if (menu.LinkedSiteId is not null) await merge.DetachAsync(menu);
-                menu.LinkedSiteId = wanted;
-                menu.CatalogHash = null; // the shop PC sends its list at its next check-in
+                if (!Guid.TryParse(raw, out var g) || !await db.Sites.AnyAsync(s => s.Id == g && s.ClientId == editor!.Client.Id && !s.IsDisabled))
+                    return Error(StatusCodes.Status400BadRequest, "bad_site", "That branch is not one of this shop's.");
+                if (!wanted.Contains(g)) wanted.Add(g);
             }
+            await SetBranchesAsync(db, merge, menu!, wanted);
         }
 
         return await Saved(db, menu!, time, editor!, http);
+    }
+
+    /// <summary>
+    /// Makes <paramref name="wanted"/> the menu's branches, in that order. A branch taken off loses its prices (what only it sold stays,
+    /// as hand-made dishes); a new one sends its list at its shop PC's next check-in. When the main branch changes, every branch sends
+    /// again so the new main one takes over names and places.
+    /// </summary>
+    private static async Task SetBranchesAsync(ControlDbContext db, MenuCatalogMerge merge, Menu menu, List<Guid> wanted)
+    {
+        await db.SaveChangesAsync(); // the other settings of this request, before the tracker is cleared below
+        var current =await db.MenuBranches.Where(b => b.MenuId == menu.Id).OrderBy(b => b.SortOrder).ThenBy(b => b.Id).ToListAsync();
+        foreach (var gone in current.Where(b => !wanted.Contains(b.SiteId)).ToList())
+        {
+            await merge.DetachAsync(menu, gone.SiteId);
+            current.Remove(gone);
+        }
+        db.ChangeTracker.Clear(); // DetachAsync worked in bulk; start from what is saved
+        current = await db.MenuBranches.Where(b => b.MenuId == menu.Id).ToListAsync();
+        var mainBefore = current.OrderBy(b => b.SortOrder).ThenBy(b => b.Id).FirstOrDefault()?.SiteId;
+        var names = await db.Sites.Where(s => wanted.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name);
+        for (var n = 0; n < wanted.Count; n++)
+        {
+            var row = current.FirstOrDefault(b => b.SiteId == wanted[n]);
+            if (row is null)
+            {
+                row = new MenuBranch
+                {
+                    MenuId = menu.Id, SiteId = wanted[n],
+                    Slug = MenuRules.BranchSlug(names.GetValueOrDefault(wanted[n]), current.Select(b => b.Slug)),
+                };
+                db.MenuBranches.Add(row);
+                current.Add(row);
+            }
+            row.SortOrder = n;
+        }
+        // A branch carried over from the one-branch menu has the placeholder word "main"; once there are several, it gets its name.
+        if (current.Count > 1)
+            foreach (var old in current.Where(b => b.Slug == "main"))
+                old.Slug = MenuRules.BranchSlug(names.GetValueOrDefault(old.SiteId), current.Where(b => b != old).Select(b => b.Slug));
+        if (wanted.Count > 0 && mainBefore is { } before && before != wanted[0])
+            foreach (var b in current) b.CatalogHash = null;
+        await db.SaveChangesAsync();
+        db.Entry(menu).State = EntityState.Unchanged; // tracked again (the menu row only, not its client and sites) for the save that follows
     }
 
     // ---- pictures ----
@@ -368,6 +528,72 @@ public static class MenuEndpoints
         return result;
     }
 
+    private static async Task<IResult> SetCover(HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var (data, ext, bad) = await ReadImageAsync(http);
+        if (bad is not null) return bad;
+        var old = menu!.CoverFile;
+        menu.CoverFile = await images.SaveAsync(data!, ext!, MenuImages.CoverSide);
+        var result = await Saved(db, menu, time, editor!, http);
+        images.Delete(old);
+        return result;
+    }
+
+    private static async Task<IResult> DeleteCover(HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var old = menu!.CoverFile;
+        menu.CoverFile = null;
+        var result = await Saved(db, menu, time, editor!, http);
+        images.Delete(old);
+        return result;
+    }
+
+    public sealed record BranchRequest(string? Address, string? MapUrl, string? Phone, string?[]? Hours);
+
+    /// <summary>Where one branch is and how to reach it. Empty fields fall back to the shop's own; hours of all-closed = the shop's hours.</summary>
+    private static async Task<IResult> EditBranch(Guid siteId, BranchRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var branch = await db.MenuBranches.FirstOrDefaultAsync(b => b.MenuId == menu!.Id && b.SiteId == siteId);
+        if (branch is null) return Error(StatusCodes.Status404NotFound, "not_found", "That branch is not on the menu.");
+        var refused = Place(body.Address, body.MapUrl, body.Phone, body.Hours, v => branch.Address = v, v => branch.MapUrl = v, v => branch.Phone = v, v => branch.Hours = v);
+        if (refused is not null) return refused;
+        return await Saved(db, menu!, time, editor!, http);
+    }
+
+    private static async Task<IResult> SetSectionImage(int id, HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var section = await db.MenuSections.FirstOrDefaultAsync(s => s.Id == id && s.MenuId == menu!.Id);
+        if (section is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such section.");
+        var (data, ext, bad) = await ReadImageAsync(http);
+        if (bad is not null) return bad;
+        var old = section.ImageFile;
+        section.ImageFile = await images.SaveAsync(data!, ext!, MenuImages.ItemSide);
+        var result = await Saved(db, menu!, time, editor!, http);
+        images.Delete(old);
+        return result;
+    }
+
+    private static async Task<IResult> DeleteSectionImage(int id, HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var section = await db.MenuSections.FirstOrDefaultAsync(s => s.Id == id && s.MenuId == menu!.Id);
+        if (section is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such section.");
+        var old = section.ImageFile;
+        section.ImageFile = null;
+        var result = await Saved(db, menu!, time, editor!, http);
+        images.Delete(old);
+        return result;
+    }
+
     private static async Task<IResult> SetItemImage(int id, HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
     {
         var (editor, menu, failure) = await MenuAsync(http, db, time, client);
@@ -400,7 +626,7 @@ public static class MenuEndpoints
 
     // ---- sections ----
 
-    public sealed record SectionRequest(string? Name, bool? IsHidden);
+    public sealed record SectionRequest(string? Name, bool? IsHidden, string? Description = null, string? PictureAs = null);
 
     private static async Task<IResult> AddSection(SectionRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
     {
@@ -409,7 +635,15 @@ public static class MenuEndpoints
         var name = MenuRules.Clean(body.Name, 120);
         if (name is null) return Error(StatusCodes.Status400BadRequest, "name_required", "Give the section a name.");
         var next = await db.MenuSections.Where(s => s.MenuId == menu!.Id).Select(s => (int?)s.SortOrder).MaxAsync() ?? -1;
-        db.MenuSections.Add(new MenuSection { MenuId = menu!.Id, Name = name, SortOrder = next + 1 });
+        var section = new MenuSection
+        {
+            MenuId = menu!.Id, Name = name, SortOrder = next + 1, Description = MenuRules.Clean(body.Description, 200),
+            PictureAs = MenuSectionPicture.IsValid(body.PictureAs) ? body.PictureAs! : MenuSectionPicture.Banner,
+        };
+        db.MenuSections.Add(section);
+        await db.SaveChangesAsync();
+        // The editor may upload the section's picture next, so it needs the new id.
+        http.Response.Headers["X-Created-Id"] = section.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
         return await Saved(db, menu, time, editor!, http);
     }
 
@@ -425,6 +659,12 @@ public static class MenuEndpoints
                 return Error(StatusCodes.Status409Conflict, "linked", "This section's name comes from the POS. Rename the category there.");
             section.Name = MenuRules.Clean(body.Name, 120) ?? section.Name;
         }
+        if (body.Description is not null) section.Description = MenuRules.Clean(body.Description, 200);
+        if (body.PictureAs is not null)
+        {
+            if (!MenuSectionPicture.IsValid(body.PictureAs)) return Error(StatusCodes.Status400BadRequest, "bad_picture", "Show the picture as a banner or an icon.");
+            section.PictureAs = body.PictureAs;
+        }
         if (body.IsHidden is { } hidden) section.IsHidden = hidden;
         return await Saved(db, menu!, time, editor!, http);
     }
@@ -439,16 +679,19 @@ public static class MenuEndpoints
             return Error(StatusCodes.Status409Conflict, "linked", "This section comes from the POS. Hide it instead.");
         // Hand-made items go with it; POS items in it (added by hand to a POS section is not possible) are not touched.
         var items = await db.MenuItems.Where(i => i.MenuId == menu!.Id && i.SectionId == id).ToListAsync();
-        foreach (var i in items) images.Delete(i.ImageFile);
         db.MenuItems.RemoveRange(items);
         db.MenuSections.Remove(section);
-        return await Saved(db, menu!, time, editor!, http);
+        var result = await Saved(db, menu!, time, editor!, http);
+        foreach (var i in items) images.Delete(i.ImageFile);
+        images.Delete(section.ImageFile);
+        return result;
     }
 
     // ---- items ----
 
     public sealed record ItemRequest(
-        string? Name, string? Description, decimal? Price, string? Currency, int? SectionId, bool? IsHidden, bool? IsSoldOut);
+        string? Name, string? Description, decimal? Price, string? Currency, int? SectionId, bool? IsHidden, bool? IsSoldOut,
+        Dictionary<string, decimal?>? TypePrices = null);
 
     private static async Task<IResult> AddItem(ItemRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
     {
@@ -468,6 +711,7 @@ public static class MenuEndpoints
             IsHidden = body.IsHidden ?? false, IsSoldOut = body.IsSoldOut ?? false,
         };
         db.MenuItems.Add(item);
+        if (body.TypePrices is not null && await SetTypePricesAsync(db, menu, item, body.TypePrices) is { } bad) return bad;
         var result = await Saved(db, menu, time, editor!, http);
         // The editor loads items a page at a time, so it learns the new item's id from here (to upload its picture).
         http.Response.Headers["X-Created-Id"] = item.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -481,8 +725,8 @@ public static class MenuEndpoints
         var item = await db.MenuItems.FirstOrDefaultAsync(i => i.Id == id && i.MenuId == menu!.Id);
         if (item is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such item.");
 
-        // The POS owns a linked item's name, price and section; the owner owns the rest.
-        var linked = item.PosProductId is not null;
+        // The POS owns a linked item's name, price and section; the owner owns the rest, and its prices per order type.
+        var linked = await db.MenuItemBranches.AnyAsync(r => r.MenuItemId == id);
         if (linked && (body.Name is not null || body.Price is not null || body.Currency is not null || body.SectionId is not null))
             return Error(StatusCodes.Status409Conflict, "linked", "Name, price and section come from the POS. Change them there.");
 
@@ -503,6 +747,86 @@ public static class MenuEndpoints
         }
         if (body.IsHidden is { } hidden) item.IsHidden = hidden;
         if (body.IsSoldOut is { } soldOut) item.IsSoldOut = soldOut;
+        if (body.TypePrices is not null && await SetTypePricesAsync(db, menu!, item, body.TypePrices) is { } bad) return bad;
+        return await Saved(db, menu!, time, editor!, http);
+    }
+
+    /// <summary>
+    /// A dish's own prices per order type: <c>{"typeId": price}</c>; null (or a type left out of the map) keeps the type's own rule.
+    /// Only the types named are touched.
+    /// </summary>
+    private static async Task<IResult?> SetTypePricesAsync(ControlDbContext db, Menu menu, MenuItem item, Dictionary<string, decimal?> prices)
+    {
+        var types = await db.MenuOrderTypes.Where(t => t.MenuId == menu.Id).Select(t => t.Id).ToListAsync();
+        var mine = item.Id == 0 ? [] : await db.MenuItemTypePrices.Where(p => p.MenuItemId == item.Id).ToListAsync();
+        foreach (var (key, value) in prices)
+        {
+            if (!int.TryParse(key, out var typeId) || !types.Contains(typeId))
+                return Error(StatusCodes.Status400BadRequest, "bad_type", "No such order type.");
+            if (value is < 0 or > 1_000_000_000_000m) return Error(StatusCodes.Status400BadRequest, "bad_price", "Enter a price of 0 or more.");
+            var row = mine.FirstOrDefault(p => p.OrderTypeId == typeId);
+            if (value is null) { if (row is not null) db.MenuItemTypePrices.Remove(row); }
+            else if (row is null) db.MenuItemTypePrices.Add(new MenuItemTypePrice { MenuItem = item, OrderTypeId = typeId, Price = value.Value });
+            else row.Price = value.Value;
+        }
+        return null;
+    }
+
+    // ---- order types (dine in, take out, delivery...) ----
+
+    public sealed record OrderTypeRequest(string? Name, string? Adjust, decimal? AdjustValue);
+
+    private static async Task<IResult> AddOrderType(OrderTypeRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var name = MenuRules.Clean(body.Name, 60);
+        if (name is null) return Error(StatusCodes.Status400BadRequest, "name_required", "Give the order type a name.");
+        if (await db.MenuOrderTypes.CountAsync(t => t.MenuId == menu!.Id) >= 12)
+            return Error(StatusCodes.Status400BadRequest, "too_many", "A menu can have up to 12 order types.");
+        var type = new MenuOrderType { MenuId = menu!.Id, Name = name };
+        if (ApplyRule(type, body) is { } bad) return bad;
+        type.SortOrder = (await db.MenuOrderTypes.Where(t => t.MenuId == menu.Id).Select(t => (int?)t.SortOrder).MaxAsync() ?? -1) + 1;
+        db.MenuOrderTypes.Add(type);
+        return await Saved(db, menu, time, editor!, http);
+    }
+
+    private static async Task<IResult> EditOrderType(int id, OrderTypeRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var type = await db.MenuOrderTypes.FirstOrDefaultAsync(t => t.Id == id && t.MenuId == menu!.Id);
+        if (type is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such order type.");
+        if (body.Name is not null) type.Name = MenuRules.Clean(body.Name, 60) ?? type.Name;
+        if (ApplyRule(type, body) is { } bad) return bad;
+        return await Saved(db, menu!, time, editor!, http);
+    }
+
+    private static IResult? ApplyRule(MenuOrderType type, OrderTypeRequest body)
+    {
+        if (body.Adjust is not null)
+        {
+            if (!MenuPriceAdjust.IsValid(body.Adjust)) return Error(StatusCodes.Status400BadRequest, "bad_adjust", "Unknown price rule.");
+            type.Adjust = body.Adjust;
+        }
+        if (body.AdjustValue is { } v)
+        {
+            if (v is < -1_000_000_000m or > 1_000_000_000m || (type.Adjust == MenuPriceAdjust.Percent && v <= -100))
+                return Error(StatusCodes.Status400BadRequest, "bad_adjust", "That change is out of range.");
+            type.AdjustValue = v;
+        }
+        if (type.Adjust == MenuPriceAdjust.None) type.AdjustValue = 0;
+        return null;
+    }
+
+    private static async Task<IResult> DeleteOrderType(int id, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
+    {
+        var (editor, menu, failure) = await MenuAsync(http, db, time, client);
+        if (failure is not null) return failure;
+        var type = await db.MenuOrderTypes.FirstOrDefaultAsync(t => t.Id == id && t.MenuId == menu!.Id);
+        if (type is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such order type.");
+        await db.MenuItemTypePrices.Where(p => p.OrderTypeId == id).ExecuteDeleteAsync();
+        db.MenuOrderTypes.Remove(type);
         return await Saved(db, menu!, time, editor!, http);
     }
 
@@ -512,31 +836,37 @@ public static class MenuEndpoints
         if (failure is not null) return failure;
         var item = await db.MenuItems.FirstOrDefaultAsync(i => i.Id == id && i.MenuId == menu!.Id);
         if (item is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such item.");
-        if (item.PosProductId is not null)
+        if (await db.MenuItemBranches.AnyAsync(r => r.MenuItemId == id))
             return Error(StatusCodes.Status409Conflict, "linked", "This item comes from the POS. Hide it instead.");
         images.Delete(item.ImageFile);
         db.MenuItems.Remove(item);
         return await Saved(db, menu!, time, editor!, http);
     }
 
-    public sealed record OrderRequest(int[]? Sections, int[]? Items);
+    public sealed record OrderRequest(int[]? Sections, int[]? Items, int[]? Types = null);
 
     /// <summary>The ids in their new order. Ids that are not this menu's are ignored, and so are POS ones while the POS arranges the menu.</summary>
     private static async Task<IResult> Reorder(OrderRequest body, HttpContext http, ControlDbContext db, TimeProvider time, int? client)
     {
         var (editor, menu, failure) = await MenuAsync(http, db, time, client);
         if (failure is not null) return failure;
+        var arranged = await PosArrangedAsync(db, menu!.Id);
         if (body.Sections is { Length: > 0 } sids)
         {
-            var rows = await db.MenuSections.Where(s => s.MenuId == menu!.Id).ToDictionaryAsync(s => s.Id);
-            for (var i = 0; i < sids.Length; i++) if (rows.TryGetValue(sids[i], out var s) && !(menu!.PosArranged && s.PosKey is not null)) s.SortOrder = i;
+            var rows = await db.MenuSections.Where(s => s.MenuId == menu.Id).ToDictionaryAsync(s => s.Id);
+            for (var i = 0; i < sids.Length; i++) if (rows.TryGetValue(sids[i], out var s) && !(arranged && s.PosKey is not null)) s.SortOrder = i;
         }
         if (body.Items is { Length: > 0 } iids)
         {
-            var rows = await db.MenuItems.Where(x => x.MenuId == menu!.Id).ToDictionaryAsync(x => x.Id);
-            for (var i = 0; i < iids.Length; i++) if (rows.TryGetValue(iids[i], out var x) && !(menu!.PosArranged && x.PosProductId is not null)) x.SortOrder = i;
+            var rows = await db.MenuItems.Where(x => x.MenuId == menu.Id).Select(x => new { Item = x, Linked = x.Branches.Any() }).ToDictionaryAsync(x => x.Item.Id);
+            for (var i = 0; i < iids.Length; i++) if (rows.TryGetValue(iids[i], out var x) && !(arranged && x.Linked)) x.Item.SortOrder = i;
         }
-        return await Saved(db, menu!, time, editor!, http);
+        if (body.Types is { Length: > 0 } tids)
+        {
+            var rows = await db.MenuOrderTypes.Where(t => t.MenuId == menu.Id).ToDictionaryAsync(t => t.Id);
+            for (var i = 0; i < tids.Length; i++) if (rows.TryGetValue(tids[i], out var t)) t.SortOrder = i;
+        }
+        return await Saved(db, menu, time, editor!, http);
     }
 
     // ---- the shop PC ----
@@ -547,12 +877,12 @@ public static class MenuEndpoints
         if (failure is not null) return failure;
         if (!SubscriptionRules.AllowsSync(device!.State)) return SyncEndpoints.InactiveSubscription(device);
 
-        var menu = await db.Menus.FirstOrDefaultAsync(m => m.LinkedSiteId == device.Site.Id && m.ClientId == device.Client.Id);
-        if (menu is null) return Error(StatusCodes.Status409Conflict, "menu_not_linked", "No online menu is linked to this branch.");
+        var branch = await db.MenuBranches.Include(b => b.Menu).FirstOrDefaultAsync(b => b.SiteId == device.Site.Id && b.Menu.ClientId == device.Client.Id);
+        if (branch is null) return Error(StatusCodes.Status409Conflict, "menu_not_linked", "No online menu is linked to this branch.");
         if (body?.Items is null || body.Items.Count > MenuCatalog.MaxItems || string.IsNullOrWhiteSpace(body.Hash) || body.Hash.Length > 64)
             return Error(StatusCodes.Status400BadRequest, SyncErrorCodes.BadBatch, "Bad product list.");
 
-        await merge.ApplyAsync(menu, body);
+        await merge.ApplyAsync(branch.Menu, branch, body);
         return Results.NoContent();
     }
 }

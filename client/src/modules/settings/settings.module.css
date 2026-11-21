@@ -328,3 +328,21 @@
   overflow-wrap: anywhere;
   user-select: all;
 }
+
+/* "This printer is in: receipt / label mode", under a printer picker */
+.modeSwitch {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+.modeLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.modeHint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  max-width: 62ch;
+}

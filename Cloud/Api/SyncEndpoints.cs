@@ -104,11 +104,12 @@ public static class SyncEndpoints
         }
 
         // Whether the owner linked this branch to the online menu, and which product list the cloud already has for it.
-        var menu = await db.Menus.Where(m => m.LinkedSiteId == device!.Site.Id && m.ClientId == device.Client.Id)
-            .Select(m => new { m.CatalogHash, m.Slug }).FirstOrDefaultAsync();
+        // The address is this branch's own (?b=) when the menu has several, so the QR the till shows opens at this branch.
+        var menu = await db.MenuBranches.Where(b => b.SiteId == device!.Site.Id && b.Menu.ClientId == device.Client.Id)
+            .Select(b => new { b.CatalogHash, b.Menu.Slug, Branch = b.Slug, Count = b.Menu.Branches.Count }).FirstOrDefaultAsync();
         return Results.Json(new SyncPing(device!.Site.Name, device.Client.Name, device.State.ToString(),
             device.Client.Subscription?.ExpiresAt, menu is not null, menu?.CatalogHash,
-            menu is null ? null : $"{PublicSite.OriginOf(http)}/m/{menu.Slug}"), SyncWire.Json);
+            menu is null ? null : $"{PublicSite.OriginOf(http)}/m/{menu.Slug}" + (menu.Count > 1 ? "?b=" + menu.Branch : "")), SyncWire.Json);
     }
 
     /// <summary>

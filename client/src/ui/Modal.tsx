@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent, type PointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { IconButton } from './IconButton'
 import { useTranslation } from 'react-i18next'
@@ -75,6 +75,35 @@ export function Modal({ onClose, width = 680, title, 'aria-label': ariaLabel, hi
     }
   }, [])
 
+  // Dragging by the header: the card stays centred by the overlay's flexbox and is shifted with a transform,
+  // so it opens in the middle every time and a drag never fights the layout.
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const drag = useRef<{ pointerId: number; startX: number; startY: number; base: { x: number; y: number }; rect: DOMRect } | null>(null)
+
+  const handleHeadPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !cardRef.current) return
+    // The close button (or anything else clickable in the header) keeps working as a click.
+    if ((e.target as HTMLElement).closest('button, a, input, select, textarea')) return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    drag.current = { pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, base: offset, rect: cardRef.current.getBoundingClientRect() }
+  }
+
+  const handleHeadPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current
+    if (!d || d.pointerId !== e.pointerId) return
+    // Keep the header on screen: at least KEEP_VISIBLE px of the card sideways, and the header's top inside the window.
+    const dx = clamp(e.clientX - d.startX, KEEP_VISIBLE - d.rect.right, window.innerWidth - KEEP_VISIBLE - d.rect.left)
+    const dy = clamp(e.clientY - d.startY, -d.rect.top, window.innerHeight - HEAD_VISIBLE - d.rect.top)
+    setOffset({ x: d.base.x + dx, y: d.base.y + dy })
+  }
+
+  const handleHeadPointerUp = (e: PointerEvent<HTMLDivElement>) => {
+    if (drag.current?.pointerId !== e.pointerId) return
+    drag.current = null
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+  }
+
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
     pressedOnOverlay.current = e.target === e.currentTarget
   }
@@ -89,7 +118,7 @@ export function Modal({ onClose, width = 680, title, 'aria-label': ariaLabel, hi
       <div
         ref={cardRef}
         className={styles.card}
-        style={{ inlineSize: width }}
+        style={{ inlineSize: width, transform: offset.x || offset.y ? `translate(${offset.x}px, ${offset.y}px)` : undefined }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
@@ -97,7 +126,13 @@ export function Modal({ onClose, width = 680, title, 'aria-label': ariaLabel, hi
         tabIndex={-1}
       >
         {title && (
-          <div className={styles.head}>
+          <div
+            className={styles.head}
+            onPointerDown={handleHeadPointerDown}
+            onPointerMove={handleHeadPointerMove}
+            onPointerUp={handleHeadPointerUp}
+            onPointerCancel={handleHeadPointerUp}
+          >
             <h2 id={titleId} className={styles.title}>
               {title}
             </h2>
@@ -119,6 +154,15 @@ export function ModalBody({ children }: { children: ReactNode }) {
 /** Action row; put the primary action last — it sits at the inline end in both directions. */
 export function ModalFooter({ children }: { children: ReactNode }) {
   return <div className={styles.footer}>{children}</div>
+}
+
+/** How much of a dragged dialog must stay inside the window sideways, so it can always be grabbed back. */
+const KEEP_VISIBLE = 120
+/** How much of the header must stay above the window's bottom edge. */
+const HEAD_VISIBLE = 48
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
 }
 
 function isVisible(el: HTMLElement): boolean {

@@ -168,13 +168,13 @@ public sealed class ProductsController : ApiControllerBase
     /// <remarks>
     /// For TSC-compatible label printers (Xprinter, TSC, Gprinter...). Windows drivers for these keep one fixed paper size and
     /// ignore the size a program asks for; the commands carry the label size themselves, so the size chosen in the dialog is
-    /// what comes out. A printer that does not speak TSPL prints rubbish, so the desktop app only offers this as a choice.
+    /// what comes out. A printer marked "receipt mode" on the Printers page (a 2-in-1 set to receipts) gets the stickers as ESC/POS pictures instead.
     /// </remarks>
     [HttpPost("sticker-print")]
     [RequirePermission(PermissionHelper.Permissions.Products_View)]
     [SwaggerOperation(OperationId = "printStickerLabels")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public IActionResult StickerPrint([FromBody] StickerPrintRequest request)
+    public async Task<IActionResult> StickerPrint([FromBody] StickerPrintRequest request)
     {
         var label = StickerLabel.TryCreate(request.Name, request.Code, request.Price, request.Bars,
             request.WidthMm, request.HeightMm, request.Copies, request.ShowPrice);
@@ -185,7 +185,12 @@ public sealed class ProductsController : ApiControllerBase
             .FirstOrDefault(p => string.Equals(p, request.PrinterName?.Trim(), StringComparison.OrdinalIgnoreCase));
         if (printer == null) return ValidationFailure(nameof(StickerPrintRequest.PrinterName), Text("Prod_LabelPrinterNotFound"));
 
-        if (!_printers.SendBytes(printer, _tsplLabels.Build(label), $"Labels-{label.Code}"))
+        // A 2-in-1 printer (Xprinter XP-365B) set to receipt mode ignores label commands: send the stickers as receipt-printer pictures.
+        var modes = Core.Printing.PrinterModes.Parse(await _settings.GetSettingValueAsync(Core.Printing.PrinterModes.SettingKey, ""));
+        var bytes = modes.TryGetValue(printer, out var mode) && mode == Core.Printing.PrinterMode.Receipt
+            ? _tsplLabels.BuildForReceiptMode(label)
+            : _tsplLabels.Build(label);
+        if (!_printers.SendBytes(printer, bytes, $"Labels-{label.Code}"))
             return Failure(StatusCodes.Status502BadGateway, "printer_unavailable", Text("Prod_LabelPrintFailed"));
 
         return NoContent();

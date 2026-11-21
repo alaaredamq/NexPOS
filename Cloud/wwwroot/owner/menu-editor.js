@@ -16,7 +16,7 @@
   var D = {
     en: {
       title: 'Online menu', sub: 'A page with your products, pictures and prices that anyone can open from a link or a QR code on the table.',
-      back: 'My shop', backAdmin: 'Client', loading: 'Loading…',
+      back: 'My shop', signOut: 'Sign out', backAdmin: 'Client', loading: 'Loading…',
       createH: 'Make your online menu', createP: 'Give it a name. You can change everything later, and nobody sees it until you publish it.',
       createName: 'Menu name', create: 'Make the menu',
       shareH: 'Share', published: 'Published', notPublished: 'Not published', publishLbl: 'Anyone with the link can see it',
@@ -25,10 +25,10 @@
       srcH: 'Where the products come from', srcPos: 'From my POS', srcPosP: 'Names, prices and sections follow the shop PC by themselves.',
       srcHand: 'Added here', srcHandP: 'You type each item and its price on this page.',
       branch: 'Branch', noBranch: 'No shop PC is connected to this account, so the menu can only be filled here.',
-      posNote: 'Linking sends this branch\'s active products to the cloud readable: names, selling prices, currencies and categories. Never cost prices, stock or anything else. Pictures, descriptions and what to hide are set here.',
+      posNote: 'Each ticked branch sends its active products to the cloud readable: names, selling prices, currencies and categories. Never cost prices, stock or anything else. Pictures, descriptions and what to hide are set here.',
       lastFrom: 'Last update from the shop PC: {0}', waiting: 'Waiting for the shop PC. It checks in every few minutes while it is on and connected to Online.',
       unlinkQ: 'Stop following the POS? The items stay on the menu and become ordinary items you edit here.',
-      detailsH: 'Name, address and look', mTitle: 'Menu name', mTag: 'One line under the name', mNote: 'At the bottom (address, opening hours, phone)',
+      detailsH: 'Name, language and web address', mTitle: 'Menu name', mTag: 'One line under the name', mNote: 'A note at the bottom (delivery area, parking, anything else)',
       mLang: 'Menu language', mCur: 'Currency for items added here', mSlug: 'Address', slugHint: 'Small English letters, digits and dashes.',
       logo: 'Logo', chooseLogo: 'Choose logo', remove: 'Remove', save: 'Save', saved: 'Saved',
       lsH: 'How dishes are listed', lsP: 'Pick the look customers see. You can change it any time; nothing else changes.', lsOn: 'In use', lsSaved: 'Look changed',
@@ -49,11 +49,46 @@
       choosePic: 'Choose picture', cancel: 'Cancel', delItemQ: 'Delete "{0}"?',
       picBig: 'That picture could not be read. Try a JPEG or PNG.', signIn: 'Please sign in on the owner website first.', signInBtn: 'Sign in',
       errNet: 'No connection. Check the internet and try again.', errNoEdit: 'This login cannot change the menu. Ask the shop owner.',
+      brH: 'Branches', brP: 'Tick the branches whose POS fills the menu. Customers pick their branch; each sees its own prices and what it sells. The first one is the main branch: it decides the names and where dishes sit.',
+      brMain: 'Main', brMakeMain: 'Make main', brOffQ: 'Take "{0}" off the menu? Its prices go; dishes only it sells stay as ordinary items you edit here.',
+      qrFor: 'QR and link for', qrAll: 'All branches (customers pick)',
+      otH: 'Order types', otP: 'Dine in, take out, delivery... Customers pick one and every price follows it. With none, each dish has one price.',
+      otAdd: 'Order type', otNew: 'New order type', otEdit: 'Edit order type', otName: 'Name', otRule: 'Prices', otValue: 'By',
+      otNone: 'Same as the normal price', otPct: 'Normal price + a percentage', otAmt: 'Normal price + an amount',
+      otNoneS: 'Normal price', otPctS: '{0}% on the normal price', otAmtS: '{0} on the normal price', otDelQ: 'Delete the order type "{0}"? Prices set for it on dishes go too.',
+      otEmpty: 'No order types: every dish has one price.', otValueHint: 'Use a minus to take off, e.g. -10.',
+      tpH: 'Prices by order type', tpHint: 'Empty = by the rule ({0})', brPrices: 'At each branch',
+      lookH: 'Look', lookP: 'Colours, pictures and how dishes are listed. Customers see the change at once.',
+      thH: 'Colours and lettering', thSaved: 'Colours changed',
+      th_basil: 'Basil', th_basil_d: 'Herb green. Fresh, suits any kitchen.', th_ember: 'Ember', th_ember_d: 'Grill orange, bold capitals. Burgers, grills, pizza.',
+      th_saffron: 'Saffron', th_saffron_d: 'Warm gold, soft serif. Bakeries, breakfast, sweets.', th_harbor: 'Harbor', th_harbor_d: 'Sea blue, clean lettering. Seafood, cafés.',
+      th_plum: 'Plum', th_plum_d: 'Deep plum, elegant serif. Bars, desserts, evenings.', th_charcoal: 'Charcoal', th_charcoal_d: 'Black and white, fine serif. Fine dining, coffee.',
+      cover: 'Cover photo', coverP: 'A wide photo across the top: the shop front, the room or a signature dish.', chooseCover: 'Choose cover', logoP: 'Square works best.',
+      ctH: 'Contact and location', ctP: 'Shown as buttons at the top of the menu and in "Find us" at the bottom. Leave empty what you do not use.',
+      cAddr: 'Address', cMap: 'Map link', cMapHint: 'Paste a Google Maps share link. Empty = a map search for the address.', cPhone: 'Phone',
+      cWa: 'WhatsApp number', cWaHint: 'With the country code. Customers can also send their order there.',
+      cIg: 'Instagram', cFb: 'Facebook', cTt: 'TikTok', cWeb: 'Website', cHandle: '@yourshop or a link',
+      hrH: 'Opening hours', hrP: 'Customers see "Open now" or when you open next. Times after midnight are fine (18:00 to 02:00).',
+      hrOpen: 'Open', hrClosed: 'Closed', hrFrom: 'From', hrTo: 'To', hrCopy: 'Same hours every open day', hrNone: 'No hours given: the menu does not say whether you are open.', hrClear: 'Clear hours',
+      days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      brDetails: 'Address and hours', brDlg: 'Branch: {0}', brDlgP: 'Leave a field empty to use the shop\'s own. Hours with every day closed = the shop\'s hours.',
+      brOwnHours: 'This branch has its own hours',
+      secEdit: 'Edit section', secFromPos: 'The name comes from the POS. Change it there.', secDesc: 'Line under the heading (optional)', secDescHint: 'For example: served until noon, or all burgers come with fries.', secPic: 'Section picture', secPicHint: 'Also shown on the button for this section at the top of the menu.', picAs: 'Show the picture as', picBanner: 'Background', picBannerD: 'A wide photo behind the section name.', picIcon: 'Small logo', picIconD: 'A small square before the name, for a logo or an icon.',
+      omH: 'Taking orders', omP: 'What happens when a customer taps the button on their order.',
+      om_show: 'Show to staff', om_show_d: 'The order stays on the phone. The customer shows it to a waiter.',
+      om_request: 'Send to me', om_request_d: 'The order comes here, to the list below. You accept it and mark it ready.',
+      om_pos: 'Send to the POS', om_pos_d: 'The order goes to the till of the customer\'s branch, where the cashier rings it up.',
+      om_pos_off: 'Needs the menu to follow a POS (From my POS, below).', omSaved: 'Saved',
+      waShow: 'Show a WhatsApp button on the order', waShowD: 'Customers can also send the order to your WhatsApp.', waNone: 'Add a WhatsApp number under Contact and location first.',
+      ordH: 'Orders', ordOpen: '{0} open', ordNone: 'No orders yet. They appear here as customers send them.', ordLive: 'Updates by itself',
+      ordNew: 'New order', ordNewN: '{0} new orders', ordTill: 'Sent to the POS', ordMore: 'Show {0} more', ordLess: 'Show fewer', ordDone: 'Finished today ({0})', ordNoOpen: 'Nothing waiting. New orders appear here.',
+      os_new: 'New', os_accepted: 'Accepted', os_ready: 'Ready', os_done: 'Done', os_rejected: 'Turned down',
+      oAccept: 'Accept', oReady: 'Ready', oDone: 'Done', oReject: 'Turn down', oRejectQ: 'Turn down order #{0}? The customer sees that it was not taken.', oCall: 'Call',
       ago0: 'just now', agoM: '{0} min ago', agoH: '{0} h ago', agoD: '{0} days ago',
     },
     ar: {
       title: 'القائمة على الإنترنت', sub: 'صفحة فيها منتجاتك وصورها وأسعارها، يفتحها أي شخص من رابط أو من رمز QR على الطاولة.',
-      back: 'متجري', backAdmin: 'العميل', loading: 'جارٍ التحميل…',
+      back: 'متجري', signOut: 'تسجيل الخروج', backAdmin: 'العميل', loading: 'جارٍ التحميل…',
       createH: 'أنشئ قائمتك على الإنترنت', createP: 'أعطها اسماً. يمكنك تغيير كل شيء لاحقاً، ولا يراها أحد قبل أن تنشرها.',
       createName: 'اسم القائمة', create: 'أنشئ القائمة',
       shareH: 'المشاركة', published: 'منشورة', notPublished: 'غير منشورة', publishLbl: 'يراها كل من لديه الرابط',
@@ -62,10 +97,10 @@
       srcH: 'من أين تأتي المنتجات', srcPos: 'من نقطة البيع', srcPosP: 'الأسماء والأسعار والأقسام تتبع كمبيوتر المتجر تلقائياً.',
       srcHand: 'تُضاف هنا', srcHandP: 'تكتب كل صنف وسعره في هذه الصفحة.',
       branch: 'الفرع', noBranch: 'لا يوجد كمبيوتر متجر متصل بهذا الحساب، لذا تُملأ القائمة من هنا فقط.',
-      posNote: 'الربط يرسل منتجات هذا الفرع النشطة إلى السحابة مقروءة: الأسماء وأسعار البيع والعملات والفئات. لا أسعار كلفة ولا مخزون ولا أي شيء آخر. الصور والأوصاف وما يُخفى تُحدَّد هنا.',
+      posNote: 'كل فرع مختار يرسل منتجاته النشطة إلى السحابة مقروءة: الأسماء وأسعار البيع والعملات والفئات. لا أسعار كلفة ولا مخزون ولا أي شيء آخر. الصور والأوصاف وما يُخفى تُحدَّد هنا.',
       lastFrom: 'آخر تحديث من كمبيوتر المتجر: {0}', waiting: 'بانتظار كمبيوتر المتجر. يتصل كل بضع دقائق ما دام يعمل ومتصلاً بـ Online.',
       unlinkQ: 'إيقاف المتابعة من نقطة البيع؟ تبقى الأصناف في القائمة وتصبح أصنافاً عادية تعدّلها هنا.',
-      detailsH: 'الاسم والعنوان والشكل', mTitle: 'اسم القائمة', mTag: 'سطر تحت الاسم', mNote: 'في الأسفل (العنوان، ساعات العمل، الهاتف)',
+      detailsH: 'الاسم واللغة ورابط القائمة', mTitle: 'اسم القائمة', mTag: 'سطر تحت الاسم', mNote: 'ملاحظة في الأسفل (منطقة التوصيل، الموقف، أي شيء آخر)',
       mLang: 'لغة القائمة', mCur: 'عملة الأصناف المضافة هنا', mSlug: 'العنوان', slugHint: 'أحرف إنجليزية صغيرة وأرقام وشرطات.',
       logo: 'الشعار', chooseLogo: 'اختر الشعار', remove: 'إزالة', save: 'حفظ', saved: 'تم الحفظ',
       lsH: 'طريقة عرض الأصناف', lsP: 'اختر الشكل الذي يراه الزبائن. يمكنك تغييره في أي وقت، ولا يتغير شيء آخر.', lsOn: 'مستخدم', lsSaved: 'تغيّر الشكل',
@@ -86,6 +121,41 @@
       choosePic: 'اختر صورة', cancel: 'إلغاء', delItemQ: 'حذف "{0}"؟',
       picBig: 'تعذّرت قراءة الصورة. جرّب JPEG أو PNG.', signIn: 'سجّل الدخول في موقع المالك أولاً.', signInBtn: 'تسجيل الدخول',
       errNet: 'لا يوجد اتصال. تحقق من الإنترنت وحاول مجدداً.', errNoEdit: 'هذا الحساب لا يستطيع تعديل القائمة. اطلب ذلك من صاحب المتجر.',
+      brH: 'الفروع', brP: 'اختر الفروع التي تملأ نقطة البيع فيها القائمة. يختار الزبون فرعه ويرى أسعاره وما يبيعه. الفرع الأول هو الرئيسي: يحدد الأسماء ومكان الأصناف.',
+      brMain: 'رئيسي', brMakeMain: 'اجعله رئيسياً', brOffQ: 'إزالة "{0}" من القائمة؟ تُحذف أسعاره، والأصناف التي يبيعها وحده تبقى أصنافاً عادية تعدّلها هنا.',
+      qrFor: 'رمز QR والرابط لـ', qrAll: 'كل الفروع (يختار الزبون)',
+      otH: 'طرق الطلب', otP: 'داخل المطعم، سفري، توصيل... يختار الزبون واحدة وتتبعها كل الأسعار. بدونها لكل صنف سعر واحد.',
+      otAdd: 'طريقة طلب', otNew: 'طريقة طلب جديدة', otEdit: 'تعديل طريقة الطلب', otName: 'الاسم', otRule: 'الأسعار', otValue: 'بمقدار',
+      otNone: 'مثل السعر العادي', otPct: 'السعر العادي + نسبة مئوية', otAmt: 'السعر العادي + مبلغ',
+      otNoneS: 'السعر العادي', otPctS: '{0}% على السعر العادي', otAmtS: '{0} على السعر العادي', otDelQ: 'حذف طريقة الطلب "{0}"؟ تُحذف معها الأسعار المحددة لها في الأصناف.',
+      otEmpty: 'لا طرق طلب: لكل صنف سعر واحد.', otValueHint: 'استخدم السالب للخصم، مثلاً -10.',
+      tpH: 'الأسعار حسب طريقة الطلب', tpHint: 'فارغ = حسب القاعدة ({0})', brPrices: 'في كل فرع',
+      lookH: 'الشكل', lookP: 'الألوان والصور وطريقة عرض الأصناف. يرى الزبائن التغيير فوراً.',
+      thH: 'الألوان والخط', thSaved: 'تغيّرت الألوان',
+      th_basil: 'ريحان', th_basil_d: 'أخضر الأعشاب. منعش ويناسب أي مطبخ.', th_ember: 'جمر', th_ember_d: 'برتقالي المشاوي وخط عريض. برغر ومشاوي وبيتزا.',
+      th_saffron: 'زعفران', th_saffron_d: 'ذهبي دافئ وخط ناعم. مخابز وفطور وحلويات.', th_harbor: 'مرفأ', th_harbor_d: 'أزرق البحر وخط نظيف. مأكولات بحرية ومقاهٍ.',
+      th_plum: 'برقوق', th_plum_d: 'بنفسجي داكن وخط أنيق. حانات وحلويات وسهرات.', th_charcoal: 'فحم', th_charcoal_d: 'أبيض وأسود وخط راقٍ. مطاعم فاخرة وقهوة.',
+      cover: 'صورة الغلاف', coverP: 'صورة عريضة في أعلى الصفحة: واجهة المحل أو الصالة أو طبق مميز.', chooseCover: 'اختر الغلاف', logoP: 'المربع هو الأفضل.',
+      ctH: 'التواصل والموقع', ctP: 'تظهر أزراراً في أعلى القائمة وفي "زورونا" في الأسفل. اترك فارغاً ما لا تستخدمه.',
+      cAddr: 'العنوان', cMap: 'رابط الخريطة', cMapHint: 'الصق رابط مشاركة من خرائط Google. فارغ = بحث في الخريطة عن العنوان.', cPhone: 'الهاتف',
+      cWa: 'رقم واتساب', cWaHint: 'مع رمز البلد. يمكن للزبائن أيضاً إرسال طلبهم إليه.',
+      cIg: 'إنستغرام', cFb: 'فيسبوك', cTt: 'تيك توك', cWeb: 'الموقع الإلكتروني', cHandle: '@اسم_محلك أو رابط',
+      hrH: 'ساعات العمل', hrP: 'يرى الزبائن "مفتوح الآن" أو موعد الفتح التالي. الأوقات بعد منتصف الليل مقبولة (18:00 إلى 02:00).',
+      hrOpen: 'مفتوح', hrClosed: 'مغلق', hrFrom: 'من', hrTo: 'إلى', hrCopy: 'نفس الساعات لكل أيام الفتح', hrNone: 'لا ساعات: لا تقول القائمة إن كنت مفتوحاً.', hrClear: 'امسح الساعات',
+      days: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+      brDetails: 'العنوان والساعات', brDlg: 'الفرع: {0}', brDlgP: 'اترك الحقل فارغاً لاستخدام بيانات المحل. الساعات مع كل الأيام مغلقة = ساعات المحل.',
+      brOwnHours: 'لهذا الفرع ساعاته الخاصة',
+      secEdit: 'تعديل القسم', secFromPos: 'الاسم من نقطة البيع. غيّره هناك.', secDesc: 'سطر تحت العنوان (اختياري)', secDescHint: 'مثلاً: يُقدَّم حتى الظهر، أو كل البرغر مع بطاطا.', secPic: 'صورة القسم', secPicHint: 'تظهر أيضاً على زر القسم في أعلى القائمة.', picAs: 'اعرض الصورة كـ', picBanner: 'خلفية', picBannerD: 'صورة عريضة خلف اسم القسم.', picIcon: 'شعار صغير', picIconD: 'مربع صغير قبل الاسم، لشعار أو أيقونة.',
+      omH: 'استقبال الطلبات', omP: 'ماذا يحدث عندما يضغط الزبون الزر في طلبه.',
+      om_show: 'عرض على العامل', om_show_d: 'يبقى الطلب على الهاتف. يعرضه الزبون على النادل.',
+      om_request: 'أرسله إليّ', om_request_d: 'يصل الطلب هنا، إلى القائمة في الأسفل. تقبله وتعلّمه جاهزاً.',
+      om_pos: 'أرسله إلى نقطة البيع', om_pos_d: 'يذهب الطلب إلى صندوق فرع الزبون، حيث يسجّله الكاشير.',
+      om_pos_off: 'يحتاج أن تتبع القائمة نقطة بيع (من نقطة البيع، في الأسفل).', omSaved: 'تم الحفظ',
+      waShow: 'إظهار زر واتساب في الطلب', waShowD: 'يمكن للزبائن أيضاً إرسال الطلب إلى واتساب الخاص بك.', waNone: 'أضف رقم واتساب في التواصل والموقع أولاً.',
+      ordH: 'الطلبات', ordOpen: '{0} مفتوحة', ordNone: 'لا طلبات بعد. تظهر هنا عندما يرسلها الزبائن.', ordLive: 'تتحدث تلقائياً',
+      ordNew: 'طلب جديد', ordNewN: 'طلبات جديدة: {0}', ordTill: 'أُرسل إلى نقطة البيع', ordMore: 'عرض {0} أخرى', ordLess: 'عرض أقل', ordDone: 'المنتهية اليوم ({0})', ordNoOpen: 'لا شيء بالانتظار. تظهر الطلبات الجديدة هنا.',
+      os_new: 'جديد', os_accepted: 'مقبول', os_ready: 'جاهز', os_done: 'تم', os_rejected: 'مرفوض',
+      oAccept: 'قبول', oReady: 'جاهز', oDone: 'تم', oReject: 'رفض', oRejectQ: 'رفض الطلب رقم {0}؟ سيرى الزبون أنه لم يُقبل.', oCall: 'اتصال',
       ago0: 'الآن', agoM: 'قبل {0} د', agoH: 'قبل {0} س', agoD: 'قبل {0} أيام',
     },
   };
@@ -206,12 +276,22 @@
 
   // ---- views ----
   function bar() {
+    // A shop with no POS has nothing else on the owner website, so it gets a way out rather than a way "back".
     var back = ADMIN ? '<a class="back" href="/admin/Clients/Details/' + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
+      : session && session.hasTill === false ? '<button type="button" class="back" id="signout">' + t('signOut') + '</button>'
       : '<a class="back" href="/owner/index.html">' + ic('back', 'flip') + t('back') + '</a>';
     return '<div class="bar">' + back + '<span class="sp"></span><div class="lang" role="group" aria-label="Language">' +
       '<button type="button" data-lang="en" aria-pressed="' + (lang === 'en') + '">EN</button><button type="button" data-lang="ar" aria-pressed="' + (lang === 'ar') + '">ع</button></div></div>';
   }
   function bindBar() {
+    var out = document.getElementById('signout');
+    if (out) out.onclick = function () {
+      var token = session && session.token;
+      try { localStorage.removeItem('coduo-owner'); } catch (e) {}
+      var done = function () { location.href = '/owner/index.html'; };
+      if (!token) return done();
+      fetch('/owner/v1/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).then(done, done);
+    };
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       b.onclick = function () { lang = b.dataset.lang; try { localStorage.setItem('coduo-lang', lang); } catch (e) {} setLang(); if (S) render(); else if (!ADMIN && !session) needSignIn(); };
     });
@@ -225,21 +305,33 @@
         '<form id="fcreate" class="row" style="margin-top:14px"><div class="f" style="flex:1;min-width:220px"><label for="ct">' + t('createName') + '</label><input id="ct" maxlength="120" value="' + esc(S.clientName) + '" required></div>' +
         '<button class="btn pri" style="align-self:flex-end">' + t('create') + '</button></form></div>';
     } else {
-      h += shareCard() + sourceCard() + styleCard() + detailsCard() + itemsCard();
+      h += shareCard() + ordersCard() + lookCard() + contactCard() + hoursCard() + sourceCard() + typesCard() + detailsCard() + itemsCard();
     }
     $('#app').innerHTML = h + '</div>';
     bindBar();
     bind();
   }
 
+  // With several branches, the link and QR can open at one branch (?b=), e.g. for that branch's tables, or ask the customer.
+  var qrBranch = '';
+  function branchOf(slug) { return (S.branches || []).filter(function (b) { return b.slug === slug; })[0] || null; }
+  function shareUrl() { var b = branchOf(qrBranch); return b ? b.url : S.menu.url; }
+  function openUrl() {
+    var m = S.menu, b = branchOf(qrBranch);
+    if (m.isPublished) return shareUrl();
+    return m.previewUrl + (b ? '&b=' + encodeURIComponent(b.slug) : '');
+  }
   function shareCard() {
-    var m = S.menu;
+    var m = S.menu, many = (S.branches || []).length > 1;
+    if (!branchOf(qrBranch)) qrBranch = '';
     return '<section class="card"><div class="share"><div style="min-width:0">' +
       '<h2>' + t('shareH') + ' ' + (m.isPublished ? '<span class="pill good">' + t('published') + '</span>' : '<span class="pill warn">' + t('notPublished') + '</span>') + '</h2>' +
       '<label class="switch" style="margin-top:12px"><input type="checkbox" id="pub"' + (m.isPublished ? ' checked' : '') + '><span>' + t('publishLbl') + '</span></label>' +
-      '<div class="url"><code dir="ltr" id="murl">' + esc(m.url) + '</code>' +
+      (many ? '<div class="f" style="margin-top:12px;max-width:320px"><label for="qrfor">' + t('qrFor') + '</label><select id="qrfor"><option value="">' + t('qrAll') + '</option>' +
+        S.branches.map(function (b) { return '<option value="' + esc(b.slug) + '"' + (b.slug === qrBranch ? ' selected' : '') + '>' + esc(b.name) + '</option>'; }).join('') + '</select></div>' : '') +
+      '<div class="url"><code dir="ltr" id="murl">' + esc(shareUrl()) + '</code>' +
       '<button type="button" class="btn sm" id="copy">' + ic('copy') + t('copy') + '</button>' +
-      '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(m.isPublished ? m.url : m.previewUrl) + '">' + ic('open') + (m.isPublished ? t('open') : t('preview')) + '</a></div>' +
+      '<a class="btn sm" target="_blank" rel="noopener" href="' + esc(openUrl()) + '">' + ic('open') + (m.isPublished ? t('open') : t('preview')) + '</a></div>' +
       (m.isPublished ? '' : '<p class="small muted" style="margin-top:8px">' + t('previewNote') + '</p>') +
       '</div><div class="qr"><div class="box" id="qrbox" aria-label="QR"></div><div><button type="button" class="btn sm" id="qrdl">' + ic('qr') + t('qrDl') + '</button>' +
       '<p class="small muted" style="margin-top:6px">' + t('qrNote') + '</p></div></div></div></section>';
@@ -252,13 +344,73 @@
       '<button type="button" class="opt" id="src-hand" aria-pressed="' + !linked + '"><b>' + ic('hand') + t('srcHand') + '</b><span>' + t('srcHandP') + '</span></button></div>';
     if (!hasSites) h += '<p class="note">' + t('noBranch') + '</p>';
     if (linked) {
-      if (S.sites.length > 1)
-        h += '<div class="f" style="margin-top:12px;max-width:320px"><label for="site">' + t('branch') + '</label><select id="site">' +
-          S.sites.map(function (s) { return '<option value="' + s.id + '"' + (s.id === m.linkedSiteId ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select></div>';
-      h += '<p style="margin-top:12px">' + (m.catalogAtUtc ? '<span class="pill good">' + esc(t('lastFrom', ago(m.catalogAtUtc))) + '</span>' : '<span class="pill info">' + t('waiting') + '</span>') + '</p>';
+      // Every branch of the shop, linked ones first in their order (the first is the main one), then the others.
+      var linkedIds = S.branches.map(function (b) { return b.siteId; });
+      var rows = S.branches.map(function (b) { return { id: b.siteId, name: b.name, on: true, at: b.catalogAtUtc }; })
+        .concat(S.sites.filter(function (s) { return linkedIds.indexOf(s.id) < 0; }).map(function (s) { return { id: s.id, name: s.name, on: false }; }));
+      h += '<fieldset class="branches"><legend><h3>' + t('brH') + '</h3></legend>' + (S.sites.length > 1 ? '<p class="sub">' + t('brP') + '</p>' : '') + '<ul>' +
+        rows.map(function (r, n) {
+          var status = !r.on ? '' : r.at ? '<span class="pill good">' + esc(t('lastFrom', ago(r.at))) + '</span>' : '<span class="pill info">' + t('waiting') + '</span>';
+          return '<li><label class="switch"><input type="checkbox" data-br="' + esc(r.id) + '"' + (r.on ? ' checked' : '') + (r.on && linkedIds.length === 1 ? ' disabled' : '') + '><span>' + esc(r.name) + '</span></label>' +
+            (r.on && n === 0 && linkedIds.length > 1 ? '<span class="pill mute">' + t('brMain') + '</span>' : '') +
+            (r.on && n > 0 ? '<button type="button" class="btn sm" data-brmain="' + esc(r.id) + '">' + t('brMakeMain') + '</button>' : '') +
+            (r.on && linkedIds.length > 1 ? '<button type="button" class="btn sm" data-brdet="' + esc(r.id) + '">' + t('brDetails') + '</button>' : '') +
+            '<span class="sp"></span>' + status + '</li>';
+        }).join('') + '</ul></fieldset>';
       h += '<p class="note">' + t('posNote') + '</p>';
     }
     return h + '</section>';
+  }
+
+  // ---- order types: dine in, take out, delivery... ----
+  function ruleText(type) {
+    var v = type.adjustValue, sign = v > 0 ? '+' : '';
+    return type.adjust === 'percent' ? t('otPctS', sign + v) : type.adjust === 'amount' ? t('otAmtS', sign + v) : t('otNoneS');
+  }
+  function typesCard() {
+    var types = S.orderTypes || [];
+    return '<section class="card"><div class="cardhead"><div><h2>' + t('otH') + '</h2><p class="sub">' + t('otP') + '</p></div>' +
+      '<button type="button" class="btn sm" id="addtype">' + ic('plus') + t('otAdd') + '</button></div>' +
+      (types.length ? '<ul class="types">' + types.map(function (ty, n) {
+        return '<li><b dir="auto">' + esc(ty.name) + '</b><span class="muted small">' + esc(ruleText(ty)) + '</span><span class="sp"></span>' +
+          '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (n === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
+          '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="1" aria-label="' + t('down') + '"' + (n === types.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button>' +
+          '<button type="button" class="btn sm" data-tedit="' + ty.id + '">' + t('edit') + '</button>' +
+          '<button type="button" class="btn sm danger" data-tdel="' + ty.id + '">' + t('del') + '</button></li>';
+      }).join('') + '</ul>' : '<p class="small muted" style="margin-top:10px">' + t('otEmpty') + '</p>') + '</section>';
+  }
+  function typeById(id) { return (S.orderTypes || []).filter(function (x) { return x.id === id; })[0]; }
+  function typeDialog(ty) {
+    var rule = ty ? ty.adjust : 'none';
+    var opt = function (v, k) { return '<option value="' + v + '"' + (rule === v ? ' selected' : '') + '>' + t(k) + '</option>'; };
+    dialog('<form><h2 id="dlg-t">' + (ty ? t('otEdit') : t('otNew')) + '</h2><div class="fields">' +
+      '<div class="f full"><label for="d-tn">' + t('otName') + '</label><input id="d-tn" maxlength="60" required dir="auto" value="' + esc(ty ? ty.name : '') + '"></div>' +
+      '<div class="f"><label for="d-tr">' + t('otRule') + '</label><select id="d-tr">' + opt('none', 'otNone') + opt('percent', 'otPct') + opt('amount', 'otAmt') + '</select></div>' +
+      '<div class="f" id="d-tvf"><label for="d-tv">' + t('otValue') + '</label><input id="d-tv" inputmode="decimal" dir="ltr" value="' + esc(ty && ty.adjust !== 'none' ? ty.adjustValue : '') + '"><span class="hint">' + t('otValueHint') + '</span></div>' +
+      '</div><p class="err" hidden></p><div class="foot"><button type="button" class="btn" data-close>' + t('cancel') + '</button><button class="btn pri">' + t('save') + '</button></div></form>',
+      function () {
+        var adjust = $('#d-tr').value, value = parseFloat(String($('#d-tv').value).replace(/,/g, ''));
+        if (adjust !== 'none' && isNaN(value)) return Promise.reject(new Error(t('otValue') + '?'));
+        var body = { name: $('#d-tn').value, adjust: adjust, adjustValue: adjust === 'none' ? 0 : value };
+        return (ty ? api('PUT', '/types/' + ty.id, body) : api('POST', '/types', body)).then(apply);
+      },
+      function (d) {
+        var sel = d.querySelector('#d-tr'), box = d.querySelector('#d-tvf');
+        var sync = function () { box.hidden = sel.value === 'none'; };
+        sel.onchange = sync; sync();
+      });
+  }
+  function moveType(id, dir) {
+    var ids = S.orderTypes.map(function (x) { return x.id; }), i = ids.indexOf(id), j = i + dir;
+    if (j < 0 || j >= ids.length) return;
+    ids[i] = ids[j]; ids[j] = id;
+    act(api('PUT', '/order', { types: ids }));
+  }
+  /** The price a type gives a dish by its rule (shown as the hint where the dish has no price of its own). */
+  function byRule(price, ty) {
+    var p = +price || 0;
+    var v = ty.adjust === 'percent' ? Math.round(p * (1 + ty.adjustValue / 100) * 100) / 100 : ty.adjust === 'amount' ? p + ty.adjustValue : p;
+    return Math.max(0, Math.round(v * 100) / 100);
   }
 
   // ---- how dishes are listed: picture cards that behave as radio buttons (real radios underneath, so keys and screen readers work) ----
@@ -279,13 +431,201 @@
         return '<span class="mini m-compact">' + rows(5, function () { return '<span class="row"><i class="dot"></i><span class="tx">' + line(70) + line(45) + '</span><i class="pill"></i></span>'; }) + '</span>';
     }
   }
-  function styleCard() {
-    var current = S.menu.listingStyle || 'compact';
-    return '<section class="card"><fieldset class="styles"><legend><h2>' + t('lsH') + '</h2></legend><p class="sub">' + t('lsP') + '</p><div class="stygrid">' +
-      STYLES.map(function (s) {
-        return '<label class="sty"><input type="radio" name="lstyle" value="' + s + '"' + (s === current ? ' checked' : '') + '>' +
-          mini(s) + '<b>' + t('ls_' + s) + (s === current ? ' <span class="pill good">' + t('lsOn') + '</span>' : '') + '</b><span>' + t('ls_' + s + '_d') + '</span></label>';
-      }).join('') + '</div></fieldset></section>';
+  // ---- taking orders: what "Send order" does, the WhatsApp button, and the orders that came in ----
+  var MODES = ['show', 'request', 'pos'];
+  var O = { orders: null, open: 0, timer: 0, seen: null, allOpen: false, showDone: false };
+  var OPEN_SHOWN = 4;
+  function ordersCard() {
+    var m = S.menu, mode = m.orderMode || 'show', hasPos = (S.branches || []).length > 0;
+    var opts = MODES.map(function (k) {
+      var off = k === 'pos' && !hasPos;
+      return '<label class="om' + (off ? ' off' : '') + '"><input type="radio" name="omode" value="' + k + '"' + (k === mode ? ' checked' : '') + (off ? ' disabled' : '') + '>' +
+        '<b>' + ic(k === 'show' ? 'hand' : k === 'request' ? 'bell' : 'link') + t('om_' + k) + '</b><span>' + t(off ? 'om_pos_off' : 'om_' + k + '_d') + '</span></label>';
+    }).join('');
+    var wa = !!m.whatsApp;
+    return '<section class="card" id="ordcard"><h2>' + t('omH') + '</h2><p class="sub">' + t('omP') + '</p><div class="omgrid">' + opts + '</div>' +
+      '<label class="switch" style="margin-top:14px"><input type="checkbox" id="wa-show"' + (m.showWhatsApp && wa ? ' checked' : '') + (wa ? '' : ' disabled') + '><span>' + t('waShow') + '</span></label>' +
+      '<p class="small muted" style="margin:4px 0 0 52px">' + t(wa ? 'waShowD' : 'waNone') + '</p>' +
+      (mode === 'show' ? '' : '<div class="inbox"><div class="cardhead"><h3>' + t('ordH') + ' <span class="pill info" id="ord-open"' + (O.open ? '' : ' hidden') + '>' + t('ordOpen', O.open) + '</span></h3>' +
+        '<span class="small muted live"><i></i>' + t('ordLive') + '</span></div><div id="ord-list">' + ordersList() + '</div></div>') + '</section>';
+  }
+  /**
+   * Open orders first, in full (they need an answer), oldest first so the one waiting longest is on top; only a few unless asked for more.
+   * Finished ones (done, turned down, in the last day) fold away into one short line each, so a busy day does not make the page endless.
+   */
+  function ordersList() {
+    if (O.orders === null) return '<p class="small muted">' + t('loading') + '</p>';
+    if (!O.orders.length) return '<p class="small muted" style="margin-top:10px">' + t('ordNone') + '</p>';
+    var isOpen = function (o) { return o.status === 'new' || o.status === 'accepted' || o.status === 'ready'; };
+    var open = O.orders.filter(isOpen).reverse(), done = O.orders.filter(function (o) { return !isOpen(o); });
+    var shown = O.allOpen ? open : open.slice(0, OPEN_SHOWN);
+    var h = open.length ? '<ul class="orders">' + shown.map(orderCard).join('') + '</ul>' : '<p class="small muted" style="margin-top:10px">' + t('ordNoOpen') + '</p>';
+    if (open.length > OPEN_SHOWN)
+      h += '<p class="omore"><button type="button" class="btn sm" data-oall>' + (O.allOpen ? t('ordLess') : t('ordMore', open.length - OPEN_SHOWN)) + '</button></p>';
+    if (done.length)
+      h += '<details class="odone"' + (O.showDone ? ' open' : '') + '><summary>' + t('ordDone', done.length) + '</summary><ul>' + done.map(function (o) {
+        return '<li><b class="on">#' + o.number + '</b><span dir="auto">' + esc(o.name) + '</span><span class="small muted">' +
+          esc(t('nItems', o.lines.reduce(function (n, l) { return n + l.quantity; }, 0))) + ' · ' + esc(ago(o.updatedAtUtc || o.createdAtUtc)) + '</span><span class="sp"></span>' +
+          '<span class="pill mute">' + t('os_' + o.status) + '</span><b dir="ltr">' + esc(o.total) + '</b></li>';
+      }).join('') + '</ul></details>';
+    return h;
+  }
+  function orderCard(o) {
+    var acts = o.status === 'new' ? ['accepted', 'rejected'] : o.status === 'accepted' ? ['ready', 'rejected'] : o.status === 'ready' ? ['done'] : [];
+    var label = { accepted: 'oAccept', ready: 'oReady', done: 'oDone', rejected: 'oReject' };
+    return '<li class="ord s-' + o.status + '"><div class="oh"><b class="on">#' + o.number + '</b><span class="pill ' + ({ 'new': 'warn', accepted: 'info', ready: 'good' })[o.status] + '">' + t('os_' + o.status) + '</span>' +
+      (o.route === 'pos' ? '<span class="pill mute">' + t('ordTill') + '</span>' : '') + '<span class="sp"></span><span class="small muted">' + esc(ago(o.createdAtUtc)) + '</span></div>' +
+      '<p class="who"><b dir="auto">' + esc(o.name) + '</b>' + (o.place ? ' · <span dir="auto">' + esc(o.place) + '</span>' : '') +
+      [o.branch, o.orderType].filter(Boolean).map(function (x) { return ' · <span dir="auto">' + esc(x) + '</span>'; }).join('') + '</p>' +
+      '<ul class="olines">' + o.lines.map(function (l) { return '<li><span class="q" dir="ltr">' + l.quantity + '×</span><span dir="auto">' + esc(l.name) + '</span><span class="pr" dir="ltr">' + esc(l.total) + '</span></li>'; }).join('') + '</ul>' +
+      (o.note ? '<p class="onote" dir="auto">' + esc(o.note) + '</p>' : '') +
+      '<div class="of"><b class="ot" dir="ltr">' + esc(o.total) + '</b><span class="sp"></span>' +
+      (o.phone ? '<a class="btn sm" href="tel:' + esc(o.phone.replace(/[^0-9+]/g, '')) + '">' + t('oCall') + '</a>' : '') +
+      acts.map(function (a) { return '<button type="button" class="btn sm' + (a === 'rejected' ? ' danger' : ' pri') + '" data-omove="' + o.id + '" data-to="' + a + '">' + t(label[a]) + '</button>'; }).join('') +
+      '</div></li>';
+  }
+  /** Asks for the orders every few seconds while the list is shown; redraws only the list, so a form being typed in is left alone. */
+  function pollOrders() {
+    clearTimeout(O.timer);
+    if (!S || !S.menu || (S.menu.orderMode || 'show') === 'show') return;
+    api('GET', '/orders').then(function (r) {
+      var newIds = r.orders.filter(function (o) { return o.status === 'new'; }).map(function (o) { return o.id; });
+      if (O.seen) {
+        var fresh = newIds.filter(function (id) { return O.seen.indexOf(id) < 0; });
+        if (fresh.length) { toast(fresh.length === 1 ? t('ordNew') : t('ordNewN', fresh.length)); chime(); }
+      }
+      O.seen = newIds; O.orders = r.orders; O.open = r.open;
+      document.title = (newIds.length ? '(' + newIds.length + ') ' : '') + t('title') + ' · Coduo POS';
+      drawOrders();
+    }, function () { }).then(function () { O.timer = setTimeout(pollOrders, document.hidden ? 30000 : 8000); });
+  }
+  function drawOrders() {
+    var list = document.getElementById('ord-list'), pill = document.getElementById('ord-open');
+    if (list) list.innerHTML = ordersList();
+    if (pill) { pill.hidden = !O.open; pill.textContent = t('ordOpen', O.open); }
+  }
+  /** A short two-note chime for a new order (the page has been clicked by then, so the browser lets it play). */
+  function chime() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext; if (!A) return;
+      var a = chime.ctx || (chime.ctx = new A()), now = a.currentTime;
+      [880, 1320].forEach(function (f, k) {
+        var o = a.createOscillator(), g = a.createGain();
+        o.frequency.value = f; o.connect(g); g.connect(a.destination);
+        g.gain.setValueAtTime(0.0001, now + k * 0.18); g.gain.exponentialRampToValueAtTime(0.2, now + k * 0.18 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + k * 0.18 + 0.3);
+        o.start(now + k * 0.18); o.stop(now + k * 0.18 + 0.32);
+      });
+    } catch (e) { }
+  }
+
+  // ---- the look: colours and lettering, cover and logo, how dishes are listed ----
+  var THEMES = ['basil', 'ember', 'saffron', 'harbor', 'plum', 'charcoal'];
+  function lookCard() {
+    var m = S.menu, current = m.listingStyle || 'compact', theme = m.theme || 'basil';
+    var swatches = THEMES.map(function (k) {
+      return '<label class="thm th-' + k + '"><input type="radio" name="mtheme" value="' + k + '"' + (k === theme ? ' checked' : '') + '>' +
+        '<span class="sw"><i class="aa">Aa</i><i class="dot"></i></span><b>' + t('th_' + k) + '</b><span>' + t('th_' + k + '_d') + '</span></label>';
+    }).join('');
+    var styles = STYLES.map(function (s) {
+      return '<label class="sty"><input type="radio" name="lstyle" value="' + s + '"' + (s === current ? ' checked' : '') + '>' +
+        mini(s) + '<b>' + t('ls_' + s) + (s === current ? ' <span class="pill good">' + t('lsOn') + '</span>' : '') + '</b><span>' + t('ls_' + s + '_d') + '</span></label>';
+    }).join('');
+    return '<section class="card"><h2>' + t('lookH') + '</h2><p class="sub">' + t('lookP') + '</p>' +
+      '<div class="pics">' +
+      '<div class="pk cover"><span class="lbl">' + t('cover') + '</span><div class="cv">' + (m.coverUrl ? '<img src="' + esc(m.coverUrl) + '" alt="">' : ic('photo')) + '</div>' +
+      '<p class="small muted">' + t('coverP') + '</p><div class="row"><button type="button" class="btn sm" id="cover">' + t('chooseCover') + '</button>' +
+      (m.coverUrl ? '<button type="button" class="btn sm danger" id="nocover">' + t('remove') + '</button>' : '') + '</div></div>' +
+      '<div class="pk"><span class="lbl">' + t('logo') + '</span><div class="lg">' + (m.logoUrl ? '<img src="' + esc(m.logoUrl) + '" alt="">' : ic('photo')) + '</div>' +
+      '<p class="small muted">' + t('logoP') + '</p><div class="row"><button type="button" class="btn sm" id="logo">' + t('chooseLogo') + '</button>' +
+      (m.logoUrl ? '<button type="button" class="btn sm danger" id="nologo">' + t('remove') + '</button>' : '') + '</div></div></div>' +
+      '<fieldset class="themes"><legend><h3>' + t('thH') + '</h3></legend><div class="thgrid">' + swatches + '</div></fieldset>' +
+      '<fieldset class="styles"><legend><h3>' + t('lsH') + '</h3></legend><p class="sub">' + t('lsP') + '</p><div class="stygrid">' + styles + '</div></fieldset></section>';
+  }
+
+  // ---- how to reach the shop ----
+  var CONTACT = [['address', 'cAddr', 300, 'full'], ['mapUrl', 'cMap', 500, 'full', 'cMapHint'], ['phone', 'cPhone', 30, ''], ['whatsApp', 'cWa', 30, '', 'cWaHint'],
+    ['instagram', 'cIg', 200, '', 'cHandle'], ['facebook', 'cFb', 200, '', 'cHandle'], ['tikTok', 'cTt', 200, '', 'cHandle'], ['website', 'cWeb', 200, '']];
+  function contactCard() {
+    var m = S.menu;
+    return '<section class="card"><h2>' + t('ctH') + '</h2><p class="sub">' + t('ctP') + '</p><form id="fcontact"><div class="fields">' +
+      CONTACT.map(function (c) {
+        var ltr = c[0] !== 'address';
+        return '<div class="f ' + c[3] + '"><label for="c-' + c[0] + '">' + t(c[1]) + '</label><input id="c-' + c[0] + '" maxlength="' + c[2] + '"' + (ltr ? ' dir="ltr"' : ' dir="auto"') +
+          (c[0] === 'phone' || c[0] === 'whatsApp' ? ' inputmode="tel"' : '') + (c[0] === 'mapUrl' || c[0] === 'website' ? ' inputmode="url"' : '') +
+          ' value="' + esc(m[c[0]] || '') + '"' + (c[4] === 'cHandle' ? ' placeholder="' + esc(t('cHandle')) + '"' : '') + '>' +
+          (c[4] && c[4] !== 'cHandle' ? '<span class="hint">' + t(c[4]) + '</span>' : '') + '</div>';
+      }).join('') + '</div><p class="err" id="cerr" hidden></p><p style="margin-top:14px"><button class="btn pri">' + t('save') + '</button></p></form></section>';
+  }
+
+  // ---- opening hours: Monday first on screen, Sunday first in the data ----
+  var WEEK = [1, 2, 3, 4, 5, 6, 0];
+  function hoursFields(id, hours) {
+    var days = t('days');
+    return '<div class="hours" id="' + id + '">' + WEEK.map(function (d) {
+      var raw = hours ? hours[d] || '' : '', on = !!raw, first = raw.split(',')[0] || '', from = first.slice(0, 5) || '09:00', to = first.slice(6, 11) || '23:00';
+      return '<div class="hr' + (on ? '' : ' off') + '" data-day="' + d + '"><label class="switch"><input type="checkbox" data-hon' + (on ? ' checked' : '') + '><span>' + esc(days[d]) + '</span></label>' +
+        '<span class="hst muted small">' + (on ? '' : t('hrClosed')) + '</span>' +
+        '<label class="tm"><span class="sr">' + t('hrFrom') + '</span><input type="time" data-hfrom value="' + esc(from) + '"' + (on ? '' : ' disabled') + '></label>' +
+        '<label class="tm"><span class="sr">' + t('hrTo') + '</span><input type="time" data-hto value="' + esc(to) + '"' + (on ? '' : ' disabled') + '></label>' +
+        // A second range (a lunch break) typed elsewhere is kept as it is.
+        (raw.indexOf(',') > -1 ? '<input type="hidden" data-hrest value="' + esc(raw.slice(raw.indexOf(',') + 1)) + '">' : '') + '</div>';
+    }).join('') + '<p class="row" style="margin-top:10px"><button type="button" class="btn sm" data-hcopy="' + id + '">' + t('hrCopy') + '</button></p></div>';
+  }
+  function wireHours(root) {
+    root.querySelectorAll('.hr').forEach(function (row) {
+      var box = row.querySelector('[data-hon]');
+      box.addEventListener('change', function () {
+        row.classList.toggle('off', !box.checked);
+        row.querySelectorAll('input[type=time]').forEach(function (i) { i.disabled = !box.checked; });
+        row.querySelector('.hst').textContent = box.checked ? '' : t('hrClosed');
+      });
+    });
+    root.querySelectorAll('[data-hcopy]').forEach(function (b) {
+      b.onclick = function () {
+        var rows = [].slice.call(root.querySelectorAll('.hr')), src = rows.filter(function (r) { return r.querySelector('[data-hon]').checked; })[0];
+        if (!src) return;
+        var f = src.querySelector('[data-hfrom]').value, to = src.querySelector('[data-hto]').value;
+        rows.forEach(function (r) { if (r.querySelector('[data-hon]').checked) { r.querySelector('[data-hfrom]').value = f; r.querySelector('[data-hto]').value = to; } });
+      };
+    });
+  }
+  /** Seven strings, Sunday first: "09:00-23:00" (plus any second range kept), or "" for closed. */
+  function readHours(root) {
+    var out = ['', '', '', '', '', '', ''];
+    root.querySelectorAll('.hr').forEach(function (row) {
+      if (!row.querySelector('[data-hon]').checked) return;
+      var f = row.querySelector('[data-hfrom]').value, to = row.querySelector('[data-hto]').value, rest = row.querySelector('[data-hrest]');
+      if (f && to) out[+row.dataset.day] = f + '-' + to + (rest ? ',' + rest.value : '');
+    });
+    return out;
+  }
+  function hoursCard() {
+    var m = S.menu;
+    return '<section class="card"><h2>' + t('hrH') + '</h2><p class="sub">' + t('hrP') + '</p><form id="fhours">' + hoursFields('h-menu', m.hours) +
+      (m.hours ? '' : '<p class="small muted" style="margin-top:8px">' + t('hrNone') + '</p>') +
+      '<p class="err" id="herr" hidden></p><p class="row" style="margin-top:14px"><button class="btn pri">' + t('save') + '</button>' +
+      (m.hours ? '<button type="button" class="btn" id="hclear">' + t('hrClear') + '</button>' : '') + '</p></form></section>';
+  }
+
+  /** A branch's own address, map, phone and hours (each empty one falls back to the shop's). */
+  function branchDialog(b) {
+    var own = !!b.hours;
+    dialog('<form><h2 id="dlg-t">' + esc(t('brDlg', b.name)) + '</h2><p class="sub">' + t('brDlgP') + '</p><div class="fields">' +
+      '<div class="f full"><label for="b-addr">' + t('cAddr') + '</label><input id="b-addr" maxlength="300" dir="auto" value="' + esc(b.address || '') + '" placeholder="' + esc(S.menu.address || '') + '"></div>' +
+      '<div class="f full"><label for="b-map">' + t('cMap') + '</label><input id="b-map" maxlength="500" dir="ltr" inputmode="url" value="' + esc(b.mapUrl || '') + '"><span class="hint">' + t('cMapHint') + '</span></div>' +
+      '<div class="f"><label for="b-phone">' + t('cPhone') + '</label><input id="b-phone" maxlength="30" dir="ltr" inputmode="tel" value="' + esc(b.phone || '') + '" placeholder="' + esc(S.menu.phone || '') + '"></div>' +
+      '<label class="switch full"><input type="checkbox" id="b-own"' + (own ? ' checked' : '') + '><span>' + t('brOwnHours') + '</span></label>' +
+      '<div class="full" id="b-hwrap"' + (own ? '' : ' hidden') + '>' + hoursFields('h-branch', b.hours || S.menu.hours) + '</div>' +
+      '</div><p class="err" hidden></p><div class="foot"><button type="button" class="btn" data-close>' + t('cancel') + '</button><button class="btn pri">' + t('save') + '</button></div></form>',
+      function () {
+        var body = { address: $('#b-addr').value, mapUrl: $('#b-map').value, phone: $('#b-phone').value,
+          hours: $('#b-own').checked ? readHours($('#h-branch')) : ['', '', '', '', '', '', ''] };
+        return api('PUT', '/branches/' + b.siteId, body).then(apply);
+      },
+      function (d) {
+        wireHours(d);
+        d.querySelector('#b-own').onchange = function (e) { d.querySelector('#b-hwrap').hidden = !e.target.checked; };
+      });
   }
 
   function detailsCard() {
@@ -298,8 +638,6 @@
       '<div class="f"><label for="s-lang">' + t('mLang') + '</label><select id="s-lang"><option value="en"' + (m.language === 'en' ? ' selected' : '') + '>English</option><option value="ar"' + (m.language === 'ar' ? ' selected' : '') + '>العربية</option></select></div>' +
       '<div class="f"><label for="s-cur">' + t('mCur') + '</label><input id="s-cur" maxlength="10" value="' + esc(m.currency || '') + '" placeholder="$"></div>' +
       '<div class="f full"><label for="s-slug">' + t('mSlug') + '</label><div class="slug"><span>' + esc(origin.replace(/^https?:\/\//, '')) + '</span><input id="s-slug" maxlength="60" pattern="[a-z0-9][a-z0-9\\-]{1,58}[a-z0-9]" value="' + esc(m.slug) + '" spellcheck="false" autocapitalize="off"></div><span class="hint">' + t('slugHint') + '</span></div>' +
-      '<div class="f full"><label>' + t('logo') + '</label><div class="logo">' + (m.logoUrl ? '<img src="' + esc(m.logoUrl) + '" alt="">' : '<span class="ph">' + ic('photo') + '</span>') +
-      '<button type="button" class="btn sm" id="logo">' + t('chooseLogo') + '</button>' + (m.logoUrl ? '<button type="button" class="btn sm danger" id="nologo">' + t('remove') + '</button>' : '') + '</div></div>' +
       '</div><p style="margin-top:16px"><button class="btn pri">' + t('save') + '</button></p></form></details></section>';
   }
 
@@ -330,13 +668,14 @@
     var h = '<section class="card"><h2>' + t('itemsH') + '</h2><p class="sub">' + t('itemsP') + '</p>' + (S.menu.posArranged ? '<p class="note">' + t('posOrder') + '</p>' : '');
     var secs = S.sections;
     secs.forEach(function (s, si) {
-      h += '<div class="sec' + (s.isHidden ? ' hid' : '') + '"><div class="sh"><h3 dir="auto">' + esc(s.name) + '</h3>' +
+      h += '<div class="sec' + (s.isHidden ? ' hid' : '') + '"><div class="sh"><button type="button" class="th sth" data-spic="' + s.id + '" aria-label="' + t('secPic') + ': ' + esc(s.name) + '">' + (s.imageUrl ? '<img src="' + esc(s.imageUrl) + '" alt="">' : ic('photo')) + '</button><h3 dir="auto">' + esc(s.name) + '</h3>' +
         (s.linked ? '<span class="pill info">' + t('pos') + '</span>' : '') + (s.isHidden ? '<span class="pill mute">' + t('hidden') + '</span>' : '') +
         (fixedOrder(s.linked) ? '' : '<button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (si === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
         '<button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="1" aria-label="' + t('down') + '"' + (si === secs.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button>') +
         '<span class="small muted">' + t('nItems', s.itemCount) + '</span>' +
         '<button type="button" class="btn sm" data-shide="' + s.id + '">' + (s.isHidden ? t('show') : t('hide')) + '</button>' +
-        (s.linked ? '' : '<button type="button" class="btn sm" data-sren="' + s.id + '">' + t('rename') + '</button><button type="button" class="btn sm danger" data-sdel="' + s.id + '">' + t('del') + '</button>') +
+        '<button type="button" class="btn sm" data-sren="' + s.id + '">' + t('edit') + '</button>' +
+        (s.linked ? '' : '<button type="button" class="btn sm danger" data-sdel="' + s.id + '">' + t('del') + '</button>') +
         '</div><ul class="items">' + itemsList(s.id, s.itemCount) + '</ul></div>';
     });
     if (S.looseCount)
@@ -356,17 +695,50 @@
     var m = S.menu;
 
     on('#pub', 'change', function (e) { act(api('PUT', '/settings', { isPublished: e.target.checked })); });
+    document.querySelectorAll('input[name=omode]').forEach(function (r) {
+      r.addEventListener('change', function () { act(api('PUT', '/settings', { orderMode: r.value })).then(function () { toast(t('omSaved')); O.orders = null; pollOrders(); }, function () {}); });
+    });
+    on('#wa-show', 'change', function (e) { act(api('PUT', '/settings', { showWhatsApp: e.target.checked })); });
+    var oc = document.getElementById('ordcard');
+    if (oc) oc.addEventListener('toggle', function (e) { if (e.target.classList && e.target.classList.contains('odone')) O.showDone = e.target.open; }, true);
+    if (oc) oc.addEventListener('click', function (e) {
+      if (e.target.closest('[data-oall]')) { O.allOpen = !O.allOpen; drawOrders(); return; }
+      var b = e.target.closest('[data-omove]'); if (!b) return;
+      var id = +b.dataset.omove, to = b.dataset.to, o = (O.orders || []).filter(function (x) { return x.id === id; })[0];
+      if (to === 'rejected' && !confirm(t('oRejectQ', o ? o.number : ''))) return;
+      b.disabled = true;
+      api('PUT', '/orders/' + id, { status: to }).then(function () { pollOrders(); }, function (x) { b.disabled = false; toast(x.message); });
+    });
     on('#copy', 'click', function () {
-      (navigator.clipboard ? navigator.clipboard.writeText(m.url) : Promise.reject()).then(function () { toast(t('copied')); }, function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(shareUrl()) : Promise.reject()).then(function () { toast(t('copied')); }, function () {
         var r = document.createRange(); r.selectNodeContents($('#murl')); var s = getSelection(); s.removeAllRanges(); s.addRange(r);
       });
     });
     drawQr();
     on('#qrdl', 'click', downloadQr);
 
-    on('#src-pos', 'click', function () { if (!m.linkedSiteId && S.sites.length) act(api('PUT', '/settings', { linkedSiteId: S.sites[0].id })); });
-    on('#src-hand', 'click', function () { if (m.linkedSiteId && confirm(t('unlinkQ'))) act(api('PUT', '/settings', { linkedSiteId: '' })); });
-    on('#site', 'change', function (e) { if (confirm(t('unlinkQ'))) act(api('PUT', '/settings', { linkedSiteId: e.target.value })); else render(); });
+    // From my POS: every branch of the shop fills the menu (any can be taken off below). Added here: none.
+    on('#src-pos', 'click', function () { if (!m.linkedSiteId && S.sites.length) act(api('PUT', '/settings', { branchIds: S.sites.map(function (s) { return s.id; }) })); });
+    on('#src-hand', 'click', function () { if (m.linkedSiteId && confirm(t('unlinkQ'))) act(api('PUT', '/settings', { branchIds: [] })); });
+    var linkedIds = function () { return S.branches.map(function (b) { return b.siteId; }); };
+    document.querySelectorAll('[data-br]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        var id = box.dataset.br, ids = linkedIds();
+        if (box.checked) { ids.push(id); act(api('PUT', '/settings', { branchIds: ids })); return; }
+        var b = S.branches.filter(function (x) { return x.siteId === id; })[0];
+        if (!confirm(t('brOffQ', b ? b.name : ''))) { box.checked = true; return; }
+        act(api('PUT', '/settings', { branchIds: ids.filter(function (x) { return x !== id; }) }));
+      });
+    });
+    document.querySelectorAll('[data-brmain]').forEach(function (b) {
+      b.onclick = function () { var id = b.dataset.brmain; act(api('PUT', '/settings', { branchIds: [id].concat(linkedIds().filter(function (x) { return x !== id; })) })); };
+    });
+    on('#qrfor', 'change', function (e) { qrBranch = e.target.value; render(); });
+
+    on('#addtype', 'click', function () { typeDialog(null); });
+    each('data-tedit', function (id) { typeDialog(typeById(id)); });
+    each('data-tdel', function (id) { var ty = typeById(id); if (confirm(t('otDelQ', ty.name))) actItems(api('DELETE', '/types/' + id)); });
+    each('data-tmv', function (id, b) { moveType(id, +b.dataset.dir); });
 
     on('#det', 'toggle', function (e) { openDetails = e.target.open; });
     document.querySelectorAll('input[name=lstyle]').forEach(function (r) {
@@ -379,6 +751,30 @@
         currency: $('#s-cur').value, slug: $('#s-slug').value.trim().toLowerCase(),
       })).then(function () { toast(t('saved')); }, function () {});
     });
+    document.querySelectorAll('input[name=mtheme]').forEach(function (r) {
+      r.addEventListener('change', function () { act(api('PUT', '/settings', { theme: r.value })).then(function () { toast(t('thSaved')); }, function () {}); });
+    });
+    on('#cover', 'click', function () { pickFile(function (f) { shrink(f, 1800, false).then(function (b) { return act(api('PUT', '/cover', undefined, b)); }).catch(function (e) { toast(e.message); }); }); });
+    on('#nocover', 'click', function () { act(api('DELETE', '/cover')); });
+    on('#fcontact', 'submit', function (e) {
+      e.preventDefault();
+      var body = {}, err = $('#cerr');
+      CONTACT.forEach(function (c) { body[c[0]] = $('#c-' + c[0]).value; });
+      err.hidden = true;
+      api('PUT', '/settings', body).then(function (st) { apply(st); toast(t('saved')); }, function (x) { err.textContent = x.message; err.hidden = false; });
+    });
+    var hroot = $('#h-menu');
+    if (hroot) wireHours(hroot);
+    on('#fhours', 'submit', function (e) {
+      e.preventDefault();
+      var err = $('#herr'); err.hidden = true;
+      api('PUT', '/settings', { hours: readHours($('#h-menu')) }).then(function (st) { apply(st); toast(t('saved')); }, function (x) { err.textContent = x.message; err.hidden = false; });
+    });
+    on('#hclear', 'click', function () { act(api('PUT', '/settings', { hours: ['', '', '', '', '', '', ''] })); });
+    document.querySelectorAll('[data-brdet]').forEach(function (b) {
+      b.onclick = function () { var br = S.branches.filter(function (x) { return x.siteId === b.dataset.brdet; })[0]; if (br) branchDialog(br); };
+    });
+    each('data-spic', function (id) { pickFile(function (f) { uploadSectionPic(id, f); }); });
     on('#logo', 'click', function () { pickFile(function (f) { shrink(f, 512, true).then(function (b) { return act(api('PUT', '/logo', undefined, b)); }).catch(function (e) { toast(e.message); }); }); });
     on('#nologo', 'click', function () { act(api('DELETE', '/logo')); });
 
@@ -412,6 +808,7 @@
   // ---- dialogs ----
   function dialog(html, onSubmit, after) {
     var d = $('#dlg');
+    d.classList.remove('wide');
     d.innerHTML = html;
     var f = d.querySelector('form');
     f.addEventListener('submit', function (e) {
@@ -424,11 +821,42 @@
     d.showModal();
   }
 
+  function uploadSectionPic(id, file) {
+    return shrink(file, 1400, false).then(function (b) { return act(api('PUT', '/sections/' + id + '/image', undefined, b)); }).catch(function (e) { toast(e.message); });
+  }
+  /** A section's name (not for one from the POS), the line under it, and its picture. */
   function sectionDialog(s) {
-    dialog('<form><h2 id="dlg-t">' + (s ? t('renameSection') : t('newSection')) + '</h2><div class="fields"><div class="f full"><label for="d-sn">' + t('secName') + '</label>' +
-      '<input id="d-sn" maxlength="120" required dir="auto" value="' + esc(s ? s.name : '') + '"></div></div><p class="err" hidden></p>' +
+    var linked = s && s.linked, pending = null;
+    dialog('<form><h2 id="dlg-t">' + (s ? t('secEdit') : t('newSection')) + '</h2>' + (linked ? '<p class="note">' + t('secFromPos') + '</p>' : '') + '<div class="fields">' +
+      '<div class="f full"><label for="d-sn">' + t('secName') + '</label><input id="d-sn" maxlength="120" required dir="auto"' + (linked ? ' readonly' : '') + ' value="' + esc(s ? s.name : '') + '"></div>' +
+      '<div class="f full"><label for="d-sd">' + t('secDesc') + '</label><input id="d-sd" maxlength="200" dir="auto" value="' + esc(s ? s.description || '' : '') + '"><span class="hint">' + t('secDescHint') + '</span></div>' +
+      '<div class="f full"><label>' + t('secPic') + '</label><div class="pic"><span class="th wide" id="d-sth">' + (s && s.imageUrl ? '<img src="' + esc(s.imageUrl) + '" alt="">' : ic('photo')) + '</span>' +
+      '<button type="button" class="btn sm" id="d-spick">' + t('choosePic') + '</button>' + (s && s.imageUrl ? '<button type="button" class="btn sm danger" id="d-snopic">' + t('remove') + '</button>' : '') +
+      '</div><span class="hint">' + t('secPicHint') + '</span></div>' +
+      '<fieldset class="f full picas"><legend>' + t('picAs') + '</legend><div class="pa">' +
+        ['banner', 'icon'].map(function (k) {
+          var on = (s && s.pictureAs || 'banner') === k;
+          return '<label class="opt pa-' + k + '"><input type="radio" name="d-pa" value="' + k + '"' + (on ? ' checked' : '') + '><span class="pv"><i class="pi"></i><i class="pl"></i></span><b>' + t(k === 'banner' ? 'picBanner' : 'picIcon') + '</b><span>' + t(k === 'banner' ? 'picBannerD' : 'picIconD') + '</span></label>';
+        }).join('') + '</div></fieldset>' +
+      '</div><p class="err" hidden></p>' +
       '<div class="foot"><button type="button" class="btn" data-close>' + t('cancel') + '</button><button class="btn pri">' + t('save') + '</button></div></form>',
-      function () { var name = $('#d-sn').value; return s ? api('PUT', '/sections/' + s.id, { name: name }).then(apply) : api('POST', '/sections', { name: name }).then(apply); });
+      function () {
+        var pa = document.querySelector('#dlg input[name=d-pa]:checked');
+        var body = { description: $('#d-sd').value, pictureAs: pa ? pa.value : 'banner' };
+        if (!linked) body.name = $('#d-sn').value;
+        return (s ? api('PUT', '/sections/' + s.id, body) : api('POST', '/sections', body)).then(function (state) {
+          apply(state);
+          var id = s ? s.id : state && state.createdId;
+          if (pending && id) return uploadSectionPic(id, pending);
+        });
+      },
+      function (d) {
+        d.querySelector('#d-spick').onclick = function () {
+          pickFile(function (f) { pending = f; d.querySelector('#d-sth').innerHTML = '<img src="' + URL.createObjectURL(f) + '" alt="">'; });
+        };
+        var np = d.querySelector('#d-snopic');
+        if (np) np.onclick = function () { act(api('DELETE', '/sections/' + s.id + '/image')).then(function () { d.close(); }, function () {}); };
+      });
   }
 
   function itemDialog(i) {
@@ -442,6 +870,16 @@
       '<div class="f"><label for="d-p">' + t('iPrice') + '</label><input id="d-p" inputmode="decimal" dir="ltr" required' + (linked ? ' readonly' : '') + ' value="' + esc(i ? i.price : '') + '"></div>' +
       '<div class="f"><label for="d-c">' + t('iCur') + '</label><input id="d-c" maxlength="10" dir="ltr"' + (linked ? ' readonly' : '') + ' value="' + esc(i ? i.currency || '' : '') + '" placeholder="' + esc(m.currency) + '"><span class="hint">' + esc(t('iCurHint', m.currency || '-')) + '</span></div>' +
       (linked ? '' : '<div class="f full"><label for="d-s">' + t('iSec') + '</label><select id="d-s">' + secOpts + '</select></div>') +
+      // Where a POS dish is sold and at what price (read-only: the branches' POS set them).
+      (i && i.branches && i.branches.length > 1 ? '<div class="f full"><label>' + t('brPrices') + '</label><ul class="brprices">' +
+        i.branches.map(function (b) { return '<li><span>' + esc(b.name) + '</span><b dir="ltr">' + esc(b.priceText) + '</b></li>'; }).join('') + '</ul></div>' : '') +
+      // Its own price per order type; empty = the type's rule.
+      ((S.orderTypes || []).length ? '<fieldset class="f full tprices"><legend>' + t('tpH') + '</legend><div class="fields">' +
+        S.orderTypes.map(function (ty) {
+          var own = i && i.typePrices ? i.typePrices[ty.id] : null;
+          return '<div class="f"><label for="d-tp' + ty.id + '" dir="auto">' + esc(ty.name) + '</label><input id="d-tp' + ty.id + '" data-tp="' + ty.id + '" inputmode="decimal" dir="ltr" value="' + (own == null ? '' : esc(own)) + '"' +
+            ' placeholder="' + esc(i ? byRule(i.price, ty) : '') + '"><span class="hint">' + esc(t('tpHint', ruleText(ty))) + '</span></div>';
+        }).join('') + '</div></fieldset>' : '') +
       '<div class="f full"><label>' + t('picture') + '</label><div class="pic"><span class="th" id="d-th">' + (i && i.imageUrl ? '<img src="' + esc(i.imageUrl) + '" alt="">' : ic('photo')) + '</span>' +
       '<button type="button" class="btn sm" id="d-pick">' + t('choosePic') + '</button>' + (i && i.imageUrl ? '<button type="button" class="btn sm danger" id="d-nopic">' + t('remove') + '</button>' : '') + '</div></div>' +
       '<label class="switch full"><input type="checkbox" id="d-h"' + (i && i.isHidden ? ' checked' : '') + '><span>' + t('iHidden') + '</span></label>' +
@@ -456,6 +894,17 @@
         if (isNaN(price) || price < 0) return Promise.reject(new Error(t('iPrice') + '?'));
         body.name = $('#d-n').value; body.price = price; body.currency = $('#d-c').value; body.sectionId = +$('#d-s').value;
       }
+      var tps = document.querySelectorAll('#dlg [data-tp]');
+      if (tps.length) {
+        body.typePrices = {};
+        for (var k = 0; k < tps.length; k++) {
+          var raw = String(tps[k].value).replace(/,/g, '').trim();
+          if (raw === '') { body.typePrices[tps[k].dataset.tp] = null; continue; }
+          var v = parseFloat(raw);
+          if (isNaN(v) || v < 0) { tps[k].focus(); return Promise.reject(new Error(t('tpH') + '?')); }
+          body.typePrices[tps[k].dataset.tp] = v;
+        }
+      }
       var saving = i ? api('PUT', '/items/' + i.id, body) : api('POST', '/items', body);
       return saving.then(function (state) {
         apply(state);
@@ -464,6 +913,7 @@
         return refreshLoaded();
       });
     }, function (d) {
+      d.classList.add('wide');
       d.querySelector('#d-pick').onclick = function () {
         pickFile(function (f) { pending = f; var u = URL.createObjectURL(f); d.querySelector('#d-th').innerHTML = '<img src="' + u + '" alt="">'; });
       };
@@ -479,20 +929,20 @@
     var box = $('#qrbox');
     if (!box || typeof QRCode === 'undefined') return;
     box.innerHTML = '';
-    new QRCode(box, { text: S.menu.url, width: 256, height: 256, colorDark: '#0B1633', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(box, { text: shareUrl(), width: 256, height: 256, colorDark: '#0B1633', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
   }
   function downloadQr() {
     if (typeof QRCode === 'undefined') return;
     // A large one, with a quiet margin, so it prints sharp on a table card.
     var holder = document.createElement('div');
-    new QRCode(holder, { text: S.menu.url, width: 1024, height: 1024, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(holder, { text: shareUrl(), width: 1024, height: 1024, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
     var src = holder.querySelector('canvas');
     if (!src) return;
     var pad = 96, c = document.createElement('canvas');
     c.width = c.height = 1024 + pad * 2;
     var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(src, pad, pad);
     var a = document.createElement('a');
-    a.href = c.toDataURL('image/png'); a.download = 'menu-qr-' + S.menu.slug + '.png';
+    a.href = c.toDataURL('image/png'); a.download = 'menu-qr-' + S.menu.slug + (qrBranch ? '-' + qrBranch : '') + '.png';
     document.body.appendChild(a); a.click(); a.remove();
   }
 
@@ -501,5 +951,5 @@
   if (!ADMIN && !(session && session.token)) { needSignIn(); return; }
   $('#app').innerHTML = '<div class="wrap">' + bar() + '<p class="loading">' + t('loading') + '</p></div>';
   bindBar();
-  api('GET', '/editor').then(apply).catch(function (e) { if (S === null && $('#app').querySelector('.loading')) $('#app').querySelector('.loading').textContent = e.message; });
+  api('GET', '/editor').then(apply).then(function () { pollOrders(); }).catch(function (e) { if (S === null && $('#app').querySelector('.loading')) $('#app').querySelector('.loading').textContent = e.message; });
 })();

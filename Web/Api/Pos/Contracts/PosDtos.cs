@@ -192,6 +192,8 @@ public sealed record PosCustomerDto
 
     public string? Email { get; init; }
 
+    public string? PhoneNumber { get; init; }
+
     /// <summary>What the customer owes (positive) or has in credit (negative).</summary>
     public required decimal Balance { get; init; }
 }

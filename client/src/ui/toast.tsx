@@ -14,7 +14,12 @@ interface ToastItem {
   message: string
   /** ms before auto-dismiss; 0 keeps it until closed. */
   duration: number
+  /** Makes the message a button: clicking it runs this and closes the toast ("New online order" opens the orders). */
+  onClick?: () => void
 }
+
+/** A number is the duration, as before; an object can also make the toast clickable. */
+export type ToastOptions = number | { duration?: number; onClick?: () => void }
 
 const useToastStore = create<{ items: ToastItem[] }>(() => ({ items: [] }))
 
@@ -22,10 +27,11 @@ let nextId = 1
 const MAX_VISIBLE = 4
 const DEFAULT_DURATION: Record<ToastTone, number> = { success: 3000, info: 4000, warning: 5000, error: 6000 }
 
-function push(tone: ToastTone, message: string, duration?: number): number {
+function push(tone: ToastTone, message: string, options?: ToastOptions): number {
   const id = nextId++
+  const { duration, onClick } = typeof options === 'number' ? { duration: options, onClick: undefined } : (options ?? {})
   useToastStore.setState((s) => ({
-    items: [...s.items, { id, tone, message, duration: duration ?? DEFAULT_DURATION[tone] }].slice(-MAX_VISIBLE),
+    items: [...s.items, { id, tone, message, duration: duration ?? DEFAULT_DURATION[tone], onClick }].slice(-MAX_VISIBLE),
   }))
   return id
 }
@@ -40,10 +46,10 @@ function dismiss(id: number) {
  * Requires `<Toaster />` to be mounted once (see UiHost).
  */
 export const toast = {
-  success: (message: string, duration?: number) => push('success', message, duration),
-  error: (message: string, duration?: number) => push('error', message, duration),
-  warning: (message: string, duration?: number) => push('warning', message, duration),
-  info: (message: string, duration?: number) => push('info', message, duration),
+  success: (message: string, options?: ToastOptions) => push('success', message, options),
+  error: (message: string, options?: ToastOptions) => push('error', message, options),
+  warning: (message: string, options?: ToastOptions) => push('warning', message, options),
+  info: (message: string, options?: ToastOptions) => push('info', message, options),
   dismiss,
   clear: () => useToastStore.setState({ items: [] }),
 }
@@ -64,7 +70,20 @@ function ToastView({ item }: { item: ToastItem }) {
       <span className={styles.icon}>
         <Icon name={TONE_ICON[item.tone]} size={18} />
       </span>
-      <span className={styles.message}>{item.message}</span>
+      {item.onClick ? (
+        <button
+          type="button"
+          className={`${styles.message} ${styles.action}`}
+          onClick={() => {
+            dismiss(item.id)
+            item.onClick!()
+          }}
+        >
+          {item.message}
+        </button>
+      ) : (
+        <span className={styles.message}>{item.message}</span>
+      )}
       <IconButton icon="close" size="sm" label={t('common.dismiss', 'Dismiss')} onClick={() => dismiss(item.id)} />
     </div>
   )

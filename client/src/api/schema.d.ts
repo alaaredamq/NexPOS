@@ -1874,6 +1874,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/online-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The open orders, oldest first. Not connected to Online, or the cloud out of reach: an empty list that says so. */
+        get: operations["getOnlineOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-orders/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Moves an order on: accepted (being made), ready, done, or rejected (the guest is told it could not be taken). */
+        put: operations["moveOnlineOrder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders": {
         parameters: {
             query?: never;
@@ -2182,6 +2216,26 @@ export interface paths {
         put?: never;
         /** Adds a customer from inside the checkout / hold dialogs so the cashier never leaves (and loses) the cart. First and last name only. */
         post: operations["quickCreatePosCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/customers/by-phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The customers whose phone is this number, however either is written ("+961 70 123 456" finds "70123456"). For an online order:
+         *     the till suggests the matching customer and the cashier confirms. Too few digits to tell anyone apart: an empty list.
+         */
+        get: operations["findPosCustomersByPhone"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2661,7 +2715,7 @@ export interface paths {
          * Prints the labels on a label printer attached to this computer, as printer commands (TSPL).
          * @description For TSC-compatible label printers (Xprinter, TSC, Gprinter...). Windows drivers for these keep one fixed paper size and
          *     ignore the size a program asks for; the commands carry the label size themselves, so the size chosen in the dialog is
-         *     what comes out. A printer that does not speak TSPL prints rubbish, so the desktop app only offers this as a choice.
+         *     what comes out. A printer marked "receipt mode" on the Printers page (a 2-in-1 set to receipts) gets the stickers as ESC/POS pictures instead.
          */
         post: operations["printStickerLabels"];
         delete?: never;
@@ -3160,6 +3214,26 @@ export interface paths {
         get: operations["getPrintingSettings"];
         /** Saves the receipt printer and sticker size. A sticker size outside 15-150 x 10-150 mm answers 400 `validation_failed`. */
         put: operations["savePrintingSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/printers/mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Records the mode a 2-in-1 printer (Xprinter XP-365B) is set to on the printer, so receipts and labels both go out in the language it
+         *     is listening for. Saved at once; answers the printing settings with the new modes.
+         */
+        put: operations["setPrinterMode"];
         post?: never;
         delete?: never;
         options?: never;
@@ -5459,6 +5533,15 @@ export interface components {
              */
             lastSentUtc?: string | null;
         };
+        OnlineOrderMoveRequest: {
+            status?: string;
+        };
+        /** @description What the till shows of the online orders: whether this PC can receive them, and the open ones for its branch. */
+        OnlineOrdersDto: {
+            connected?: boolean;
+            reachable?: boolean;
+            orders?: components["schemas"]["TillOrder"][];
+        };
         /**
          * @description The Online screen: whether this till is connected to Coduo POS Online, to whom, and how the last synchronisation went.
          *     The device token is never part of it.
@@ -5840,6 +5923,7 @@ export interface components {
             /** @description First and last name. */
             name: string;
             email?: string | null;
+            phoneNumber?: string | null;
             /**
              * Format: double
              * @description What the customer owes (positive) or has in credit (negative).
@@ -6196,6 +6280,11 @@ export interface components {
             /** @description Another page of name matches exists: ask again with `skip` = number of items received so far. */
             hasMore: boolean;
         };
+        /** @description Body of "this printer is set to receipt / label mode". `Mode` null forgets it. */
+        PrinterModeRequest: {
+            printerName: string;
+            mode?: string | null;
+        };
         /** @description Body of "print a test slip". */
         PrinterTestRequest: {
             printerName: string;
@@ -6220,6 +6309,13 @@ export interface components {
              * @description Barcode sticker height in millimetres (10 - 150).
              */
             stickerHeightMm: number;
+            /**
+             * @description The mode each 2-in-1 printer is set to ("receipt" or "label"), by printer name. A printer that is not listed gets each job's default
+             *     language: receipts as receipt-printer commands, direct labels as label-printer commands.
+             */
+            printerModes: {
+                [key: string]: string;
+            };
         };
         /** @description Body of "save the printing settings". */
         PrintingSettingsRequest: {
@@ -7732,6 +7828,34 @@ export interface components {
             pairingExpiresAt?: string | null;
             /** @description Active, but the licence now covers fewer PCs than are registered: this till is refused until a seat is freed or a bigger key is installed. */
             overflow: boolean;
+        };
+        TillOrder: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            number?: number;
+            status?: string;
+            branch?: string | null;
+            orderType?: string | null;
+            name?: string;
+            phone?: string | null;
+            place?: string | null;
+            note?: string | null;
+            /** Format: date-time */
+            createdAtUtc?: string;
+            lines?: components["schemas"]["TillOrderLine"][];
+            total?: string;
+        };
+        TillOrderLine: {
+            name?: string;
+            /** Format: int32 */
+            quantity?: number;
+            /** Format: double */
+            unitPrice?: number;
+            currency?: string;
+            /** Format: int32 */
+            posProductId?: number | null;
+            total?: string;
         };
         /** @description The package: how many PCs the licence covers and which tills use them. The store server itself is always the first seat. */
         TillSeatsDto: {
@@ -14586,6 +14710,104 @@ export interface operations {
             };
         };
     };
+    getOnlineOrders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineOrdersDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    moveOnlineOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineOrderMoveRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     listOrders: {
         parameters: {
             query?: {
@@ -15613,6 +15835,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PosCustomerDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    findPosCustomersByPhone: {
+        parameters: {
+            query?: {
+                phone?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCustomerDto"][];
                 };
             };
             /** @description Unauthorized */
@@ -18629,6 +18891,57 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": components["schemas"]["PrintingSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintingSettingsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setPrinterMode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PrinterModeRequest"];
             };
         };
         responses: {

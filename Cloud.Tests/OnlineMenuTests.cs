@@ -137,6 +137,12 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
         var page = await Ok(anonymous.GetAsync($"/m/big-menu/items?section={section}&skip=60&take=40"));
         Assert.Equal("Dish 061", page.GetProperty("items")[0].GetProperty("name").GetString());
         Assert.True(page.GetProperty("hasMore").GetBoolean());
+        // What the guest's order needs to add a dish and total it, on the page and in each page of items.
+        var dish61 = page.GetProperty("items")[0];
+        Assert.True(dish61.GetProperty("id").GetInt32() > 0);
+        Assert.Equal(61m, dish61.GetProperty("price").GetDecimal());
+        Assert.Equal("$", dish61.GetProperty("currency").GetString());
+        Assert.Matches("data-price=\"60(\\.0+)?\" data-cur=\"\\$\"", html);
         var last = await Ok(anonymous.GetAsync($"/m/big-menu/items?section={section}&skip=140&take=40"));
         Assert.False(last.GetProperty("hasMore").GetBoolean());
         Assert.DoesNotContain(last.GetProperty("items").EnumerateArray(), i => i.GetProperty("name").GetString() == "Dish 149");
@@ -435,6 +441,83 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
         Assert.All((await ItemsOf(owner)), i => Assert.False(i.GetProperty("linked").GetBoolean()));
         await Ok(owner.PutAsJsonAsync($"/menu/v1/items/{burgerItem}", new { price = 8 }));
         Assert.False((await device.GetFromJsonAsync<SyncPing>("/api/sync/ping", SyncWire.Json))!.MenuLinked);
+    }
+
+    [Fact]
+    public async Task Sections_and_items_never_show_twice_after_relinking_or_crossed_pushes()
+    {
+        var (site, owner) = await ShopAsync("twiceshop");
+        var device = _cloud.DeviceClient(site.Token);
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Twice Shop" }));
+        var link = new { linkedSiteId = site.SiteId.ToString() };
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", link));
+
+        MenuCatalogPush Catalog(string hash, params (int Id, string Name, string Key, string Section)[] products) =>
+            new(hash, products.Select((p, n) => new MenuCatalogItem(p.Id, p.Name, null, 2, "$", p.Key, p.Section, p.Key == "c1" ? 0 : 1, n)).ToList());
+        async Task Push(MenuCatalogPush c) => Assert.Equal(HttpStatusCode.NoContent, (await device.PostAsJsonAsync("/" + MenuCatalog.Route, c, SyncWire.Json)).StatusCode);
+        async Task Expect(string[] sections, string[] items)
+        {
+            var state = await Ok(owner.GetAsync("/menu/v1/editor"));
+            Assert.Equal(sections, Sections(state).Select(s => s.GetProperty("name").GetString()!).OrderBy(n => n, StringComparer.Ordinal).ToArray());
+            Assert.Equal(items, (await ItemsOf(owner)).Select(i => i.GetProperty("name").GetString()!).OrderBy(n => n, StringComparer.Ordinal).ToArray());
+        }
+        var labneh = (1, "Labneh 500g", "c1", "test 1");
+        var butter = (2, "Salted Butter 200g", "c2", "test 2");
+        await Push(Catalog("h1", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+
+        // The owner's picture survives unlinking and linking the branch again, and nothing appears twice.
+        var labnehId = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Labneh 500g").GetProperty("id").GetInt32();
+        await Ok(owner.PutAsync($"/menu/v1/items/{labnehId}/image", new ByteArrayContent(Png)));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { linkedSiteId = "" }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", link));
+        await Push(Catalog("h2", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+        var again = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Labneh 500g");
+        Assert.Equal(labnehId, again.GetProperty("id").GetInt32());
+        Assert.True(again.GetProperty("linked").GetBoolean());
+        Assert.False(again.GetProperty("imageUrl").ValueKind == JsonValueKind.Null);
+
+        // Doubles already saved (by crossed pushes before, or older versions) are folded together on the next push.
+        await _cloud.WithControlDbAsync(async db =>
+        {
+            var menu = await db.Menus.SingleAsync(m => m.Slug == "twice-shop");
+            var twin = new MenuSection { MenuId = menu.Id, Name = "test 1", PosKey = "c1", SortOrder = 9 };
+            db.MenuSections.Add(twin);
+            await db.SaveChangesAsync();
+            var copy = new MenuItem { MenuId = menu.Id, SectionId = twin.Id, Name = "Labneh 500g", Price = 2 };
+            copy.Branches.Add(new MenuItemBranch { SiteId = site.SiteId, PosProductId = 1, Price = 2 });
+            db.MenuItems.Add(copy);
+            db.MenuSections.Add(new MenuSection { MenuId = menu.Id, Name = "test 2", SortOrder = 10 });
+            db.MenuItems.Add(new MenuItem { MenuId = menu.Id, Name = "Salted Butter 200g", Price = 2, Description = "From the old copy" });
+            return await db.SaveChangesAsync();
+        });
+        await Push(Catalog("h3", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+        Assert.Equal("From the old copy", (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Salted Butter 200g").GetProperty("description").GetString());
+
+        // Two pushes at once with something new: it arrives once.
+        var akkawi = (3, "Akkawi Cheese (per kg)", "c3", "test 3");
+        await Task.WhenAll(Push(Catalog("h4", labneh, butter, akkawi)), Push(Catalog("h4", labneh, butter, akkawi)));
+        await Expect(new[] { "test 1", "test 2", "test 3" }, new[] { "Akkawi Cheese (per kg)", "Labneh 500g", "Salted Butter 200g" });
+    }
+
+    [Fact]
+    public async Task Sign_in_says_whether_the_shop_has_a_POS_so_a_menu_only_shop_goes_to_its_menu()
+    {
+        var (site, owner) = await ShopAsync("menuonly");
+        var anon = _cloud.CreateClient();
+        async Task<bool> SignInHasTill() => (await Ok(anon.PostAsJsonAsync("/owner/v1/auth/login", new { email = "owner@menuonly.test", password = Password })))
+            .GetProperty("hasTill").GetBoolean();
+
+        // No till has ever checked in: the owner website opens the menu editor, not the recovery code.
+        Assert.False(await SignInHasTill());
+        Assert.False((await Ok(owner.GetAsync("/owner/v1/me"))).GetProperty("hasTill").GetBoolean());
+
+        // Once the shop PC checks in, it is a POS shop.
+        await _cloud.DeviceClient(site.Token).GetAsync("/api/sync/ping");
+        Assert.True(await SignInHasTill());
+        Assert.True((await Ok(owner.GetAsync("/owner/v1/me"))).GetProperty("hasTill").GetBoolean());
     }
 
     [Fact]

@@ -102,8 +102,15 @@ public static class OwnerEndpoints
             role = OwnerRoles.NameOf(user.Can),
             clientName = user.Client.Name,
             siteName = site?.Name,
+            hasTill = HasTill(user.Client),
         }, SyncWire.Json);
     }
+
+    /// <summary>
+    /// Whether a shop PC has ever reached the cloud for this shop. A shop with none uses only the online menu (no POS), so the owner
+    /// website opens the menu editor for it instead of asking for a recovery code it does not have.
+    /// </summary>
+    private static bool HasTill(Client client) => client.Sites.Any(s => !s.IsDisabled && (s.LastSeenAt != null || s.LastSyncAt != null));
 
     private static async Task<IResult> Logout(HttpContext http, ControlDbContext db, TimeProvider time)
     {
@@ -133,6 +140,7 @@ public static class OwnerEndpoints
             shopLastSyncUtc = who.Site?.LastSyncAt,
             // Basic or Pro; null until the shop PC runs a version that reports it (then show everything, as before).
             shopPlan = who.Site?.ShopPlan,
+            hasTill = HasTill(who.Client),
         }, SyncWire.Json);
     }
 

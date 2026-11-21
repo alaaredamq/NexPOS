@@ -19,6 +19,9 @@ public interface IPosLookupService
 
     Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName, string? phoneNumber = null);
 
+    /// <summary>Customers with this phone number however it is written (an online order's guest, to suggest who it is).</summary>
+    Task<IReadOnlyList<PosCustomerDto>> FindCustomersByPhoneAsync(string phone);
+
     Task<PosDrawerDto> GetDrawerAsync(int userId);
 }
 
@@ -90,6 +93,9 @@ public sealed class PosLookupService : IPosLookupService
         return new PosCustomerPageDto { Items = items.Select(Map).ToList(), Page = page, PageSize = pageSize, HasMore = hasMore };
     }
 
+    public async Task<IReadOnlyList<PosCustomerDto>> FindCustomersByPhoneAsync(string phone)
+        => (await _customers.FindByPhoneAsync(phone)).Select(Map).ToList();
+
     public async Task<PosCustomerDto> QuickCreateCustomerAsync(string firstName, string lastName, string? phoneNumber = null)
     {
         // Same rule as the Customers page: 2-100 characters each. (The DTO attributes check the untrimmed text, so trim and look again.)
@@ -116,5 +122,5 @@ public sealed class PosLookupService : IPosLookupService
     }
 
     private static PosCustomerDto Map(Customer c)
-        => new() { Id = c.Id, Name = $"{c.FirstName} {c.LastName}".Trim(), Email = string.IsNullOrWhiteSpace(c.Email) ? null : c.Email, Balance = c.Balance };
+        => new() { Id = c.Id, Name = $"{c.FirstName} {c.LastName}".Trim(), Email = string.IsNullOrWhiteSpace(c.Email) ? null : c.Email, PhoneNumber = c.PhoneNumber, Balance = c.Balance };
 }

@@ -117,5 +117,13 @@
   "TaxIdHint": "VAT/Tax registration number",
   "TillPreferenceSaved": "Saved for this computer",
   "TillThisComputer": "Till (this computer only)",
-  "Website": "Website"
+  "Website": "Website",
+  "PrinterMode": "Printer mode (for 2-in-1 printers such as the Xprinter XP-365B)",
+  "PrinterModeNone": "Not set",
+  "PrinterModeReceipt": "Receipt mode",
+  "PrinterModeLabel": "Label mode",
+  "PrinterModeSaved": "Printer mode saved",
+  "PrinterModeNoneHint": "For a printer that only does one job. A 2-in-1 printer ignores whatever it is not set to, so pick the mode it is in.",
+  "PrinterModeReceiptHint": "The printer is set to receipts: receipts print as usual, and labels are sent to it as receipt pictures.",
+  "PrinterModeLabelHint": "The printer is set to labels: labels print as usual, and receipts are sent to it as one long label on continuous paper. Change this whenever you switch the printer's mode."
 }

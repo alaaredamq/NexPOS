@@ -131,7 +131,7 @@ describe('shell', () => {
     await screen.findByText('orders page')
     expect(screen.getByText('Sara Cashier')).toBeInTheDocument()
     expect(screen.getByText('Cashier')).toBeInTheDocument()
-    expect(screen.getByText(/Drawer open/)).toHaveTextContent('100.00')
+    expect(screen.getByText(/Drawer open/)).toHaveTextContent('165.00')
     // The bell is a dropdown now (I2); until the feed answers its badge shows the session's count.
     expect(screen.getByRole('button', { name: /Notifications \(3 unread\)/ })).toBeInTheDocument()
   })

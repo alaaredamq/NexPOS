@@ -207,3 +207,40 @@ describe('product form', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/forbidden'))
   })
 })
+
+describe('product details', () => {
+  const detail = (over: Record<string, unknown> = {}) => ({
+    ...item(7),
+    description: null,
+    supplierDiscountRate: 0,
+    minStockLevel: 2,
+    stockValue: 20,
+    profitMargin: 1.5,
+    profitMarginPercent: 75,
+    priceTiers: [],
+    createdAt: '2026-11-01T10:00:00Z',
+    updatedAt: null,
+    ...over,
+  })
+
+  it('shows a weighed product in kg: its unit, stock, minimum and prices per kg', async () => {
+    handlers['/api/v1/products/7'] = () => json(detail({ unit: 'kg', stockQuantity: 12.5 }))
+    mount('/products/7', admin)
+
+    expect(await screen.findByText('Kilogram')).toBeInTheDocument()
+    expect(screen.getByText('Sold by weight')).toBeInTheDocument()
+    expect(screen.getByText('12.5 kg')).toBeInTheDocument()
+    expect(screen.getByText('2 kg')).toBeInTheDocument()
+    expect(screen.getAllByText('/ kg')).toHaveLength(2) // purchase and selling price
+  })
+
+  it('shows a counted product in units, without a per-unit price', async () => {
+    handlers['/api/v1/products/7'] = () => json(detail({ unit: null }))
+    mount('/products/7', admin)
+
+    expect(await screen.findByText('Piece')).toBeInTheDocument()
+    expect(screen.getByText('Sold by count')).toBeInTheDocument()
+    expect(screen.getByText('10 units')).toBeInTheDocument()
+    expect(screen.queryByText(/^\/ /)).not.toBeInTheDocument()
+  })
+})

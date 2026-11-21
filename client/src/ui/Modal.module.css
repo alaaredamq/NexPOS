@@ -28,6 +28,10 @@
   padding: 18px var(--space-6);
   border-block-end: 1px solid var(--color-neutral-bg);
   flex: none;
+  /* The header is the drag handle (see Modal.tsx). */
+  cursor: move;
+  user-select: none;
+  touch-action: none;
 }
 
 .title {

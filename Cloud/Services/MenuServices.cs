@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -21,8 +22,8 @@ namespace Cloud.Services;
 public sealed partial class MenuImages(IOptions<CloudOptions> options, ILogger<MenuImages> log)
 {
     public const int MaxBytes = 2 * 1024 * 1024;
-    /// <summary>Longest side of a dish picture and of a logo, in pixels.</summary>
-    public const int ItemSide = 1000, LogoSide = 512;
+    /// <summary>Longest side of a dish or section picture, a logo, and the wide cover at the top of the page, in pixels.</summary>
+    public const int ItemSide = 1000, LogoSide = 512, CoverSide = 1600;
     /// <summary>Shortest side of the small copy: crisp at 2x in the grid (about 170 px wide) and rails (156 px), and the logo (72 px).</summary>
     public const int ThumbShortSide = 360;
     /// <summary>A picture bigger than this (in pixels, not bytes) is refused before it is decoded, so a tiny file cannot eat the memory.</summary>
@@ -233,106 +234,295 @@ public static partial class MenuRules
         s = s.Trim();
         return s.Length > max ? s[..max] : s;
     }
+
+    /// <summary>
+    /// What the public page shows at a branch: visible dishes in visible sections that the branch sells, plus the hand-made ones (sold
+    /// everywhere). <paramref name="site"/> null = no branch is linked, so everything visible.
+    /// </summary>
+    public static IQueryable<MenuItem> Visible(ControlDbContext db, int menuId, Guid? site)
+    {
+        var hiddenSections = db.MenuSections.Where(s => s.MenuId == menuId && s.IsHidden).Select(s => (int?)s.Id);
+        var items = db.MenuItems.Where(i => i.MenuId == menuId && !i.IsHidden && (i.SectionId == null || !hiddenSections.Contains(i.SectionId)));
+        return site is { } at ? items.Where(i => !i.Branches.Any() || i.Branches.Any(r => r.SiteId == at)) : items;
+    }
+
+    /// <summary>
+    /// A dish's price at a branch for an order type: the branch's POS price (or the dish's own for a hand-made one), then the type's
+    /// rule unless the dish has its own price for that type. Expects the dish's <see cref="MenuItem.Branches"/> and
+    /// <see cref="MenuItem.TypePrices"/> loaded (at least the ones for this branch and type).
+    /// </summary>
+    public static (decimal Price, string Currency) PriceAt(MenuItem item, Guid? site, MenuOrderType? type, string menuCurrency)
+    {
+        var row = site is { } at ? item.Branches.FirstOrDefault(r => r.SiteId == at) : null;
+        var normal = row?.Price ?? item.Price;
+        var currency = (row is null ? item.Currency : row.Currency) ?? menuCurrency;
+        var own = type is null ? null : item.TypePrices.FirstOrDefault(p => p.OrderTypeId == type.Id)?.Price;
+        return (MenuPriceAdjust.Apply(normal, type, own), currency);
+    }
+
+    /// <summary>A branch's word in the menu's address (?b=), from its name and free within the menu: "Hamra" becomes "hamra".</summary>
+    public static string BranchSlug(string? name, IEnumerable<string> taken)
+    {
+        var used = taken.ToHashSet(StringComparer.Ordinal);
+        var stem = SlugFrom(name);
+        if (stem.StartsWith("menu-", StringComparison.Ordinal)) stem = "branch";
+        if (stem.Length > 34) stem = stem[..34].Trim('-');
+        for (var n = 1; ; n++)
+        {
+            var candidate = n == 1 ? stem : $"{stem}-{n}";
+            if (!used.Contains(candidate)) return candidate;
+        }
+    }
 }
 
 /// <summary>
-/// Folds a product list from the shop PC into its menu. The POS decides the name, price, currency and section; the owner's picture,
-/// description and hidden/sold-out marks are kept. A product that left the POS's list leaves the menu; a new one appears in its section,
-/// visible. Who orders the menu depends on the list: when the till's online-menu screen arranged it (<see cref="MenuCatalogPush.Arranged"/>),
-/// the POS order wins; when it just follows categories, the owner's order in the editor is kept and new items go at the end.
+/// Folds a product list from one branch's shop PC into the shop's menu. The POS decides the name, price, currency and section; the owner's
+/// picture, description and hidden/sold-out marks are kept. A product that left the POS's list leaves that branch (and the menu, when no
+/// branch sells it any more); a new one appears in its section, visible.
+/// <para>
+/// Several branches share one menu. Each branch numbers its products and categories its own way, so across branches a dish and a section
+/// are known by their name: "Labneh 500g" at two branches is one dish with two prices. Within a branch the product's POS id keeps the
+/// link when it is renamed. The main branch (the first) decides where a dish sits and, when its till arranges the menu
+/// (<see cref="MenuCatalogPush.Arranged"/>), the order; the others only add what it lacks. Without arranging, the owner's order in the
+/// editor is kept and new items go at the end.
+/// </para>
 /// </summary>
 public sealed class MenuCatalogMerge(ControlDbContext db, MenuImages images, TimeProvider time)
 {
-    public async Task ApplyAsync(Menu menu, MenuCatalogPush catalog)
+    // One merge at a time per menu: two pushes that cross (a retry, two branches at once) would each add the same new sections and items.
+    private static readonly ConcurrentDictionary<int, SemaphoreSlim> Gates = new();
+
+    /// <summary>How two names are compared when telling whether two sections or dishes are the same one.</summary>
+    public static string Same(string? name) => (name ?? "").Trim().ToUpperInvariant();
+
+    public async Task ApplyAsync(Menu menu, MenuBranch branch, MenuCatalogPush catalog)
     {
+        var gate = Gates.GetOrAdd(menu.Id, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync();
+        try { await MergeAsync(menu, branch, catalog); }
+        finally { gate.Release(); }
+    }
+
+    private async Task MergeAsync(Menu menu, MenuBranch branch, MenuCatalogPush catalog)
+    {
+        var site = branch.SiteId;
         var sections = await db.MenuSections.Where(s => s.MenuId == menu.Id).ToListAsync();
-        var items = await db.MenuItems.Where(i => i.MenuId == menu.Id).ToListAsync();
+        var items = await db.MenuItems.Where(i => i.MenuId == menu.Id).Include(i => i.Branches).Include(i => i.TypePrices).ToListAsync();
+        var main = await db.MenuBranches.Where(b => b.MenuId == menu.Id).OrderBy(b => b.SortOrder).ThenBy(b => b.Id).Select(b => b.SiteId).FirstAsync();
+        var isMain = main == site;
+        MendDoubles(sections, items);
 
         // Sections: one per POS section (or category) that has products, named as the POS names it.
         var nextSection = sections.Count == 0 ? 0 : sections.Max(s => s.SortOrder) + 1;
-        var byKey = new Dictionary<string, MenuSection>(StringComparer.Ordinal);
-        foreach (var s in sections.Where(s => s.PosKey is not null)) byKey[s.PosKey!] = s;
+        var byName = sections.GroupBy(s => Same(s.Name)).ToDictionary(g => g.Key, g => g.OrderBy(s => s.PosKey is null).ThenBy(s => s.Id).First());
         var keysInOrder = catalog.Items.OrderBy(i => i.SectionOrder).Select(i => i.SectionKey).Distinct().ToList();
+        var nameOfKey = keysInOrder.ToDictionary(k => k, k => MenuRules.Clean(catalog.Items.First(i => i.SectionKey == k).SectionName, 120) ?? "Other", StringComparer.Ordinal);
+        var namesNow = nameOfKey.Values.Select(Same).ToHashSet();
+        var sectionOf = new Dictionary<string, MenuSection>(StringComparer.Ordinal);
         foreach (var key in keysInOrder)
         {
-            var name = MenuRules.Clean(catalog.Items.First(i => i.SectionKey == key).SectionName, 120) ?? "Other";
-            if (byKey.TryGetValue(key, out var section))
-                section.Name = name;
-            else
+            var name = nameOfKey[key];
+            var section = byName.GetValueOrDefault(Same(name));
+            // Renamed at this till: the section it made under this key, whose old name the till no longer sends, takes the new name
+            // (keeping its place and whether it is hidden).
+            if (section is null && sections.FirstOrDefault(s => s.PosKey == key && !namesNow.Contains(Same(s.Name))) is { } renamed)
+            {
+                renamed.Name = name;
+                section = renamed;
+            }
+            if (section is null)
             {
                 section = new MenuSection { MenuId = menu.Id, Name = name, SortOrder = nextSection++, PosKey = key };
                 db.MenuSections.Add(section);
-                byKey[key] = section;
+                sections.Add(section);
             }
+            // A section of that name made by hand becomes the POS one, so the menu does not show the name twice.
+            section.PosKey ??= key;
+            if (isMain) section.Name = name;
+            byName[Same(name)] = section;
+            sectionOf[key] = section;
         }
         await db.SaveChangesAsync(); // new sections get their ids
 
-        var byProduct = items.Where(i => i.PosProductId is not null).ToDictionary(i => i.PosProductId!.Value);
+        // Dishes.
+        var here = items.SelectMany(i => i.Branches.Where(r => r.SiteId == site).Select(r => (Item: i, Row: r)))
+            .GroupBy(x => x.Row.PosProductId).ToDictionary(g => g.Key, g => g.First());
+        var dishByName = items.GroupBy(i => Same(i.Name)).ToDictionary(g => g.Key, g => g.OrderByDescending(i => i.Branches.Count > 0).ThenBy(i => i.Id).First());
         var nextItem = items.Count == 0 ? 0 : items.Max(i => i.SortOrder) + 1;
         var seen = new HashSet<int>();
-        var linkedInOrder = new List<MenuItem>();
+        var filled = new HashSet<MenuItem>(); // dishes this list already gave a product to
+        var inOrder = new List<MenuItem>();
+        MenuItem NewDish(string name)
+        {
+            var dish = new MenuItem { MenuId = menu.Id, Name = name, SortOrder = nextItem++ };
+            db.MenuItems.Add(dish);
+            items.Add(dish);
+            dishByName[Same(name)] = dish;
+            return dish;
+        }
+        MenuItemBranch Attach(MenuItem dish, int productId)
+        {
+            var row = new MenuItemBranch { SiteId = site, PosProductId = productId, MenuItem = dish };
+            dish.Branches.Add(row);
+            return row;
+        }
+
         foreach (var p in catalog.Items.OrderBy(i => i.SectionOrder).ThenBy(i => keysInOrder.IndexOf(i.SectionKey)).ThenBy(i => i.ItemOrder))
         {
             if (!seen.Add(p.ProductId)) continue;
-            if (!byProduct.TryGetValue(p.ProductId, out var item))
+            var name = MenuRules.Clean(p.Name, 200) ?? "-";
+            MenuItem dish;
+            MenuItemBranch row;
+            if (here.TryGetValue(p.ProductId, out var known))
             {
-                item = new MenuItem { MenuId = menu.Id, PosProductId = p.ProductId, SortOrder = nextItem++ };
-                db.MenuItems.Add(item);
+                (dish, row) = known;
+                if (Same(dish.Name) != Same(name))
+                {
+                    // Renamed at this till. A dish only this branch sells takes the new name (and keeps its picture); a shared one stays,
+                    // and this branch's product becomes the dish of its new name.
+                    var other = dishByName.GetValueOrDefault(Same(name));
+                    if (dish.Branches.Count == 1 && other is null)
+                    {
+                        dishByName.Remove(Same(dish.Name));
+                        dish.Name = name;
+                        dishByName[Same(name)] = dish;
+                    }
+                    else
+                    {
+                        dish.Branches.Remove(row);
+                        db.MenuItemBranches.Remove(row);
+                        dish = other ?? NewDish(name);
+                        if (filled.Contains(dish) || dish.Branches.Any(r => r.SiteId == site)) continue;
+                        row = Attach(dish, p.ProductId);
+                    }
+                }
             }
-            item.Name = MenuRules.Clean(p.Name, 200) ?? "-";
-            item.PosDescription = MenuRules.Clean(p.Description, 500);
-            item.Price = p.Price;
-            item.Currency = MenuRules.Clean(p.Currency, 10);
-            item.SectionId = byKey[p.SectionKey].Id;
-            linkedInOrder.Add(item);
+            else
+            {
+                dish = dishByName.GetValueOrDefault(Same(name)) ?? NewDish(name);
+                // Two products of one name at one branch: the menu shows the dish once, at the first one's price.
+                if (filled.Contains(dish) || dish.Branches.Any(r => r.SiteId == site)) continue;
+                row = Attach(dish, p.ProductId);
+            }
+            filled.Add(dish);
+            row.Price = p.Price;
+            row.Currency = MenuRules.Clean(p.Currency, 10);
+
+            // The main branch decides the dish's name, normal price and place; another branch only for a dish the main one does not sell.
+            if (isMain || !dish.Branches.Any(r => r.SiteId == main))
+            {
+                dish.Name = name;
+                dish.Price = p.Price;
+                dish.Currency = row.Currency;
+                dish.PosDescription = MenuRules.Clean(p.Description, 500);
+                dish.SectionId = sectionOf[p.SectionKey].Id;
+            }
+            else dish.SectionId ??= sectionOf[p.SectionKey].Id;
+            inOrder.Add(dish);
         }
 
-        foreach (var gone in byProduct.Values.Where(i => !seen.Contains(i.PosProductId!.Value)))
+        // Products this branch no longer sells. A dish no branch sells any more leaves the menu.
+        foreach (var (dish, row) in here.Values.Where(x => !seen.Contains(x.Row.PosProductId)))
         {
-            images.Delete(gone.ImageFile);
-            db.MenuItems.Remove(gone);
+            dish.Branches.Remove(row);
+            db.MenuItemBranches.Remove(row);
+            if (dish.Branches.Count == 0)
+            {
+                images.Delete(dish.ImageFile);
+                db.MenuItems.Remove(dish);
+                items.Remove(dish);
+            }
         }
 
-        // A POS section with nothing left in it (and nothing added by hand) goes too.
-        var stillUsed = keysInOrder.ToHashSet(StringComparer.Ordinal);
-        var handSections = items.Where(i => i.PosProductId is null && i.SectionId is not null).Select(i => i.SectionId!.Value).ToHashSet();
-        var removed = byKey.Values.Where(s => !stillUsed.Contains(s.PosKey!) && !handSections.Contains(s.Id)).ToList();
-        db.MenuSections.RemoveRange(removed);
+        MendDoubles(sections, items);
 
-        if (catalog.Arranged)
+        // A POS section with nothing left in it goes too (one holding dishes added by hand stays).
+        foreach (var empty in sections.Where(s => s.PosKey is not null && !items.Any(i => i.SectionId == s.Id)).ToList())
         {
-            // The POS order first, then whatever the owner added by hand, in the order they had.
+            db.MenuSections.Remove(empty);
+            sections.Remove(empty);
+        }
+
+        if (catalog.Arranged && isMain)
+        {
+            // The main till's order first, then whatever else is on the menu, in the order it had.
             var order = 0;
-            foreach (var key in keysInOrder) byKey[key].SortOrder = order++;
-            foreach (var s in sections.Where(s => (s.PosKey is null || !stillUsed.Contains(s.PosKey)) && !removed.Contains(s)).OrderBy(s => s.SortOrder))
-                s.SortOrder = order++;
+            var arranged = keysInOrder.Select(k => sectionOf[k]).Where(sections.Contains).Distinct().ToList();
+            foreach (var s in arranged) s.SortOrder = order++;
+            foreach (var s in sections.Except(arranged).OrderBy(s => s.SortOrder)) s.SortOrder = order++;
             order = 0;
-            foreach (var item in linkedInOrder) item.SortOrder = order++;
-            foreach (var item in items.Where(i => i.PosProductId is null).OrderBy(i => i.SortOrder)) item.SortOrder = order++;
+            var listed = inOrder.Where(items.Contains).Distinct().ToList();
+            foreach (var i in listed) i.SortOrder = order++;
+            foreach (var i in items.Except(listed).OrderBy(i => i.SortOrder)) i.SortOrder = order++;
         }
 
-        menu.PosArranged = catalog.Arranged;
-        menu.CatalogHash = catalog.Hash;
-        menu.CatalogAt = time.GetUtcNow().UtcDateTime;
+        branch.PosArranged = catalog.Arranged;
+        branch.CatalogHash = catalog.Hash;
+        branch.CatalogAt = time.GetUtcNow().UtcDateTime;
+        menu.UpdatedAt = time.GetUtcNow().UtcDateTime;
         await db.SaveChangesAsync();
     }
 
     /// <summary>
-    /// The menu stops following the POS: its POS items and sections stay, as ordinary hand-made ones the owner can now edit freely.
-    /// Used when the owner unlinks, links another branch, or the branch is removed.
+    /// A branch stops filling the menu (the owner took it off, or the branch was removed). Its prices go; a dish only it sold stays, as an
+    /// ordinary hand-made one the owner can now edit, and so does a section left with no POS dish. The other branches send their lists
+    /// again, so a new main branch takes over the names and places.
     /// </summary>
-    public async Task DetachAsync(Menu menu)
+    public async Task DetachAsync(Menu menu, Guid siteId)
     {
-        await db.MenuItems.Where(i => i.MenuId == menu.Id && i.PosProductId != null).ExecuteUpdateAsync(u => u
-            .SetProperty(i => i.PosProductId, (int?)null)
+        var branch = await db.MenuBranches.FirstOrDefaultAsync(b => b.MenuId == menu.Id && b.SiteId == siteId);
+        if (branch is null) return;
+        await db.MenuItemBranches.Where(r => r.SiteId == siteId && r.MenuItem.MenuId == menu.Id).ExecuteDeleteAsync();
+        db.MenuBranches.Remove(branch);
+        await db.MenuBranches.Where(b => b.MenuId == menu.Id && b.SiteId != siteId).ExecuteUpdateAsync(u => u.SetProperty(b => b.CatalogHash, (string?)null));
+        await db.MenuItems.Where(i => i.MenuId == menu.Id && !i.Branches.Any()).ExecuteUpdateAsync(u => u
             .SetProperty(i => i.Description, i => i.Description ?? i.PosDescription)
             .SetProperty(i => i.PosDescription, (string?)null));
-        await db.MenuSections.Where(s => s.MenuId == menu.Id && s.PosKey != null).ExecuteUpdateAsync(u => u
-            .SetProperty(s => s.PosKey, (string?)null));
-        menu.LinkedSiteId = null;
-        menu.CatalogHash = null;
-        menu.CatalogAt = null;
-        menu.PosArranged = false;
+        await db.MenuSections.Where(s => s.MenuId == menu.Id && s.PosKey != null
+                && !db.MenuItems.Any(i => i.SectionId == s.Id && i.Branches.Any()))
+            .ExecuteUpdateAsync(u => u.SetProperty(s => s.PosKey, (string?)null));
         await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Once a POS is involved, one section per name and one dish per name: copies (made by hand before the POS sent the same, left by
+    /// unlinking a branch, or by two pushes that crossed before merges were taken one at a time) are folded into one. The dish kept is
+    /// a POS one, preferably with the owner's picture or words; the copies' branch prices, pictures and words move to it.
+    /// </summary>
+    private void MendDoubles(List<MenuSection> sections, List<MenuItem> items)
+    {
+        foreach (var twins in sections.GroupBy(s => Same(s.Name)).Where(g => g.Count() > 1 && g.Any(s => s.PosKey is not null)).ToList())
+        {
+            var keep = twins.OrderBy(s => s.PosKey is null).ThenBy(s => s.Id).First();
+            foreach (var extra in twins.Where(s => s != keep))
+            {
+                foreach (var i in items.Where(i => i.SectionId == extra.Id)) i.SectionId = keep.Id;
+                db.MenuSections.Remove(extra);
+                sections.Remove(extra);
+            }
+        }
+        foreach (var twins in items.GroupBy(i => Same(i.Name)).Where(g => g.Count() > 1 && g.Any(i => i.Branches.Count > 0)).ToList())
+        {
+            var keep = twins.OrderByDescending(i => i.Branches.Count > 0).ThenByDescending(i => i.ImageFile is not null)
+                .ThenByDescending(i => i.Description is not null).ThenBy(i => i.Id).First();
+            foreach (var extra in twins.Where(i => i != keep))
+            {
+                foreach (var row in extra.Branches.ToList())
+                    if (keep.Branches.All(r => r.SiteId != row.SiteId)) { extra.Branches.Remove(row); row.MenuItem = keep; keep.Branches.Add(row); }
+                foreach (var tp in extra.TypePrices.ToList())
+                    if (keep.TypePrices.All(x => x.OrderTypeId != tp.OrderTypeId)) { extra.TypePrices.Remove(tp); tp.MenuItem = keep; keep.TypePrices.Add(tp); }
+                Fold(keep, extra);
+                items.Remove(extra);
+            }
+        }
+    }
+
+    /// <summary>Removes <paramref name="copy"/>, keeping its picture and description on <paramref name="keep"/> when that has none.</summary>
+    private void Fold(MenuItem keep, MenuItem copy)
+    {
+        if (keep.ImageFile is null) keep.ImageFile = copy.ImageFile;
+        else if (copy.ImageFile is not null && copy.ImageFile != keep.ImageFile) images.Delete(copy.ImageFile);
+        keep.Description ??= copy.Description;
+        db.MenuItems.Remove(copy);
     }
 }
