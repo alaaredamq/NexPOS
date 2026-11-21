@@ -27,6 +27,7 @@ public class PrinterModeTests
 
         Assert.StartsWith("SIZE 72 mm,", head);          // 576 dots across, the receipt width
         Assert.Contains("GAP 0 mm,0 mm\r\n", head);      // continuous: no label gaps
+        Assert.Contains("DIRECTION 1\r\n", head);        // reads the same way up as a receipt-mode slip (0 comes out turned 180°)
         Assert.Contains("BITMAP 0,0,72,", head);
         Assert.EndsWith("PRINT 1,1\r\n", Encoding.ASCII.GetString(job, job.Length - 11, 11));
         Assert.NotEqual(0x1B, job[0]);                    // no receipt-printer command for the printer to ignore

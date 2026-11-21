@@ -72,7 +72,9 @@ public class TsplLabelBuilder : ITsplLabelBuilder
 
     /// <summary>
     /// A picture as one TSPL job on continuous paper: a receipt for a 2-in-1 printer that is in label mode (it ignores ESC/POS there).
-    /// <c>GAP 0</c> tells the printer the paper has no gaps, so the receipt prints as one long strip.
+    /// <c>GAP 0</c> tells the printer the paper has no gaps, so the receipt prints as one long strip. <c>DIRECTION 1</c>, not the
+    /// stickers' 0: with 0 the picture comes out turned 180° from a receipt printed in receipt mode (harmless on a sticker you peel
+    /// and turn, upside down on a slip you tear off and read).
     /// </summary>
     internal static byte[] ContinuousJob(SKBitmap bitmap)
     {
@@ -83,7 +85,7 @@ public class TsplLabelBuilder : ITsplLabelBuilder
         using var output = new MemoryStream();
         Write(output, $"SIZE {widthBytes * 8 / DotsPerMm} mm,{heightMm} mm\r\n");
         Write(output, "GAP 0 mm,0 mm\r\n");
-        Write(output, "DIRECTION 0\r\n");
+        Write(output, "DIRECTION 1\r\n");
         Write(output, "REFERENCE 0,0\r\n");
         Write(output, "CLS\r\n");
         Write(output, $"BITMAP 0,0,{widthBytes},{bitmap.Height},0,");
