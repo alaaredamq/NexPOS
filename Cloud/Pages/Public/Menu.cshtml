@@ -1,6 +1,7 @@
 @page "/m/{slug}"
 @model Cloud.Pages.Public.MenuModel
 @using Cloud.Pages.Public
+@using Cloud.Services
 @{
     Layout = null;
     var m = Model.Menu;
@@ -47,7 +48,7 @@ else
   <div class="wrap">
     @if (m.LogoFile is not null)
     {
-    <img class="logo" src="/m/img/@m.LogoFile" alt="" width="72" height="72">
+    <img class="logo" src="/m/img/@MenuImages.ThumbOf(m.LogoFile)" alt="" width="72" height="72">
     }
     <h1 dir="auto">@m.Title</h1>
     @if (m.Tagline is not null)
@@ -93,7 +94,7 @@ else
       <li class="item@(i.IsSoldOut ? " out" : "")">
         @if (i.ImageFile is not null)
         {
-        <img class="pic" src="/m/img/@i.ImageFile" alt="" loading="lazy" decoding="async" width="300" height="300">
+        <img class="pic" src="@MenuImages.PublicUrl(i.ImageFile, Model.Style)" alt="" loading="lazy" decoding="async" width="300" height="300">
         }
         else
         {

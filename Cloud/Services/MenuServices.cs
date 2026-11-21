@@ -5,24 +5,42 @@ using System.Text.RegularExpressions;
 using Cloud.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SkiaSharp;
 using Sync;
 
 namespace Cloud.Services;
 
 /// <summary>
 /// Pictures on online menus: one file each under DataRoot/menu-images, named by random letters, so a name cannot be guessed and a
-/// replaced picture gets a new name (browsers may cache a name forever). The editor shrinks pictures before uploading; this only checks
-/// that a file really is a JPEG, PNG or WebP and not too large.
+/// replaced picture gets a new name (browsers may cache a name forever). The editor already shrinks pictures before uploading, but the
+/// server does not rely on that: every upload is decoded, turned upright, fitted inside a size limit and saved as WebP. Next to it goes a
+/// small copy, "{name}.t.webp", which the menu shows wherever pictures are small (every listing style except cards), so a phone
+/// scrolling a long menu downloads a few KB per dish rather than the full picture. Pictures saved before this get their small copy the
+/// first time one is asked for.
 /// </summary>
-public sealed partial class MenuImages(IOptions<CloudOptions> options)
+public sealed partial class MenuImages(IOptions<CloudOptions> options, ILogger<MenuImages> log)
 {
     public const int MaxBytes = 2 * 1024 * 1024;
+    /// <summary>Longest side of a dish picture and of a logo, in pixels.</summary>
+    public const int ItemSide = 1000, LogoSide = 512;
+    /// <summary>Shortest side of the small copy: crisp at 2x in the grid (about 170 px wide) and rails (156 px), and the logo (72 px).</summary>
+    public const int ThumbShortSide = 360;
+    /// <summary>A picture bigger than this (in pixels, not bytes) is refused before it is decoded, so a tiny file cannot eat the memory.</summary>
+    private const long MaxPixels = 40_000_000;
+    private const int Quality = 80, ThumbQuality = 74;
     private readonly string _root = Path.Combine(Path.GetFullPath(options.Value.DataRoot), "menu-images");
 
-    [GeneratedRegex("^[0-9a-f]{32}\\.(jpg|png|webp)$")]
+    [GeneratedRegex("^[0-9a-f]{32}(?:\\.(?:jpg|png|webp)|\\.t\\.webp)$")]
     private static partial Regex FileName();
 
     public static bool IsValidName(string? name) => name is not null && FileName().IsMatch(name);
+
+    /// <summary>"abc….webp" becomes "abc….t.webp", the small copy's name.</summary>
+    public static string ThumbOf(string name) => name[..name.IndexOf('.')] + ".t.webp";
+
+    /// <summary>The address of a dish picture on the public menu: the small copy, except in the cards style where pictures run full width.</summary>
+    public static string? PublicUrl(string? name, string? style) =>
+        name is null ? null : "/m/img/" + (style == "cards" ? name : ThumbOf(name));
 
     /// <summary>The image kind from its first bytes, or null when it is none of the three.</summary>
     public static string? Sniff(ReadOnlySpan<byte> data)
@@ -33,28 +51,136 @@ public sealed partial class MenuImages(IOptions<CloudOptions> options)
         return null;
     }
 
-    public async Task<string> SaveAsync(byte[] data, string ext)
+    /// <summary>
+    /// Saves an upload (already sniffed as <paramref name="ext"/>) as a WebP no longer than <paramref name="maxSide"/>, plus its small copy.
+    /// Null when the picture cannot be read or has too many pixels. Should the image library be missing on a server, the file is kept as
+    /// it came (the editor shrank it already) and the menu serves it where a small copy is asked for.
+    /// </summary>
+    public async Task<string?> SaveAsync(byte[] data, string ext, int maxSide)
     {
         Directory.CreateDirectory(_root);
-        var name = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant() + "." + ext;
-        await File.WriteAllBytesAsync(Path.Combine(_root, name), data);
-        return name;
+        var id = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
+        (byte[] Full, byte[] Thumb)? made;
+        try
+        {
+            made = Process(data, maxSide);
+        }
+        catch (Exception e) when (e is DllNotFoundException or TypeInitializationException or EntryPointNotFoundException or BadImageFormatException)
+        {
+            log.LogWarning(e, "Menu pictures are stored unshrunk: the image library could not load");
+            await File.WriteAllBytesAsync(Path.Combine(_root, id + "." + ext), data);
+            return id + "." + ext;
+        }
+        if (made is null) return null;
+        await File.WriteAllBytesAsync(Path.Combine(_root, id + ".t.webp"), made.Value.Thumb);
+        await File.WriteAllBytesAsync(Path.Combine(_root, id + ".webp"), made.Value.Full);
+        return id + ".webp";
+    }
+
+    /// <summary>
+    /// The file to send for <paramref name="name"/>, or null when there is none. A small copy that is missing (pictures saved before small
+    /// copies existed) is made from the full picture now; if that fails, the full picture is sent instead.
+    /// </summary>
+    public string? Serve(string name)
+    {
+        var path = PathOf(name);
+        if (path is null) return null;
+        if (File.Exists(path)) return path;
+        if (!name.EndsWith(".t.webp", StringComparison.Ordinal)) return null;
+
+        var id = name[..^".t.webp".Length];
+        var full = new[] { "webp", "jpg", "png" }.Select(e => Path.Combine(_root, id + "." + e)).FirstOrDefault(File.Exists);
+        if (full is null) return null;
+        try
+        {
+            if (Process(File.ReadAllBytes(full), int.MaxValue) is { } made)
+            {
+                var temp = path + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
+                File.WriteAllBytes(temp, made.Thumb);
+                File.Move(temp, path, overwrite: true); // two visitors at once both write; the second simply replaces the first
+                return path;
+            }
+        }
+        catch (Exception e)
+        {
+            log.LogWarning(e, "Could not make the small copy of menu picture {Name}", id);
+        }
+        return full;
     }
 
     public string? PathOf(string name) => IsValidName(name) ? Path.Combine(_root, name) : null;
 
+    /// <summary>Removes a picture and its small copy.</summary>
     public void Delete(string? name)
     {
-        if (PathOf(name ?? "") is { } path)
-            try { File.Delete(path); } catch (IOException) { /* a leftover file is harmless; it is unreachable without its name */ }
+        if (PathOf(name ?? "") is not { } path) return;
+        foreach (var p in new[] { path, Path.Combine(_root, ThumbOf(name!)) })
+            try { File.Delete(p); } catch (IOException) { /* a leftover file is harmless; it is unreachable without its name */ }
     }
 
-    public static string ContentType(string name) => Path.GetExtension(name) switch
+    public static string ContentType(string path) => Path.GetExtension(path) switch
     {
         ".png" => "image/png",
         ".webp" => "image/webp",
         _ => "image/jpeg",
     };
+
+    /// <summary>The full picture (upright, longest side at most <paramref name="maxSide"/>) and its small copy, both WebP; null if unreadable.</summary>
+    internal static (byte[] Full, byte[] Thumb)? Process(byte[] data, int maxSide)
+    {
+        using var codec = SKCodec.Create(new MemoryStream(data));
+        if (codec is null) return null;
+        if ((long)codec.Info.Width * codec.Info.Height > MaxPixels) return null;
+        using var decoded = SKBitmap.Decode(codec);
+        if (decoded is null) return null;
+        using var upright = Upright(decoded, codec.EncodedOrigin);
+
+        using var full = Fit(upright, Math.Min(1.0, (double)maxSide / Math.Max(upright.Width, upright.Height)));
+        using var thumb = Fit(full, Math.Min(1.0, (double)ThumbShortSide / Math.Min(full.Width, full.Height)));
+        return (Webp(full, Quality), Webp(thumb, ThumbQuality));
+    }
+
+    private static SKBitmap Fit(SKBitmap source, double scale)
+    {
+        var w = Math.Max(1, (int)Math.Round(source.Width * scale));
+        var h = Math.Max(1, (int)Math.Round(source.Height * scale));
+        if (w == source.Width && h == source.Height) return source.Copy();
+        return source.Resize(new SKImageInfo(w, h, source.ColorType, source.AlphaType), new SKSamplingOptions(SKCubicResampler.Mitchell))
+               ?? throw new InvalidOperationException("Resize failed");
+    }
+
+    private static byte[] Webp(SKBitmap bitmap, int quality)
+    {
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Webp, quality);
+        return encoded.ToArray();
+    }
+
+    /// <summary>Phone cameras store pictures sideways with a note saying which way is up; this turns the pixels so the note is not needed.</summary>
+    private static SKBitmap Upright(SKBitmap source, SKEncodedOrigin origin)
+    {
+        if (origin == SKEncodedOrigin.TopLeft) return source.Copy();
+        var swap = origin is SKEncodedOrigin.LeftTop or SKEncodedOrigin.RightTop or SKEncodedOrigin.RightBottom or SKEncodedOrigin.LeftBottom;
+        var result = new SKBitmap(swap ? source.Height : source.Width, swap ? source.Width : source.Height, source.ColorType, source.AlphaType);
+        using var canvas = new SKCanvas(result);
+        float w = source.Width, h = source.Height;
+        // Where a source pixel (x, y) lands: x' = a·x + b·y + c, y' = d·x + e·y + f.
+        var (a, b, c, d, e, f) = origin switch
+        {
+            SKEncodedOrigin.TopRight => (-1f, 0f, w, 0f, 1f, 0f),      // mirrored
+            SKEncodedOrigin.BottomRight => (-1f, 0f, w, 0f, -1f, h),   // upside down
+            SKEncodedOrigin.BottomLeft => (1f, 0f, 0f, 0f, -1f, h),    // flipped
+            SKEncodedOrigin.LeftTop => (0f, 1f, 0f, 1f, 0f, 0f),       // mirrored and turned
+            SKEncodedOrigin.RightTop => (0f, -1f, h, 1f, 0f, 0f),      // turn a quarter clockwise
+            SKEncodedOrigin.RightBottom => (0f, -1f, h, -1f, 0f, w),   // mirrored and turned
+            SKEncodedOrigin.LeftBottom => (0f, 1f, 0f, -1f, 0f, w),    // turn a quarter anticlockwise
+            _ => (1f, 0f, 0f, 0f, 1f, 0f),
+        };
+        canvas.SetMatrix(new SKMatrix(a, b, c, d, e, f, 0, 0, 1));
+        using var image = SKImage.FromBitmap(source);
+        canvas.DrawImage(image, 0, 0, new SKSamplingOptions(SKFilterMode.Nearest)); // whole quarter turns: pixels map one to one
+        return result;
+    }
 }
 
 /// <summary>Small rules shared by the editor API and the public page.</summary>

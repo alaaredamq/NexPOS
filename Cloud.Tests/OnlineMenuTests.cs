@@ -7,6 +7,7 @@ using Cloud.Services;
 using Cloud.Tests.Support;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SkiaSharp;
 using Sync;
 using Xunit;
 
@@ -236,16 +237,116 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
 
         state = await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(Png)));
         var url = (await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!;
-        Assert.Matches("^/m/img/[0-9a-f]{32}\\.png$", url);
+        Assert.Matches("^/m/img/[0-9a-f]{32}\\.webp$", url);
         var image = await _cloud.CreateClient().GetAsync(url);
         Assert.Equal(HttpStatusCode.OK, image.StatusCode);
-        Assert.Equal("image/png", image.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("image/webp", image.Content.Headers.ContentType?.MediaType);
         Assert.Contains("immutable", image.Headers.CacheControl?.ToString());
+        var thumb = MenuImages.ThumbOf(url);
+        Assert.Equal(HttpStatusCode.OK, (await _cloud.CreateClient().GetAsync(thumb)).StatusCode);
 
-        // Replacing or removing a picture deletes the old file.
+        // Replacing or removing a picture deletes the old file and its small copy.
         await Ok(owner.DeleteAsync($"/menu/v1/items/{id}/image"));
         Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync(url)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync(thumb)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync("/m/img/..%2Fcontrol.db")).StatusCode);
+    }
+
+    /// <summary>A real photo-sized JPEG, as a phone would send it if the editor's own shrinking were skipped.</summary>
+    private static byte[] Photo(int width, int height)
+    {
+        using var bitmap = new SKBitmap(width, height);
+        using (var canvas = new SKCanvas(bitmap))
+        using (var paint = new SKPaint { Shader = SKShader.CreateLinearGradient(new(0, 0), new(width, height), [SKColors.OrangeRed, SKColors.SeaGreen], SKShaderTileMode.Clamp) })
+            canvas.DrawRect(0, 0, width, height, paint);
+        using var image = SKImage.FromBitmap(bitmap);
+        return image.Encode(SKEncodedImageFormat.Jpeg, 95).ToArray();
+    }
+
+    private async Task<(byte[] Bytes, SKSizeI Size)> Fetch(string url)
+    {
+        var response = await _cloud.CreateClient().GetAsync(url);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        using var codec = SKCodec.Create(new MemoryStream(bytes));
+        return (bytes, codec.Info.Size);
+    }
+
+    [Fact]
+    public async Task The_server_shrinks_uploads_and_keeps_a_small_copy_for_the_list()
+    {
+        var (_, owner) = await ShopAsync("bigpics");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Big Pics" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Burger", price = 9 }));
+        var id = (await ItemsOf(owner)).Single().GetProperty("id").GetInt32();
+
+        var upload = Photo(2400, 1600);
+        await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(upload)));
+        var url = (await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!;
+
+        var full = await Fetch(url);
+        Assert.Equal(new SKSizeI(MenuImages.ItemSide, 667), full.Size);
+        var small = await Fetch(MenuImages.ThumbOf(url));
+        Assert.Equal(new SKSizeI(540, MenuImages.ThumbShortSide), small.Size);
+        Assert.True(small.Bytes.Length < full.Bytes.Length && full.Bytes.Length < upload.Length);
+
+        // A logo is kept smaller still.
+        await Ok(owner.PutAsync("/menu/v1/logo", new ByteArrayContent(Photo(1200, 1200))));
+        var logo = (await Ok(owner.GetAsync("/menu/v1/editor"))).GetProperty("menu").GetProperty("logoUrl").GetString()!;
+        Assert.Equal(new SKSizeI(MenuImages.LogoSide, MenuImages.LogoSide), (await Fetch(logo)).Size);
+
+        // The menu lists the small copy, except in the cards style, where pictures run the full width.
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var page = await _cloud.CreateClient().GetStringAsync("/m/big-pics");
+        Assert.Contains(MenuImages.ThumbOf(url), page);
+        Assert.Contains(MenuImages.ThumbOf(logo), page);
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = "cards" }));
+
+        var items = await _cloud.CreateClient().GetFromJsonAsync<JsonElement>("/m/big-pics/items?section=0&skip=0");
+        Assert.Equal(url, items.GetProperty("items")[0].GetProperty("imageUrl").GetString());
+    }
+
+    [Fact]
+    public async Task A_sideways_phone_photo_is_stored_upright()
+    {
+        // 400x200: left half red, right half blue, with an EXIF note "turn a quarter clockwise to view" (orientation 6).
+        using var bitmap = new SKBitmap(400, 200);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.DrawRect(0, 0, 200, 200, new SKPaint { Color = SKColors.Red });
+            canvas.DrawRect(200, 0, 200, 200, new SKPaint { Color = SKColors.Blue });
+        }
+        using var encoded = SKImage.FromBitmap(bitmap).Encode(SKEncodedImageFormat.Jpeg, 95);
+        var jpeg = encoded.ToArray();
+        byte[] exif = [0xFF, 0xE1, 0x00, 0x22, (byte)'E', (byte)'x', (byte)'i', (byte)'f', 0, 0,
+            (byte)'M', (byte)'M', 0x00, 0x2A, 0, 0, 0, 8, 0x00, 0x01, 0x01, 0x12, 0x00, 0x03, 0, 0, 0, 1, 0x00, 0x06, 0, 0, 0, 0, 0, 0];
+        var sideways = jpeg[..2].Concat(exif).Concat(jpeg[2..]).ToArray();
+
+        var (_, owner) = await ShopAsync("sideways");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Sideways" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Cake", price = 4 }));
+        var id = (await ItemsOf(owner)).Single().GetProperty("id").GetInt32();
+        await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(sideways)));
+
+        var (bytes, size) = await Fetch((await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!);
+        Assert.Equal(new SKSizeI(200, 400), size);
+        using var stored = SKBitmap.Decode(bytes);
+        Assert.True(stored.GetPixel(100, 20).Red > 200 && stored.GetPixel(100, 20).Blue < 60, "the left (red) half is now on top");
+        Assert.True(stored.GetPixel(100, 380).Blue > 200 && stored.GetPixel(100, 380).Red < 60, "the right (blue) half is now at the bottom");
+    }
+
+    [Fact]
+    public async Task Pictures_saved_before_small_copies_get_one_when_first_asked()
+    {
+        var root = Path.Combine(Path.GetFullPath(_cloud.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudOptions>>().Value.DataRoot), "menu-images");
+        Directory.CreateDirectory(root);
+        var id = Guid.NewGuid().ToString("N");
+        await File.WriteAllBytesAsync(Path.Combine(root, id + ".jpg"), Photo(1000, 750));
+
+        var small = await Fetch($"/m/img/{id}.t.webp");
+        Assert.Equal(new SKSizeI(480, MenuImages.ThumbShortSide), small.Size);
+        Assert.True(File.Exists(Path.Combine(root, id + ".t.webp")));
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync($"/m/img/{Guid.NewGuid():N}.t.webp")).StatusCode);
     }
 
     [Fact]

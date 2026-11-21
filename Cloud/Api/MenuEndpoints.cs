@@ -43,9 +43,9 @@ public static class MenuEndpoints
 
         app.MapGet("/m/img/{name}", (string name, MenuImages images) =>
         {
-            var path = images.PathOf(name);
-            if (path is null || !File.Exists(path)) return Results.NotFound();
-            return Results.File(path, MenuImages.ContentType(name), enableRangeProcessing: false);
+            var path = images.Serve(name);
+            if (path is null) return Results.NotFound();
+            return Results.File(path, MenuImages.ContentType(path), enableRangeProcessing: false);
         }).AllowAnonymous().AddEndpointFilter(async (ctx, next) =>
         {
             // The name changes whenever the picture does, so it can be cached for good.
@@ -88,7 +88,7 @@ public static class MenuEndpoints
                 name = i.Name,
                 description = i.Description ?? i.PosDescription,
                 priceText = MenuRules.Price(i.Price, i.Currency ?? menu.Currency),
-                imageUrl = i.ImageFile is null ? null : "/m/img/" + i.ImageFile,
+                imageUrl = MenuImages.PublicUrl(i.ImageFile, menu.ListingStyle),
                 soldOut = i.IsSoldOut,
             }),
             hasMore = rows.Count > size,
@@ -339,14 +339,19 @@ public static class MenuEndpoints
             : (data, ext, null);
     }
 
+    private static IResult Unreadable() =>
+        Error(StatusCodes.Status400BadRequest, "not_an_image", "That picture could not be read. Try another JPEG, PNG or WebP picture.");
+
     private static async Task<IResult> SetLogo(HttpContext http, ControlDbContext db, TimeProvider time, MenuImages images, int? client)
     {
         var (editor, menu, failure) = await MenuAsync(http, db, time, client);
         if (failure is not null) return failure;
         var (data, ext, bad) = await ReadImageAsync(http);
         if (bad is not null) return bad;
+        var saved = await images.SaveAsync(data!, ext!, MenuImages.LogoSide);
+        if (saved is null) return Unreadable();
         var old = menu!.LogoFile;
-        menu.LogoFile = await images.SaveAsync(data!, ext!);
+        menu.LogoFile = saved;
         var result = await Saved(db, menu, time, editor!, http);
         images.Delete(old);
         return result;
@@ -371,8 +376,10 @@ public static class MenuEndpoints
         if (item is null) return Error(StatusCodes.Status404NotFound, "not_found", "No such item.");
         var (data, ext, bad) = await ReadImageAsync(http);
         if (bad is not null) return bad;
+        var saved = await images.SaveAsync(data!, ext!, MenuImages.ItemSide);
+        if (saved is null) return Unreadable();
         var old = item.ImageFile;
-        item.ImageFile = await images.SaveAsync(data!, ext!);
+        item.ImageFile = saved;
         var result = await Saved(db, menu!, time, editor!, http);
         images.Delete(old);
         return result;
