@@ -24,16 +24,39 @@ public sealed class WalletService : IWalletService
 
     // ---- called by checkout and the void ----------------------------------------------------------------------------
 
-    public async Task<WalletTransaction?> RecordSaleAsync(int paymentMethodId, int orderId, decimal amount, int currencyId, string? reference, int userId)
+    public async Task<WalletTransaction?> RecordSaleAsync(int paymentMethodId, int orderId, decimal amount, int currencyId, string? reference, int userId,
+        int? paymentRequestId = null)
     {
         var wallet = await _db.Wallets.AsNoTracking()
             .FirstOrDefaultAsync(w => w.PaymentMethodId == paymentMethodId && w.IsActive && !w.IsDeleted);
-        if (wallet is null) return null;
+        if (wallet is null)
+        {
+            if (paymentRequestId is not null) throw new InvalidOperationException("An online Whish payment can only pay for a Whish sale.");
+            return null;
+        }
 
         var row = new WalletTransaction(wallet.Id, WalletTransactionType.Sale, amount, currencyId, userId, Clean(reference, 100))
         {
             OrderId = orderId,
         };
+
+        if (paymentRequestId is { } requestId)
+        {
+            var request = await _db.WalletPaymentRequests.FirstOrDefaultAsync(r => r.Id == requestId)
+                ?? throw new InvalidOperationException("That Whish payment request does not exist.");
+            if (request.Status != WalletPaymentStatus.Paid) throw new InvalidOperationException("Whish has not confirmed this payment yet.");
+            if (request.OrderId is not null) throw new InvalidOperationException("This Whish payment already paid for another sale.");
+            if (request.WalletId != wallet.Id || request.CurrencyId != currencyId || request.Amount != Math.Round(amount, 2))
+                throw new InvalidOperationException("The Whish payment does not match this sale's amount or currency.");
+
+            request.OrderId = orderId;
+            row.Reference = request.ExternalId.ToString();
+            row.Notes = request.PayerPhone is null ? "Paid online" : $"Paid online by {request.PayerPhone}";
+            // Whish itself confirmed it: nothing left to tick off by hand.
+            row.IsChecked = true;
+            row.CheckedAt = DateTime.UtcNow;
+        }
+
         _db.WalletTransactions.Add(row);
         await _db.SaveChangesAsync();
 

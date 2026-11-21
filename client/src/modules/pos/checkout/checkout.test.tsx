@@ -227,6 +227,42 @@ describe('checkout', () => {
     expect(bodies()[0]).toMatchObject({ paymentMethodId: 12, paymentReference: 'WH-1' })
   })
 
+  it('sends an online Whish request, waits until Whish says paid, then completes the sale with it by itself', async () => {
+    open()
+    api.routes['GET /api/v1/pos/payment-methods'] = () =>
+      json([...METHODS, { id: 12, name: 'Whish', isDefault: false, requiresChange: false, asksReference: true, walletProvider: 'Whish', walletId: 4, onlinePayments: true }])
+    const request = (status: string) => ({
+      id: 9,
+      externalId: '176370000000042',
+      status,
+      amount: 6,
+      currencyId: 1,
+      currencyCode: 'USD',
+      currencyNotation: '$',
+      collectUrl: 'https://pay.whish.test/collect/176370000000042',
+      payerPhone: status === 'Paid' ? '96170111222' : null,
+      createdAt: '2026-11-21T10:00:00Z',
+    })
+    api.routes['POST /api/v1/pos/whish/requests'] = () => json(request('Pending'), 201)
+    let polls = 0
+    api.routes['GET /api/v1/pos/whish/requests/9'] = () => json(request(++polls >= 2 ? 'Paid' : 'Pending'))
+    await pay()
+
+    fireEvent.click(await within(dialog()).findByRole('radio', { name: 'Whish' }))
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Send payment request' }))
+
+    expect(await within(dialog()).findByText(/Waiting for the customer to pay/)).toBeInTheDocument()
+    expect(await within(dialog()).findByRole('link', { name: /pay\.whish\.test/ })).toBeInTheDocument()
+    expect(within(dialog()).getByRole('img', { name: /QR code of the Whish payment link/ })).toHaveAttribute('src', '/api/v1/pos/whish/requests/9/qr.svg')
+    // While waiting, the sale cannot be changed or completed by hand.
+    expect(complete()).toBeDisabled()
+    expect(within(dialog()).getByRole('radio', { name: 'Cash' })).toBeDisabled()
+    expect(api.calls.find((c) => c.url === '/api/v1/pos/whish/requests')?.body).toMatchObject({ walletId: 4, amount: 6, currencyId: 1 })
+
+    await screen.findByText('Sale Complete!', undefined, { timeout: 8000 })
+    expect(bodies()[0]).toMatchObject({ paymentMethodId: 12, walletPaymentRequestId: 9, paymentReference: null })
+  }, 15000)
+
   it('treats a lower typed total as a discount and sends it', async () => {
     open()
     await pay()

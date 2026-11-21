@@ -33,6 +33,21 @@ public class Wallet : ISSoftDeletable, IEntityBase<int>
 
     public ICollection<WalletTransaction> Transactions { get; set; } = new List<WalletTransaction>();
 
+    // ---- online payments (step 2): the till asks Whish for a payment link and checks it itself --------------------------
+
+    /// <summary>Off: the cashier types the Whish number by hand. Sandbox / Live: the till can send a payment request to Whish.</summary>
+    public WalletOnlineMode OnlineMode { get; set; } = WalletOnlineMode.Off;
+
+    /// <summary>The "channel" Whish gives with a merchant account.</summary>
+    public string? ApiChannel { get; set; }
+
+    /// <summary>The "secret" Whish gives with a merchant account. Never sent to a browser; redacted in the audit trail.</summary>
+    [Core.Auditing.AuditSensitive]
+    public string? ApiSecret { get; set; }
+
+    /// <summary>The website Whish registered for the merchant (sent with every request, and where the customer returns after paying).</summary>
+    public string? ApiWebsiteUrl { get; set; }
+
     public Wallet(string name, WalletProvider provider, int paymentMethodId, string? accountNumber)
     {
         Name = name;

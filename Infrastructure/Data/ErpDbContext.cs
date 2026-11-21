@@ -65,6 +65,7 @@ public class ErpDbContext : DbContext
         // Wallets (Whish Money): money the shop holds outside the drawer
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<WalletPaymentRequest> WalletPaymentRequests { get; set; }
 
         // User Management
         public DbSet<User> Users { get; set; }
@@ -387,6 +388,28 @@ public class ErpDbContext : DbContext
             entity.Property(e => e.AccountNumber).HasMaxLength(50);
             entity.HasOne(e => e.PaymentMethod).WithMany().HasForeignKey(e => e.PaymentMethodId).OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(e => e.PaymentMethodId).IsUnique();
+            entity.Property(e => e.ApiChannel).HasMaxLength(200);
+            entity.Property(e => e.ApiSecret).HasMaxLength(500);
+            entity.Property(e => e.ApiWebsiteUrl).HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<WalletPaymentRequest>(entity =>
+        {
+            entity.ToTable("WalletPaymentRequests");
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.CurrencyCode).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.CollectUrl).HasMaxLength(1000);
+            entity.Property(e => e.PayerPhone).HasMaxLength(40);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.FailureMessage).HasMaxLength(500);
+            entity.HasOne(e => e.Wallet).WithMany().HasForeignKey(e => e.WalletId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => e.ExternalId).IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.IdempotencyKey }).IsUnique();
+            // One paid request completes one sale.
+            entity.HasIndex(e => e.OrderId).IsUnique();
         });
 
         modelBuilder.Entity<WalletTransaction>(entity =>

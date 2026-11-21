@@ -105,6 +105,27 @@
   font-weight: 600;
 }
 
+.notice:is(section) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.unusedBody {
+  font-weight: 500;
+}
+
+.unusedList {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  font-weight: 500;
+}
+
+.mutedInline {
+  color: var(--color-faint);
+  font-weight: 500;
+}
+
 .form {
   display: flex;
   flex-direction: column;

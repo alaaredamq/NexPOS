@@ -24,6 +24,63 @@ public sealed record WalletDto
 
     /// <summary>One line per currency: the default currency first.</summary>
     public required IReadOnlyList<WalletBalanceDto> Balances { get; init; }
+
+    /// <summary>Online payments (the till sends Whish a payment request). The secret is never sent back.</summary>
+    public required WalletOnlineDto Online { get; init; }
+}
+
+public sealed record WalletOnlineDto
+{
+    /// <summary><c>Off</c>, <c>Sandbox</c> (Whish's test system) or <c>Live</c>.</summary>
+    public required string Mode { get; init; }
+
+    public string? Channel { get; init; }
+
+    public string? WebsiteUrl { get; init; }
+
+    /// <summary>A secret is stored (it is never shown).</summary>
+    public required bool HasSecret { get; init; }
+
+    /// <summary>The mode is on and all three keys are there: the till offers "Send payment request".</summary>
+    public required bool Ready { get; init; }
+
+    /// <summary>The shop's plan includes online payments (Pro).</summary>
+    public required bool IncludedInPlan { get; init; }
+
+    /// <summary>Paid by the customer but used by no sale (they paid after the cashier stopped waiting, or the sale then failed).</summary>
+    public required IReadOnlyList<UnusedWalletPaymentDto> PaidWithoutSale { get; init; }
+}
+
+public sealed record UnusedWalletPaymentDto
+{
+    public required int Id { get; init; }
+
+    public required string ExternalId { get; init; }
+
+    public required decimal Amount { get; init; }
+
+    public required string CurrencyNotation { get; init; }
+
+    public string? PayerPhone { get; init; }
+
+    public DateTime? PaidAt { get; init; }
+}
+
+/// <summary>The keys Whish gives with a merchant account. Leave <see cref="Secret"/> empty to keep the stored one.</summary>
+public sealed class WalletOnlineRequest
+{
+    /// <summary><c>Off</c>, <c>Sandbox</c> or <c>Live</c>.</summary>
+    [Required]
+    public string Mode { get; set; } = "Off";
+
+    [StringLength(200)]
+    public string? Channel { get; set; }
+
+    [StringLength(500)]
+    public string? Secret { get; set; }
+
+    [StringLength(300)]
+    public string? WebsiteUrl { get; set; }
 }
 
 public sealed record WalletBalanceDto

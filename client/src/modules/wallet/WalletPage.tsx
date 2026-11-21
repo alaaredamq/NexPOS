@@ -18,6 +18,7 @@ import { StatusBadge } from '@/ui/StatusBadge'
 import { toast } from '@/ui/toast'
 import { ALL_TYPES, useSetChecked, useSetUpWhish, useWalletRows, useWallets, type Wallet, type WalletRow } from './api'
 import { MovementModal } from './MovementModal'
+import { OnlineModal } from './OnlineModal'
 import { SettingsModal } from './SettingsModal'
 import styles from './wallet.module.css'
 
@@ -107,6 +108,7 @@ function WalletView({ wallet }: { wallet: Wallet }) {
   const [pageSize, setPageSize] = useState(25)
   const [recording, setRecording] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [onlineOpen, setOnlineOpen] = useState(false)
   const rows = useWalletRows(wallet.id, { page, pageSize, from: range.from, to: range.to, status, type, q })
   const setChecked = useSetChecked()
 
@@ -155,6 +157,11 @@ function WalletView({ wallet }: { wallet: Wallet }) {
   return (
     <div className={styles.page}>
       <PageHeader title={wallet.name} primaryActionLabel={canManage ? t('record') : undefined} onPrimaryAction={canManage ? () => setRecording(true) : undefined}>
+        {canManage && wallet.online.includedInPlan && (
+          <Button variant="ghost" onClick={() => setOnlineOpen(true)}>
+            {t('onlineButton')}
+          </Button>
+        )}
         {canManage && (
           <Button variant="ghost" onClick={() => setEditing(true)}>
             {t('settings')}
@@ -166,6 +173,27 @@ function WalletView({ wallet }: { wallet: Wallet }) {
         <p className={styles.notice} role="status">
           {t('offNotice')}
         </p>
+      )}
+
+      {wallet.online.paidWithoutSale.length > 0 && (
+        <section className={styles.notice} role="status" aria-label={t('unusedTitle')}>
+          <strong>{t('unusedTitle')}</strong>
+          <span className={styles.unusedBody}>{t('unusedBody')}</span>
+          <ul className={styles.unusedList}>
+            {wallet.online.paidWithoutSale.map((p) => (
+              <li key={p.id}>
+                <bdi dir="ltr">{formatMoney(p.amount, p.currencyNotation)}</bdi> · <bdi dir="ltr">{p.externalId}</bdi>
+                {p.payerPhone ? (
+                  <>
+                    {' '}
+                    · <bdi dir="ltr">{p.payerPhone}</bdi>
+                  </>
+                ) : null}
+                {p.paidAt ? ` · ${formatDateTime(p.paidAt)}` : ''}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section className={styles.card} aria-label={t('title')}>
@@ -184,6 +212,18 @@ function WalletView({ wallet }: { wallet: Wallet }) {
             <dt>{t('status')}</dt>
             <dd>
               <StatusBadge tone={wallet.isActive ? 'success' : 'neutral'} label={wallet.isActive ? t('on') : t('off')} />
+            </dd>
+          </div>
+          <div>
+            <dt>{t('onlineFact')}</dt>
+            <dd>
+              {!wallet.online.includedInPlan ? (
+                <span className={styles.mutedInline}>{t('onlineProOnly')}</span>
+              ) : wallet.online.ready ? (
+                <StatusBadge tone={wallet.online.mode === 'Live' ? 'success' : 'info'} label={wallet.online.mode === 'Live' ? t('modeLive') : t('modeSandbox')} />
+              ) : (
+                <StatusBadge tone="neutral" label={t('modeOff')} />
+              )}
             </dd>
           </div>
         </dl>
@@ -282,6 +322,7 @@ function WalletView({ wallet }: { wallet: Wallet }) {
 
       {recording && <MovementModal wallet={wallet} onClose={() => setRecording(false)} />}
       {editing && <SettingsModal wallet={wallet} onClose={() => setEditing(false)} />}
+      {onlineOpen && <OnlineModal wallet={wallet} onClose={() => setOnlineOpen(false)} />}
     </div>
   )
 }

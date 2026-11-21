@@ -13,7 +13,9 @@ public enum ProFeature
     /// <summary>More than <see cref="PlanRules.BasicMaxActiveUsers"/> active users.</summary>
     MoreUsers,
     /// <summary>Reports and the dashboard chart further back than <see cref="PlanRules.BasicReportDays"/> days.</summary>
-    Reports
+    Reports,
+    /// <summary>The till sends payment requests to Whish itself (online payments). Taking Whish by hand is in every plan.</summary>
+    OnlinePayments
 }
 
 /// <summary>

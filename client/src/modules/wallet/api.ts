@@ -79,6 +79,11 @@ export const useUpdateWallet = () =>
     http.put<Wallet>(`/wallets/${id}`, input),
   )
 
+export const useSetOnline = () =>
+  useWalletMutation(({ id, ...input }: { id: number; mode: string; channel: string | null; secret: string | null; websiteUrl: string | null }) =>
+    http.put<Wallet>(`/wallets/${id}/online`, input),
+  )
+
 export const useAddMovement = () =>
   useWalletMutation(({ id, ...input }: MovementInput & { id: number }) => http.post<WalletRow>(`/wallets/${id}/transactions`, input))
 

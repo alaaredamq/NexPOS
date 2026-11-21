@@ -129,5 +129,30 @@ public sealed class WalletsController : ApiControllerBase
         return Ok(new WalletCheckResultDto { Changed = await _wallets.SetCheckedAsync(id, request, CurrentUserId) });
     }
 
+    /// <summary>
+    /// The keys Whish gives with a merchant account (<c>channel</c>, <c>secret</c>, <c>websiteUrl</c>) and <c>mode</c> Off / Sandbox / Live.
+    /// An empty secret keeps the stored one; the secret is never sent back. Pro plan.
+    /// </summary>
+    [HttpPut("{id:int}/online")]
+    [RequirePermission(PermissionHelper.Permissions.PaymentMethods_Manage)]
+    [RequirePlan(Common.Licensing.ProFeature.OnlinePayments)]
+    [ProducesResponseType<WalletDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status404NotFound, ApiProblem.ContentType)]
+    [SwaggerOperation(OperationId = "setWalletOnline")]
+    public async Task<IActionResult> SetOnline(int id, WalletOnlineRequest request)
+    {
+        try
+        {
+            return await _wallets.SetOnlineAsync(id, request) is { } wallet ? Ok(wallet) : NotFoundWallet();
+        }
+        catch (ArgumentException ex)
+        {
+            var message = ex.Message;
+            var at = message.IndexOf(" (Parameter", StringComparison.Ordinal);
+            return ValidationFailure(ex.ParamName ?? "mode", at > 0 ? message[..at] : message);
+        }
+    }
+
     private ObjectResult NotFoundWallet() => Failure(StatusCodes.Status404NotFound, WalletNotFound, "That wallet does not exist.");
 }

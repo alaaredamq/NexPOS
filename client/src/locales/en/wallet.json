@@ -74,5 +74,22 @@
   "name": "Name",
   "nameRequired": "Give it a name.",
   "isActive": "Save Whish sales here",
-  "isActiveHint": "Turn off to stop. The history stays."
+  "isActiveHint": "Turn off to stop. The history stays.",
+  "onlineButton": "Online payments",
+  "onlineFact": "Online payments",
+  "onlineProOnly": "Pro plan only",
+  "onlineTitle": "Online Whish payments",
+  "onlineIntro": "With these keys the till can send the customer a Whish payment request, and the sale completes by itself once they pay. Whish gives the keys with a merchant account.",
+  "onlineMode": "Mode",
+  "modeOff": "Off",
+  "modeSandbox": "Test (no real money)",
+  "modeLive": "Live",
+  "onlineChannel": "Channel",
+  "onlineSecret": "Secret",
+  "onlineSecretKept": "Saved. Leave empty to keep it.",
+  "onlineWebsite": "Website",
+  "onlineWebsiteHint": "The website Whish registered for your shop. The customer comes back here after paying.",
+  "onlineSandboxHint": "Test mode uses Whish's test system. Pay with the test number Whish gives you.",
+  "unusedTitle": "Paid, but no sale",
+  "unusedBody": "The customer paid these after the cashier stopped waiting. The money is in your Whish account. Record a sale, or give it back from the Whish app."
 }

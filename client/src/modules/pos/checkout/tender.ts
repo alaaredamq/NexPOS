@@ -15,11 +15,14 @@ export interface SaleFingerprintInput {
   paymentMethodId: number
   addToDebt: boolean
   totalAmount: number
+  /** A paid online Whish request: a different payment of the same cart is a different attempt (the server fingerprints it too). */
+  walletPaymentRequestId?: number | null
 }
 
 /** What makes two attempts "the same sale": everything that changes money (the server fingerprints the same fields). */
 export function saleFingerprint(sale: SaleFingerprintInput): string {
-  return JSON.stringify([sale.cart, sale.customerId, sale.addToDebt ? 0 : sale.paymentMethodId, sale.addToDebt, sale.totalAmount])
+  const base = [sale.cart, sale.customerId, sale.addToDebt ? 0 : sale.paymentMethodId, sale.addToDebt, sale.totalAmount]
+  return JSON.stringify(sale.walletPaymentRequestId ? [...base, sale.walletPaymentRequestId] : base)
 }
 
 let attempt: { fingerprint: string; key: string } | null = null

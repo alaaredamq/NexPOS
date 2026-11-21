@@ -11,8 +11,14 @@ public interface IWalletService
 {
     // ---- called by checkout and the void ----------------------------------------------------------------------------
 
-    /// <summary>Puts a sale into the active wallet of its payment method. Returns null (and writes nothing) when that method has no wallet.</summary>
-    Task<WalletTransaction?> RecordSaleAsync(int paymentMethodId, int orderId, decimal amount, int currencyId, string? reference, int userId);
+    /// <summary>
+    /// Puts a sale into the active wallet of its payment method. Returns null (and writes nothing) when that method has no wallet.
+    /// With <paramref name="paymentRequestId"/> (an online Whish payment) the request must be paid, unused, of this wallet, amount and
+    /// currency; it is linked to the order and the row comes already ticked. Otherwise throws <see cref="InvalidOperationException"/>,
+    /// which rolls the whole sale back.
+    /// </summary>
+    Task<WalletTransaction?> RecordSaleAsync(int paymentMethodId, int orderId, decimal amount, int currencyId, string? reference, int userId,
+        int? paymentRequestId = null);
 
     /// <summary>Takes a voided or cancelled sale back out of its wallet. Returns how many rows were reversed (0 = the sale was not in a wallet).</summary>
     Task<int> ReverseSaleAsync(int orderId, int userId, string reason);

@@ -363,6 +363,18 @@ builder.Services.AddScoped<Core.IRepositories.Sales.IReceiptRepository, Infrastr
 builder.Services.AddScoped<Application.IServices.Sales.IReceiptService, Application.Services.Sales.ReceiptService>();
 builder.Services.AddScoped<Application.IServices.Sales.ISaleReversalService, Application.Services.Sales.SaleReversalService>();
 builder.Services.AddScoped<Application.IServices.Sales.IWalletService, Application.Services.Sales.WalletService>();
+builder.Services.AddScoped<Application.IServices.Sales.IWalletPaymentService, Application.Services.Sales.WalletPaymentService>();
+// Online Whish payments: the real Whish, or a pretend one (Whish:Fake=true or NEXPOS_WHISH_FAKE=1) for demos and trying the screens
+// before a merchant account exists. The pretend one says "paid" a few seconds after each request.
+builder.Services.Configure<Application.Services.Sales.Whish.WhishOptions>(options =>
+{
+    builder.Configuration.GetSection(Application.Services.Sales.Whish.WhishOptions.Section).Bind(options);
+    if (Environment.GetEnvironmentVariable("NEXPOS_WHISH_FAKE") == "1") options.Fake = true;
+});
+if (builder.Configuration.GetValue<bool>("Whish:Fake") || Environment.GetEnvironmentVariable("NEXPOS_WHISH_FAKE") == "1")
+    builder.Services.AddSingleton<Application.Services.Sales.Whish.IWhishClient, Application.Services.Sales.Whish.FakeWhishClient>();
+else
+    builder.Services.AddHttpClient<Application.Services.Sales.Whish.IWhishClient, Application.Services.Sales.Whish.WhishHttpClient>();
 builder.Services.AddScoped<Application.IServices.Purchasing.IPurchaseService, Application.Services.Purchasing.PurchaseService>();
 builder.Services.AddScoped<Application.IServices.Sales.ISaleCustomerService, Application.Services.Sales.SaleCustomerService>();
 

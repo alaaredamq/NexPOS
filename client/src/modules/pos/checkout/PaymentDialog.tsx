@@ -13,6 +13,7 @@ import { CustomerPicker } from '../customer/CustomerPicker'
 import { useCartStore } from '../store/cartStore'
 import { postCheckout, usePaymentMethods, type PosCheckoutRequest, type PosSale } from './api'
 import { PaymentMethodLabel } from './PaymentMethodLabel'
+import { WhishOnlinePanel } from './WhishOnlinePanel'
 import type { CheckoutSnapshot } from './checkoutUi'
 import { changeDue, isTotalAcceptable, keyForSale, shortBy, tenderSuggestions, totalTolerance, typedDiscount } from './tender'
 import styles from './checkout.module.css'
@@ -46,6 +47,9 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
   const [amount, setAmount] = useState<number | null>(snapshot.total)
   const [received, setReceived] = useState<number | null>(null)
   const [reference, setReference] = useState('')
+  // An online Whish request is out (waiting or paid): the amount and the method stay as they are so the sale matches it.
+  const [onlineActive, setOnlineActive] = useState(false)
+  const [paidRequestId, setPaidRequestId] = useState<number | null>(null)
   const [sending, setSending] = useState(false)
   const [failure, setFailure] = useState<Failure | null>(null)
   const [stopped, setStopped] = useState(!license.allowsSales)
@@ -66,17 +70,19 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
   const cash = method?.requiresChange === true
   // A Whish (wallet) method: the transfer number lets the owner find the payment in the Whish app later.
   const asksReference = method?.asksReference === true
+  const online = method?.onlinePayments === true && method.walletId != null
   const owedNow = amountOk ? typed : total
   const receivedShort = cash && received !== null && received < owedNow ? shortBy(received, owedNow) : 0
   const change = cash && received !== null && received >= owedNow ? changeDue(received, owedNow) : 0
   const suggestions = useMemo(() => (cash ? tenderSuggestions(owedNow) : []), [cash, owedNow])
   const others = snapshot.currencies.filter((c) => c.id !== snapshot.currencyId)
 
-  const submit = async (addToDebt: boolean) => {
+  const submit = async (addToDebt: boolean, onlineRequestId: number | null = addToDebt ? null : paidRequestId) => {
     if (sending || amount === null || !amountOk) return
     if (!addToDebt && methodId === null) return
     const cart = snapshot.input
-    const payment = { cart, customerId, paymentMethodId: addToDebt ? 0 : methodId!, addToDebt, totalAmount: amount }
+    const walletPaymentRequestId = addToDebt ? null : onlineRequestId
+    const payment = { cart, customerId, paymentMethodId: addToDebt ? 0 : methodId!, addToDebt, totalAmount: amount, walletPaymentRequestId }
     const request: PosCheckoutRequest = {
       idempotencyKey: keyForSale(payment),
       cart,
@@ -85,7 +91,8 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
       addToDebt,
       totalAmount: amount,
       notes: notes.trim() || null,
-      paymentReference: !addToDebt && asksReference ? reference.trim() || null : null,
+      paymentReference: !addToDebt && asksReference && walletPaymentRequestId === null ? reference.trim() || null : null,
+      walletPaymentRequestId,
       printReceipt: true,
       // Selling what the shelf says is gone is allowed (the count is usually just behind): stock stops at zero and the cart already warned.
       allowInsufficientStock: true,
@@ -138,8 +145,10 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
   }
 
   const noMethods = list !== undefined && list.length === 0
-  const canComplete = amountOk && methodId !== null && receivedShort === 0 && !sending
-  const canDebt = amountOk && customerId !== null && !sending
+  // While the customer is paying online, the sale completes by itself when Whish confirms; a paid request can be retried by hand.
+  const waitingOnline = onlineActive && paidRequestId === null
+  const canComplete = amountOk && methodId !== null && receivedShort === 0 && !sending && !waitingOnline
+  const canDebt = amountOk && customerId !== null && !sending && !onlineActive
   const retry = failure?.kind === 'unsure'
 
   return (
@@ -201,7 +210,7 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
                       className={styles.method}
                       data-selected={m.id === methodId || undefined}
                       onClick={() => setMethodId(m.id)}
-                      disabled={sending}
+                      disabled={sending || onlineActive}
                     >
                       <PaymentMethodLabel name={m.name} provider={m.walletProvider} />
                     </button>
@@ -223,7 +232,7 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
                 min={0}
                 prefix={notation}
                 selectOnFocus
-                disabled={sending}
+                disabled={sending || onlineActive}
                 aria-invalid={!amountOk}
                 aria-describedby={`${amountId}-hint`}
               />
@@ -278,7 +287,22 @@ export function PaymentDialog({ snapshot, onSold, onClose }: Props) {
               </div>
             )}
 
-            {asksReference && (
+            {online && amountOk && (
+              <WhishOnlinePanel
+                walletId={method!.walletId!}
+                amount={amount!}
+                currencyId={snapshot.currencyId}
+                notation={notation}
+                disabled={sending}
+                onActiveChange={setOnlineActive}
+                onPaid={(id) => {
+                  setPaidRequestId(id)
+                  void submit(false, id)
+                }}
+              />
+            )}
+
+            {asksReference && !onlineActive && (
               <div className={styles.fieldGroup}>
                 <label htmlFor={referenceId} className={styles.fieldLabel}>
                   {t('whishReference')}

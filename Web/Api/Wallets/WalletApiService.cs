@@ -1,4 +1,5 @@
 using Application.IServices.Sales;
+using Application.Services.Sales;
 using Core.Entities.Sales;
 using Core.Time;
 using Web.Api.Infrastructure;
@@ -28,6 +29,9 @@ public interface IWalletApiService
     Task<WalletTransactionDto> AddMovementAsync(int walletId, WalletMovementRequest request, int userId);
 
     Task<int> SetCheckedAsync(int walletId, WalletCheckRequest request, int userId);
+
+    /// <summary>Saves the online payment keys. Throws <see cref="ArgumentException"/> (field as parameter name) for a refused value.</summary>
+    Task<WalletDto?> SetOnlineAsync(int walletId, WalletOnlineRequest request);
 }
 
 /// <summary>The filters of the movements list. Dates are local days and include both ends.</summary>
@@ -55,8 +59,34 @@ public sealed class WalletApiService : IWalletApiService
     ];
 
     private readonly IWalletService _wallets;
+    private readonly IWalletPaymentService _payments;
+    private readonly Application.IServices.Licensing.ILicenseService _license;
 
-    public WalletApiService(IWalletService wallets) => _wallets = wallets;
+    public WalletApiService(IWalletService wallets, IWalletPaymentService payments, Application.IServices.Licensing.ILicenseService license)
+    {
+        _wallets = wallets;
+        _payments = payments;
+        _license = license;
+    }
+
+    public async Task<WalletDto?> SetOnlineAsync(int walletId, WalletOnlineRequest request)
+    {
+        if (!Enum.TryParse<WalletOnlineMode>(request.Mode, ignoreCase: true, out var mode) || !Enum.IsDefined(mode))
+            throw new ArgumentException("Pick Off, Test or Live.", "mode");
+
+        var current = await _wallets.GetAsync(walletId);
+        if (current is null) return null;
+        if (mode != WalletOnlineMode.Off)
+        {
+            if (string.IsNullOrWhiteSpace(request.Channel)) throw new ArgumentException("Type the channel Whish gave you.", "channel");
+            if (string.IsNullOrWhiteSpace(request.Secret) && string.IsNullOrWhiteSpace(current.ApiSecret))
+                throw new ArgumentException("Type the secret Whish gave you.", "secret");
+            if (string.IsNullOrWhiteSpace(request.WebsiteUrl)) throw new ArgumentException("Type the website Whish registered for you.", "websiteUrl");
+        }
+
+        var saved = await _payments.SetOnlineAsync(walletId, mode, request.Channel, request.Secret, request.WebsiteUrl);
+        return saved is null ? null : await ToDtoAsync(saved);
+    }
 
     public async Task<IReadOnlyList<WalletDto>> GetAllAsync()
     {
@@ -143,6 +173,24 @@ public sealed class WalletApiService : IWalletApiService
             PaymentMethodId = wallet.PaymentMethodId,
             PaymentMethodName = wallet.PaymentMethod?.Name ?? string.Empty,
             IsActive = wallet.IsActive,
+            Online = new WalletOnlineDto
+            {
+                Mode = wallet.OnlineMode.ToString(),
+                Channel = wallet.ApiChannel,
+                WebsiteUrl = wallet.ApiWebsiteUrl,
+                HasSecret = !string.IsNullOrWhiteSpace(wallet.ApiSecret),
+                Ready = WalletPaymentService.CredentialsOf(wallet) is not null,
+                IncludedInPlan = _license.GetState().Includes(Common.Licensing.ProFeature.OnlinePayments),
+                PaidWithoutSale = (await _payments.GetPaidWithoutSaleAsync(wallet.Id)).Select(p => new UnusedWalletPaymentDto
+                {
+                    Id = p.Id,
+                    ExternalId = p.ExternalId.ToString(),
+                    Amount = p.Amount,
+                    CurrencyNotation = p.Currency?.Notation ?? p.CurrencyCode,
+                    PayerPhone = p.PayerPhone,
+                    PaidAt = p.CompletedAt,
+                }).ToList(),
+            },
             Balances = balances.Select(b => new WalletBalanceDto
             {
                 CurrencyId = b.CurrencyId,

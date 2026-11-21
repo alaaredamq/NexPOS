@@ -15,6 +15,7 @@ const wallet = (overrides = {}) => ({
   paymentMethodId: 9,
   paymentMethodName: 'Whish',
   isActive: true,
+  online: { mode: 'Off', channel: null, websiteUrl: null, hasSecret: false, ready: false, includedInPlan: true, paidWithoutSale: [] },
   balances: [
     { currencyId: 1, currencyCode: 'USD', currencyNotation: '$', balance: 42.5, uncheckedCount: 2, uncheckedAmount: 42.5 },
     { currencyId: 2, currencyCode: 'LBP', currencyNotation: 'LL', balance: 0, uncheckedCount: 0, uncheckedAmount: 0 },
@@ -134,6 +135,36 @@ describe('Whish wallet page', () => {
       reference: null,
       date: null,
     })
+  })
+
+  it('saves the Whish keys for online payments and lists payments that have no sale', async () => {
+    open([wallet({ online: { mode: 'Off', channel: null, websiteUrl: null, hasSecret: false, ready: false, includedInPlan: true,
+      paidWithoutSale: [{ id: 5, externalId: '176370000000099', amount: 6.5, currencyNotation: '$', payerPhone: '96170111222', paidAt: '2026-11-21T10:00:00Z' }] } })])
+    api.routes['PUT /api/v1/wallets/3/online'] = () => json(wallet())
+
+    expect(await screen.findByText('Paid, but no sale')).toBeInTheDocument()
+    expect(screen.getByText('176370000000099')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Online payments' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('combobox', { name: /Mode/ }))
+    fireEvent.click(await screen.findByRole('option', { name: 'Test (no real money)' }))
+    fireEvent.change(within(dialog).getByLabelText(/^Channel/), { target: { value: 'chan-1' } })
+    fireEvent.change(within(dialog).getByLabelText(/^Secret/), { target: { value: 'top-secret' } })
+    fireEvent.change(within(dialog).getByLabelText(/^Website/), { target: { value: 'https://shop.example' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(api.calls.some((c) => c.method === 'PUT' && c.url.endsWith('/wallets/3/online'))).toBe(true))
+    expect(api.calls.find((c) => c.url.endsWith('/wallets/3/online'))?.body).toEqual({
+      mode: 'Sandbox', channel: 'chan-1', secret: 'top-secret', websiteUrl: 'https://shop.example',
+    })
+  })
+
+  it('on Basic says online payments are Pro and hides their settings', async () => {
+    open([wallet({ online: { mode: 'Off', channel: null, websiteUrl: null, hasSecret: false, ready: false, includedInPlan: false, paidWithoutSale: [] } })])
+
+    expect(await screen.findByText('Pro plan only')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Online payments' })).not.toBeInTheDocument()
   })
 
   it('hides recording and ticking from someone who may only look', async () => {

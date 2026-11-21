@@ -347,7 +347,7 @@ namespace Application.Services.Sales
                         // A Whish (wallet) sale puts its money into the wallet in the same transaction, so a sale can't exist without its
                         // wallet row or the other way round. A method with no wallet writes nothing.
                         await _wallets.RecordSaleAsync(request.PaymentMethodId, order.Id, finalTotal, request.CurrencyId,
-                            request.PaymentReference, request.UserId);
+                            request.PaymentReference, request.UserId, request.WalletPaymentRequestId);
                     }
 
                     // Create receipt for the order

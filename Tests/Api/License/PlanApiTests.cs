@@ -40,6 +40,13 @@ public sealed class PlanApiTests : CatalogApiTestBase, IDisposable
             Assert.Equal(feature, (await Body(response)).GetProperty("feature").GetString());
         }
 
+        // Online Whish payments are Pro; taking Whish by hand (the wallet page) is in every plan.
+        var online = await admin.SendAsync(Json(HttpMethod.Post, "/api/v1/pos/whish/requests",
+            new { walletId = 1, amount = 5m, currencyId = 1, idempotencyKey = Guid.NewGuid().ToString("N") }));
+        await AssertProblem(online, HttpStatusCode.Forbidden, "plan_upgrade_required");
+        Assert.Equal("OnlinePayments", (await Body(online)).GetProperty("feature").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/wallets"))).StatusCode);
+
         foreach (var url in new[] { "/api/v1/products", "/api/v1/customers", "/api/v1/orders", "/api/v1/users" })
             Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, url))).StatusCode);
 

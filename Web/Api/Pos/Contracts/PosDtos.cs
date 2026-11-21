@@ -161,6 +161,12 @@ public sealed record PosPaymentMethodDto
 
     /// <summary>The wallet's company (<c>Whish</c>), so the button can show its logo. Null for a method with no wallet.</summary>
     public string? WalletProvider { get; init; }
+
+    /// <summary>The wallet, for <c>pos/whish/requests</c>. Null for a method with no wallet.</summary>
+    public int? WalletId { get; init; }
+
+    /// <summary>The till can send this wallet a payment request (online payments set up, and the plan includes them).</summary>
+    public bool OnlinePayments { get; init; }
 }
 
 public sealed record PosDiscountDto
@@ -360,6 +366,10 @@ public sealed class PosCheckoutRequest
     /// method has <c>asksReference</c>; optional, but it is what lets the owner match the sale in the Whish app later.</summary>
     [StringLength(100)]
     public string? PaymentReference { get; set; }
+
+    /// <summary>A Whish payment request (<c>pos/whish/requests</c>) the customer paid online. Whish must have confirmed it, and its amount and
+    /// currency must match this sale; it then pays for this sale only. Its Whish number goes on the receipt (<c>paymentReference</c> is ignored).</summary>
+    public int? WalletPaymentRequestId { get; set; }
 
     /// <summary>What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
     /// (cash rounding). No limit is enforced.</summary>

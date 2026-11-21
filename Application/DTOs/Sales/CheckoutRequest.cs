@@ -40,6 +40,9 @@ namespace Application.DTOs.Sales
         [StringLength(100)]
         public string? PaymentReference { get; set; }
 
+        /// <summary>A paid online Whish payment request that pays for this sale (step 2). Linked to the order in the checkout transaction.</summary>
+        public int? WalletPaymentRequestId { get; set; }
+
         public decimal? DiscountAmount { get; set; }
         
         public string? DiscountCode { get; set; }

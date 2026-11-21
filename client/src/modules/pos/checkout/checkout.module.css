@@ -153,6 +153,48 @@
   box-shadow: var(--ring);
 }
 
+/* ---- online Whish payment ---- */
+
+.whishPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+/* The customer scans this from across the counter: big, square, with its own white margin (in the SVG) so it reads in dark mode too. */
+.whishQr {
+  align-self: center;
+  inline-size: 220px;
+  max-inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1;
+  border-radius: var(--radius-control);
+  background: #ffffff;
+}
+
+.whishWaiting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.whishLink {
+  margin: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.whishLink a {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
 /* ---- payment method ---- */
 
 .methods {

@@ -31,10 +31,12 @@ public sealed class PosLookupService : IPosLookupService
     private readonly ICustomerService _customers;
     private readonly ICashDrawerService _drawer;
     private readonly IWalletService _wallets;
+    private readonly Application.IServices.Licensing.ILicenseService _license;
 
     public PosLookupService(ICurrencyService currencies, IPOSCheckoutService checkout, ICustomerService customers, ICashDrawerService drawer,
-        IWalletService wallets)
+        IWalletService wallets, Application.IServices.Licensing.ILicenseService license)
     {
+        _license = license;
         _currencies = currencies;
         _checkout = checkout;
         _customers = customers;
@@ -57,6 +59,7 @@ public sealed class PosLookupService : IPosLookupService
         // The service already hides the system "Customer Debt" method: it is only reachable through addToDebt.
         var methods = await _checkout.GetPaymentMethodsAsync();
         var wallets = await _wallets.GetActiveByPaymentMethodAsync();
+        var online = _license.GetState().Includes(Common.Licensing.ProFeature.OnlinePayments);
         return methods
             .Select(m =>
             {
@@ -66,6 +69,8 @@ public sealed class PosLookupService : IPosLookupService
                     Id = m.Id, Name = m.Name, IsDefault = m.IsDefault, RequiresChange = m.RequiresChange,
                     AsksReference = wallet is not null, WalletAccountNumber = wallet?.AccountNumber,
                     WalletProvider = wallet?.Provider.ToString(),
+                    WalletId = wallet?.Id,
+                    OnlinePayments = online && wallet is not null && Application.Services.Sales.WalletPaymentService.CredentialsOf(wallet) is not null,
                 };
             })
             .ToList();

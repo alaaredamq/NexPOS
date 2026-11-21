@@ -2305,6 +2305,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/whish/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asks Whish for a payment link the customer opens to pay. Retry with the <b>same</b>`idempotencyKey` after a lost answer: no second
+         *     request is sent. Refusals: 409 `whish_not_set_up`, 400 `whish_currency_not_accepted` (only USD and LBP), 502 `whish_error`
+         *     (Whish said no or could not be reached; `detail` says why), 409 `idempotency_key_reused`.
+         */
+        post: operations["createWhishPaymentRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/whish/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The request, after asking Whish for news while it is still waiting. Poll this every few seconds. */
+        get: operations["getWhishPaymentRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/whish/requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The cashier stops waiting. If the customer pays afterwards, the wallet page lists it as paid with no sale. */
+        post: operations["cancelWhishPaymentRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/product-display-order": {
         parameters: {
             query?: never;
@@ -3565,6 +3620,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/wallets/{id}/online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The keys Whish gives with a merchant account (`channel`, `secret`, `websiteUrl`) and `mode` Off / Sandbox / Live.
+         *     An empty secret keeps the stored one; the secret is never sent back. Pro plan.
+         */
+        put: operations["setWalletOnline"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4213,6 +4288,22 @@ export interface components {
             /** Format: int32 */
             displayOrder: number;
             metadata?: string | null;
+        };
+        CreateWalletPaymentRequest: {
+            /**
+             * Format: int32
+             * @description The wallet (`walletId` of the payment method).
+             */
+            walletId?: number;
+            /**
+             * Format: double
+             * @description What the customer pays, in Web.Api.Pos.CreateWalletPaymentRequest.CurrencyId: the sale's total.
+             */
+            amount?: number;
+            /** Format: int32 */
+            currencyId?: number;
+            /** @description A fresh value per attempt; resend the same one to retry. */
+            idempotencyKey: string;
         };
         /** @description Sets up the shop's Whish wallet. The "Whish" payment method is made too (or the existing one is used). */
         CreateWalletRequest: {
@@ -5708,6 +5799,12 @@ export interface components {
              */
             paymentReference?: string | null;
             /**
+             * Format: int32
+             * @description A Whish payment request (`pos/whish/requests`) the customer paid online. Whish must have confirmed it, and its amount and
+             *                 currency must match this sale; it then pays for this sale only. Its Whish number goes on the receipt (`paymentReference` is ignored).
+             */
+            walletPaymentRequestId?: number | null;
+            /**
              * Format: double
              * @description What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
              *                 (cash rounding). No limit is enforced.
@@ -5832,6 +5929,13 @@ export interface components {
             walletAccountNumber?: string | null;
             /** @description The wallet's company (`Whish`), so the button can show its logo. Null for a method with no wallet. */
             walletProvider?: string | null;
+            /**
+             * Format: int32
+             * @description The wallet, for `pos/whish/requests`. Null for a method with no wallet.
+             */
+            walletId?: number | null;
+            /** @description The till can send this wallet a payment request (online payments set up, and the plan includes them). */
+            onlinePayments?: boolean;
         };
         PosPriceOptionDto: {
             /**
@@ -7650,6 +7754,17 @@ export interface components {
             enforced: boolean;
             devices: components["schemas"]["TillDeviceDto"][];
         };
+        UnusedWalletPaymentDto: {
+            /** Format: int32 */
+            id: number;
+            externalId: string;
+            /** Format: double */
+            amount: number;
+            currencyNotation: string;
+            payerPhone?: string | null;
+            /** Format: date-time */
+            paidAt?: string | null;
+        };
         UpdateWalletRequest: {
             name: string;
             accountNumber?: string | null;
@@ -7787,6 +7902,7 @@ export interface components {
             isActive: boolean;
             /** @description One line per currency: the default currency first. */
             balances: components["schemas"]["WalletBalanceDto"][];
+            online: components["schemas"]["WalletOnlineDto"];
         };
         /** @description Money moved by hand. Sales are never entered here: checkout records them. */
         WalletMovementRequest: {
@@ -7813,6 +7929,55 @@ export interface components {
              * @description A local date (`2026-11-21`) when the money moved on an earlier day; empty = now.
              */
             date?: string | null;
+        };
+        WalletOnlineDto: {
+            /** @description `Off`, `Sandbox` (Whish's test system) or `Live`. */
+            mode: string;
+            channel?: string | null;
+            websiteUrl?: string | null;
+            /** @description A secret is stored (it is never shown). */
+            hasSecret: boolean;
+            /** @description The mode is on and all three keys are there: the till offers "Send payment request". */
+            ready: boolean;
+            /** @description The shop's plan includes online payments (Pro). */
+            includedInPlan: boolean;
+            /** @description Paid by the customer but used by no sale (they paid after the cashier stopped waiting, or the sale then failed). */
+            paidWithoutSale: components["schemas"]["UnusedWalletPaymentDto"][];
+        };
+        /** @description The keys Whish gives with a merchant account. Leave Web.Api.Wallets.Contracts.WalletOnlineRequest.Secret empty to keep the stored one. */
+        WalletOnlineRequest: {
+            /** @description `Off`, `Sandbox` or `Live`. */
+            mode: string;
+            channel?: string | null;
+            secret?: string | null;
+            websiteUrl?: string | null;
+        };
+        /** @description A payment request sent to Whish. Web.Api.Pos.WalletPaymentRequestDto.Status: `Pending`, `Paid`, `Failed` or `Cancelled`. */
+        WalletPaymentRequestDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description Our number for it at Whish (a string: it is too long for some JSON readers). Printed on the receipt. */
+            externalId: string;
+            status: string;
+            /** Format: double */
+            amount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /** @description The page the customer opens to pay (shown as a QR code). Null if Whish refused. */
+            collectUrl?: string | null;
+            payerPhone?: string | null;
+            failureMessage?: string | null;
+            /**
+             * Format: int32
+             * @description The sale it paid for, once used.
+             */
+            orderId?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt?: string | null;
         };
         /** @description One movement of money. Web.Api.Wallets.Contracts.WalletTransactionDto.Amount is signed: positive is money in. */
         WalletTransactionDto: {
@@ -15770,6 +15935,173 @@ export interface operations {
             };
         };
     };
+    createWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateWalletPaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    cancelWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getProductDisplayOrder: {
         parameters: {
             query?: never;
@@ -20262,6 +20594,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WalletCheckResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setWalletOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletOnlineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
                 };
             };
             /** @description Bad Request */
