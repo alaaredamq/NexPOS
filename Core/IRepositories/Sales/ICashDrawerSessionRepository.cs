@@ -7,6 +7,9 @@ public interface ICashDrawerSessionRepository : IBaseRepository<CashDrawerSessio
 {
     Task<CashDrawerSession?> GetOpenSessionByUserIdAsync(int userId);
 
+    /// <summary>The payment method name of each order's receipt, by order id. An order with no receipt is left out.</summary>
+    Task<Dictionary<int, string>> GetPaymentMethodNamesByOrderIdsAsync(IReadOnlyCollection<int> orderIds);
+
     /// <summary>
     /// Returns just the id of the user's open session (or null). Unlike
     /// <see cref="GetOpenSessionByUserIdAsync"/> this does not load the session's Orders/CashDrops,

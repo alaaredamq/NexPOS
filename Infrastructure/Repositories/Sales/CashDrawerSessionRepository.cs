@@ -26,6 +26,19 @@ public class CashDrawerSessionRepository : BaseRepository<CashDrawerSession, int
             .FirstOrDefaultAsync(s => s.UserId == userId && s.IsOpen);
     }
 
+    public async Task<Dictionary<int, string>> GetPaymentMethodNamesByOrderIdsAsync(IReadOnlyCollection<int> orderIds)
+    {
+        if (orderIds.Count == 0) return new Dictionary<int, string>();
+
+        var rows = await _context.Receipts.AsNoTracking()
+            .Where(r => orderIds.Contains(r.OrderId) && !r.IsDeleted)
+            .Select(r => new { r.OrderId, r.Id, Method = r.PaymentMethod.Name })
+            .ToListAsync();
+
+        // One receipt per sale in practice; if there are more, the newest one speaks for the order.
+        return rows.GroupBy(r => r.OrderId).ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.Id).First().Method);
+    }
+
     public async Task<int?> GetOpenSessionIdByUserIdAsync(int userId)
     {
         return await _Entities

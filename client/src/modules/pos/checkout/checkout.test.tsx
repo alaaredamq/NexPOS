@@ -209,6 +209,24 @@ describe('checkout', () => {
     expect(bodies()[0]?.paymentMethodId).toBe(11)
   })
 
+  it('shows the Whish logo on the Whish button, asks for the Whish number and sends it', async () => {
+    open()
+    api.routes['GET /api/v1/pos/payment-methods'] = () =>
+      json([...METHODS, { id: 12, name: 'Whish', isDefault: false, requiresChange: false, asksReference: true, walletAccountNumber: '70 123 456', walletProvider: 'Whish' }])
+    await pay()
+
+    const whish = await within(dialog()).findByRole('radio', { name: 'Whish' })
+    expect(whish.querySelector('img')?.getAttribute('src')).toMatch(/payment-logos\/whish\.svg$/)
+    expect(within(dialog()).getByRole('radio', { name: 'Card' }).querySelector('img')).toBeNull()
+
+    fireEvent.click(whish)
+    expect(dialog()).toHaveTextContent('70 123 456')
+    fireEvent.change(within(dialog()).getByLabelText('Whish number (optional)'), { target: { value: ' WH-1 ' } })
+    fireEvent.click(complete())
+    await screen.findByText('Sale Complete!')
+    expect(bodies()[0]).toMatchObject({ paymentMethodId: 12, paymentReference: 'WH-1' })
+  })
+
   it('treats a lower typed total as a discount and sends it', async () => {
     open()
     await pay()

@@ -362,6 +362,7 @@ builder.Services.AddScoped<Application.IServices.Dashboard.IDashboardService, Ap
 builder.Services.AddScoped<Core.IRepositories.Sales.IReceiptRepository, Infrastructure.Repositories.Sales.ReceiptRepository>();
 builder.Services.AddScoped<Application.IServices.Sales.IReceiptService, Application.Services.Sales.ReceiptService>();
 builder.Services.AddScoped<Application.IServices.Sales.ISaleReversalService, Application.Services.Sales.SaleReversalService>();
+builder.Services.AddScoped<Application.IServices.Sales.IWalletService, Application.Services.Sales.WalletService>();
 builder.Services.AddScoped<Application.IServices.Purchasing.IPurchaseService, Application.Services.Purchasing.PurchaseService>();
 builder.Services.AddScoped<Application.IServices.Sales.ISaleCustomerService, Application.Services.Sales.SaleCustomerService>();
 

@@ -94,6 +94,9 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>Product Display Order</value>
   </data>
+  <data name="WhishWallet" xml:space="preserve">
+    <value>Whish Wallet</value>
+  </data>
   <data name="OnlineMenu" xml:space="preserve">
     <value>Online Menu</value>
   </data>

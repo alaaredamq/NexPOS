@@ -30,13 +30,16 @@ public sealed class PosLookupService : IPosLookupService
     private readonly IPOSCheckoutService _checkout;
     private readonly ICustomerService _customers;
     private readonly ICashDrawerService _drawer;
+    private readonly IWalletService _wallets;
 
-    public PosLookupService(ICurrencyService currencies, IPOSCheckoutService checkout, ICustomerService customers, ICashDrawerService drawer)
+    public PosLookupService(ICurrencyService currencies, IPOSCheckoutService checkout, ICustomerService customers, ICashDrawerService drawer,
+        IWalletService wallets)
     {
         _currencies = currencies;
         _checkout = checkout;
         _customers = customers;
         _drawer = drawer;
+        _wallets = wallets;
     }
 
     public async Task<IReadOnlyList<PosCurrencyDto>> GetCurrenciesAsync()
@@ -50,10 +53,23 @@ public sealed class PosLookupService : IPosLookupService
             .ToList();
 
     public async Task<IReadOnlyList<PosPaymentMethodDto>> GetPaymentMethodsAsync()
+    {
         // The service already hides the system "Customer Debt" method: it is only reachable through addToDebt.
-        => (await _checkout.GetPaymentMethodsAsync())
-            .Select(m => new PosPaymentMethodDto { Id = m.Id, Name = m.Name, IsDefault = m.IsDefault, RequiresChange = m.RequiresChange })
+        var methods = await _checkout.GetPaymentMethodsAsync();
+        var wallets = await _wallets.GetActiveByPaymentMethodAsync();
+        return methods
+            .Select(m =>
+            {
+                var wallet = wallets.GetValueOrDefault(m.Id);
+                return new PosPaymentMethodDto
+                {
+                    Id = m.Id, Name = m.Name, IsDefault = m.IsDefault, RequiresChange = m.RequiresChange,
+                    AsksReference = wallet is not null, WalletAccountNumber = wallet?.AccountNumber,
+                    WalletProvider = wallet?.Provider.ToString(),
+                };
+            })
             .ToList();
+    }
 
     public async Task<IReadOnlyList<PosDiscountDto>> GetDiscountsAsync()
         => (await _checkout.GetDiscountsAsync())

@@ -152,6 +152,15 @@ public sealed record PosPaymentMethodDto
 
     /// <summary>The checkout dialog asks for the amount handed over and shows change.</summary>
     public required bool RequiresChange { get; init; }
+
+    /// <summary>The money goes into a wallet (Whish): the checkout dialog asks for the transfer number.</summary>
+    public bool AsksReference { get; init; }
+
+    /// <summary>The shop's number on that wallet (the phone customers send Whish money to), to show the cashier. Null when not set.</summary>
+    public string? WalletAccountNumber { get; init; }
+
+    /// <summary>The wallet's company (<c>Whish</c>), so the button can show its logo. Null for a method with no wallet.</summary>
+    public string? WalletProvider { get; init; }
 }
 
 public sealed record PosDiscountDto
@@ -346,6 +355,11 @@ public sealed class PosCheckoutRequest
 
     /// <summary>Put the sale on the customer's account instead of collecting payment. Needs a real customer.</summary>
     public bool AddToDebt { get; set; }
+
+    /// <summary>The provider's number for this payment, e.g. the Whish transfer number from the customer's phone. Asked for when the
+    /// method has <c>asksReference</c>; optional, but it is what lets the owner match the sale in the Whish app later.</summary>
+    [StringLength(100)]
+    public string? PaymentReference { get; set; }
 
     /// <summary>What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
     /// (cash rounding). No limit is enforced.</summary>

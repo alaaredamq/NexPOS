@@ -94,6 +94,9 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>ترتيب عرض المنتجات</value>
   </data>
+  <data name="WhishWallet" xml:space="preserve">
+    <value>محفظة ويش</value>
+  </data>
   <data name="OnlineMenu" xml:space="preserve">
     <value>القائمة الإلكترونية</value>
   </data>

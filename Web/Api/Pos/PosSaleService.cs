@@ -186,6 +186,7 @@ public sealed class PosSaleService : IPosSaleService
                 TotalAmount = request.TotalAmount,
                 PaymentMethodId = request.PaymentMethodId,
                 AddToDebt = request.AddToDebt,
+                PaymentReference = request.AddToDebt || string.IsNullOrWhiteSpace(request.PaymentReference) ? null : request.PaymentReference.Trim(),
                 DiscountAmount = built.DiscountAmount,
                 DiscountPercentage = built.DiscountPercentage,
                 DiscountCode = built.DiscountCode,

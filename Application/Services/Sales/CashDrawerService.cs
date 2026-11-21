@@ -55,6 +55,31 @@ public class CashDrawerService : ICashDrawerService
         return (discounts, adjustments);
     }
 
+    /// <summary>Money per kind of payment. Only cash sales end up in the drawer; card, Whish and customer-debt sales do not.</summary>
+    private sealed record PaymentSplit(decimal Cash, decimal Card, decimal Other, IReadOnlyDictionary<int, string> MethodByOrder);
+
+    /// <summary>
+    /// Splits the sold orders by their receipt's payment method. A sale with no receipt (or a test double that knows none) counts as cash,
+    /// which is how every sale was counted before methods were told apart.
+    /// </summary>
+    private async Task<PaymentSplit> SplitByPaymentAsync(IReadOnlyCollection<Order> orders)
+    {
+        var methods = await _sessionRepository.GetPaymentMethodNamesByOrderIdsAsync(orders.Select(o => o.Id).Distinct().ToList())
+            ?? new Dictionary<int, string>();
+        decimal cash = 0, card = 0, other = 0;
+        foreach (var order in orders)
+        {
+            switch (PaymentKinds.Of(methods.GetValueOrDefault(order.Id)))
+            {
+                case PaymentKind.Card: card += order.TotalAmount; break;
+                case PaymentKind.Other: other += order.TotalAmount; break;
+                default: cash += order.TotalAmount; break;
+            }
+        }
+
+        return new PaymentSplit(cash, card, other, methods);
+    }
+
     public async Task<CashDrawerSession> OpenDrawerAsync(int userId, decimal openingCash, string? notes = null)
     {
         // Check if user already has an open session
@@ -92,9 +117,7 @@ public class CashDrawerService : ICashDrawerService
         var totalSales = orders.Sum(o => o.TotalAmount);
         var totalTransactions = orders.Count;
         
-        // TODO: Get actual payment method breakdown from orders
-        // For now, we'll assume all cash
-        var totalCash = totalSales;
+        var split = await SplitByPaymentAsync(orders);
         
         // Get cash drops
         var totalCashDrops = await _cashDropRepository.GetTotalDropsBySessionIdAsync(sessionId);
@@ -108,9 +131,9 @@ public class CashDrawerService : ICashDrawerService
         session.ActualCash = actualCash;
         session.ExpectedCash = expectedCash;
         session.TotalSales = totalSales;
-        session.TotalCash = totalCash;
-        session.TotalCard = 0; // TODO: Implement when payment method tracking is added
-        session.TotalOtherPayments = 0;
+        session.TotalCash = split.Cash;
+        session.TotalCard = split.Card;
+        session.TotalOtherPayments = split.Other;
         session.TotalTransactions = totalTransactions;
         session.TotalCashDrops = totalCashDrops;
         session.TotalDiscounts = totalDiscounts;
@@ -191,9 +214,8 @@ public class CashDrawerService : ICashDrawerService
         // Opening cash
         var expectedCash = session.OpeningCash;
         
-        // Add cash sales (TODO: filter by payment method when implemented)
-        var cashSales = SoldOrders(session).Sum(o => o.TotalAmount);
-        expectedCash += cashSales;
+        // Add cash sales only: a card, Whish or customer-debt sale never put money in the drawer.
+        expectedCash += (await SplitByPaymentAsync(SoldOrders(session))).Cash;
         
         // Subtract cash drops
         var cashDrops = await _cashDropRepository.GetTotalDropsBySessionIdAsync(sessionId);
@@ -215,7 +237,8 @@ public class CashDrawerService : ICashDrawerService
 
         var orders = SoldOrders(session);
         var totalSales = orders.Sum(o => o.TotalAmount);
-        
+        var split = await SplitByPaymentAsync(orders);
+
         // Calculate discounts and adjustments
         var (totalDiscounts, totalAdjustments) = DiscountsAndAdjustments(orders);
 
@@ -225,9 +248,9 @@ public class CashDrawerService : ICashDrawerService
             OpenedAt = session.OpenedAt,
             ClosedAt = session.ClosedAt,
             OpeningCash = session.OpeningCash,
-            TotalCashSales = totalSales, // TODO: Filter by cash payment method
-            TotalCardSales = 0, // TODO: Implement
-            TotalOtherSales = 0, // TODO: Implement
+            TotalCashSales = split.Cash,
+            TotalCardSales = split.Card,
+            TotalOtherSales = split.Other,
             TotalCashDrops = totalCashDrops,
             ExpectedCash = expectedCash,
             ActualCash = session.ActualCash,
@@ -254,7 +277,8 @@ public class CashDrawerService : ICashDrawerService
 
         var cashDrops = await _cashDropRepository.GetBySessionIdAsync(sessionId);
         var orders = session.Orders.ToList();
-        
+        var methods = (await SplitByPaymentAsync(orders)).MethodByOrder;
+
         var report = new ZReport
         {
             SessionId = session.Id,
@@ -287,7 +311,7 @@ public class CashDrawerService : ICashDrawerService
                     ? $"{o.Customer.FirstName} {o.Customer.LastName}".Trim()
                     : "Walk-in",
                 TotalAmount = o.TotalAmount,
-                PaymentMethod = "Cash" // TODO: Get actual payment method
+                PaymentMethod = methods.GetValueOrDefault(o.Id) ?? "Cash"
             }).ToList(),
             CashDrops = cashDrops.Select(cd => new ZReportCashDrop
             {

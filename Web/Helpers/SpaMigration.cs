@@ -32,6 +32,7 @@ public static class SpaMigration
             ["License"] = "/app/license",
             ["Notifications"] = "/app/notifications",
             ["OnlineMenu"] = "/app/online-menu",
+            ["Wallet"] = "/app/wallet",
             ["Suppliers"] = "/app/suppliers",
             ["Tax"] = "/app/tax",
             ["Receipts"] = "/app/receipts",

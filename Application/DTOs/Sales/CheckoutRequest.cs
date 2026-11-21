@@ -36,6 +36,10 @@ namespace Application.DTOs.Sales
         /// </summary>
         public bool AddToDebt { get; set; }
 
+        /// <summary>The payment provider's own number for this payment (e.g. the Whish transfer number), when the cashier typed one.</summary>
+        [StringLength(100)]
+        public string? PaymentReference { get; set; }
+
         public decimal? DiscountAmount { get; set; }
         
         public string? DiscountCode { get; set; }

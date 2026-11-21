@@ -59,6 +59,8 @@ public static class NavCatalog
         // Sales.Manage: a cashier opens their own drawer (the API shows them only their own sessions).
         new NavPage("CashDrawer", "CashDrawer", "fa-vault", NavSection.Sales, P(PermissionHelper.Permissions.Sales_View, PermissionHelper.Permissions.Sales_Manage)),
         new NavPage("Receipts", "Receipts", "fa-receipt", NavSection.Sales, P(PermissionHelper.Permissions.Sales_View)),
+        // React-only page: the shop's Whish Money account (balance, movements, ticking off). Every plan.
+        new NavPage("Wallet", "WhishWallet", "fa-wallet", NavSection.Sales, P(PermissionHelper.Permissions.PaymentMethods_View)),
 
         // Catalog & people
         new NavPage("Products", "Products", "fa-box", NavSection.Catalog, P(PermissionHelper.Permissions.Products_View)),

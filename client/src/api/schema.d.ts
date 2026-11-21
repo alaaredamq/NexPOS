@@ -3473,6 +3473,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/wallets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The shop's wallets with their balances. Empty until Whish is set up. */
+        get: operations["getWallets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWallet"];
+        /** Renames it, changes the shop's Whish number, or turns it off (sales stop landing in it; the history stays). */
+        put: operations["updateWallet"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/whish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sets up the Whish wallet, and the "Whish" payment method with it (an existing method of that name is used), so checkout offers
+         *     Whish at once. 409 `wallet_exists` when it is already set up.
+         */
+        post: operations["createWhishWallet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The wallet's movements, newest first. `from` / `to` are local dates and include both days; `type` is one movement
+         *     type; `status` is `checked` or `unchecked`; `q` searches the reference, the notes and the receipt number.
+         */
+        get: operations["getWalletTransactions"];
+        put?: never;
+        /** Money moved by hand: a deposit, a withdrawal, a supplier paid, a fee, or a correction. Sales come from checkout only. */
+        post: operations["addWalletMovement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}/transactions/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ticks rows off against the Whish statement (`checked: false` puts them back). Answers how many changed. */
+        post: operations["checkWalletTransactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4121,6 +4213,12 @@ export interface components {
             /** Format: int32 */
             displayOrder: number;
             metadata?: string | null;
+        };
+        /** @description Sets up the shop's Whish wallet. The "Whish" payment method is made too (or the existing one is used). */
+        CreateWalletRequest: {
+            name?: string | null;
+            /** @description The shop's Whish number (phone), shown to the cashier at checkout. */
+            accountNumber?: string | null;
         };
         /** @description The converted amount, rounded to 2 decimals with banker's rounding exactly like a till price (`PosPricingMath.ToCartCurrency`). */
         CurrencyConversionDto: {
@@ -5605,6 +5703,11 @@ export interface components {
             /** @description Put the sale on the customer's account instead of collecting payment. Needs a real customer. */
             addToDebt?: boolean;
             /**
+             * @description The provider's number for this payment, e.g. the Whish transfer number from the customer's phone. Asked for when the
+             *                 method has `asksReference`; optional, but it is what lets the owner match the sale in the Whish app later.
+             */
+            paymentReference?: string | null;
+            /**
              * Format: double
              * @description What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
              *                 (cash rounding). No limit is enforced.
@@ -5723,6 +5826,12 @@ export interface components {
             isDefault: boolean;
             /** @description The checkout dialog asks for the amount handed over and shows change. */
             requiresChange: boolean;
+            /** @description The money goes into a wallet (Whish): the checkout dialog asks for the transfer number. */
+            asksReference?: boolean;
+            /** @description The shop's number on that wallet (the phone customers send Whish money to), to show the cashier. Null when not set. */
+            walletAccountNumber?: string | null;
+            /** @description The wallet's company (`Whish`), so the button can show its logo. Null for a method with no wallet. */
+            walletProvider?: string | null;
         };
         PosPriceOptionDto: {
             /**
@@ -7541,6 +7650,12 @@ export interface components {
             enforced: boolean;
             devices: components["schemas"]["TillDeviceDto"][];
         };
+        UpdateWalletRequest: {
+            name: string;
+            accountNumber?: string | null;
+            /** @description Off: sales with its payment method stop landing here. The history stays. */
+            isActive?: boolean;
+        };
         /** @description Body of "enable / disable a user". */
         UserActiveRequest: {
             isActive: boolean;
@@ -7627,6 +7742,117 @@ export interface components {
             /** Format: int32 */
             roleId: number;
             isActive: boolean;
+        };
+        WalletBalanceDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Money in minus money out, over the whole history.
+             */
+            balance: number;
+            /**
+             * Format: int32
+             * @description Rows not yet ticked off against the provider's statement.
+             */
+            uncheckedCount: number;
+            /** Format: double */
+            uncheckedAmount: number;
+        };
+        WalletCheckRequest: {
+            ids: number[];
+            checked?: boolean;
+        };
+        WalletCheckResultDto: {
+            /** Format: int32 */
+            changed: number;
+        };
+        /** @description A wallet (today: the shop's Whish Money account) with the money it holds. */
+        WalletDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** @description `Whish`. */
+            provider: string;
+            /** @description The shop's number on the provider (the phone customers send Whish money to). */
+            accountNumber?: string | null;
+            /**
+             * Format: int32
+             * @description The payment method whose sales land here (the till offers it at checkout).
+             */
+            paymentMethodId: number;
+            paymentMethodName: string;
+            isActive: boolean;
+            /** @description One line per currency: the default currency first. */
+            balances: components["schemas"]["WalletBalanceDto"][];
+        };
+        /** @description Money moved by hand. Sales are never entered here: checkout records them. */
+        WalletMovementRequest: {
+            /** @description `Deposit`, `Withdrawal`, `SupplierPayment`, `Fee` or `Adjustment`. */
+            type: string;
+            /**
+             * Format: double
+             * @description Always positive; the type says the direction (and Web.Api.Wallets.Contracts.WalletMovementRequest.MoneyIn does for an adjustment).
+             */
+            amount?: number;
+            /** @description Only read for an `Adjustment`: true adds to the balance, false takes away. */
+            moneyIn?: boolean;
+            /** Format: int32 */
+            currencyId?: number;
+            reference?: string | null;
+            notes?: string | null;
+            /**
+             * Format: int32
+             * @description The supplier paid, for a `SupplierPayment` (optional: on Basic there is no supplier list, so the notes name them).
+             */
+            supplierId?: number | null;
+            /**
+             * Format: date
+             * @description A local date (`2026-11-21`) when the money moved on an earlier day; empty = now.
+             */
+            date?: string | null;
+        };
+        /** @description One movement of money. Web.Api.Wallets.Contracts.WalletTransactionDto.Amount is signed: positive is money in. */
+        WalletTransactionDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description `Sale`, `SaleReversal`, `Deposit`, `Withdrawal`, `SupplierPayment`, `Fee` or `Adjustment`. */
+            type: string;
+            /** Format: double */
+            amount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            reference?: string | null;
+            notes?: string | null;
+            /** Format: int32 */
+            orderId?: number | null;
+            /** @description The receipt of the sale (Sale / SaleReversal rows). */
+            receiptNumber?: string | null;
+            /** Format: int32 */
+            supplierId?: number | null;
+            supplierName?: string | null;
+            userName: string;
+            /** Format: date-time */
+            occurredAt: string;
+            isChecked: boolean;
+            /** Format: date-time */
+            checkedAt?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        WalletTransactionDtoPagedResult: {
+            items: components["schemas"]["WalletTransactionDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
         };
         /** @description The end-of-day report of a closed session (what the Z report page prints). */
         ZReportDto: {
@@ -19658,6 +19884,394 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWallets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateWalletRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createWhishWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateWalletRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWalletTransactions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                from?: string;
+                to?: string;
+                type?: string;
+                status?: string;
+                currencyId?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletTransactionDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addWalletMovement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletMovementRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletTransactionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    checkWalletTransactions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletCheckResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {

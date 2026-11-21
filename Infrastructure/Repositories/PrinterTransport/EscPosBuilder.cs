@@ -252,6 +252,12 @@ public class EscPosBuilder : IEscPosBuilder
         Separator();
         if (!string.IsNullOrEmpty(receipt.PaymentMethod?.Name))
             Row("Payment:", receipt.PaymentMethod.Name);
+        // The provider's own number (a Whish transfer) when the cashier typed one. "TXN-..." is the till's internal id, not worth printing.
+        var reference = receipt.ReceiptPayments?
+            .Select(p => p.ReferenceNumber)
+            .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r) && !r.StartsWith("TXN-", StringComparison.Ordinal));
+        if (reference != null)
+            Row("Ref:", reference);
         if (receipt.AmountPaid > 0)
             Row("Paid:", Money(receipt.AmountPaid));
         if (receipt.ChangeAmount > 0)

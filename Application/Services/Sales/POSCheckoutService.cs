@@ -36,6 +36,7 @@ namespace Application.Services.Sales
         private readonly ILicenseService _licenseService;
         private readonly ILogger<POSCheckoutService> _logger;
         private readonly IAuditTrail _auditTrail;
+        private readonly IWalletService? _wallets;
 
         private static readonly TimeSpan IdempotencyWindow = TimeSpan.FromSeconds(30);
 
@@ -63,7 +64,8 @@ namespace Application.Services.Sales
             ErpDbContext dbContext,
             ILicenseService licenseService,
             ILogger<POSCheckoutService> logger,
-            IAuditTrail auditTrail)
+            IAuditTrail auditTrail,
+            IWalletService? wallets = null)
         {
             _orderService = orderService;
             _cartService = cartService;
@@ -81,6 +83,7 @@ namespace Application.Services.Sales
             _licenseService = licenseService;
             _logger = logger;
             _auditTrail = auditTrail;
+            _wallets = wallets;
         }
 
         /// <summary>
@@ -339,6 +342,13 @@ namespace Application.Services.Sales
                         await _customerDebtService.AddSaleTransactionAsync(
                             effectiveCustomerId!.Value, request.UserId, order.Id, finalTotal);
                     }
+                    else if (_wallets != null)
+                    {
+                        // A Whish (wallet) sale puts its money into the wallet in the same transaction, so a sale can't exist without its
+                        // wallet row or the other way round. A method with no wallet writes nothing.
+                        await _wallets.RecordSaleAsync(request.PaymentMethodId, order.Id, finalTotal, request.CurrencyId,
+                            request.PaymentReference, request.UserId);
+                    }
 
                     // Create receipt for the order
                     Receipt receipt = null;
@@ -411,7 +421,10 @@ namespace Application.Services.Sales
                                 {
                                     PaymentMethodId = request.PaymentMethodId,
                                     Amount = finalTotal,
-                                    ReferenceNumber = paymentResult.TransactionId,
+                                    // The provider's own number when the cashier typed one (a Whish transfer), else the till's own id.
+                                    ReferenceNumber = string.IsNullOrWhiteSpace(request.PaymentReference)
+                                        ? paymentResult.TransactionId
+                                        : request.PaymentReference.Trim(),
                                     Notes = null
                                 }
                             }
