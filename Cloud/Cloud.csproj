@@ -26,6 +26,16 @@
                  Link="cloud.settings.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
 
+    <!--
+        Stop a publish to the server (any publish profile: Web Deploy, FTP, folder) when the settings file is missing.
+        Without it the site starts on an empty SQLite database and the owner sign-in breaks.
+        Plain "dotnet publish" (Docker) has no profile and is not stopped. Pass -p:AllowMissingCloudSettings=true to publish anyway.
+    -->
+    <Target Name="RequireCloudSettings" BeforeTargets="PrepareForPublish"
+            Condition="'$(PublishProfile)' != '' And '$(PublishProfile)' != 'Default' And '$(AllowMissingCloudSettings)' != 'true' And !Exists('$(MSBuildProjectDirectory)\deploy\cloud.settings.json')">
+        <Error Text="Cloud\deploy\cloud.settings.json is missing, so this publish would ship without the database connection and admin login. Copy Cloud\deploy\cloud.settings.json.example to Cloud\deploy\cloud.settings.json, fill it in, and publish again." />
+    </Target>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">

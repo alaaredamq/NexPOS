@@ -581,8 +581,8 @@ function shopView() {
   var inner = '<header class="head"><div><h1>' + t('shop') + '</h1><p>' + t('shopSub') + '</p></div></header><div class="g">' +
     '<section class="panel s8 till"><div class="th2"><h2>' + esc(m.siteName || session.siteName || t('shop')) + '</h2>' + contact + '</div>' +
     '<div class="meta"><span>' + t('lastContact') + ': <b class="num">' + (fr.seen ? esc(agoStr(fr.seen)) + ' (' + esc(timeStr(fr.seen)) + ')' : '-') + '</b></span><span>' + t('lastCopy') + ': <b class="num">' + (asOf ? esc(agoStr(asOf)) + ' (' + esc(timeStr(asOf)) + ')' : '-') + '</b></span></div></section>' +
-    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside> +
-    (can(P.edit) ? '<section class="panel s12"><div class="ph"><h2>' + t('menuH') + '</h2></div><p class="muted" style="font-size:14px">' + t('menuP') + '</p><p style="margin-top:12px"><a class="btn" href="/owner/menu.html">' + t('menuOpen') + '</a></p></section>' : '') + </div>';
+    '<aside class="panel s4" style="align-self:start"><div class="ph"><h2>' + t('plan') + '</h2>' + planChip + '</div>' + (m.expiresAtUtc ? '<p>' + t('renews', esc(new Date(m.expiresAtUtc).toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' }))) + '</p>' : '') + '<p class="muted" style="font-size:14px;margin-top:10px">' + t('planNote') + '</p></aside>' +
+    (can(P.edit) ? '<section class="panel s12"><div class="ph"><h2>' + t('menuH') + '</h2></div><p class="muted" style="font-size:14px">' + t('menuP') + '</p><p style="margin-top:12px"><a class="btn" href="/owner/menu.html">' + t('menuOpen') + '</a></p></section>' : '') + '</div>';
   return shell('shop', inner);
 }
 

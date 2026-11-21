@@ -59,8 +59,9 @@
       "description": "Point of sale and back office for retail shops. Runs offline on the shop's own PC, prints receipts, tracks customer debts, stock, suppliers and cash drawer shifts, in English and Arabic.",
       "featureList": "Offline selling, Receipt printer and cash drawer, Customer debts, Several currencies, Cash drawer shifts and Z report, Inventory and suppliers, Purchases, Audit log, Backups, Reports, Owner access from a phone",
       "offers": [
-        { "@type": "Offer", "name": "Basic", "description": "One PC, up to 3 users, selling, debts, receipts, reports for the last 7 days." },
-        { "@type": "Offer", "name": "Pro", "description": "Everything in Basic plus inventory, suppliers, purchases, audit log, full reports and unlimited users." }
+        { "@type": "Offer", "name": "Basic", "price": "180", "priceCurrency": "USD", "description": "One PC, up to 3 users, selling, debts, receipts, reports for the last 7 days." },
+        { "@type": "Offer", "name": "Pro", "price": "240", "priceCurrency": "USD", "description": "Everything in Basic plus inventory, suppliers, purchases, audit log, full reports and unlimited users." },
+        { "@type": "Offer", "name": "Online", "price": "60", "priceCurrency": "USD", "description": "Yearly add-on for Basic or Pro: owner phone app and website, online menu included." }
       ]
     },
     {
@@ -146,8 +147,8 @@
       <div class="paper-well">
         <div class="paper" data-paper>
           <div class="r-head">
-            <b>AL NOOR MINIMARKET</b>
-            <span class="ar" lang="ar" dir="rtl">ميني ماركت النور</span>
+            <b>CODUO MINIMARKET</b>
+            <span class="ar" lang="ar" dir="rtl">ميني ماركت كوديو</span>
             <span data-r-meta>Till 1 · Sara · 08:14</span>
           </div>
           <div class="r-rule"></div>
@@ -285,7 +286,7 @@
     <div class="sec-head">
       <p class="kicker">Plans</p>
       <h2 id="h-plans">Two plans. Add Online to either.</h2>
-      <p>Pay once for the plan that fits the shop today. Move to Pro later and everything you've entered comes with you.</p>
+      <p>Every plan is paid once a year. The first year includes setup at your shop and training. Move to Pro later, pay only the difference, and everything you've entered comes with you.</p>
     </div>
 
     <div class="plan-grid">
@@ -294,6 +295,7 @@
           <h3 id="p-basic">Basic</h3>
           <p>For a single counter run by a small team.</p>
         </header>
+        <p class="price"><b>$180</b><span>a year<small>That is $15 a month</small></span></p>
         <ul class="ticks">
           <li>Selling, receipts, refunds</li>
           <li>Customers and their debts</li>
@@ -314,6 +316,7 @@
           <h3 id="p-pro">Pro</h3>
           <p>For shops that buy, stock and count.</p>
         </header>
+        <p class="price"><b>$240</b><span>a year<small>That is $20 a month</small></span></p>
         <p class="inherit">Everything in Basic, and:</p>
         <ul class="ticks">
           <li>Stock that moves with every sale</li>
@@ -324,7 +327,7 @@
           <li>More than one till in the shop</li>
         </ul>
         <dl class="limits">
-          <div><dt>PCs</dt><dd>1 or more</dd></div>
+          <div><dt>PCs</dt><dd>As many as you need</dd></div>
           <div><dt>Users</dt><dd>No limit</dd></div>
         </dl>
         <a class="btn wide" href="#contact" data-plan="Pro">Ask about Pro</a>
@@ -334,19 +337,24 @@
         <header>
           <p class="addon-t"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add-on</p>
           <h3 id="p-online">Online</h3>
-          <p>Your shop on your phone. Monthly or yearly.</p>
+          <p>Your shop on your phone. Add it to Basic or Pro.</p>
         </header>
+        <p class="price"><b>$60</b><span>a year, for each shop<small>That is $5 a month</small></span></p>
         <ul class="ticks">
           <li>Today's sales, live</li>
           <li>Stock and low-stock list</li>
           <li>Add a product or change a price from away</li>
           <li>Every branch in one place</li>
           <li>Locked with your own key</li>
+          <li>Online menu included</li>
         </ul>
         <a class="btn line wide" href="#contact" data-plan="Online">Ask about Online</a>
       </article>
     </div>
-    <p class="fine">Prices depend on the number of PCs and the country. Ask us and we'll answer the same day.</p>
+    <ul class="extras">
+      <li><span>Online menu alone<small>For cafés and restaurants without Coduo POS</small></span><b>$35 a year</b></li>
+    </ul>
+    <p class="fine">Prices are in US dollars, without VAT. Printers, cash drawers and PCs are priced on their own.</p>
   </div>
 </section>
 
@@ -355,7 +363,7 @@
   <div class="wrap online-in">
     <div class="phone" aria-hidden="true">
       <div class="ph-screen">
-        <p class="ph-shop">Al Noor Minimarket</p>
+        <p class="ph-shop">Coduo Minimarket</p>
         <p class="ph-l">Sales today</p>
         <p class="ph-big">$1,284<span>.50</span></p>
         <p class="ph-s">146 receipts · updated 2 min ago</p>
