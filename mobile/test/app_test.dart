@@ -48,7 +48,7 @@ Future<App> startApp(WidgetTester tester,
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test', 'language': language, if (appLock) 'app_lock': true, 'permissions': permissions, 'role': role});
+  SharedPreferences.setMockInitialValues({'language': language, if (appLock) 'app_lock': true, 'permissions': permissions, 'role': role});
   final api = FakeApi();
   final tokens = MemoryTokenStore();
   if (signedIn) tokens.value = 'nxo_test';
@@ -102,7 +102,7 @@ void main() {
     tester.view.physicalSize = const Size(800, 2200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test'});
+    SharedPreferences.setMockInitialValues({});
     final api = FakeApi()..signInFails = true;
     final session = Session(prefs: await SharedPreferences.getInstance(), tokens: MemoryTokenStore(), apiFactory: (_, _) => api);
     final extra = services(await SharedPreferences.getInstance(), session);
@@ -515,7 +515,7 @@ void main() {
       tester.view.physicalSize = const Size(800, 2200);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test'});
+      SharedPreferences.setMockInitialValues({});
       final api = FakeApi()..signInFails = true;
       final session = Session(prefs: await SharedPreferences.getInstance(), tokens: MemoryTokenStore(), apiFactory: (_, _) => api);
       final extra = services(await SharedPreferences.getInstance(), session);

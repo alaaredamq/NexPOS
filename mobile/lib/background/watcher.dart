@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../api/owner_api.dart';
+import '../config.dart' as config;
 import '../crypto/change_seal.dart';
 import '../crypto/shop_key.dart';
 import '../data/shop_data.dart';
@@ -244,11 +245,10 @@ Future<bool> runWatch({Notifier? notifier, SharedPreferences? preferences}) asyn
   if (!WatchSettings.isOn(prefs)) return true;
   final token = await const SecureTokenStore().read();
   final key = await const SecureKeyStore().read();
-  final url = prefs.getString('cloud_url') ?? '';
-  if (token == null || key == null || url.isEmpty) return true; // signed out or locked: nothing to look at
+  if (token == null || key == null) return true; // signed out or locked: nothing to look at
 
   try {
-    final watcher = ShopWatcher(api: HttpOwnerApi(baseUrl: url, token: token), key: key, prefs: prefs);
+    final watcher = ShopWatcher(api: HttpOwnerApi(baseUrl: config.cloudUrl, token: token), key: key, prefs: prefs);
     final out = notifier ?? LocalNotifier();
     for (final alert in await watcher.check()) {
       await out.show(alert);
