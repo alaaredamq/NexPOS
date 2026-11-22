@@ -85,6 +85,18 @@
       os_new: 'New', os_accepted: 'Accepted', os_ready: 'Ready', os_done: 'Done', os_rejected: 'Turned down',
       oAccept: 'Accept', oReady: 'Ready', oDone: 'Done', oReject: 'Turn down', oRejectQ: 'Turn down order #{0}? The customer sees that it was not taken.', oCall: 'Call',
       ago0: 'just now', agoM: '{0} min ago', agoH: '{0} h ago', agoD: '{0} days ago',
+      tabHome: 'Home', tabOrders: 'Orders', tabDishes: 'Dishes', tabLook: 'Look', tabShop: 'Shop', pages: 'Menu editor', backTo: 'Back to {0}',
+      needsH: 'Needs you', needOrder: '1 new order is waiting', needOrders: '{0} new orders are waiting', needPics: '{0} dishes have no picture',
+      needHours: 'Opening hours are not set', needContact: 'No phone, WhatsApp or address yet', needEmpty: 'Nothing on the menu yet',
+      needPos: 'Waiting for the shop PC to send its products', allSet: 'Nothing needs you right now.',
+      search: 'Search dishes', searchNone: 'No dish matches "{0}".', secsH: 'Sections', addDish: 'Add dish', addSec: 'Add section', secShown: 'Shown on the menu',
+      picsH: 'Cover and logo', shopSub: 'What customers see about you, and how the menu works.',
+      grpSee: 'What customers see', grpOrders: 'Orders', grpSetup: 'Setup', prodH: 'Products and branches',
+      notSet: 'Not set', hrEvery: 'Open every day', hrClosedOn: 'Closed {0}', hrRange: '{0} to {1}', otNoneShort: 'None: one price per dish',
+      srcHandShort: 'Added on this page', withWa: ', with a WhatsApp button', brSame: 'Same hours as the shop', brHoursH: 'Branch hours',
+      ordWaiting: 'Waiting', ordFinished: 'Finished today', ordDoneNone: 'Nothing finished today yet.', change: 'Change',
+      ordShowMode: 'Orders are not sent here. Customers show their order to a waiter.', ordChange: 'Change how orders arrive',
+      ordHere: 'Orders come to this page.', ordViaPos: 'Orders go to the till. You can follow them here too.', liveH: 'What customers see',
     },
     ar: {
       title: 'القائمة على الإنترنت', sub: 'صفحة فيها منتجاتك وصورها وأسعارها، يفتحها أي شخص من رابط أو من رمز QR على الطاولة.',
@@ -157,6 +169,18 @@
       os_new: 'جديد', os_accepted: 'مقبول', os_ready: 'جاهز', os_done: 'تم', os_rejected: 'مرفوض',
       oAccept: 'قبول', oReady: 'جاهز', oDone: 'تم', oReject: 'رفض', oRejectQ: 'رفض الطلب رقم {0}؟ سيرى الزبون أنه لم يُقبل.', oCall: 'اتصال',
       ago0: 'الآن', agoM: 'قبل {0} د', agoH: 'قبل {0} س', agoD: 'قبل {0} أيام',
+      tabHome: 'الرئيسية', tabOrders: 'الطلبات', tabDishes: 'الأصناف', tabLook: 'الشكل', tabShop: 'المتجر', pages: 'محرر القائمة', backTo: 'العودة إلى {0}',
+      needsH: 'بحاجة إليك', needOrder: 'طلب جديد بالانتظار', needOrders: 'طلبات جديدة بالانتظار: {0}', needPics: 'أصناف بلا صورة: {0}',
+      needHours: 'ساعات العمل غير محددة', needContact: 'لا هاتف ولا واتساب ولا عنوان بعد', needEmpty: 'القائمة فارغة بعد',
+      needPos: 'بانتظار كمبيوتر المتجر ليرسل المنتجات', allSet: 'لا شيء بحاجة إليك الآن.',
+      search: 'ابحث في الأصناف', searchNone: 'لا صنف يطابق "{0}".', secsH: 'الأقسام', addDish: 'أضف صنفاً', addSec: 'أضف قسماً', secShown: 'ظاهر في القائمة',
+      picsH: 'الغلاف والشعار', shopSub: 'ما يراه الزبائن عنك، وكيف تعمل القائمة.',
+      grpSee: 'ما يراه الزبائن', grpOrders: 'الطلبات', grpSetup: 'الإعداد', prodH: 'المنتجات والفروع',
+      notSet: 'غير محدد', hrEvery: 'مفتوح كل يوم', hrClosedOn: 'مغلق: {0}', hrRange: 'من {0} إلى {1}', otNoneShort: 'لا شيء: سعر واحد لكل صنف',
+      srcHandShort: 'تُضاف في هذه الصفحة', withWa: '، مع زر واتساب', brSame: 'نفس ساعات المحل', brHoursH: 'ساعات الفروع',
+      ordWaiting: 'بالانتظار', ordFinished: 'المنتهية اليوم', ordDoneNone: 'لا شيء انتهى اليوم بعد.', change: 'تغيير',
+      ordShowMode: 'لا تصل الطلبات إلى هنا. يعرض الزبون طلبه على النادل.', ordChange: 'غيّر طريقة وصول الطلبات',
+      ordHere: 'تصل الطلبات إلى هذه الصفحة.', ordViaPos: 'تذهب الطلبات إلى الصندوق، ويمكنك متابعتها هنا أيضاً.', liveH: 'ما يراه الزبائن',
     },
   };
 
@@ -171,7 +195,6 @@
   }
 
   var S = null; // what the editor shows (GET /menu/v1/editor)
-  var openDetails = false;
 
   // ---- talking to the cloud ----
   function api(method, path, body, blob) {
@@ -194,11 +217,13 @@
   }
   function apply(state) {
     if (state) {
+      var changed = !!S;
       S = state;
       // Forget pages of sections that are gone.
       var keys = keysOf();
       Object.keys(L).forEach(function (k) { if (keys.indexOf(+k) < 0) delete L[k]; });
       render();
+      if (changed) reloadPreview();
     }
     return state;
   }
@@ -223,6 +248,7 @@
     }, function (e) { slot.busy = false; toast(e.message); });
   }
   function refreshLoaded() {
+    if (Q.term) searchNow();
     return Promise.all(Object.keys(L).map(function (k) {
       var slot = L[k], take = Math.min(100, Math.max(PAGE, slot.items.length));
       return api('GET', '/items?section=' + k + '&skip=0&take=' + take).then(function (page) { slot.items = page.items; slot.hasMore = page.hasMore; });
@@ -232,8 +258,29 @@
     entries.forEach(function (e) { if (e.isIntersecting) { watcher.unobserve(e.target); loadPage(+e.target.dataset.load, false); } });
   }, { rootMargin: '600px 0px' }) : null;
   function findItem(id) {
-    for (var k in L) { var hit = L[k].items.filter(function (i) { return i.id === id; })[0]; if (hit) return hit; }
-    return null;
+    var byId = function (i) { return i.id === id; };
+    for (var k in L) { var hit = L[k].items.filter(byId)[0]; if (hit) return hit; }
+    return (Q.items || []).filter(byId)[0] || null;
+  }
+
+  // ---- searching dishes across every section (the server looks, so it works on menus of any size) ----
+  var Q = { term: '', items: null, timer: 0 };
+  function searchNow() {
+    var term = Q.term;
+    if (!term) { Q.items = null; drawSearch(); return; }
+    api('GET', '/items?q=' + encodeURIComponent(term) + '&take=60').then(function (page) {
+      if (term !== Q.term) return;
+      Q.items = page.items; drawSearch();
+    }, function (e) { toast(e.message); });
+  }
+  function drawSearch() {
+    var box = document.getElementById('dres'), secs = document.getElementById('dsecs');
+    if (!box) return;
+    box.hidden = !Q.term; if (secs) secs.hidden = !!Q.term;
+    box.innerHTML = !Q.term ? '' : Q.items === null ? '<p class="small muted empty">' + t('loading') + '</p>'
+      : Q.items.length ? '<ul class="items list">' + Q.items.map(function (i) { return itemRow(i, Q.items, 0, false, true); }).join('') + '</ul>'
+      : '<p class="small muted empty">' + esc(t('searchNone', Q.term)) + '</p>';
+    bindItems(box);
   }
 
   function needSignIn() {
@@ -275,41 +322,163 @@
   }
 
   // ---- views ----
-  function bar() {
-    // A shop with no POS has nothing else on the owner website, so it gets a way out rather than a way "back".
-    var back = ADMIN ? '<a class="back" href="/admin/Clients/Details/' + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
-      : session && session.hasTill === false ? '<button type="button" class="back" id="signout">' + t('signOut') + '</button>'
-      : '<a class="back" href="/owner/index.html">' + ic('back', 'flip') + t('back') + '</a>';
-    return '<div class="bar">' + back + '<span class="sp"></span><div class="lang" role="group" aria-label="Language">' +
-      '<button type="button" data-lang="en" aria-pressed="' + (lang === 'en') + '">EN</button><button type="button" data-lang="ar" aria-pressed="' + (lang === 'ar') + '">ع</button></div></div>';
+  /** The way out of the editor. A shop with no POS has nothing else on the owner website, so it gets "Sign out" rather than "back". */
+  function exitHtml(cls) {
+    return ADMIN ? '<a class="' + cls + '" href="/admin/Clients/Details/' + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
+      : session && session.hasTill === false ? '<button type="button" class="' + cls + '" data-signout>' + t('signOut') + '</button>'
+      : '<a class="' + cls + '" href="/owner/index.html">' + ic('back', 'flip') + t('back') + '</a>';
   }
+  function langHtml() {
+    return '<div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="' + (lang === 'en') + '">EN</button>' +
+      '<button type="button" data-lang="ar" aria-pressed="' + (lang === 'ar') + '">ع</button></div>';
+  }
+  /** The top bar of the pages shown before there is a menu (signing in, making the menu). */
+  function bar() { return '<div class="bar">' + exitHtml('back') + '<span class="sp"></span>' + langHtml() + '</div>'; }
   function bindBar() {
-    var out = document.getElementById('signout');
-    if (out) out.onclick = function () {
-      var token = session && session.token;
-      try { localStorage.removeItem('coduo-owner'); } catch (e) {}
-      var done = function () { location.href = '/owner/index.html'; };
-      if (!token) return done();
-      fetch('/owner/v1/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).then(done, done);
-    };
+    document.querySelectorAll('[data-signout]').forEach(function (out) {
+      out.onclick = function () {
+        var token = session && session.token;
+        try { localStorage.removeItem('coduo-owner'); } catch (e) {}
+        var done = function () { location.href = '/owner/index.html'; };
+        if (!token) return done();
+        fetch('/owner/v1/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).then(done, done);
+      };
+    });
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       b.onclick = function () { lang = b.dataset.lang; try { localStorage.setItem('coduo-lang', lang); } catch (e) {} setLang(); if (S) render(); else if (!ADMIN && !session) needSignIn(); };
     });
   }
   function setLang() { document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'; document.title = t('title') + ' · Coduo POS'; }
 
+  // ---- pages: five tabs (#home, #orders, #dishes, #look, #shop), a page per section (#dishes/12) and per shop setting (#shop/hours) ----
+  var TABS = ['home', 'orders', 'dishes', 'look', 'shop'];
+  var TAB_ICON = { home: 'home', orders: 'receipt', dishes: 'list', look: 'palette', shop: 'store' };
+  var TAB_LABEL = { home: 'tabHome', orders: 'tabOrders', dishes: 'tabDishes', look: 'tabLook', shop: 'tabShop' };
+  var SHOP_PAGES = ['contact', 'hours', 'details', 'taking', 'types', 'products'];
+  var WIDE = window.matchMedia ? matchMedia('(min-width:1280px)') : { matches: false };
+
+  function route() {
+    var parts = (location.hash || '').replace(/^#\/?/, '').split('/');
+    var tab = TABS.indexOf(parts[0]) > -1 ? parts[0] : 'home', sub = parts[1] || '';
+    var ok = tab === 'dishes' ? sub === '' || (sub === '0' ? S.looseCount > 0 : !!secById(+sub))
+      : tab === 'shop' ? sub === '' || SHOP_PAGES.indexOf(sub) > -1 : sub === '';
+    // A page that is gone (a deleted section, an old link) opens its tab instead.
+    if (!ok) { sub = ''; history.replaceState(null, '', '#' + tab); }
+    return { tab: tab, sub: sub };
+  }
+
   function render() {
-    var h = '<div class="wrap">' + bar() + '<header class="head"><h1>' + t('title') + (S.admin ? ' <span class="pill mute" style="vertical-align:middle">' + esc(S.clientName) + '</span>' : '') + '</h1><p>' + t('sub') + '</p></header>';
     if (!S.menu) {
-      h += '<div class="card"><h2>' + t('createH') + '</h2><p class="sub">' + t('createP') + '</p>' +
+      document.body.classList.remove('sub', 'shell-on');
+      $('#app').innerHTML = '<div class="wrap">' + bar() + '<header class="head"><h1>' + t('title') +
+        (S.admin ? ' <span class="pill mute" style="vertical-align:middle">' + esc(S.clientName) + '</span>' : '') + '</h1><p>' + t('sub') + '</p></header>' +
+        '<div class="card"><h2>' + t('createH') + '</h2><p class="sub">' + t('createP') + '</p>' +
         '<form id="fcreate" class="row" style="margin-top:14px"><div class="f" style="flex:1;min-width:220px"><label for="ct">' + t('createName') + '</label><input id="ct" maxlength="120" value="' + esc(S.clientName) + '" required></div>' +
-        '<button class="btn pri" style="align-self:flex-end">' + t('create') + '</button></form></div>';
-    } else {
-      h += shareCard() + ordersCard() + lookCard() + contactCard() + hoursCard() + sourceCard() + typesCard() + detailsCard() + itemsCard();
+        '<button class="btn pri" style="align-self:flex-end">' + t('create') + '</button></form></div></div>';
+      bindBar(); bind();
+      return;
     }
-    $('#app').innerHTML = h + '</div>';
+    var r = route();
+    // The shell is built once, so the live menu beside the editor is not reloaded on every redraw.
+    if (!document.getElementById('main')) {
+      $('#app').innerHTML = '<div class="shell"><aside class="rail" id="rail"></aside><main class="main" id="main"></main><aside class="side" id="live" hidden></aside></div>' +
+        '<nav class="tabs" id="tabs"></nav>';
+    }
+    document.body.classList.add('shell-on');
+    document.body.classList.toggle('sub', !!r.sub);
+    $('#rail').innerHTML = railHtml(r);
+    $('#main').innerHTML = pageHtml(r);
+    var tabs = $('#tabs');
+    tabs.setAttribute('aria-label', t('pages'));
+    tabs.innerHTML = TABS.map(function (k) { return navLink(k, r, 'tb'); }).join('');
+    livePreview();
     bindBar();
     bind();
+    drawSearch();
+    drawOrders();
+  }
+
+  function navLink(k, r, cls) {
+    return '<a href="#' + k + '"' + (r.tab === k ? ' aria-current="page"' : '') + '><span class="' + cls + '">' + ic(TAB_ICON[k]) +
+      (k === 'orders' ? '<span class="badge" data-badge hidden></span>' : '') + '</span>' + t(TAB_LABEL[k]) + '</a>';
+  }
+  function railHtml(r) {
+    var m = S.menu;
+    return '<div class="rb"><span class="rt">' + t('title') + '</span><b dir="auto">' + esc(m.title) + '</b>' +
+      (S.admin ? '<span class="rt" dir="auto">' + esc(S.clientName) + '</span>' : '') +
+      '<span class="rs' + (m.isPublished ? ' on' : '') + '">' + (m.isPublished ? t('published') : t('notPublished')) + '</span></div>' +
+      '<nav aria-label="' + esc(t('pages')) + '">' + TABS.map(function (k) { return navLink(k, r, 'ri'); }).join('') + '</nav>' +
+      '<span class="sp"></span>' + langHtml() + exitHtml('rx');
+  }
+  /** A page's title row: a way back on a sub-page, the language on a tab's own page, and any buttons for the page. */
+  function head(title, back, actions) {
+    return '<header class="top">' + (back ? '<a class="up" href="#' + back[0] + '" aria-label="' + esc(t('backTo', back[1])) + '">' + ic('back', 'flip') + '</a>' : '') +
+      '<h1 tabindex="-1" dir="auto">' + esc(title) + '</h1><span class="sp"></span>' + (actions || '') + (back ? '' : langHtml()) + '</header>';
+  }
+  function saveBar(form) { return '<div class="savebar"><button class="btn pri" form="' + form + '">' + t('save') + '</button></div>'; }
+  function fab(section) { return '<button type="button" class="btn pri fab" data-additem="' + section + '">' + ic('plus') + t('addDish') + '</button>'; }
+  function lrow(href, icon, title, value, tone) {
+    return '<li><a class="lrow" href="#' + href + '"><span class="li">' + ic(icon) + '</span><span class="lt"><b>' + esc(title) + '</b>' +
+      (value ? '<span' + (tone ? ' class="' + tone + '"' : '') + ' dir="auto">' + esc(value) + '</span>' : '') + '</span>' + ic('next', 'flip') + '</a></li>';
+  }
+
+  function pageHtml(r) {
+    switch (r.tab) {
+      case 'orders': return ordersPage();
+      case 'dishes': return r.sub !== '' ? sectionPage(+r.sub) : dishesPage();
+      case 'look': return lookPage();
+      case 'shop': return r.sub ? shopPage(r.sub) : shopHome();
+      default: return homePage();
+    }
+  }
+
+  // ---- the live menu beside the editor, on a wide screen: the preview link, so it shows before publishing and is never cached ----
+  var liveTimer = 0;
+  function liveUrl() { var b = branchOf(qrBranch); return S.menu.previewUrl + (b ? '&b=' + encodeURIComponent(b.slug) : ''); }
+  function livePreview() {
+    var box = document.getElementById('live');
+    if (!box) return;
+    if (!WIDE.matches) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    var f = box.querySelector('iframe');
+    if (!f) {
+      box.innerHTML = '<div class="lh"><b></b><a class="btn sm" target="_blank" rel="noopener">' + ic('open') + '<span></span></a></div><div class="phone"><iframe></iframe></div>';
+      f = box.querySelector('iframe');
+    }
+    box.querySelector('.lh b').textContent = t('liveH');
+    box.querySelector('.lh a span').textContent = S.menu.isPublished ? t('open') : t('preview');
+    box.querySelector('.lh a').href = openUrl();
+    f.title = t('liveH');
+    if (f.dataset.src !== liveUrl()) { f.dataset.src = liveUrl(); f.src = liveUrl(); }
+  }
+  /** After a change is saved, shows it in the live menu (once, for a burst of changes). */
+  function reloadPreview() {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(function () {
+      var f = document.querySelector('#live iframe');
+      if (f && f.dataset.src) f.src = f.dataset.src + '&v=' + Date.now();
+    }, 500);
+  }
+
+  // ---- Home: share the menu, and what needs the owner ----
+  function homePage() {
+    return head(S.menu.title) + shareCard() + '<section class="group"><h2>' + t('needsH') + '</h2><ul class="list" id="needs">' + needsItems() + '</ul></section>';
+  }
+  function needsItems() {
+    var m = S.menu, rows = [], fresh = newCount();
+    var row = function (href, icon, tone, text) {
+      var tag = href ? 'a' : 'div';
+      return '<li><' + tag + ' class="lrow"' + (href ? ' href="#' + href + '"' : '') + '><span class="li ' + tone + '">' + ic(icon) + '</span>' +
+        '<span class="lt"><b>' + esc(text) + '</b></span>' + (href ? ic('next', 'flip') : '') + '</' + tag + '></li>';
+    };
+    if (fresh) rows.push(row('orders', 'receipt', 'bad', fresh === 1 ? t('needOrder') : t('needOrders', fresh)));
+    if (!S.sections.length && !S.looseCount) rows.push(row('dishes', 'list', 'warn', t('needEmpty')));
+    if (S.noPictureCount) rows.push(row('dishes', 'photo', 'warn', t('needPics', S.noPictureCount)));
+    if (!m.hours) rows.push(row('shop/hours', 'clock', 'warn', t('needHours')));
+    if (!m.phone && !m.whatsApp && !m.address) rows.push(row('shop/contact', 'pin', 'warn', t('needContact')));
+    if ((S.branches || []).some(function (b) { return !b.catalogAtUtc; })) rows.push(row('shop/products', 'link', 'info', t('needPos')));
+    if (!rows.length) rows.push(row('', 'check', 'good', t('allSet')));
+    return rows.join('');
   }
 
   // With several branches, the link and QR can open at one branch (?b=), e.g. for that branch's tables, or ask the customer.
@@ -367,17 +536,16 @@
     var v = type.adjustValue, sign = v > 0 ? '+' : '';
     return type.adjust === 'percent' ? t('otPctS', sign + v) : type.adjust === 'amount' ? t('otAmtS', sign + v) : t('otNoneS');
   }
-  function typesCard() {
+  function typesBody() {
     var types = S.orderTypes || [];
-    return '<section class="card"><div class="cardhead"><div><h2>' + t('otH') + '</h2><p class="sub">' + t('otP') + '</p></div>' +
-      '<button type="button" class="btn sm" id="addtype">' + ic('plus') + t('otAdd') + '</button></div>' +
-      (types.length ? '<ul class="types">' + types.map(function (ty, n) {
+    return '<section class="card">' +
+      (types.length ? '<ul class="types" style="margin-top:0">' + types.map(function (ty, n) {
         return '<li><b dir="auto">' + esc(ty.name) + '</b><span class="muted small">' + esc(ruleText(ty)) + '</span><span class="sp"></span>' +
           '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (n === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
           '<button type="button" class="btn icon" data-tmv="' + ty.id + '" data-dir="1" aria-label="' + t('down') + '"' + (n === types.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button>' +
           '<button type="button" class="btn sm" data-tedit="' + ty.id + '">' + t('edit') + '</button>' +
           '<button type="button" class="btn sm danger" data-tdel="' + ty.id + '">' + t('del') + '</button></li>';
-      }).join('') + '</ul>' : '<p class="small muted" style="margin-top:10px">' + t('otEmpty') + '</p>') + '</section>';
+      }).join('') + '</ul>' : '<p class="small muted">' + t('otEmpty') + '</p>') + '</section>';
   }
   function typeById(id) { return (S.orderTypes || []).filter(function (x) { return x.id === id; })[0]; }
   function typeDialog(ty) {
@@ -433,9 +601,9 @@
   }
   // ---- taking orders: what "Send order" does, the WhatsApp button, and the orders that came in ----
   var MODES = ['show', 'request', 'pos'];
-  var O = { orders: null, open: 0, timer: 0, seen: null, allOpen: false, showDone: false };
-  var OPEN_SHOWN = 4;
-  function ordersCard() {
+  var O = { orders: null, open: 0, timer: 0, seen: null, view: 'open' };
+  /** The Taking orders page: what "Send order" does, and the WhatsApp button. */
+  function takingBody() {
     var m = S.menu, mode = m.orderMode || 'show', hasPos = (S.branches || []).length > 0;
     var opts = MODES.map(function (k) {
       var off = k === 'pos' && !hasPos;
@@ -443,32 +611,39 @@
         '<b>' + ic(k === 'show' ? 'hand' : k === 'request' ? 'bell' : 'link') + t('om_' + k) + '</b><span>' + t(off ? 'om_pos_off' : 'om_' + k + '_d') + '</span></label>';
     }).join('');
     var wa = !!m.whatsApp;
-    return '<section class="card" id="ordcard"><h2>' + t('omH') + '</h2><p class="sub">' + t('omP') + '</p><div class="omgrid">' + opts + '</div>' +
-      '<label class="switch" style="margin-top:14px"><input type="checkbox" id="wa-show"' + (m.showWhatsApp && wa ? ' checked' : '') + (wa ? '' : ' disabled') + '><span>' + t('waShow') + '</span></label>' +
-      '<p class="small muted" style="margin:4px 0 0 52px">' + t(wa ? 'waShowD' : 'waNone') + '</p>' +
-      (mode === 'show' ? '' : '<div class="inbox"><div class="cardhead"><h3>' + t('ordH') + ' <span class="pill info" id="ord-open"' + (O.open ? '' : ' hidden') + '>' + t('ordOpen', O.open) + '</span></h3>' +
-        '<span class="small muted live"><i></i>' + t('ordLive') + '</span></div><div id="ord-list">' + ordersList() + '</div></div>') + '</section>';
+    return '<section class="card"><fieldset class="bare"><legend class="sr">' + t('omH') + '</legend><div class="omgrid">' + opts + '</div></fieldset>' +
+      '<label class="switch" style="margin-top:16px"><input type="checkbox" id="wa-show"' + (m.showWhatsApp && wa ? ' checked' : '') + (wa ? '' : ' disabled') + '><span>' + t('waShow') + '</span></label>' +
+      '<p class="small muted" style="margin-block:4px 0;margin-inline-start:52px">' + (wa ? t('waShowD') : t('waNone') + ' <a href="#shop/contact">' + t('ctH') + '</a>') + '</p></section>';
+  }
+  function isOpen(o) { return o.status === 'new' || o.status === 'accepted' || o.status === 'ready'; }
+  function newCount() {
+    if (!S || !S.menu || (S.menu.orderMode || 'show') === 'show') return 0;
+    return (O.orders || []).filter(function (o) { return o.status === 'new'; }).length;
+  }
+  function ordersPage() {
+    var mode = S.menu.orderMode || 'show', h = head(t('ordH'));
+    if (mode === 'show')
+      return h + '<section class="card empty"><p>' + t('ordShowMode') + '</p><p style="margin-top:14px"><a class="btn pri" href="#shop/taking">' + t('ordChange') + '</a></p></section>';
+    return h + '<p class="lead">' + t(mode === 'pos' ? 'ordViaPos' : 'ordHere') + ' <a href="#shop/taking">' + t('change') + '</a>' +
+      '<span class="live"><i></i>' + t('ordLive') + '</span></p><div id="ord-wrap">' + ordersBlock() + '</div>';
   }
   /**
-   * Open orders first, in full (they need an answer), oldest first so the one waiting longest is on top; only a few unless asked for more.
-   * Finished ones (done, turned down, in the last day) fold away into one short line each, so a busy day does not make the page endless.
+   * Waiting orders in full (they need an answer), oldest first so the one waiting longest is on top.
+   * Finished ones (done, turned down, in the last day) are on their own tab, one short line each.
    */
-  function ordersList() {
-    if (O.orders === null) return '<p class="small muted">' + t('loading') + '</p>';
-    if (!O.orders.length) return '<p class="small muted" style="margin-top:10px">' + t('ordNone') + '</p>';
-    var isOpen = function (o) { return o.status === 'new' || o.status === 'accepted' || o.status === 'ready'; };
+  function ordersBlock() {
+    if (O.orders === null) return '<p class="small muted empty">' + t('loading') + '</p>';
     var open = O.orders.filter(isOpen).reverse(), done = O.orders.filter(function (o) { return !isOpen(o); });
-    var shown = O.allOpen ? open : open.slice(0, OPEN_SHOWN);
-    var h = open.length ? '<ul class="orders">' + shown.map(orderCard).join('') + '</ul>' : '<p class="small muted" style="margin-top:10px">' + t('ordNoOpen') + '</p>';
-    if (open.length > OPEN_SHOWN)
-      h += '<p class="omore"><button type="button" class="btn sm" data-oall>' + (O.allOpen ? t('ordLess') : t('ordMore', open.length - OPEN_SHOWN)) + '</button></p>';
-    if (done.length)
-      h += '<details class="odone"' + (O.showDone ? ' open' : '') + '><summary>' + t('ordDone', done.length) + '</summary><ul>' + done.map(function (o) {
-        return '<li><b class="on">#' + o.number + '</b><span dir="auto">' + esc(o.name) + '</span><span class="small muted">' +
-          esc(t('nItems', o.lines.reduce(function (n, l) { return n + l.quantity; }, 0))) + ' · ' + esc(ago(o.updatedAtUtc || o.createdAtUtc)) + '</span><span class="sp"></span>' +
-          '<span class="pill mute">' + t('os_' + o.status) + '</span><b dir="ltr">' + esc(o.total) + '</b></li>';
-      }).join('') + '</ul></details>';
-    return h;
+    var seg = function (k, label, n) { return '<button type="button" role="tab" aria-selected="' + (O.view === k) + '" data-oview="' + k + '">' + label + ' <span class="n">' + n + '</span></button>'; };
+    var h = '<div class="seg" role="tablist">' + seg('open', t('ordWaiting'), open.length) + seg('done', t('ordFinished'), done.length) + '</div>';
+    if (O.view === 'done')
+      return h + (done.length ? '<ul class="list dlist">' + done.map(function (o) {
+        return '<li><b class="on">#' + o.number + '</b><span class="dn"><span dir="auto">' + esc(o.name) + '</span><span class="small muted">' +
+          esc(t('nItems', o.lines.reduce(function (n, l) { return n + l.quantity; }, 0))) + ' · ' + esc(ago(o.updatedAtUtc || o.createdAtUtc)) + '</span></span>' +
+          '<span class="pill mute">' + t('os_' + o.status) + '</span><b class="pr" dir="ltr">' + esc(o.total) + '</b></li>';
+      }).join('') + '</ul>' : '<p class="small muted empty">' + t('ordDoneNone') + '</p>');
+    return h + (open.length ? '<ul class="orders">' + open.map(orderCard).join('') + '</ul>'
+      : '<p class="small muted empty">' + t(O.orders.length ? 'ordNoOpen' : 'ordNone') + '</p>');
   }
   function orderCard(o) {
     var acts = o.status === 'new' ? ['accepted', 'rejected'] : o.status === 'accepted' ? ['ready', 'rejected'] : o.status === 'ready' ? ['done'] : [];
@@ -499,10 +674,12 @@
       drawOrders();
     }, function () { }).then(function () { O.timer = setTimeout(pollOrders, document.hidden ? 30000 : 8000); });
   }
+  /** Redraws only what the orders touch (the list, the badges, Home's list), so a form being typed in is left alone. */
   function drawOrders() {
-    var list = document.getElementById('ord-list'), pill = document.getElementById('ord-open');
-    if (list) list.innerHTML = ordersList();
-    if (pill) { pill.hidden = !O.open; pill.textContent = t('ordOpen', O.open); }
+    var wrap = document.getElementById('ord-wrap'), needs = document.getElementById('needs'), n = newCount();
+    if (wrap) wrap.innerHTML = ordersBlock();
+    if (needs) needs.innerHTML = needsItems();
+    document.querySelectorAll('[data-badge]').forEach(function (b) { b.textContent = n; b.hidden = !n; });
   }
   /** A short two-note chime for a new order (the page has been clicked by then, so the browser lets it play). */
   function chime() {
@@ -520,7 +697,7 @@
 
   // ---- the look: colours and lettering, cover and logo, how dishes are listed ----
   var THEMES = ['basil', 'ember', 'saffron', 'harbor', 'plum', 'charcoal'];
-  function lookCard() {
+  function lookPage() {
     var m = S.menu, current = m.listingStyle || 'compact', theme = m.theme || 'basil';
     var swatches = THEMES.map(function (k) {
       return '<label class="thm th-' + k + '"><input type="radio" name="mtheme" value="' + k + '"' + (k === theme ? ' checked' : '') + '>' +
@@ -530,31 +707,31 @@
       return '<label class="sty"><input type="radio" name="lstyle" value="' + s + '"' + (s === current ? ' checked' : '') + '>' +
         mini(s) + '<b>' + t('ls_' + s) + (s === current ? ' <span class="pill good">' + t('lsOn') + '</span>' : '') + '</b><span>' + t('ls_' + s + '_d') + '</span></label>';
     }).join('');
-    return '<section class="card"><h2>' + t('lookH') + '</h2><p class="sub">' + t('lookP') + '</p>' +
-      '<div class="pics">' +
+    return head(t('lookH')) + '<p class="lead">' + t('lookP') + '</p>' +
+      '<section class="card"><fieldset class="themes"><legend><h2>' + t('thH') + '</h2></legend><div class="thgrid">' + swatches + '</div></fieldset></section>' +
+      '<section class="card"><h2>' + t('picsH') + '</h2><div class="pics">' +
       '<div class="pk cover"><span class="lbl">' + t('cover') + '</span><div class="cv">' + (m.coverUrl ? '<img src="' + esc(m.coverUrl) + '" alt="">' : ic('photo')) + '</div>' +
       '<p class="small muted">' + t('coverP') + '</p><div class="row"><button type="button" class="btn sm" id="cover">' + t('chooseCover') + '</button>' +
       (m.coverUrl ? '<button type="button" class="btn sm danger" id="nocover">' + t('remove') + '</button>' : '') + '</div></div>' +
       '<div class="pk"><span class="lbl">' + t('logo') + '</span><div class="lg">' + (m.logoUrl ? '<img src="' + esc(m.logoUrl) + '" alt="">' : ic('photo')) + '</div>' +
       '<p class="small muted">' + t('logoP') + '</p><div class="row"><button type="button" class="btn sm" id="logo">' + t('chooseLogo') + '</button>' +
-      (m.logoUrl ? '<button type="button" class="btn sm danger" id="nologo">' + t('remove') + '</button>' : '') + '</div></div></div>' +
-      '<fieldset class="themes"><legend><h3>' + t('thH') + '</h3></legend><div class="thgrid">' + swatches + '</div></fieldset>' +
-      '<fieldset class="styles"><legend><h3>' + t('lsH') + '</h3></legend><p class="sub">' + t('lsP') + '</p><div class="stygrid">' + styles + '</div></fieldset></section>';
+      (m.logoUrl ? '<button type="button" class="btn sm danger" id="nologo">' + t('remove') + '</button>' : '') + '</div></div></div></section>' +
+      '<section class="card"><fieldset class="styles"><legend><h2>' + t('lsH') + '</h2></legend><p class="sub">' + t('lsP') + '</p><div class="stygrid">' + styles + '</div></fieldset></section>';
   }
 
   // ---- how to reach the shop ----
   var CONTACT = [['address', 'cAddr', 300, 'full'], ['mapUrl', 'cMap', 500, 'full', 'cMapHint'], ['phone', 'cPhone', 30, ''], ['whatsApp', 'cWa', 30, '', 'cWaHint'],
     ['instagram', 'cIg', 200, '', 'cHandle'], ['facebook', 'cFb', 200, '', 'cHandle'], ['tikTok', 'cTt', 200, '', 'cHandle'], ['website', 'cWeb', 200, '']];
-  function contactCard() {
+  function contactForm() {
     var m = S.menu;
-    return '<section class="card"><h2>' + t('ctH') + '</h2><p class="sub">' + t('ctP') + '</p><form id="fcontact"><div class="fields">' +
+    return '<section class="card"><form id="fcontact"><div class="fields" style="margin-top:0">' +
       CONTACT.map(function (c) {
         var ltr = c[0] !== 'address';
         return '<div class="f ' + c[3] + '"><label for="c-' + c[0] + '">' + t(c[1]) + '</label><input id="c-' + c[0] + '" maxlength="' + c[2] + '"' + (ltr ? ' dir="ltr"' : ' dir="auto"') +
           (c[0] === 'phone' || c[0] === 'whatsApp' ? ' inputmode="tel"' : '') + (c[0] === 'mapUrl' || c[0] === 'website' ? ' inputmode="url"' : '') +
           ' value="' + esc(m[c[0]] || '') + '"' + (c[4] === 'cHandle' ? ' placeholder="' + esc(t('cHandle')) + '"' : '') + '>' +
           (c[4] && c[4] !== 'cHandle' ? '<span class="hint">' + t(c[4]) + '</span>' : '') + '</div>';
-      }).join('') + '</div><p class="err" id="cerr" hidden></p><p style="margin-top:14px"><button class="btn pri">' + t('save') + '</button></p></form></section>';
+      }).join('') + '</div><p class="err" id="cerr" hidden></p></form></section>';
   }
 
   // ---- opening hours: Monday first on screen, Sunday first in the data ----
@@ -599,12 +776,25 @@
     });
     return out;
   }
-  function hoursCard() {
+  function hoursForm() {
     var m = S.menu;
-    return '<section class="card"><h2>' + t('hrH') + '</h2><p class="sub">' + t('hrP') + '</p><form id="fhours">' + hoursFields('h-menu', m.hours) +
+    return '<section class="card"><form id="fhours">' + hoursFields('h-menu', m.hours) +
       (m.hours ? '' : '<p class="small muted" style="margin-top:8px">' + t('hrNone') + '</p>') +
-      '<p class="err" id="herr" hidden></p><p class="row" style="margin-top:14px"><button class="btn pri">' + t('save') + '</button>' +
-      (m.hours ? '<button type="button" class="btn" id="hclear">' + t('hrClear') + '</button>' : '') + '</p></form></section>';
+      '<p class="err" id="herr" hidden></p>' + (m.hours ? '<p style="margin-top:14px"><button type="button" class="btn sm" id="hclear">' + t('hrClear') + '</button></p>' : '') + '</form></section>' +
+      // With several branches, each can keep its own address and hours.
+      ((S.branches || []).length > 1 ? '<section class="group"><h2>' + t('brHoursH') + '</h2><ul class="list">' + S.branches.map(function (b) {
+        var own = b.hours ? hoursSum(b.hours)[0] : t('brSame');
+        return '<li><button type="button" class="lrow" data-brdet="' + esc(b.siteId) + '"><span class="li">' + ic('clock') + '</span><span class="lt"><b dir="auto">' + esc(b.name) + '</b>' +
+          '<span dir="auto">' + esc(own) + '</span></span>' + ic('next', 'flip') + '</button></li>';
+      }).join('') + '</ul></section>' : '');
+  }
+  /** One line for the Shop page: a typical day's hours and the days closed. [text, tone] */
+  function hoursSum(hours) {
+    if (!hours) return [t('notSet'), 'warn'];
+    var days = t('days'), open = WEEK.filter(function (d) { return hours[d]; }), closed = WEEK.filter(function (d) { return !hours[d]; });
+    if (!open.length) return [t('notSet'), 'warn'];
+    var first = hours[open[0]].split(',')[0].split('-');
+    return [t('hrRange', first[0], first[1] || '') + ' · ' + (closed.length ? t('hrClosedOn', closed.map(function (d) { return days[d]; }).join(', ')) : t('hrEvery')), ''];
   }
 
   /** A branch's own address, map, phone and hours (each empty one falls back to the shop's). */
@@ -628,17 +818,51 @@
       });
   }
 
-  function detailsCard() {
+  function detailsForm() {
     var m = S.menu, origin = m.url.slice(0, m.url.length - m.slug.length);
-    return '<section class="card"><details class="more" id="det"' + (openDetails ? ' open' : '') + '><summary>' + t('detailsH') + '</summary>' +
-      '<form id="fset"><div class="fields">' +
+    return '<section class="card"><form id="fset"><div class="fields" style="margin-top:0">' +
       '<div class="f"><label for="s-title">' + t('mTitle') + '</label><input id="s-title" maxlength="120" required value="' + esc(m.title) + '"></div>' +
       '<div class="f"><label for="s-tag">' + t('mTag') + '</label><input id="s-tag" maxlength="200" value="' + esc(m.tagline || '') + '"></div>' +
       '<div class="f full"><label for="s-note">' + t('mNote') + '</label><textarea id="s-note" maxlength="1000">' + esc(m.note || '') + '</textarea></div>' +
       '<div class="f"><label for="s-lang">' + t('mLang') + '</label><select id="s-lang"><option value="en"' + (m.language === 'en' ? ' selected' : '') + '>English</option><option value="ar"' + (m.language === 'ar' ? ' selected' : '') + '>العربية</option></select></div>' +
       '<div class="f"><label for="s-cur">' + t('mCur') + '</label><input id="s-cur" maxlength="10" value="' + esc(m.currency || '') + '" placeholder="$"></div>' +
       '<div class="f full"><label for="s-slug">' + t('mSlug') + '</label><div class="slug"><span>' + esc(origin.replace(/^https?:\/\//, '')) + '</span><input id="s-slug" maxlength="60" pattern="[a-z0-9][a-z0-9\\-]{1,58}[a-z0-9]" value="' + esc(m.slug) + '" spellcheck="false" autocapitalize="off"></div><span class="hint">' + t('slugHint') + '</span></div>' +
-      '</div><p style="margin-top:16px"><button class="btn pri">' + t('save') + '</button></p></form></details></section>';
+      '</div></form></section>';
+  }
+
+  // ---- Shop: what customers see about the shop, how orders work, and setup; each row opens its own page ----
+  function shopHome() {
+    var m = S.menu, types = S.orderTypes || [];
+    var contact = [m.address, m.phone || m.whatsApp].filter(Boolean).join(' · ');
+    var hrs = hoursSum(m.hours);
+    var mode = m.orderMode || 'show';
+    var group = function (title, rows) { return '<section class="group"><h2>' + title + '</h2><ul class="list">' + rows.join('') + '</ul></section>'; };
+    return head(t('tabShop')) + '<p class="lead">' + t('shopSub') + '</p>' +
+      group(t('grpSee'), [
+        lrow('shop/contact', 'pin', t('ctH'), contact || t('notSet'), contact ? '' : 'warn'),
+        lrow('shop/hours', 'clock', t('hrH'), hrs[0], hrs[1]),
+        lrow('shop/details', 'text', t('detailsH'), m.title + ' · ' + m.url.replace(/^https?:\/\//, '')),
+      ]) +
+      group(t('grpOrders'), [
+        lrow('shop/taking', 'bell', t('omH'), t('om_' + mode) + (m.showWhatsApp && m.whatsApp ? t('withWa') : '')),
+        lrow('shop/types', 'tag', t('otH'), types.length ? types.map(function (x) { return x.name; }).join(', ') : t('otNoneShort')),
+      ]) +
+      group(t('grpSetup'), [
+        lrow('shop/products', 'link', t('prodH'), m.linkedSiteId ? t('srcPos') + ': ' + S.branches.map(function (b) { return b.name; }).join(', ') : t('srcHandShort')),
+      ]) +
+      '<p class="out">' + exitHtml('btn') + '</p>';
+  }
+  function shopPage(k) {
+    var back = ['shop', t('tabShop')];
+    switch (k) {
+      case 'contact': return head(t('ctH'), back) + '<p class="lead">' + t('ctP') + '</p>' + contactForm() + saveBar('fcontact');
+      case 'hours': return head(t('hrH'), back) + '<p class="lead">' + t('hrP') + '</p>' + hoursForm() + saveBar('fhours');
+      case 'details': return head(t('detailsH'), back) + detailsForm() + saveBar('fset');
+      case 'taking': return head(t('omH'), back) + '<p class="lead">' + t('omP') + '</p>' + takingBody();
+      case 'types': return head(t('otH'), back, '<button type="button" class="btn sm" id="addtype">' + ic('plus') + t('otAdd') + '</button>') +
+        '<p class="lead">' + t('otP') + '</p>' + typesBody();
+      default: return head(t('prodH'), back) + sourceCard();
+    }
   }
 
   function itemsOf(key) { return L[key || 0] ? L[key || 0].items : []; }
@@ -654,35 +878,51 @@
     return rows;
   }
 
-  function itemRow(i, list, idx, more) {
+  function itemRow(i, list, idx, more, noMove) {
     var tags = (i.linked ? '<span class="pill info">' + t('pos') + '</span>' : '') + (i.isHidden ? '<span class="pill mute">' + t('hidden') + '</span>' : '') + (i.isSoldOut ? '<span class="pill warn">' + t('soldOut') + '</span>' : '');
-    return '<li class="it' + (i.isHidden ? ' hid' : '') + '"><button type="button" class="th" data-pic="' + i.id + '" aria-label="' + t('picture') + ': ' + esc(i.name) + '">' + (i.imageUrl ? '<img src="' + esc(i.imageUrl) + '" alt="">' : ic('photo')) + '</button>' +
+    return '<li class="it' + (i.isHidden ? ' hid' : '') + '"><button type="button" class="th" data-pic="' + i.id + '" aria-label="' + t('picture') + ': ' + esc(i.name) + '">' + (i.imageUrl ? '<img src="' + esc(i.imageUrl) + '" alt="" loading="lazy">' : ic('photo')) + '</button>' +
       '<div class="nm"><span class="t" dir="auto">' + esc(i.name) + '</span>' + (tags ? '<span class="tags">' + tags + '</span>' : '') + '</div>' +
       '<div class="acts"><span class="pr" dir="ltr">' + esc(i.priceText) + '</span>' +
-      (fixedOrder(i.linked) ? '' : '<button type="button" class="btn icon mv" data-imv="' + i.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (idx === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
+      (noMove || fixedOrder(i.linked) ? '' : '<button type="button" class="btn icon mv" data-imv="' + i.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (idx === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
       '<button type="button" class="btn icon mv" data-imv="' + i.id + '" data-dir="1" aria-label="' + t('down') + '"' + (idx === list.length - 1 && !more ? ' disabled' : '') + '>' + ic('down') + '</button>') +
       '<button type="button" class="btn sm" data-edit="' + i.id + '">' + t('edit') + '</button></div></li>';
   }
 
-  function itemsCard() {
-    var h = '<section class="card"><h2>' + t('itemsH') + '</h2><p class="sub">' + t('itemsP') + '</p>' + (S.menu.posArranged ? '<p class="note">' + t('posOrder') + '</p>' : '');
+  function secThumb(s) {
+    return '<span class="li sth">' + (s && s.imageUrl ? '<img src="' + esc(s.imageUrl) + '" alt="" loading="lazy">' : esc(((s ? s.name : t('noSection')) || '?').trim().charAt(0).toUpperCase())) + '</span>';
+  }
+  /** Dishes: a search over every dish, then the sections; each opens its own page. */
+  function dishesPage() {
     var secs = S.sections;
-    secs.forEach(function (s, si) {
-      h += '<div class="sec' + (s.isHidden ? ' hid' : '') + '"><div class="sh"><button type="button" class="th sth" data-spic="' + s.id + '" aria-label="' + t('secPic') + ': ' + esc(s.name) + '">' + (s.imageUrl ? '<img src="' + esc(s.imageUrl) + '" alt="">' : ic('photo')) + '</button><h3 dir="auto">' + esc(s.name) + '</h3>' +
-        (s.linked ? '<span class="pill info">' + t('pos') + '</span>' : '') + (s.isHidden ? '<span class="pill mute">' + t('hidden') + '</span>' : '') +
-        (fixedOrder(s.linked) ? '' : '<button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="-1" aria-label="' + t('up') + '"' + (si === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
-        '<button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="1" aria-label="' + t('down') + '"' + (si === secs.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button>') +
-        '<span class="small muted">' + t('nItems', s.itemCount) + '</span>' +
-        '<button type="button" class="btn sm" data-shide="' + s.id + '">' + (s.isHidden ? t('show') : t('hide')) + '</button>' +
-        '<button type="button" class="btn sm" data-sren="' + s.id + '">' + t('edit') + '</button>' +
-        (s.linked ? '' : '<button type="button" class="btn sm danger" data-sdel="' + s.id + '">' + t('del') + '</button>') +
-        '</div><ul class="items">' + itemsList(s.id, s.itemCount) + '</ul></div>';
-    });
-    if (S.looseCount)
-      h += '<div class="sec"><div class="sh"><h3>' + t('noSection') + '</h3><span class="small muted">' + t('nItems', S.looseCount) + '</span></div><ul class="items">' + itemsList(0, S.looseCount) + '</ul></div>';
-    if (!secs.length && !S.looseCount) h += '<p class="note">' + (S.menu.linkedSiteId ? t('emptyLinked') : t('emptyMenu')) + '</p>';
-    h += '<div class="adds"><button type="button" class="btn" id="addsec">' + ic('plus') + t('addSection') + '</button><button type="button" class="btn pri" id="additem">' + ic('plus') + t('addItem') + '</button></div>';
-    return h + '</section>';
+    var h = head(t('tabDishes'), null, '<button type="button" class="btn pri addbtn" data-additem="">' + ic('plus') + t('addDish') + '</button>') +
+      '<div class="search">' + ic('search') + '<input type="search" id="dq" enterkeyhint="search" autocomplete="off" placeholder="' + esc(t('search')) + '" aria-label="' + esc(t('search')) + '" value="' + esc(Q.term) + '"></div>' +
+      '<div id="dres" hidden></div><section class="group" id="dsecs"><div class="gh"><h2>' + t('secsH') + '</h2>' +
+      '<button type="button" class="btn sm" id="addsec">' + ic('plus') + t('addSec') + '</button></div>' +
+      (S.menu.posArranged ? '<p class="note" style="margin:0 0 10px">' + t('posOrder') + '</p>' : '');
+    if (!secs.length && !S.looseCount) h += '<section class="card empty"><p>' + (S.menu.linkedSiteId ? t('emptyLinked') : t('emptyMenu')) + '</p></section>';
+    else h += '<ul class="list">' + secs.map(function (s, si) {
+      // Only "Hidden" is marked here: nearly every section of a POS menu is from the POS, so that is said once, on the section's page.
+      return '<li class="srow"><a class="lrow" href="#dishes/' + s.id + '">' + secThumb(s) + '<span class="lt"><b dir="auto">' + esc(s.name) + '</b>' +
+        '<span>' + t('nItems', s.itemCount) + (s.isHidden ? ' · ' + t('hidden') : '') + '</span></span>' + ic('next', 'flip') + '</a>' +
+        (fixedOrder(s.linked) ? '' : '<span class="mvs"><button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="-1" aria-label="' + t('up') + ': ' + esc(s.name) + '"' + (si === 0 ? ' disabled' : '') + '>' + ic('up') + '</button>' +
+          '<button type="button" class="btn icon" data-smv="' + s.id + '" data-dir="1" aria-label="' + t('down') + ': ' + esc(s.name) + '"' + (si === secs.length - 1 ? ' disabled' : '') + '>' + ic('down') + '</button></span>') + '</li>';
+    }).join('') + (S.looseCount ? '<li class="srow"><a class="lrow" href="#dishes/0">' + secThumb(null) + '<span class="lt"><b>' + t('noSection') + '</b><span>' + t('nItems', S.looseCount) + '</span></span>' + ic('next', 'flip') + '</a></li>' : '') + '</ul>';
+    return h + '</section>' + fab('');
+  }
+  /** One section: chips to jump to the others, its picture, line and switch, then its dishes a page at a time. */
+  function sectionPage(id) {
+    var s = id ? secById(id) : null, count = s ? s.itemCount : S.looseCount;
+    var chip = function (key, name) { return '<a href="#dishes/' + key + '" dir="auto"' + (key === id ? ' aria-current="page"' : '') + '>' + esc(name) + '</a>'; };
+    var h = head(s ? s.name : t('noSection'), ['dishes', t('tabDishes')], '<button type="button" class="btn pri addbtn" data-additem="' + id + '">' + ic('plus') + t('addDish') + '</button>') +
+      '<nav class="chips" aria-label="' + esc(t('secsH')) + '">' + S.sections.map(function (x) { return chip(x.id, x.name); }).join('') + (S.looseCount ? chip(0, t('noSection')) : '') + '</nav>';
+    if (s)
+      h += '<section class="card secsum"><button type="button" class="th sth" data-spic="' + s.id + '" aria-label="' + esc(t('secPic') + ': ' + s.name) + '">' +
+        (s.imageUrl ? '<img src="' + esc(s.imageUrl) + '" alt="">' : ic('photo')) + '</button>' +
+        '<div class="ss"><p class="small muted">' + t('nItems', count) + (s.linked ? ' · ' + t('pos') : '') + '</p>' + (s.description ? '<p dir="auto">' + esc(s.description) + '</p>' : '') +
+        '<label class="switch"><input type="checkbox" id="sec-shown"' + (s.isHidden ? '' : ' checked') + '><span>' + t('secShown') + '</span></label></div>' +
+        '<div class="sa"><button type="button" class="btn sm" data-sren="' + s.id + '">' + t('secEdit') + '</button>' +
+        (s.linked ? '' : '<button type="button" class="btn sm danger" data-sdel="' + s.id + '">' + t('del') + '</button>') + '</div></section>';
+    return h + '<ul class="items list">' + itemsList(id, count) + '</ul>' + fab(id);
   }
 
   // ---- wiring ----
@@ -699,10 +939,10 @@
       r.addEventListener('change', function () { act(api('PUT', '/settings', { orderMode: r.value })).then(function () { toast(t('omSaved')); O.orders = null; pollOrders(); }, function () {}); });
     });
     on('#wa-show', 'change', function (e) { act(api('PUT', '/settings', { showWhatsApp: e.target.checked })); });
-    var oc = document.getElementById('ordcard');
-    if (oc) oc.addEventListener('toggle', function (e) { if (e.target.classList && e.target.classList.contains('odone')) O.showDone = e.target.open; }, true);
-    if (oc) oc.addEventListener('click', function (e) {
-      if (e.target.closest('[data-oall]')) { O.allOpen = !O.allOpen; drawOrders(); return; }
+    // The list is redrawn by itself every few seconds, so its clicks are caught on the box around it.
+    on('#ord-wrap', 'click', function (e) {
+      var v = e.target.closest('[data-oview]');
+      if (v) { O.view = v.dataset.oview; drawOrders(); var sel = document.querySelector('[data-oview="' + O.view + '"]'); if (sel) sel.focus(); return; }
       var b = e.target.closest('[data-omove]'); if (!b) return;
       var id = +b.dataset.omove, to = b.dataset.to, o = (O.orders || []).filter(function (x) { return x.id === id; })[0];
       if (to === 'rejected' && !confirm(t('oRejectQ', o ? o.number : ''))) return;
@@ -740,7 +980,6 @@
     each('data-tdel', function (id) { var ty = typeById(id); if (confirm(t('otDelQ', ty.name))) actItems(api('DELETE', '/types/' + id)); });
     each('data-tmv', function (id, b) { moveType(id, +b.dataset.dir); });
 
-    on('#det', 'toggle', function (e) { openDetails = e.target.open; });
     document.querySelectorAll('input[name=lstyle]').forEach(function (r) {
       r.addEventListener('change', function () { act(api('PUT', '/settings', { listingStyle: r.value })).then(function () { toast(t('lsSaved')); }, function () {}); });
     });
@@ -778,17 +1017,43 @@
     on('#logo', 'click', function () { pickFile(function (f) { shrink(f, 512, true).then(function (b) { return act(api('PUT', '/logo', undefined, b)); }).catch(function (e) { toast(e.message); }); }); });
     on('#nologo', 'click', function () { act(api('DELETE', '/logo')); });
 
-    each('data-pic', function (id) { pickFile(function (f) { uploadItemPic(id, f); }); });
-    each('data-edit', function (id) { itemDialog(findItem(id)); });
-    each('data-more', function (key) { loadPage(key, true); });
-    document.querySelectorAll('[data-load]').forEach(function (el) { if (watcher) watcher.observe(el); else loadPage(+el.dataset.load, false); });
-    each('data-imv', function (id, b) { moveItem(id, +b.dataset.dir); });
+    bindItems($('#main'));
     each('data-smv', function (id, b) { moveSection(id, +b.dataset.dir); });
-    each('data-shide', function (id) { var s = secById(id); act(api('PUT', '/sections/' + id, { isHidden: !s.isHidden })); });
     each('data-sren', function (id) { sectionDialog(secById(id)); });
-    each('data-sdel', function (id) { var s = secById(id); if (confirm(t('delSecQ', s.name))) actItems(api('DELETE', '/sections/' + id)); });
+    each('data-sdel', function (id) {
+      var s = secById(id);
+      if (confirm(t('delSecQ', s.name))) actItems(api('DELETE', '/sections/' + id)).then(function () { if (location.hash === '#dishes/' + id) location.hash = '#dishes'; }, function () {});
+    });
+    on('#sec-shown', 'change', function (e) { var id = +location.hash.split('/')[1]; act(api('PUT', '/sections/' + id, { isHidden: !e.target.checked })); });
     on('#addsec', 'click', function () { sectionDialog(null); });
-    on('#additem', 'click', function () { itemDialog(null); });
+    document.querySelectorAll('[data-additem]').forEach(function (b) {
+      b.onclick = function () { itemDialog(null, b.dataset.additem === '' ? null : +b.dataset.additem); };
+    });
+    on('#dq', 'input', function (e) {
+      Q.term = e.target.value.trim(); Q.items = null;
+      clearTimeout(Q.timer);
+      if (!Q.term) { drawSearch(); return; }
+      Q.timer = setTimeout(function () { drawSearch(); searchNow(); }, 300);
+    });
+  }
+  /** On opening a page: start at its top, put the focus on its title, and bring the open section's chip into view. */
+  function opened() {
+    window.scrollTo(0, 0);
+    var h = document.querySelector('#main h1');
+    if (h) h.focus({ preventScroll: true });
+    var chip = document.querySelector('.chips [aria-current]');
+    if (chip && chip.scrollIntoView) chip.scrollIntoView({ block: 'nearest', inline: 'center' });
+    window.scrollTo(0, 0);
+  }
+  /** Dish rows: picture, edit, order, and loading more. Used for a section's page and for search results. */
+  function bindItems(root) {
+    if (!root) return;
+    var all = function (attr, fn) { root.querySelectorAll('[' + attr + ']').forEach(function (b) { b.addEventListener('click', function () { fn(+b.getAttribute(attr), b); }); }); };
+    all('data-pic', function (id) { pickFile(function (f) { uploadItemPic(id, f); }); });
+    all('data-edit', function (id) { itemDialog(findItem(id)); });
+    all('data-more', function (key) { loadPage(key, true); });
+    all('data-imv', function (id, b) { moveItem(id, +b.dataset.dir); });
+    root.querySelectorAll('[data-load]').forEach(function (el) { if (watcher) watcher.observe(el); else loadPage(+el.dataset.load, false); });
   }
 
   function fixedOrder(linked) { return !!(linked && S.menu && S.menu.posArranged); }
@@ -859,9 +1124,12 @@
       });
   }
 
-  function itemDialog(i) {
+  /** A dish. A new one goes in <paramref name="inSection"/> (0 = no section) when given, else in the last section. */
+  function itemDialog(i, inSection) {
     var linked = i && i.linked, pending = null, m = S.menu;
-    var secOpts = '<option value="0">' + t('noSection') + '</option>' + S.sections.map(function (s) { return '<option value="' + s.id + '"' + (i && i.sectionId === s.id ? ' selected' : (!i && S.sections[S.sections.length - 1] === s ? ' selected' : '')) + '>' + esc(s.name) + '</option>'; }).join('');
+    var want = i ? i.sectionId || 0 : inSection != null ? inSection : S.sections.length ? S.sections[S.sections.length - 1].id : 0;
+    var secOpts = '<option value="0"' + (want === 0 ? ' selected' : '') + '>' + t('noSection') + '</option>' +
+      S.sections.map(function (s) { return '<option value="' + s.id + '"' + (want === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('');
     var html = '<form><h2 id="dlg-t">' + (i ? t('editItem') : t('newItem')) + '</h2>' + (linked ? '<p class="note">' + t('fromPos') + '</p>' : '') +
       '<div class="fields">' +
       '<div class="f full"><label for="d-n">' + t('iName') + '</label><input id="d-n" maxlength="200" required dir="auto"' + (linked ? ' readonly' : '') + ' value="' + esc(i ? i.name : '') + '"></div>' +
@@ -952,4 +1220,7 @@
   $('#app').innerHTML = '<div class="wrap">' + bar() + '<p class="loading">' + t('loading') + '</p></div>';
   bindBar();
   api('GET', '/editor').then(apply).then(function () { pollOrders(); }).catch(function (e) { if (S === null && $('#app').querySelector('.loading')) $('#app').querySelector('.loading').textContent = e.message; });
+  window.addEventListener('hashchange', function () { if (S && S.menu) { render(); opened(); } });
+  var onWide = function () { if (S && S.menu) livePreview(); };
+  if (WIDE.addEventListener) WIDE.addEventListener('change', onWide); else if (WIDE.addListener) WIDE.addListener(onWide);
 })();

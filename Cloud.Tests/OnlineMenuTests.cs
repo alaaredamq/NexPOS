@@ -258,6 +258,33 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
         Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync("/m/img/..%2Fcontrol.db")).StatusCode);
     }
 
+    [Fact]
+    public async Task The_editor_searches_every_section_and_counts_the_dishes_customers_see_without_a_picture()
+    {
+        var (_, owner) = await ShopAsync("findshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Find Shop" }));
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Hot" }));
+        var hot = Sections(state).Single().GetProperty("id").GetInt32();
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Cold" }));
+        var cold = Sections(state).Single(s => s.GetProperty("name").GetString() == "Cold").GetProperty("id").GetInt32();
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Mint tea", price = 1, sectionId = hot }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Iced tea", price = 2, sectionId = cold, isHidden = true }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Lemonade", description = "Fresh, with mint", price = 2, sectionId = cold }));
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Water", price = 0.5m }));
+
+        // Hidden dishes are found too (the editor is where they are shown again); a description counts.
+        var found = (await Ok(owner.GetAsync("/menu/v1/items?q=tea"))).GetProperty("items").EnumerateArray().Select(i => i.GetProperty("name").GetString()).ToArray();
+        Assert.Equal(new[] { "Iced tea", "Mint tea" }, found.Order().ToArray());
+        found = (await Ok(owner.GetAsync("/menu/v1/items?q=MINT"))).GetProperty("items").EnumerateArray().Select(i => i.GetProperty("name").GetString()).ToArray();
+        Assert.Equal(new[] { "Lemonade", "Mint tea" }, found.Order().ToArray());
+
+        // Hidden ones do not need a picture.
+        Assert.Equal(3, state.GetProperty("noPictureCount").GetInt32());
+        var water = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Water").GetProperty("id").GetInt32();
+        state = await Ok(owner.PutAsync($"/menu/v1/items/{water}/image", new ByteArrayContent(Png)));
+        Assert.Equal(2, state.GetProperty("noPictureCount").GetInt32());
+    }
+
     /// <summary>A real photo-sized JPEG, as a phone would send it if the editor's own shrinking were skipped.</summary>
     private static byte[] Photo(int width, int height)
     {

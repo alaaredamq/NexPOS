@@ -191,6 +191,8 @@ public static partial class MenuEndpoints
             .ToList();
         var known = sections.Select(s => s.id).ToHashSet();
         var looseCount = counts.Where(c => c.Key is null || !known.Contains(c.Key.Value)).Sum(c => c.Count);
+        // For the editor's home page: dishes customers see with no picture yet.
+        var noPictureCount = await db.MenuItems.CountAsync(i => i.MenuId == menu.Id && !i.IsHidden && i.ImageFile == null);
         var branches = (await db.MenuBranches.Where(b => b.MenuId == menu.Id).OrderBy(b => b.SortOrder).ThenBy(b => b.Id)
             .Select(b => new { b.SiteId, b.Slug, b.Site.Name, b.CatalogAt, b.PosArranged, b.Address, b.MapUrl, b.Phone, b.Hours }).ToListAsync())
             .Select(b => new
@@ -224,6 +226,7 @@ public static partial class MenuEndpoints
             orderTypes = types,
             sections,
             looseCount,
+            noPictureCount,
         };
     }
 
@@ -254,14 +257,22 @@ public static partial class MenuEndpoints
     private static async Task<IReadOnlyDictionary<Guid, string>> BranchNamesAsync(ControlDbContext db, int menuId)
         => await db.MenuBranches.Where(b => b.MenuId == menuId).ToDictionaryAsync(b => b.SiteId, b => b.Site.Name);
 
-    /// <summary>One section's items, a page at a time. <c>section=0</c> = items in no section.</summary>
-    private static async Task<IResult> ListItems(HttpContext http, ControlDbContext db, TimeProvider time, int? client, int section, int? skip, int? take)
+    /// <summary>
+    /// One section's items, a page at a time (<c>section=0</c> = items in no section), or, with <c>q</c>, the items of any section
+    /// whose name or description holds it. Hidden items are included: the editor is where they are found and shown again.
+    /// </summary>
+    private static async Task<IResult> ListItems(HttpContext http, ControlDbContext db, TimeProvider time, int? client, int? section, int? skip, int? take, string? q)
     {
         var (_, menu, failure) = await MenuAsync(http, db, time, client);
         if (failure is not null) return failure;
         var size = Math.Clamp(take ?? PageSize, 1, 100);
         var query = db.MenuItems.AsNoTracking().Include(i => i.Branches).Include(i => i.TypePrices).Where(i => i.MenuId == menu!.Id);
-        if (section == 0)
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = "%" + q.Trim().Replace("%", "").Replace("_", "") + "%";
+            query = query.Where(i => EF.Functions.Like(i.Name, term) || EF.Functions.Like(i.Description ?? i.PosDescription ?? "", term));
+        }
+        else if (section is null or 0)
         {
             var sectionIds = db.MenuSections.Where(s => s.MenuId == menu!.Id).Select(s => (int?)s.Id);
             query = query.Where(i => i.SectionId == null || !sectionIds.Contains(i.SectionId));
