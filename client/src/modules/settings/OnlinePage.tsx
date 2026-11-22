@@ -15,6 +15,7 @@ import styles from './settings.module.css'
 const CONNECT_CODES = [
   'enroll_link_invalid',
   'cloud_insecure_url',
+  'cloud_other_server',
   'enroll_code_invalid',
   'enroll_code_expired',
   'enroll_code_used',

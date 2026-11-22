@@ -15,6 +15,21 @@
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
 
+  // Phone menu: under 960px the section links and owner sign-in fold behind a button.
+  const burger = top.querySelector('[data-burger]');
+  const setMenu = open => {
+    top.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', String(open));
+    burger.setAttribute('aria-label', open ? 'Close menu' : 'Menu');
+  };
+  burger.addEventListener('click', () => setMenu(!top.classList.contains('open')));
+  top.querySelector('[data-menu]').addEventListener('click', e => { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('click', e => { if (!top.contains(e.target)) setMenu(false); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && top.classList.contains('open')) { setMenu(false); burger.focus(); }
+  });
+  window.matchMedia('(min-width:961px)').addEventListener('change', e => { if (e.matches) setMenu(false); });
+
   document.querySelectorAll('[data-year]').forEach(n => { n.textContent = new Date().getFullYear(); });
 
   // Scroll reveal for cards and steps, staggered a little within each group.

@@ -33,8 +33,8 @@ en: {
  shopSub: 'Whether your shop PC is talking to the cloud. A till keeps selling when it loses contact.', lastContact: 'Last contact', lastCopy: 'Last copy of your data', plan: 'Online plan', renews: 'Runs until {0}',
  sActive: 'Active', sGrace: 'Ended recently, still updating', sExpired: 'Ended', sSuspended: 'Paused by your provider', sNone: 'Not started',
  planNote: 'If the plan ends the tills keep selling. This site stops updating after 7 days.', menuH: 'Online menu', menuP: 'A public page with your products, pictures and prices. Share it by link or print its QR code for the tables.', menuOpen: 'Open the menu editor', contactOk: 'In contact', contactLate: 'Quiet', contactOff: 'Offline',
- signTitle: 'Sign in', signSub: 'See your shop from your phone.', email: 'Email', pass: 'Password', show: 'Show', hide: 'Hide', signBtn: 'Sign in', signing: 'Signing in',
- errEmail: 'Enter your email.', errPass: 'Enter your password.', noOnline: 'No account yet? Ask your provider to set one up for you.',
+ signTitle: 'Sign in', signSub: 'See your shop from your phone.', email: 'Email, phone or username', pass: 'Password', show: 'Show', hide: 'Hide', signBtn: 'Sign in', signing: 'Signing in',
+ errEmail: 'Enter your email, phone number or username.', errPass: 'Enter your password.', noOnline: 'No account yet? Ask your provider to set one up for you.',
  lpH: 'See the till without standing at it.', lpP: 'Sales, stock and the shop PC\'s status, copied from the till every few minutes.',
  lp1: 'What you sold today and how it compares with last week', lp2: 'What is running low', lp3: 'Whether the shop PC is connected',
  trust: 'Your shop\'s data is locked with a key that only you hold. We cannot read it, and neither can this server.',
@@ -45,7 +45,7 @@ en: {
  errWrong: 'That code does not open this shop\'s data. It may belong to another shop or an older key.',
  hint: 'Example format: ABCD-EFGH-IJKL-... (dashes and capitals are optional)',
  errNoShop: 'No shop PC is connected to this account yet.', errPlan: 'The online plan is not active. Contact your provider.', errNet: 'Could not reach the cloud. Check your internet and try again.',
- errRate: 'Too many attempts. Try again in a few minutes.', errGeneric: 'Something went wrong. Try again.', errCreds: 'The email or password is not right.', errMayNot: 'Your login is not allowed to see this.',
+ errRate: 'Too many attempts. Try again in a few minutes.', errGeneric: 'Something went wrong. Try again.', errCreds: 'The sign-in name or password is not right.', errMayNot: 'Your login is not allowed to see this.',
  cash: 'Cash', ago: '{0} ago', min1: '{0} min', hr1: '{0} h', day1: '{0} d', justNow: 'just now', ready: 'Data decrypted in this browser', retry: 'Try again',
  changes: 'Changes', chSub: 'What you asked the shop PC to do. It applies each change when it is online.',
  newProduct: 'New product', newCustomer: 'New customer', newSupplier: 'New supplier', editProduct: 'Edit product', adjust: 'Adjust stock',
@@ -87,8 +87,8 @@ ar: {
  shopSub: 'هل يتحدث كمبيوتر المحل مع السحابة. الصندوق يتابع البيع إذا انقطع اتصاله.', lastContact: 'آخر اتصال', lastCopy: 'آخر نسخة من بياناتك', plan: 'خطة أونلاين', renews: 'تنتهي في {0}',
  sActive: 'فعّالة', sGrace: 'انتهت مؤخراً وما زالت تُحدَّث', sExpired: 'منتهية', sSuspended: 'موقوفة من المزوّد', sNone: 'لم تبدأ',
  planNote: 'إذا انتهت الخطة تتابع الصناديق البيع. يتوقف هذا الموقع عن التحديث بعد 7 أيام.', menuH: 'القائمة على الإنترنت', menuP: 'صفحة عامة فيها منتجاتك وصورها وأسعارها. شاركها برابط أو اطبع رمز QR للطاولات.', menuOpen: 'افتح محرر القائمة', contactOk: 'متصل', contactLate: 'صامت', contactOff: 'غير متصل',
- signTitle: 'تسجيل الدخول', signSub: 'شاهد محلك من هاتفك.', email: 'البريد الإلكتروني', pass: 'كلمة المرور', show: 'إظهار', hide: 'إخفاء', signBtn: 'تسجيل الدخول', signing: 'جارٍ تسجيل الدخول',
- errEmail: 'أدخل بريدك الإلكتروني.', errPass: 'أدخل كلمة المرور.', noOnline: 'ليس لديك حساب بعد؟ اطلب من المزوّد إنشاء واحد لك.',
+ signTitle: 'تسجيل الدخول', signSub: 'شاهد محلك من هاتفك.', email: 'البريد الإلكتروني أو الهاتف أو اسم المستخدم', pass: 'كلمة المرور', show: 'إظهار', hide: 'إخفاء', signBtn: 'تسجيل الدخول', signing: 'جارٍ تسجيل الدخول',
+ errEmail: 'أدخل بريدك الإلكتروني أو رقم هاتفك أو اسم المستخدم.', errPass: 'أدخل كلمة المرور.', noOnline: 'ليس لديك حساب بعد؟ اطلب من المزوّد إنشاء واحد لك.',
  lpH: 'شاهد الصندوق دون أن تقف عنده.', lpP: 'المبيعات والمخزون وحالة كمبيوتر المحل، منسوخة من الصندوق كل بضع دقائق.',
  lp1: 'ما بعته اليوم ومقارنته بالأسبوع الماضي', lp2: 'ما يوشك على النفاد', lp3: 'هل كمبيوتر المحل متصل',
  trust: 'بيانات محلك مقفلة بمفتاح لا يملكه غيرك. لا نستطيع قراءتها ولا هذا الخادم.',
@@ -99,7 +99,7 @@ ar: {
  errWrong: 'هذا الرمز لا يفتح بيانات هذا المحل. ربما يخص محلاً آخر أو مفتاحاً قديماً.',
  hint: 'الشكل: ABCD-EFGH-IJKL-... (الشرطات والأحرف الكبيرة اختيارية)',
  errNoShop: 'لا يوجد كمبيوتر محل متصل بهذا الحساب بعد.', errPlan: 'خطة أونلاين غير فعّالة. تواصل مع المزوّد.', errNet: 'تعذر الوصول إلى السحابة. تحقق من الإنترنت وحاول مجدداً.',
- errRate: 'محاولات كثيرة. حاول بعد بضع دقائق.', errGeneric: 'حدث خطأ. حاول مجدداً.', errCreds: 'البريد أو كلمة المرور غير صحيحة.', errMayNot: 'حسابك غير مسموح له برؤية هذا.',
+ errRate: 'محاولات كثيرة. حاول بعد بضع دقائق.', errGeneric: 'حدث خطأ. حاول مجدداً.', errCreds: 'اسم الدخول أو كلمة المرور غير صحيحة.', errMayNot: 'حسابك غير مسموح له برؤية هذا.',
  cash: 'نقداً', ago: 'قبل {0}', min1: '{0} د', hr1: '{0} س', day1: '{0} ي', justNow: 'الآن', ready: 'البيانات مفتوحة في هذا المتصفح', retry: 'حاول مجدداً',
  changes: 'التغييرات', chSub: 'ما طلبته من كمبيوتر المحل. يطبّق كل تغيير عندما يكون متصلاً.',
  newProduct: 'منتج جديد', newCustomer: 'زبون جديد', newSupplier: 'مورّد جديد', editProduct: 'تعديل المنتج', adjust: 'تعديل المخزون',
@@ -502,7 +502,7 @@ function signinView() {
   var pts = ['lp1', 'lp2', 'lp3'].map(function (k) { return '<div class="nr">' + ic('check') + '<b>' + t(k) + '</b></div>'; }).join('');
   return '<div class="login"><section class="lf"><div class="lgrow">' + BRAND.logo + '<span class="chip info">' + t('online') + '</span></div>' +
     '<form id="lform" novalidate><h1>' + t('signTitle') + '</h1><p class="muted" style="margin-bottom:22px">' + t('signSub') + '</p>' +
-    '<div class="fld"><label for="em">' + t('email') + '</label><input class="inp" id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" aria-describedby="emerr"><div id="emerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errEmail') + '</div></div>' +
+    '<div class="fld"><label for="em">' + t('email') + '</label><input class="inp" id="em" type="text" dir="ltr" autocomplete="username" autocapitalize="off" spellcheck="false" aria-describedby="emerr"><div id="emerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errEmail') + '</div></div>' +
     '<div class="fld"><label for="pw">' + t('pass') + '</label><div class="pw"><input class="inp" id="pw" type="password" autocomplete="current-password" aria-describedby="pwerr"><button type="button" id="pwt" aria-controls="pw">' + t('show') + '</button></div><div id="pwerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errPass') + '</div></div>' +
     '<div id="formerr" class="err" role="alert" hidden style="margin-bottom:12px"></div>' +
     '<button class="btn pri" id="sbtn" type="submit">' + t('signBtn') + '</button></form>' +

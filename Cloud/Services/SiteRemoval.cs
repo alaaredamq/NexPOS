@@ -21,13 +21,14 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
         // client's data behind with nothing in the portal pointing at it.
         foreach (var id in siteIds) await mirrors.DeleteAsync(id);
 
-        await using var tx = await db.Database.BeginTransactionAsync();
-        await db.DeviceTokens.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
-        await db.EnrollmentCodes.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
-        await db.SiteHeartbeats.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
-        await db.SyncBatchLogs.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
-        await db.Sites.Where(x => siteIds.Contains(x.Id)).ExecuteDeleteAsync();
-        await tx.CommitAsync();
+        await InTransactionAsync(async () =>
+        {
+            await db.DeviceTokens.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
+            await db.EnrollmentCodes.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
+            await db.SiteHeartbeats.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
+            await db.SyncBatchLogs.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
+            await db.Sites.Where(x => siteIds.Contains(x.Id)).ExecuteDeleteAsync();
+        });
     }
 
     /// <summary>Removes a client with all its branches, its subscription and its history.</summary>
@@ -43,19 +44,34 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
             .Concat(db.Menus.Where(m => m.ClientId == clientId && m.CoverFile != null).Select(m => m.CoverFile))
             .Concat(db.MenuSections.Where(s => menuIds.Contains(s.MenuId) && s.ImageFile != null).Select(s => s.ImageFile)).ToListAsync();
 
-        await using var tx = await db.Database.BeginTransactionAsync();
-        // Phone sign-ins belong to the client (restricted FK), so they must go before the client row does.
-        await db.OwnerSessions.Where(x => x.OwnerUser.ClientId == clientId).ExecuteDeleteAsync();
-        await db.OwnerUsers.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
-        await db.Subscriptions.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
-        await db.ClientEvents.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
-        await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync(); // their branch and type prices go with them
-        await db.MenuOrderTypes.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
-        await db.MenuBranches.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
-        await db.MenuSections.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
-        await db.Menus.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
-        await db.Clients.Where(x => x.Id == clientId).ExecuteDeleteAsync();
-        await tx.CommitAsync();
+        await InTransactionAsync(async () =>
+        {
+            // Phone sign-ins belong to the client (restricted FK), so they must go before the client row does.
+            await db.OwnerSessions.Where(x => x.OwnerUser.ClientId == clientId).ExecuteDeleteAsync();
+            await db.OwnerUsers.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
+            await db.Subscriptions.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
+            await db.ClientEvents.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
+            await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync(); // their branch and type prices go with them
+            await db.MenuOrderTypes.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
+            await db.MenuBranches.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
+            await db.MenuSections.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
+            await db.Menus.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
+            await db.Clients.Where(x => x.Id == clientId).ExecuteDeleteAsync();
+        });
         foreach (var f in files) images.Delete(f);
     }
+
+    /// <summary>
+    /// Runs the deletes as one transaction through the context's execution strategy. On SQL Server that strategy retries
+    /// dropped connections, and it refuses a transaction opened outside it ("does not support user-initiated transactions"),
+    /// which made every Remove a 500 on the live site. A retry runs the whole block again; every step is a plain delete, so
+    /// running it twice is harmless.
+    /// </summary>
+    private Task InTransactionAsync(Func<Task> work)
+        => db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var tx = await db.Database.BeginTransactionAsync();
+            await work();
+            await tx.CommitAsync();
+        });
 }

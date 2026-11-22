@@ -24,6 +24,51 @@ public static class PublicSite
     /// <summary>Portal folders that used to sit at the root; old bookmarks are sent to their /admin address.</summary>
     private static readonly string[] OldPortalFolders = ["/Account", "/Clients", "/Sites"];
 
+    /// <summary>
+    /// One address for the whole site (Cloud:PublicUrl): http:// and the www. twin are sent there for good, so search engines
+    /// see one site and logins never travel unencrypted. Hosts other than those two (the hosting's own name, an IP) are left
+    /// alone, and nothing changes when PublicUrl is not set (a PC, the tests).
+    /// A copy whose public address is not the live one (the test site) asks search engines to keep it out of their results.
+    /// </summary>
+    public static IApplicationBuilder UseCanonicalAddress(this IApplicationBuilder app) => app.Use(async (ctx, next) =>
+    {
+        var canonical = PublicUri(ctx);
+        if (canonical is not null)
+        {
+            var host = ctx.Request.Host.Host;
+            var isWwwTwin = host.Equals("www." + canonical.Host, StringComparison.OrdinalIgnoreCase);
+            var isPlainHttp = host.Equals(canonical.Host, StringComparison.OrdinalIgnoreCase)
+                && canonical.Scheme == Uri.UriSchemeHttps && !ctx.Request.IsHttps;
+            if (isWwwTwin || isPlainHttp)
+            {
+                var method = ctx.Request.Method;
+                // 308 keeps a POST a POST; GET and HEAD get the 301 every crawler understands.
+                ctx.Response.StatusCode = HttpMethods.IsGet(method) || HttpMethods.IsHead(method)
+                    ? StatusCodes.Status301MovedPermanently : StatusCodes.Status308PermanentRedirect;
+                ctx.Response.Headers.Location = canonical.GetLeftPart(UriPartial.Authority)
+                    + ctx.Request.PathBase + ctx.Request.Path + ctx.Request.QueryString;
+                return;
+            }
+        }
+        if (!IsIndexable(ctx))
+            ctx.Response.Headers["X-Robots-Tag"] = "noindex, nofollow";
+        await next();
+    });
+
+    /// <summary>Cloud:PublicUrl as an absolute address, or null when it is not set (or not a usable address).</summary>
+    private static Uri? PublicUri(HttpContext ctx)
+    {
+        var configured = ctx.RequestServices.GetRequiredService<IOptions<CloudOptions>>().Value.PublicUrl;
+        return Uri.TryCreate(configured?.Trim(), UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" ? uri : null;
+    }
+
+    /// <summary>Only the live site (https://coduos.com) belongs in search results; a copy that names another address is a test site.</summary>
+    private static bool IsIndexable(HttpContext ctx)
+    {
+        var canonical = PublicUri(ctx);
+        return canonical is null || canonical.Host.Equals(new Uri(Sync.OnlineServer.Live).Host, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Sends a bookmark from before the move (/Clients/Details/3) to the same page under /admin. GET and HEAD only.</summary>
     public static IApplicationBuilder UseOldPortalRedirects(this IApplicationBuilder app) => app.Use(async (ctx, next) =>
     {
@@ -83,6 +128,12 @@ public static class PublicSite
         {
             var sb = new StringBuilder();
             sb.Append("User-agent: *\n");
+            if (!IsIndexable(ctx))
+            {
+                // The test site: nothing here should be found by searching.
+                sb.Append("Disallow: /\n");
+                return Results.Text(sb.ToString(), "text/plain; charset=utf-8");
+            }
             sb.Append("Allow: /$\n");
             foreach (var path in Private)
                 sb.Append("Disallow: ").Append(path).Append('\n');

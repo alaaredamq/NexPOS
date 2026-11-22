@@ -64,22 +64,20 @@ public static class OwnerEndpoints
     private static async Task<IResult> Login(
         LoginRequest request, HttpContext http, ControlDbContext db, TimeProvider time, LoginThrottle throttle)
     {
-        var email = request?.Email?.Trim().ToLowerInvariant();
         var password = request?.Password ?? "";
         var key = "owner:" + (http.Connection.RemoteIpAddress?.ToString() ?? "unknown");
         if (throttle.IsBlocked(key))
             return Error(StatusCodes.Status429TooManyRequests, SyncErrorCodes.RateLimited, "Too many attempts. Try again in a few minutes.");
 
-        var user = string.IsNullOrEmpty(email) ? null : await db.OwnerUsers
-            .Include(u => u.Client).ThenInclude(c => c.Sites)
-            .FirstOrDefaultAsync(u => u.Email == email);
+        // "email" carries whatever the login signs in with: an email, a phone number or a username (see OwnerSignIn).
+        var user = await OwnerSignIn.FindAsync(db.OwnerUsers.Include(u => u.Client).ThenInclude(c => c.Sites), request?.Email);
 
-        // Verify against a dummy hash when the account is unknown, so a wrong email and a wrong password take the same time.
+        // Verify against a dummy hash when the account is unknown, so a wrong name and a wrong password take the same time.
         var ok = PasswordHasher.Verify(password, user?.PasswordHash ?? DummyHash.Value) && user is not null;
         if (!ok || !user!.IsActive || !user.Client.IsActive)
         {
             throttle.RecordFailure(key);
-            return Error(StatusCodes.Status401Unauthorized, "invalid_credentials", "The email or password is not right.");
+            return Error(StatusCodes.Status401Unauthorized, "invalid_credentials", "The sign-in name or password is not right.");
         }
 
         throttle.Reset(key);

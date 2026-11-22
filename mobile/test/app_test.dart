@@ -89,7 +89,7 @@ void main() {
     await startApp(tester, signedIn: false, unlocked: false);
     expect(find.text('Sign in'), findsWidgets);
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'secret');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
@@ -109,12 +109,12 @@ void main() {
     await tester.pumpWidget(OwnerApp(session: session, shop: ShopData(session, MemoryKeyStore()), lock: extra.lock, notify: extra.notify));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'wrong');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('The email or password is not right.'), findsOneWidget);
+    expect(find.text('The sign-in name or password is not right.'), findsOneWidget);
     expect(session.signedIn, isFalse);
   });
 
@@ -521,7 +521,7 @@ void main() {
       final extra = services(await SharedPreferences.getInstance(), session);
     await tester.pumpWidget(OwnerApp(session: session, shop: ShopData(session, MemoryKeyStore()), lock: extra.lock, notify: extra.notify));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
       await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'wrong');
 
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
@@ -530,7 +530,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.text('The email or password is not right.'), findsOneWidget);
+      expect(find.text('The sign-in name or password is not right.'), findsOneWidget);
     });
 
     testWidgets('a figure counts up, unless the phone asks for no animation', (tester) async {

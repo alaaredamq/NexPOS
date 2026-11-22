@@ -99,6 +99,7 @@ describe('not connected', () => {
     [400, 'enroll_code_expired', 'This link has expired. Ask your provider for a new one.'],
     [400, 'enroll_code_invalid', 'This link is not valid. Check that you copied all of it, or ask for a new one.'],
     [400, 'cloud_insecure_url', 'This link does not start with https:// so it cannot be trusted. Ask your provider for a new link.'],
+    [400, 'cloud_other_server', 'This link is for a different Coduo POS server than the one this computer uses. Ask your provider for a new link.'],
     [502, 'cloud_unreachable', "Could not reach the cloud. Check this computer's internet connection and try again."],
     [400, 'rate_limited', 'Too many attempts. Wait a few minutes and try again.'],
   ])('says in plain words what went wrong (%s %s)', async (status, code, sentence) => {

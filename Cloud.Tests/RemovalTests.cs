@@ -3,6 +3,8 @@ using Cloud.Data;
 using Cloud.Services;
 using Cloud.Tests.Support;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using Sync;
 using Xunit;
 
@@ -118,6 +120,39 @@ public class RemovalTests : IClassFixture<CloudFactory>
         var home = await c.GetStringAsync("/admin");
         Assert.DoesNotContain($"/admin/Clients/Details/{seeded.ClientId}\"", home);
         Assert.Contains($"/admin/Clients/Details/{other.ClientId}\"", home);
+    }
+
+    /// <summary>
+    /// The live cloud runs SQL Server with retry-on-failure, whose execution strategy refuses a transaction opened outside it.
+    /// Removing a client was a 500 there while passing here on plain SQLite; this runs the removal under a retrying strategy.
+    /// </summary>
+    [Fact]
+    public async Task Removing_a_client_works_when_the_database_retries_dropped_connections()
+    {
+        var seeded = await _cloud.SeedSiteAsync(clientName: "Retried Removal");
+        var second = await AddBusyBranchAsync(seeded.ClientId, "Second");
+
+        var options = new DbContextOptionsBuilder<ControlDbContext>()
+            .UseSqlite($"Data Source={Path.Combine(_cloud.DataRoot, "control.db")}", o => o.ExecutionStrategy(d => new RetryingStrategy(d)))
+            .Options;
+        await using (var db = new ControlDbContext(options))
+        {
+            using var scope = _cloud.Services.CreateScope();
+            var images = scope.ServiceProvider.GetRequiredService<MenuImages>();
+            var removal = new SiteRemoval(db, _cloud.Mirrors, new MenuCatalogMerge(db, images, _cloud.Clock), images);
+            await removal.RemoveClientAsync(seeded.ClientId);
+        }
+
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.Clients.CountAsync(x => x.Id == seeded.ClientId)));
+        Assert.Equal((0, 0, 0, 0, 0), await RowsOfAsync(second));
+        Assert.False(MirrorFilesExist(second));
+    }
+
+    /// <summary>Behaves like SQL Server's retrying strategy where it matters here: it retries, so it guards transactions.</summary>
+    private sealed class RetryingStrategy(ExecutionStrategyDependencies dependencies)
+        : ExecutionStrategy(dependencies, maxRetryCount: 3, maxRetryDelay: TimeSpan.FromMilliseconds(10))
+    {
+        protected override bool ShouldRetryOn(Exception exception) => false;
     }
 
     [Fact]

@@ -120,7 +120,7 @@ void main() {
         ..permissions = manager
         ..role = 'manager';
 
-      await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'sam@shop.test');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'sam@shop.test');
       await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'secret');
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
       await tester.pumpAndSettle();

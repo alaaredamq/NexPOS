@@ -197,29 +197,32 @@ class _SignInScreenState extends State<SignInScreen> {
                                         const SizedBox(height: 16),
                                         TextFormField(
                                           controller: _email,
-                                          keyboardType:
-                                              TextInputType.emailAddress,
+                                          // Email, phone number or username: the cloud accepts any of the three.
+                                          keyboardType: TextInputType.text,
                                           textInputAction: TextInputAction.next,
                                           autofillHints: const [
-                                            AutofillHints.email,
+                                            AutofillHints.username,
                                           ],
                                           autocorrect: false,
+                                          enableSuggestions: false,
+                                          textCapitalization:
+                                              TextCapitalization.none,
                                           textDirection: TextDirection.ltr,
                                           decoration: InputDecoration(
                                             labelText: context.tr(
-                                              'Email',
-                                              'البريد الإلكتروني',
+                                              'Email, phone or username',
+                                              'البريد الإلكتروني أو الهاتف أو اسم المستخدم',
                                             ),
                                             prefixIcon: const Icon(
-                                              Icons.alternate_email,
+                                              Icons.person_outline,
                                             ),
                                           ),
                                           validator: (v) =>
-                                              (v ?? '').contains('@')
+                                              (v ?? '').trim().isNotEmpty
                                               ? null
                                               : context.tr(
-                                                  'Enter your email.',
-                                                  'أدخل بريدك الإلكتروني.',
+                                                  'Enter your email, phone number or username.',
+                                                  'أدخل بريدك الإلكتروني أو رقم هاتفك أو اسم المستخدم.',
                                                 ),
                                         ),
                                         const SizedBox(height: 14),

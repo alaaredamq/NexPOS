@@ -32,7 +32,7 @@ public sealed class OnlineController : ApiControllerBase
 
     /// <summary>
     /// Connects with the provider's link and starts syncing at once (no restart). A refused link answers 400 with a stable code:
-    /// <c>enroll_link_invalid</c>, <c>cloud_insecure_url</c>, <c>enroll_code_invalid</c>, <c>enroll_code_expired</c>, <c>enroll_code_used</c>,
+    /// <c>enroll_link_invalid</c>, <c>cloud_insecure_url</c>, <c>cloud_other_server</c>, <c>enroll_code_invalid</c>, <c>enroll_code_expired</c>, <c>enroll_code_used</c>,
     /// <c>site_disabled</c>, <c>rate_limited</c>; <c>cloud_unreachable</c> answers 502. Nothing changes on failure.
     /// </summary>
     [HttpPost("connect")]

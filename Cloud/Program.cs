@@ -113,6 +113,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseForwardedHeaders();
+app.UseCanonicalAddress();
 app.UseLandingTemplateGuard();
 app.UseOldPortalRedirects();
 app.UseStaticFiles(new StaticFileOptions
