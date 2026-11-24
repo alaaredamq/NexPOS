@@ -1,5 +1,6 @@
 using System.Net;
 using Cloud.Tests.Support;
+using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Cloud.Tests;
@@ -103,5 +104,49 @@ public class PublicSiteTests : IClassFixture<CloudFactory>
     public async Task Landing_assets_open_without_sign_in(string url)
     {
         Assert.Equal(HttpStatusCode.OK, (await Browser().GetAsync(url)).StatusCode);
+    }
+
+    /// <summary>The cloud as a server whose settings file names <paramref name="publicUrl"/> as its address.</summary>
+    private HttpClient At(string publicUrl)
+        => _cloud.WithWebHostBuilder(b => b.UseSetting("Cloud:PublicUrl", publicUrl))
+            .CreateClient(new() { AllowAutoRedirect = false });
+
+    [Theory]
+    [InlineData("http://coduos.com/m/bakery?x=1", "https://coduos.com/m/bakery?x=1")]
+    [InlineData("https://www.coduos.com/", "https://coduos.com/")]
+    [InlineData("http://www.coduos.com/admin", "https://coduos.com/admin")]
+    public async Task Plain_http_and_www_are_sent_to_the_one_public_address(string asked, string expected)
+    {
+        var response = await At("https://coduos.com").GetAsync(asked);
+
+        Assert.Equal(HttpStatusCode.MovedPermanently, response.StatusCode);
+        Assert.Equal(expected, response.Headers.Location!.OriginalString);
+    }
+
+    [Fact]
+    public async Task A_post_over_plain_http_is_redirected_as_a_post_and_the_public_address_itself_is_served()
+    {
+        var c = At("https://coduos.com");
+
+        var post = await c.PostAsync("http://coduos.com/admin/Account/Login", new FormUrlEncodedContent([]));
+        Assert.Equal(HttpStatusCode.PermanentRedirect, post.StatusCode);
+
+        var home = await c.GetAsync("https://coduos.com/");
+        Assert.Equal(HttpStatusCode.OK, home.StatusCode);
+        Assert.False(home.Headers.Contains("X-Robots-Tag"));
+        Assert.Contains("Sitemap: https://coduos.com/sitemap.xml", await c.GetStringAsync("https://coduos.com/robots.txt"));
+    }
+
+    [Fact]
+    public async Task The_test_site_keeps_itself_out_of_search_results()
+    {
+        var c = At("https://nexpos.tryasp.net");
+
+        var home = await c.GetAsync("https://nexpos.tryasp.net/");
+        Assert.Equal(HttpStatusCode.OK, home.StatusCode);
+        Assert.Equal("noindex, nofollow", string.Join(",", home.Headers.GetValues("X-Robots-Tag")));
+        var robots = await c.GetStringAsync("https://nexpos.tryasp.net/robots.txt");
+        Assert.Contains("Disallow: /\n", robots);
+        Assert.DoesNotContain("Sitemap:", robots);
     }
 }

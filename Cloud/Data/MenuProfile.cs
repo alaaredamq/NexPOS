@@ -68,8 +68,23 @@ public static partial class MenuHours
         if (days is null || days.All(string.IsNullOrWhiteSpace)) return (null, null);
         if (days.Count != 7) return (null, "Give the hours for all seven days.");
         var tidy = string.Join(';', days.Select(d => string.Join(',', (d ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))));
-        if (Parse(tidy) is null) return (null, "Write each time as 09:00, and each range as 09:00-23:00.");
-        return (tidy, null);
+        var week = Parse(tidy);
+        if (week is null) return (null, "Write each time as 09:00, and each range as 09:00-23:00.");
+        if (week.Any(day => day.Count > MaxRanges)) return (null, $"A day can have at most {MaxRanges} opening times.");
+        if (week.Any(Overlaps)) return (null, "Two opening times on the same day overlap.");
+        // Stored in time order, whatever order they were typed in.
+        return (string.Join(';', week.Select(day => string.Join(',', day.Select(r => $"{r.Open:HH\\:mm}-{r.Close:HH\\:mm}")))), null);
+    }
+
+    /// <summary>How many separate opening times one day can have (09:00-12:00, 13:00-16:00, 18:00-21:00 is three).</summary>
+    public const int MaxRanges = 4;
+
+    /// <summary>Ranges sorted by opening time overlap when one opens before the previous closes; a range past midnight must be the day's last.</summary>
+    private static bool Overlaps(List<Range> day)
+    {
+        for (var i = 1; i < day.Count; i++)
+            if (day[i - 1].Overnight || day[i].Open < day[i - 1].Close) return true;
+        return false;
     }
 
     /// <summary>Open or closed at <paramref name="local"/> (the shop's local time), and the next change.</summary>

@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/owner_api.dart';
+import '../config.dart' as config;
 import '../crypto/change_seal.dart';
 import '../crypto/shop_key.dart';
 import 'permissions.dart';
@@ -38,12 +39,11 @@ class MemoryTokenStore implements TokenStore {
 
 typedef ApiFactory = OwnerApi Function(String baseUrl, String? token);
 
-/// Who is signed in, to which cloud, in which language. Screens listen to it and rebuild.
+/// Who is signed in, in which language. The cloud is always [config.cloudUrl]. Screens listen to it and rebuild.
 class Session extends ChangeNotifier {
   Session({required this._prefs, required this._tokens, ApiFactory? apiFactory})
       : _apiFactory = apiFactory ?? ((url, token) => HttpOwnerApi(baseUrl: url, token: token));
 
-  static const _urlKey = 'cloud_url';
   static const _langKey = 'language';
   static const _nameKey = 'display_name';
   static const _clientKey = 'client_name';
@@ -57,7 +57,6 @@ class Session extends ChangeNotifier {
   String? _token;
   OwnerApi? _api;
 
-  String get cloudUrl => _prefs.getString(_urlKey) ?? '';
   String get displayName => _prefs.getString(_nameKey) ?? '';
   String get clientName => _prefs.getString(_clientKey) ?? '';
 
@@ -77,25 +76,23 @@ class Session extends ChangeNotifier {
   /// Picks up where the owner left off: a saved sign-in is used again without asking.
   Future<void> restore() async {
     _token = await _tokens.read();
-    if (_token != null && cloudUrl.isNotEmpty) {
-      _api = _apiFactory(cloudUrl, _token);
+    if (_token != null) {
+      _api = _apiFactory(config.cloudUrl, _token);
     } else {
       _token = null;
     }
     notifyListeners();
   }
 
-  Future<void> signIn({required String cloudUrl, required String email, required String password}) async {
-    final url = cloudUrl.trim();
-    final result = await _apiFactory(url, null).signIn(email.trim(), password);
+  Future<void> signIn({required String email, required String password}) async {
+    final result = await _apiFactory(config.cloudUrl, null).signIn(email.trim(), password);
     await _tokens.write(result.token);
-    await _prefs.setString(_urlKey, url);
     await _prefs.setString(_nameKey, result.displayName);
     await _prefs.setString(_clientKey, result.clientName);
     await _prefs.setInt(_permKey, result.permissions);
     await _prefs.setString(_roleKey, result.role);
     _token = result.token;
-    _api = _apiFactory(url, result.token);
+    _api = _apiFactory(config.cloudUrl, result.token);
     notifyListeners();
   }
 

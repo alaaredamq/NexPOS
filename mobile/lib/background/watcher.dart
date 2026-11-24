@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../api/owner_api.dart';
+import '../config.dart' as config;
 import '../crypto/change_seal.dart';
 import '../crypto/shop_key.dart';
 import '../data/shop_data.dart';
@@ -57,9 +58,6 @@ class ShopWatcher {
   /// A sale older than this is not "new": it only reached the phone late (a shop PC that was off, or a fresh install).
   static const _freshSale = Duration(hours: 36);
 
-  /// The shop's licence plan as the cloud last reported it (null: unknown, treated as Pro).
-  String? _shopPlan;
-
   bool get _ar => prefs.getString('language') == 'ar';
   String _t(String en, String ar) => _ar ? ar : en;
 
@@ -105,8 +103,7 @@ class ShopWatcher {
       }
     });
     await prefs.setString(_lowKey, jsonEncode(low.toList()));
-    // The Basic plan tracks no stock, so it gets no low-stock alerts (the markers above still move on, so an upgrade starts quiet).
-    if (ranLow.isNotEmpty && _shopPlan != 'Basic') {
+    if (ranLow.isNotEmpty) {
       alerts.add(Alert(
         2,
         _t('Low stock', 'مخزون منخفض'),
@@ -179,7 +176,6 @@ class ShopWatcher {
     var cursor = prefs.getString(cursorKey);
     while (true) {
       final page = await api.rows(table, cursor: cursor, limit: 500);
-      if (page.shopPlan != null) _shopPlan = page.shopPlan;
       if (decrypt) {
         for (final r in page.rows) {
           each(r.id, await key.decryptRow(table, r.id, r.payload));
@@ -244,11 +240,10 @@ Future<bool> runWatch({Notifier? notifier, SharedPreferences? preferences}) asyn
   if (!WatchSettings.isOn(prefs)) return true;
   final token = await const SecureTokenStore().read();
   final key = await const SecureKeyStore().read();
-  final url = prefs.getString('cloud_url') ?? '';
-  if (token == null || key == null || url.isEmpty) return true; // signed out or locked: nothing to look at
+  if (token == null || key == null) return true; // signed out or locked: nothing to look at
 
   try {
-    final watcher = ShopWatcher(api: HttpOwnerApi(baseUrl: url, token: token), key: key, prefs: prefs);
+    final watcher = ShopWatcher(api: HttpOwnerApi(baseUrl: config.cloudUrl, token: token), key: key, prefs: prefs);
     final out = notifier ?? LocalNotifier();
     for (final alert in await watcher.check()) {
       await out.show(alert);

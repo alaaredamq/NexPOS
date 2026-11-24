@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Cloud.Services;
 using Cloud.Tests.Support;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -28,11 +29,11 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
     private static Task<HttpResponseMessage> Post(HttpClient c, int clientId, string handlerAndQuery, params (string, string)[] fields)
         => HtmlForms.PostAsync(c, $"/admin/Clients/Details/{clientId}", $"/admin/Clients/Details/{clientId}?handler={handlerAndQuery}", fields);
 
-    /// <summary>What the next page load shows once: the email and password to hand to the owner.</summary>
+    /// <summary>What the next page load shows once: the sign-in name and password to hand to the owner.</summary>
     private static async Task<(string Email, string Password)?> HandedOverAsync(HttpClient c, int clientId)
     {
         var html = await c.GetStringAsync($"/admin/Clients/Details/{clientId}");
-        var m = Regex.Match(html, @"Email: (?<e>[^\s<]+)\s*Password: (?<p>[A-Za-z0-9]+)");
+        var m = Regex.Match(html, @"Sign in with: (?<e>[^\s<]+)\s*Password: (?<p>[A-Za-z0-9]+)");
         return m.Success ? (m.Groups["e"].Value, m.Groups["p"].Value) : null;
     }
 
@@ -155,8 +156,11 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
     }
 
     [Theory]
-    [InlineData("not-an-email", "longenough1", "valid email")]
-    [InlineData("", "longenough1", "valid email")]
+    [InlineData("not-an-email@", "longenough1", "Enter an email, a phone number")]
+    [InlineData("12345", "longenough1", "Enter an email, a phone number")]
+    [InlineData("al", "longenough1", "Enter an email, a phone number")]
+    [InlineData("has space", "longenough1", "Enter an email, a phone number")]
+    [InlineData("", "longenough1", "Enter an email, a phone number")]
     [InlineData("ok@shop.example", "short", "at least 8")]
     public async Task Bad_input_is_refused_with_a_reason_and_creates_nothing(string email, string password, string reason)
     {
@@ -185,6 +189,74 @@ public class PhoneLoginPortalTests : IClassFixture<CloudFactory>
         Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(u => u.ClientId == second.ClientId)));
         Assert.Equal(HttpStatusCode.OK, (await PhoneLoginAsync(email, "first-password-1")).StatusCode);
     }
+
+    [Fact]
+    public async Task A_login_can_be_a_username_instead_of_an_email()
+    {
+        var site = await _cloud.SeedSiteAsync();
+        var admin = await AdminAsync();
+        var username = $"Hassan.K-{Random.Shared.Next(100000, 999999)}";
+
+        await Post(admin, site.ClientId, "AddOwner", ("Email", "  " + username + " "), ("DisplayName", ""), ("Password", "username-pass-1"));
+
+        Assert.Equal(username.ToLowerInvariant(), (await HandedOverAsync(admin, site.ClientId))?.Email);
+        var login = await PhoneLoginAsync(username.ToUpperInvariant(), "username-pass-1");
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        Assert.Equal(username.ToLowerInvariant(), (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("displayName").GetString());
+        Assert.Equal(HttpStatusCode.Unauthorized, (await PhoneLoginAsync(username, "wrong-pass-1")).StatusCode);
+    }
+
+    [Fact]
+    public async Task A_login_can_be_a_phone_number_typed_with_or_without_the_country_code()
+    {
+        var first = await _cloud.SeedSiteAsync(clientName: "Phone Shop One");
+        var second = await _cloud.SeedSiteAsync(clientName: "Phone Shop Two");
+        var admin = await AdminAsync();
+        var line = Random.Shared.Next(1_000_000, 9_999_999).ToString();  // seven digits, like 3 123456 after +961
+        var local = "0" + line;                                            // how it is written at home: 03 123456
+
+        await Post(admin, first.ClientId, "AddOwner", ("Email", $"{local[..2]} {local[2..5]} {local[5..]}"), ("DisplayName", "Rami"), ("Password", "phone-pass-01"));
+        Assert.Equal(local, (await HandedOverAsync(admin, first.ClientId))?.Email);  // stored as digits only
+
+        foreach (var typed in new[] { local, $"+961 {line}", $"00961{line}", $"961-{line}", $"({local[..2]}) {local[2..]}" })
+            Assert.True((await PhoneLoginAsync(typed, "phone-pass-01")).StatusCode == HttpStatusCode.OK, $"\"{typed}\" should sign in");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await PhoneLoginAsync(local[..^1], "phone-pass-01")).StatusCode);  // one digit short
+
+        // The same line written another way is still the same login, so a second shop cannot take it.
+        var dup = await Post(admin, second.ClientId, "AddOwner", ("Email", "+961" + line), ("DisplayName", ""), ("Password", "phone-pass-02"));
+        Assert.Contains("That phone number already has a phone login", await (await admin.GetAsync(dup.Headers.Location!.OriginalString)).Content.ReadAsStringAsync());
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(u => u.ClientId == second.ClientId)));
+    }
+
+    [Theory]
+    [InlineData("Owner@Shop.Example", "owner@shop.example", OwnerSignIn.Kind.Email)]
+    [InlineData("+961 3 123 456", "9613123456", OwnerSignIn.Kind.Phone)]
+    [InlineData("00961-3-123456", "9613123456", OwnerSignIn.Kind.Phone)]
+    [InlineData("(03) 123.456", "03123456", OwnerSignIn.Kind.Phone)]
+    [InlineData(" Hassan_K ", "hassan_k", OwnerSignIn.Kind.Username)]
+    [InlineData("shop2026", "shop2026", OwnerSignIn.Kind.Username)]
+    public void Sign_in_names_are_stored_in_one_form(string typed, string stored, OwnerSignIn.Kind kind)
+        => Assert.Equal((stored, kind), OwnerSignIn.Normalize(typed));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("a@")]
+    [InlineData("123456")]            // too short for a phone, and a username needs a letter
+    [InlineData("1234567890123456")]  // longer than any phone number
+    [InlineData("ab")]
+    [InlineData("hassan k")]
+    [InlineData("حسن")]
+    [InlineData("3+123456789")]
+    public void Anything_else_is_refused(string typed) => Assert.Null(OwnerSignIn.Normalize(typed));
+
+    [Theory]
+    [InlineData("03123456", "9613123456", true)]
+    [InlineData("3123456", "03123456", true)]
+    [InlineData("70123456", "96170123456", true)]
+    [InlineData("03123456", "03123457", false)]
+    [InlineData("0123456", "96170123456", false)]  // under seven digits once the 0 goes: too little to match on
+    public void Phone_numbers_match_with_or_without_country_code(string a, string b, bool same)
+        => Assert.Equal(same, OwnerSignIn.SamePhone(a, b));
 
     [Fact]
     public async Task Resetting_makes_a_new_password_and_signs_the_phone_out()

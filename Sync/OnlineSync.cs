@@ -198,6 +198,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var defaults = configuration.GetSection(OnlineSettings.SectionName).Get<OnlineSettings>() ?? new OnlineSettings();
             services.AddSingleton(new OnlineSettingsStore(settingsFilePath, defaults));
+            services.AddSingleton(OnlineServer.From(configuration[OnlineServer.ConfigKey]));
             services.AddSingleton<SyncStatus>();
             services.AddSingleton<OnlineSignal>();
             services.TryAddSingleton(TimeProvider.System);

@@ -5,7 +5,6 @@ import { Icon } from '@/ui/Icon'
 import { formatMoney, formatQty } from '@/ui/format'
 import type { PosProduct } from './api'
 import { stockLevel } from './stock'
-import { useTracksStock } from '@/core/license/license'
 import styles from './catalog.module.css'
 
 interface ProductTileProps {
@@ -21,8 +20,7 @@ interface ProductTileProps {
  */
 export const ProductTile = memo(function ProductTile({ product, onPress }: ProductTileProps) {
   const { t } = useTranslation(['pos', 'common'])
-  const tracksStock = useTracksStock()
-  const level = tracksStock ? stockLevel(product) : 'ok'
+  const level = stockLevel(product)
   const style = { '--tile-accent': categoryColor(product.categoryName) } as CSSProperties
   const unit = product.unitKind === 'count' ? t('units', { ns: 'pos' }) : (product.unit ?? '')
 
@@ -34,7 +32,6 @@ export const ProductTile = memo(function ProductTile({ product, onPress }: Produ
       </span>
       <span className={styles.tileFoot}>
         <span className={styles.tilePrice}>{formatMoney(product.sellingPrice, product.currencyNotation)}</span>
-        {tracksStock && (
         <span className={styles.tileStock} data-level={level}>
           {level === 'ok' ? (
             <>
@@ -49,7 +46,6 @@ export const ProductTile = memo(function ProductTile({ product, onPress }: Produ
             </>
           )}
         </span>
-        )}
       </span>
     </button>
   )

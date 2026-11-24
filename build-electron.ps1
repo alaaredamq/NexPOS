@@ -1,5 +1,20 @@
 ﻿# Build script for Electron Desktop App
 # This script publishes the .NET app and then builds the Electron package
+#
+#   .\build-electron.ps1 [win|win-installer|win-portable] [-Test]
+#
+# A normal build connects shops to the live Coduo POS Cloud (https://coduos.com).
+# -Test builds one that connects to the test site (https://nexpos.tryasp.net) instead; never give a -Test build to a customer.
+
+$liveServer = "https://coduos.com"
+$testServer = "https://nexpos.tryasp.net"
+$isTest = [bool]($args | Where-Object { $_ -eq '-Test' })
+$server = if ($isTest) { $testServer } else { $liveServer }
+$requestedType = $args | Where-Object { $_ -notlike '-*' } | Select-Object -First 1
+if ($requestedType -and $requestedType -notin @('win', 'win-installer', 'win-portable')) {
+    Write-Host "Invalid build type: $requestedType (valid: win, win-installer, win-portable)" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Coduo POS Desktop App Build Script" -ForegroundColor Cyan
@@ -58,6 +73,23 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "✓ .NET application published successfully" -ForegroundColor Green
 Write-Host ""
 
+# Which Coduo POS Cloud this build connects to (Online:Server in the shipped appsettings.json).
+$appSettings = Join-Path $publishPath "appsettings.json"
+$json = [System.IO.File]::ReadAllText($appSettings)
+$pattern = '("Server"\s*:\s*")[^"]*(")'
+if ($json -notmatch $pattern) {
+    Write-Host "ERROR: Online:Server is missing from $appSettings" -ForegroundColor Red
+    exit 1
+}
+$json = ([regex]$pattern).Replace($json, '${1}' + $server + '${2}', 1)
+[System.IO.File]::WriteAllText($appSettings, $json, (New-Object System.Text.UTF8Encoding($false)))
+if ($isTest) {
+    Write-Host "✓ TEST build: connects to $server" -ForegroundColor Magenta
+} else {
+    Write-Host "✓ Live build: connects to $server" -ForegroundColor Green
+}
+Write-Host ""
+
 # The installer is built from publish\app, so fail here (not on a customer's PC) if the SPA is missing from it.
 if ($hasClient) {
     $spaIndex = Join-Path $publishPath "wwwroot\app\index.html"
@@ -90,7 +122,7 @@ Write-Host ""
 Write-Host "Step 3: Building Electron package..." -ForegroundColor Yellow
 Write-Host ""
 
-$buildType = $args[0]
+$buildType = $args | Where-Object { $_ -notlike '-*' } | Select-Object -First 1
 if (-not $buildType) {
     $buildType = "win"
     Write-Host "No build type specified, using default: $buildType" -ForegroundColor Gray
@@ -98,6 +130,7 @@ if (-not $buildType) {
     Write-Host ""
 }
 
+$buildStart = Get-Date
 switch ($buildType) {
     "win" { npm run build:win }
     "win-installer" { npm run build:win-installer }
@@ -114,13 +147,25 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+# A test build says so in its file name ("Coduo POS Setup 2.6.7 TEST.exe"), so it cannot be mistaken for a customer installer.
+$built = @(Get-ChildItem -Path "dist" -Filter "*.exe" -File | Where-Object { $_.LastWriteTime -ge $buildStart })
+if ($isTest) {
+    $built = @($built | ForEach-Object {
+        if ($_.BaseName -like '* TEST') { return $_ }
+        $target = Join-Path $_.DirectoryName ($_.BaseName + ' TEST' + $_.Extension)
+        Remove-Item $target -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path $_.FullName -NewName (Split-Path $target -Leaf)
+        Get-Item $target
+    })
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Build Complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Your EXE files are in the 'dist' folder:" -ForegroundColor Yellow
-Get-ChildItem -Path "dist" -Filter "*.exe" | ForEach-Object {
+Write-Host "Built in the 'dist' folder ($server):" -ForegroundColor Yellow
+$built | ForEach-Object {
     Write-Host "  - $($_.Name)" -ForegroundColor White
 }
 Write-Host ""

@@ -49,8 +49,15 @@ flutter doctor            # the Android toolchain line should be green
 3. `cd mobile; flutter run` installs and starts it. Or install a built file:
    `flutter build apk --release` then `adb install -r build\app\outputs\flutter-apk\app-release.apk`.
 
-Cloud address in the app: your real cloud (`https://...`). **Debug builds** also allow plain `http://<PC-LAN-IP>:<port>` for testing
-against a cloud on this PC (`android/app/src/debug/AndroidManifest.xml`); **release builds are https-only**.
+The app always talks to **`https://coduos.com`** (`lib/config.dart`); owners never see or type an address. To build one that talks
+to another cloud, pass it at build time, no code change:
+
+```powershell
+flutter build apk --release --dart-define=CLOUD_URL=https://nexpos.tryasp.net   # the test cloud
+flutter run --dart-define=CLOUD_URL=http://<PC-LAN-IP>:<port>                     # a cloud on this PC
+```
+
+**Debug builds** allow plain http to a PC (`android/app/src/debug/AndroidManifest.xml`); **release builds are https-only**.
 
 ## Tests
 
@@ -98,8 +105,9 @@ Needs the Flutter and Dart plugins in Android Studio, the Flutter SDK path set, 
 
 1. Start the cloud: `dotnet run --project Cloud` (it listens on `http://localhost:51158`).
 2. Portal > open a client that has a branch and an active subscription > **Phone logins** > **Add a phone login**.
-3. Pick the emulator, open `lib/main.dart` and press **Run**.
-4. Sign in with that email and password. A debug build pre-fills the cloud address with `http://10.0.2.2:51158`
-   (10.0.2.2 is how the emulator names the PC it runs on). On a real phone use the PC's LAN address instead.
+3. Pick the emulator and run with `flutter run --dart-define=CLOUD_URL=http://10.0.2.2:51158` (10.0.2.2 is how the emulator names
+   the PC it runs on; on a real phone use the PC's LAN address). In Android Studio put the same `--dart-define` in the run
+   configuration's *Additional run args*. Without it the app talks to the live `https://coduos.com`.
+4. Sign in with that email and password.
 
 The shop PC must be connected to that same cloud for the lookups and for changes to move from "Waiting for shop" to "Done".

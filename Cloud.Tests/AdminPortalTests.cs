@@ -213,9 +213,9 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         var clientUrl = $"/admin/Clients/Details/{seeded.ClientId}";
         const string email = "portal-owner@shop.test";
 
-        // Too-short password and a missing "@" are refused; nothing is created.
+        // A too-short password and a sign-in name that is not an email, phone or username are refused; nothing is created.
         await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", email), ("Password", "short"));
-        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", "nobody"), ("Password", "long-enough-1"));
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", "no body@"), ("Password", "long-enough-1"));
         Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(o => o.ClientId == seeded.ClientId)));
 
         // The email is stored lower-case, and the owner can sign in to the phone API with it.

@@ -15,26 +15,24 @@
     </ItemGroup>
 
     <!--
-        Server settings (admin login, public address, database connection) travel with every publish, from Cloud/deploy/cloud.settings.json,
-        which you create from cloud.settings.json.example and which git ignores. It is published to the site root as cloud.settings.json.
-        It is deliberately NOT in the project folder itself, so dotnet run and the tests never pick it up and cannot touch your real database.
+        Server settings (admin login, public address, database connection) live in cloud.settings.json in each server's site root, and
+        each server has its own (coduos.com is live, nexpos.tryasp.net is the test site). A publish NEVER contains one, so it can never
+        overwrite a server's settings with another server's. Make it once on a new server from Cloud/deploy/cloud.settings.json.example;
+        https://<site>/healthz then says settingsFileFound: true.
     -->
     <ItemGroup>
         <Content Remove="deploy\**" />
         <None Remove="deploy\**" />
-        <Content Include="deploy\cloud.settings.json" Condition="Exists('deploy\cloud.settings.json')"
-                 Link="cloud.settings.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
+        <Content Remove="cloud.settings.json" />
+        <None Remove="cloud.settings.json" />
     </ItemGroup>
-
-    <!--
-        Stop a publish to the server (any publish profile: Web Deploy, FTP, folder) when the settings file is missing.
-        Without it the site starts on an empty SQLite database and the owner sign-in breaks.
-        Plain "dotnet publish" (Docker) has no profile and is not stopped. Pass -p:AllowMissingCloudSettings=true to publish anyway.
-    -->
-    <Target Name="RequireCloudSettings" BeforeTargets="PrepareForPublish"
-            Condition="'$(PublishProfile)' != '' And '$(PublishProfile)' != 'Default' And '$(AllowMissingCloudSettings)' != 'true' And !Exists('$(MSBuildProjectDirectory)\deploy\cloud.settings.json')">
-        <Error Text="Cloud\deploy\cloud.settings.json is missing, so this publish would ship without the database connection and admin login. Copy Cloud\deploy\cloud.settings.json.example to Cloud\deploy\cloud.settings.json, fill it in, and publish again." />
-    </Target>
+    <!-- Web Deploy: leave the server's cloud.settings.json alone even if "remove additional files" is ever switched on. -->
+    <ItemGroup>
+        <MsDeploySkipRules Include="KeepServerCloudSettings">
+            <ObjectName>filePath</ObjectName>
+            <AbsolutePath>\\cloud\.settings\.json$</AbsolutePath>
+        </MsDeploySkipRules>
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />

@@ -34,7 +34,7 @@ class ProductPage extends StatelessWidget {
     );
   }
 
-  /// [basic]: the shop's plan tracks no stock, so the stock figure, its level and "Adjust stock" are left out.
+  /// [basic]: the shop's plan has no suppliers, so the supplier is left out.
   Widget _body(BuildContext context, ProductDetail d, int waiting, Session session, bool basic) {
     final locale = Localizations.localeOf(context).languageCode;
     final unit = d.unit.isEmpty ? '' : ' ${unitShort(context, d.unit)}';
@@ -54,22 +54,19 @@ class ProductPage extends StatelessWidget {
           ),
           const SizedBox(height: 10),
         ],
-        if (!basic) ...[
-          FadeUp(
-            child: StatCard(
-              dark: true,
-              label: context.tr('In stock', 'في المخزون'),
-              value: '${qty(d.stock)}$unit',
-              sub: d.minimum != null && d.minimum! > 0 ? context.tr('Warn below ${qty(d.minimum!)}', 'تنبيه عند أقل من ${qty(d.minimum!)}') : null,
-            ),
+        FadeUp(
+          child: StatCard(
+            dark: true,
+            label: context.tr('In stock', 'في المخزون'),
+            value: '${qty(d.stock)}$unit',
+            sub: d.minimum != null && d.minimum! > 0 ? context.tr('Warn below ${qty(d.minimum!)}', 'تنبيه عند أقل من ${qty(d.minimum!)}') : null,
           ),
-          const SizedBox(height: 10),
-        ],
-        if (!basic || !d.isActive)
+        ),
+        const SizedBox(height: 10),
         FadeUp(
           index: 1,
           child: Wrap(spacing: 8, runSpacing: 6, children: [
-            if (!basic) Chip2(levelText, bg: levelBg, fg: levelFg),
+            Chip2(levelText, bg: levelBg, fg: levelFg),
             if (!d.isActive) Chip2(context.tr('Not on sale', 'غير معروض'), bg: const Color(0xFFEEF1F5), fg: const Color(0xFF44505F)),
           ]),
         ),
@@ -78,16 +75,14 @@ class ProductPage extends StatelessWidget {
         FadeUp(
           index: 2,
           child: Row(children: [
-            if (!basic) ...[
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => StockAdjustScreen(productId: d.id))),
-                  icon: const Icon(Icons.inventory_2_outlined),
-                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.tr('Adjust stock', 'تعديل المخزون'))),
-                ),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => StockAdjustScreen(productId: d.id))),
+                icon: const Icon(Icons.inventory_2_outlined),
+                label: FittedBox(fit: BoxFit.scaleDown, child: Text(context.tr('Adjust stock', 'تعديل المخزون'))),
               ),
-              const SizedBox(width: 10),
-            ],
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
@@ -216,8 +211,6 @@ class _ProductEditScreenState extends State<ProductEditScreen> with SubmitsChang
   @override
   Widget build(BuildContext context) {
     final decimals = [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))];
-    // Basic tracks no stock: no low-stock warning level, and no word about Adjust stock.
-    final basic = context.watch<ShopData>().isBasic;
     return FormPage(
       title: context.tr('Edit product', 'تعديل المنتج'),
       formKey: _form,
@@ -253,7 +246,6 @@ class _ProductEditScreenState extends State<ProductEditScreen> with SubmitsChang
             ),
           ),
         ]),
-        if (!basic)
         TextFormField(
           controller: _min,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -269,7 +261,6 @@ class _ProductEditScreenState extends State<ProductEditScreen> with SubmitsChang
           value: _active,
           onChanged: (v) => setState(() => _active = v),
         ),
-        if (!basic)
         Text(
           context.tr('Stock is changed with Adjust stock, so every change is recorded.', 'يُعدَّل المخزون من "تعديل المخزون" ليُسجَّل كل تغيير.'),
           style: const TextStyle(fontSize: 12, color: Tokens.muted),

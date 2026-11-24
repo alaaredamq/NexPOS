@@ -8,7 +8,7 @@ import 'support/fake_api.dart';
 import 'support/vectors.dart';
 
 Future<(ShopData, Session, FakeApi, MemoryKeyStore, MemoryTokenStore)> start({bool signedIn = true}) async {
-  SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test'});
+  SharedPreferences.setMockInitialValues({});
   final api = FakeApi();
   final tokens = MemoryTokenStore()..value = signedIn ? 'nxo_test' : null;
   final session = Session(prefs: await SharedPreferences.getInstance(), tokens: tokens, apiFactory: (_, _) => api);

@@ -118,10 +118,10 @@
     <section class="card" aria-labelledby="newlogin" style="border-color:var(--ok)">
         <h2 id="newlogin">Phone login ready: send it to the owner</h2>
         <p class="muted" style="margin-top:0">The password is shown only now. If it is lost, reset it and a new one is made.</p>
-        <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Email: @Model.NewLoginEmail
+        <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Sign in with: @Model.NewLoginEmail
 Password: @Model.NewLoginPassword</div>
         <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
-            <li>The owner installs the Coduo POS Owner app and signs in with the email and password above.</li>
+            <li>The owner installs the Coduo POS Owner app and signs in with the name and password above.</li>
             <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: Coduo POS &gt; Settings &gt; Online &gt; Show recovery code.</li>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
@@ -188,8 +188,10 @@ Password: @Model.NewLoginPassword</div>
         <form method="post" asp-page-handler="AddOwner" asp-route-id="@Model.Client.Id">
             <div class="fields2">
                 <div>
-                    <label for="ownerEmail">Email <span class="opt">(what they type to sign in)</span></label>
-                    <input id="ownerEmail" name="Email" type="email" placeholder="owner@example.com" required maxlength="255" autocomplete="off" />
+                    <label for="ownerEmail">Sign-in name <span class="opt">(email, phone number or username)</span></label>
+                    <input id="ownerEmail" name="Email" type="text" placeholder="owner@example.com, 03 123 456 or hassan" required maxlength="255"
+                           autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="ownerEmailHelp" />
+                    <div id="ownerEmailHelp" class="help" style="margin-top:4px">A phone number works with or without the country code.</div>
                 </div>
                 <div>
                     <label for="ownerName">Name <span class="opt">(shown in the app)</span></label>
@@ -261,7 +263,7 @@ Password: @Model.NewLoginPassword</div>
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
         public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"Coduo POS app login\nEmail: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+            $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
             "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
             "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
 
@@ -386,26 +388,33 @@ Password: @Model.NewLoginPassword</div>
             var client = await TrackedAsync(id);
             if (client is null) return NotFound();
 
-            email = email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(email) || email.Length > 255 || !System.Net.Mail.MailAddress.TryCreate(email, out var parsed) || parsed.Address != email)
+            // Email, phone number or username: whichever the owner would rather type (see OwnerSignIn).
+            if (OwnerSignIn.Normalize(email) is not { } signIn)
             {
-                this.Flash("Enter a valid email address");
+                this.Flash(OwnerSignIn.Rules);
                 return RedirectToPage(new { id });
             }
+            email = signIn.Value;
             if (!string.IsNullOrEmpty(password) && (password.Length < MinOwnerPasswordLength || password.Length > 100))
             {
                 this.Flash($"The password needs at least {MinOwnerPasswordLength} characters");
                 return RedirectToPage(new { id });
             }
-            // The sign-in name is unique across ALL clients: the phone app asks only for email and password.
-            if (await db.OwnerUsers.AnyAsync(u => u.Email == email))
+            // The sign-in name is unique across ALL clients: the phone app asks only for it and the password.
+            if (await OwnerSignIn.TakenAsync(db.OwnerUsers, email, signIn.Kind))
             {
-                this.Flash("That email already has a phone login");
+                this.Flash(signIn.Kind switch
+                {
+                    OwnerSignIn.Kind.Email => "That email already has a phone login",
+                    OwnerSignIn.Kind.Phone => "That phone number already has a phone login",
+                    _ => "That username already has a phone login",
+                });
                 return RedirectToPage(new { id });
             }
 
             var finalPassword = string.IsNullOrEmpty(password) ? GeneratePassword() : password;
-            var name = string.IsNullOrWhiteSpace(displayName) ? email[..email.IndexOf('@')] : displayName.Trim();
+            var name = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim()
+                : signIn.Kind == OwnerSignIn.Kind.Email ? email[..email.IndexOf('@')] : email;
             db.OwnerUsers.Add(new OwnerUser
             {
                 ClientId = id, Email = email, DisplayName = name.Length > 100 ? name[..100] : name,

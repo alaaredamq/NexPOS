@@ -43,16 +43,11 @@ beforeEach(async () => {
 })
 
 describe('product key and the plan', () => {
-  it('shows the stock (here: sold out) on Pro', () => {
-    showTile('Pro')
-    expect(screen.getByRole('button', { name: /Cola/ })).toHaveTextContent(/out of stock/i)
-  })
-
-  it('is name and price only on Basic, which tracks no stock', () => {
-    showTile('Basic')
+  it.each(['Pro', 'Basic'] as const)('shows the stock (here: sold out) on %s', (plan) => {
+    showTile(plan)
     const key = screen.getByRole('button', { name: /Cola/ })
-    expect(key).not.toHaveTextContent(/out of stock/i)
+    expect(key).toHaveTextContent(/out of stock/i)
     expect(key).toHaveTextContent('2.00')
-    expect(key).toHaveAttribute('data-stock', 'ok')
+    expect(key).toHaveAttribute('data-stock', 'out')
   })
 })

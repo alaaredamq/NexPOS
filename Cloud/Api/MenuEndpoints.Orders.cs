@@ -58,7 +58,7 @@ public static partial class MenuEndpoints
         if (phone is not null && !MenuContact.IsPhone(phone)) return Error(StatusCodes.Status400BadRequest, "bad_phone", "That phone number does not look right.");
         var wanted = (body.Lines ?? []).Where(l => l.N > 0).GroupBy(l => l.Id).Select(x => (Id: x.Key, N: Math.Min(MaxQuantity, x.Sum(l => l.N)))).ToList();
         if (wanted.Count == 0) return Error(StatusCodes.Status400BadRequest, "empty", "The order is empty.");
-        if (wanted.Count > MaxOrderLines) return Error(StatusCodes.Status400BadRequest, "too_many", $"An order can hold up to {MaxOrderLines} different dishes.");
+        if (wanted.Count > MaxOrderLines) return Error(StatusCodes.Status400BadRequest, "too_many", $"An order can hold up to {MaxOrderLines} different items.");
 
         // A few orders per phone per few minutes is plenty for a table; more is someone playing with the page.
         var who = (http.Connection.RemoteIpAddress?.ToString() ?? "unknown") + "|" + menu.Id;
@@ -75,7 +75,7 @@ public static partial class MenuEndpoints
         foreach (var (id, n) in wanted)
         {
             var item = items.FirstOrDefault(i => i.Id == id);
-            if (item is null) return Error(StatusCodes.Status409Conflict, "gone", "A dish in your order is no longer on the menu. Remove it and send again.");
+            if (item is null) return Error(StatusCodes.Status409Conflict, "gone", "An item in your order is no longer on the menu. Remove it and send again.");
             if (item.IsSoldOut) return Error(StatusCodes.Status409Conflict, "sold_out", $"{item.Name} is sold out. Remove it and send again.");
             var (price, currency) = MenuRules.PriceAt(item, site, context.Type, menu.Currency);
             lines.Add(new MenuOrderLine

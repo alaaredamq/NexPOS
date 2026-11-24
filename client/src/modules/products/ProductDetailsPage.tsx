@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { useSession } from '@/core/auth/useSession'
-import { useTracksStock } from '@/core/license/license'
+import { useIsPro } from '@/core/license/license'
 import { Can, useCan } from '@/core/permissions/permissions'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
@@ -33,8 +33,8 @@ export default function ProductDetailsPage() {
 
 function Details({ product: p }: { product: ProductDetail }) {
   const { t } = useTranslation('products')
-  // Basic has no stock tracking and no suppliers: those parts of the page are left out.
-  const tracksStock = useTracksStock()
+  // Basic has no suppliers: the supplier is left out.
+  const pro = useIsPro()
   const navigate = useNavigate()
   const session = useSession()
   const remove = useDeleteProduct()
@@ -100,7 +100,7 @@ function Details({ product: p }: { product: ProductDetail }) {
             <Item label={t('Category', { ns: 'common' })}>
               <StatusBadge tone="info" label={p.categoryName ?? t('details.uncategorized')} />
             </Item>
-            {tracksStock && (
+            {pro && (
             <Item label={t('Supplier', { ns: 'common' })}>
               <StatusBadge tone="neutral" label={p.supplierName ?? t('details.noSupplier')} />
               {p.supplierDiscountRate > 0 && (
@@ -155,8 +155,6 @@ function Details({ product: p }: { product: ProductDetail }) {
             </>
           )}
 
-          {tracksStock && (
-          <>
           <hr className={styles.rule} />
           <dl className={styles.grid}>
             <Item label={t('Stock')}>
@@ -164,19 +162,15 @@ function Details({ product: p }: { product: ProductDetail }) {
             </Item>
             <Item label={t('Minimum Stock Level', { ns: 'common' })}>{qty(p.minStockLevel)}</Item>
           </dl>
-          </>
-          )}
         </section>
 
         <div className={styles.side}>
           <section className={styles.card} aria-label={t('details.statistics')}>
             <h2 className={styles.cardTitle}>{t('details.statistics')}</h2>
             <dl className={styles.stats}>
-              {tracksStock && (
               <Item label={t('details.stockValue')}>
                 <strong className="tabular-nums">{money(p.stockValue)}</strong>
               </Item>
-              )}
               <Item label={t('details.profitPercent')}>
                 <strong className="tabular-nums">{formatPercent(p.profitMarginPercent, 2)}</strong>
               </Item>

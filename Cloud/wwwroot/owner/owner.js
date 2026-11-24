@@ -33,19 +33,19 @@ en: {
  shopSub: 'Whether your shop PC is talking to the cloud. A till keeps selling when it loses contact.', lastContact: 'Last contact', lastCopy: 'Last copy of your data', plan: 'Online plan', renews: 'Runs until {0}',
  sActive: 'Active', sGrace: 'Ended recently, still updating', sExpired: 'Ended', sSuspended: 'Paused by your provider', sNone: 'Not started',
  planNote: 'If the plan ends the tills keep selling. This site stops updating after 7 days.', menuH: 'Online menu', menuP: 'A public page with your products, pictures and prices. Share it by link or print its QR code for the tables.', menuOpen: 'Open the menu editor', contactOk: 'In contact', contactLate: 'Quiet', contactOff: 'Offline',
- signTitle: 'Sign in', signSub: 'See your shop from your phone.', email: 'Email', pass: 'Password', show: 'Show', hide: 'Hide', signBtn: 'Sign in', signing: 'Signing in',
- errEmail: 'Enter your email.', errPass: 'Enter your password.', noOnline: 'No account yet? Ask your provider to set one up for you.',
+ signTitle: 'Sign in', signSub: 'See your shop from your phone.', email: 'Email, phone or username', pass: 'Password', show: 'Show', hide: 'Hide', signBtn: 'Sign in', signing: 'Signing in',
+ errEmail: 'Enter your email, phone number or username.', errPass: 'Enter your password.', noOnline: 'No account yet? Ask your provider to set one up for you.',
  lpH: 'See the till without standing at it.', lpP: 'Sales, stock and the shop PC\'s status, copied from the till every few minutes.',
  lp1: 'What you sold today and how it compares with last week', lp2: 'What is running low', lp3: 'Whether the shop PC is connected',
  trust: 'Your shop\'s data is locked with a key that only you hold. We cannot read it, and neither can this server.',
  startTitle: 'What would you like to open?', startSub: 'Signed in to {0}.', startShop: 'Your shop', startShopP: 'Sales, stock and debts from the shop PC. Asks for the recovery code once in this browser.',
- startMenu: 'Online menu', startMenuP: 'Your public menu: dishes, pictures, prices and the QR code for the tables.', startBack: 'Back',
+ startMenu: 'Online menu', startMenuP: 'Your public menu: items, pictures, prices and the QR code for the tables.', startBack: 'Back',
  unlockTitle: 'Unlock your shop data', unlockSub: 'Type the recovery code printed from the shop PC (Settings, then Online). It stays in this browser and is never sent to us.',
  code: 'Recovery code', unlockBtn: 'Unlock', unlocking: 'Checking the code', errInvalid: 'That is not a recovery code. Check for a typo; it has 56 letters and numbers.',
  errWrong: 'That code does not open this shop\'s data. It may belong to another shop or an older key.',
  hint: 'Example format: ABCD-EFGH-IJKL-... (dashes and capitals are optional)',
  errNoShop: 'No shop PC is connected to this account yet.', errPlan: 'The online plan is not active. Contact your provider.', errNet: 'Could not reach the cloud. Check your internet and try again.',
- errRate: 'Too many attempts. Try again in a few minutes.', errGeneric: 'Something went wrong. Try again.', errCreds: 'The email or password is not right.', errMayNot: 'Your login is not allowed to see this.',
+ errRate: 'Too many attempts. Try again in a few minutes.', errGeneric: 'Something went wrong. Try again.', errCreds: 'The sign-in name or password is not right.', errMayNot: 'Your login is not allowed to see this.',
  cash: 'Cash', ago: '{0} ago', min1: '{0} min', hr1: '{0} h', day1: '{0} d', justNow: 'just now', ready: 'Data decrypted in this browser', retry: 'Try again',
  changes: 'Changes', chSub: 'What you asked the shop PC to do. It applies each change when it is online.',
  newProduct: 'New product', newCustomer: 'New customer', newSupplier: 'New supplier', editProduct: 'Edit product', adjust: 'Adjust stock',
@@ -87,8 +87,8 @@ ar: {
  shopSub: 'هل يتحدث كمبيوتر المحل مع السحابة. الصندوق يتابع البيع إذا انقطع اتصاله.', lastContact: 'آخر اتصال', lastCopy: 'آخر نسخة من بياناتك', plan: 'خطة أونلاين', renews: 'تنتهي في {0}',
  sActive: 'فعّالة', sGrace: 'انتهت مؤخراً وما زالت تُحدَّث', sExpired: 'منتهية', sSuspended: 'موقوفة من المزوّد', sNone: 'لم تبدأ',
  planNote: 'إذا انتهت الخطة تتابع الصناديق البيع. يتوقف هذا الموقع عن التحديث بعد 7 أيام.', menuH: 'القائمة على الإنترنت', menuP: 'صفحة عامة فيها منتجاتك وصورها وأسعارها. شاركها برابط أو اطبع رمز QR للطاولات.', menuOpen: 'افتح محرر القائمة', contactOk: 'متصل', contactLate: 'صامت', contactOff: 'غير متصل',
- signTitle: 'تسجيل الدخول', signSub: 'شاهد محلك من هاتفك.', email: 'البريد الإلكتروني', pass: 'كلمة المرور', show: 'إظهار', hide: 'إخفاء', signBtn: 'تسجيل الدخول', signing: 'جارٍ تسجيل الدخول',
- errEmail: 'أدخل بريدك الإلكتروني.', errPass: 'أدخل كلمة المرور.', noOnline: 'ليس لديك حساب بعد؟ اطلب من المزوّد إنشاء واحد لك.',
+ signTitle: 'تسجيل الدخول', signSub: 'شاهد محلك من هاتفك.', email: 'البريد الإلكتروني أو الهاتف أو اسم المستخدم', pass: 'كلمة المرور', show: 'إظهار', hide: 'إخفاء', signBtn: 'تسجيل الدخول', signing: 'جارٍ تسجيل الدخول',
+ errEmail: 'أدخل بريدك الإلكتروني أو رقم هاتفك أو اسم المستخدم.', errPass: 'أدخل كلمة المرور.', noOnline: 'ليس لديك حساب بعد؟ اطلب من المزوّد إنشاء واحد لك.',
  lpH: 'شاهد الصندوق دون أن تقف عنده.', lpP: 'المبيعات والمخزون وحالة كمبيوتر المحل، منسوخة من الصندوق كل بضع دقائق.',
  lp1: 'ما بعته اليوم ومقارنته بالأسبوع الماضي', lp2: 'ما يوشك على النفاد', lp3: 'هل كمبيوتر المحل متصل',
  trust: 'بيانات محلك مقفلة بمفتاح لا يملكه غيرك. لا نستطيع قراءتها ولا هذا الخادم.',
@@ -99,7 +99,7 @@ ar: {
  errWrong: 'هذا الرمز لا يفتح بيانات هذا المحل. ربما يخص محلاً آخر أو مفتاحاً قديماً.',
  hint: 'الشكل: ABCD-EFGH-IJKL-... (الشرطات والأحرف الكبيرة اختيارية)',
  errNoShop: 'لا يوجد كمبيوتر محل متصل بهذا الحساب بعد.', errPlan: 'خطة أونلاين غير فعّالة. تواصل مع المزوّد.', errNet: 'تعذر الوصول إلى السحابة. تحقق من الإنترنت وحاول مجدداً.',
- errRate: 'محاولات كثيرة. حاول بعد بضع دقائق.', errGeneric: 'حدث خطأ. حاول مجدداً.', errCreds: 'البريد أو كلمة المرور غير صحيحة.', errMayNot: 'حسابك غير مسموح له برؤية هذا.',
+ errRate: 'محاولات كثيرة. حاول بعد بضع دقائق.', errGeneric: 'حدث خطأ. حاول مجدداً.', errCreds: 'اسم الدخول أو كلمة المرور غير صحيحة.', errMayNot: 'حسابك غير مسموح له برؤية هذا.',
  cash: 'نقداً', ago: 'قبل {0}', min1: '{0} د', hr1: '{0} س', day1: '{0} ي', justNow: 'الآن', ready: 'البيانات مفتوحة في هذا المتصفح', retry: 'حاول مجدداً',
  changes: 'التغييرات', chSub: 'ما طلبته من كمبيوتر المحل. يطبّق كل تغيير عندما يكون متصلاً.',
  newProduct: 'منتج جديد', newCustomer: 'زبون جديد', newSupplier: 'مورّد جديد', editProduct: 'تعديل المنتج', adjust: 'تعديل المخزون',
@@ -272,7 +272,7 @@ var PAGE = 150;
 var P = { sales: 1, stock: 2, debts: 4, add: 8, edit: 16, financials: 32 };
 function perms() { var p = me && me.permissions != null ? me.permissions : session && session.permissions; return p == null ? 0 : +p; }
 function can(bit) { return (perms() & bit) !== 0; }
-/* The shop runs the Basic licence plan: no stock tracking and no suppliers, so they are left out (the shop PC refuses those changes anyway).
+/* The shop runs the Basic licence plan: no suppliers, so they are left out (the shop PC refuses those changes anyway). Stock counts are in every plan.
    Unknown (an older shop PC or cloud) counts as Pro, which is what every shop was before plans. */
 function basic() { return (shopPlan || (me && me.shopPlan)) === 'Basic'; }
 var cryptoKey = null, rows = {}, cursors = {}, denied = {}, asOf = null, shopPlan = null, me = null, busy = false, loadError = null, feed, lines;
@@ -502,7 +502,7 @@ function signinView() {
   var pts = ['lp1', 'lp2', 'lp3'].map(function (k) { return '<div class="nr">' + ic('check') + '<b>' + t(k) + '</b></div>'; }).join('');
   return '<div class="login"><section class="lf"><div class="lgrow">' + BRAND.logo + '<span class="chip info">' + t('online') + '</span></div>' +
     '<form id="lform" novalidate><h1>' + t('signTitle') + '</h1><p class="muted" style="margin-bottom:22px">' + t('signSub') + '</p>' +
-    '<div class="fld"><label for="em">' + t('email') + '</label><input class="inp" id="em" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" aria-describedby="emerr"><div id="emerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errEmail') + '</div></div>' +
+    '<div class="fld"><label for="em">' + t('email') + '</label><input class="inp" id="em" type="text" dir="ltr" autocomplete="username" autocapitalize="off" spellcheck="false" aria-describedby="emerr"><div id="emerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errEmail') + '</div></div>' +
     '<div class="fld"><label for="pw">' + t('pass') + '</label><div class="pw"><input class="inp" id="pw" type="password" autocomplete="current-password" aria-describedby="pwerr"><button type="button" id="pwt" aria-controls="pw">' + t('show') + '</button></div><div id="pwerr" class="err" role="alert" hidden>' + ic('alert', 'sm') + t('errPass') + '</div></div>' +
     '<div id="formerr" class="err" role="alert" hidden style="margin-bottom:12px"></div>' +
     '<button class="btn pri" id="sbtn" type="submit">' + t('signBtn') + '</button></form>' +
@@ -584,7 +584,7 @@ function bindUnlock() {
 var NAV = [['today', 'today'], ['sales', 'sales'], ['stock', 'stock'], ['changes', 'changes'], ['shop', 'tills']];
 function shell(r, inner) {
   var nav = NAV.filter(function (n) { return n[0] !== 'changes' || can(P.add) || can(P.edit); });
-  var label = function (n) { return t(n[0] === 'stock' && basic() ? 'products' : n[0]); };
+  var label = function (n) { return t(n[0]); };
   var rail = nav.map(function (n) { return '<a class="nav" href="#' + n[0] + '"' + (r === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[1]) + label(n) + '</a>'; }).join('');
   var tabs = nav.map(function (n) { return '<a href="#' + n[0] + '"' + (r === n[0] ? ' aria-current="page"' : '') + '>' + ic(n[1]) + label(n) + '</a>'; }).join('');
   var name = session.clientName || '', initials = (session.displayName || name || '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
@@ -633,7 +633,7 @@ function todayView() {
   var rec = sales(5).map(function (s) { return '<button type="button" class="rrow" data-sale="' + s.id + '"><span class="tm num">' + (s.when ? timeStr(s.when) : '') + '</span><span class="id">' + esc(s.number) + '</span>' + (s.pay ? '<span class="chip mute">' + esc(s.pay) + '</span>' : '') + '<span class="tot num">' + money(s.total, s.cur) + '</span></button>'; }).join('');
   var stk = stockItems(), low = stk.filter(function (s) { return s.level === 1; }).length, outN = stk.filter(function (s) { return s.level === 0; }).length, db = debts(), fr = freshness(), att = '';
   if (fr.state !== 'ok') att += '<div class="ai"><span class="ico ' + (fr.state === 'off' ? 'bad' : 'warn') + '">' + ic('alert') + '</span><div class="tx"><b>' + (fr.seen ? t('shopQuiet', spanStr(fr.seen)) : t('never')) + '</b><p>' + t('shopQuietD') + '</p></div><a href="#shop">' + t('seeShop') + '</a></div>';
-  if (low + outN > 0 && !basic()) att += '<div class="ai"><span class="ico warn">' + ic('stock') + '</span><div class="tx"><b>' + t('nLow', low + outN) + '</b><p>' + t('nLowD', low, outN) + '</p></div><a href="#stock">' + t('seeStock') + '</a></div>';
+  if (low + outN > 0) att += '<div class="ai"><span class="ico warn">' + ic('stock') + '</span><div class="tx"><b>' + t('nLow', low + outN) + '</b><p>' + t('nLowD', low, outN) + '</p></div><a href="#stock">' + t('seeStock') + '</a></div>';
   if (db.n > 0) att += '<div class="ai"><span class="ico info">' + ic('users') + '</span><div class="tx"><b>' + t('nDebt', money(db.sum, db.cur)) + '</b><p>' + (db.n === 1 ? t('nDebtD1') : t('nDebtD', db.n)) + '</p></div></div>';
   if (!att) att = '<p class="muted">' + t('allGood') + '</p>';
   var delta = rep.pct == null ? '' : chip(rep.pct >= 0 ? 'good' : 'warn', rep.pct >= 0 ? 'up' : 'down', '‎' + (rep.pct >= 0 ? '+' : '') + rep.pct.toFixed(1) + '%');
@@ -763,8 +763,6 @@ function watchEnd() {
 
 /* Stock */
 function stockView() {
-  if (basic()) state.stockFilter = 'all';
-  var nb = !basic();
   var all = stockItems(), low = all.filter(function (i) { return i.level === 1; }).length, out = all.filter(function (i) { return i.level === 0; }).length;
   var fc = [['all', t('all'), all.length], ['low', t('low'), low], ['out', t('out'), out]].map(function (a) { return '<button type="button" class="fc" data-kf="' + a[0] + '" aria-pressed="' + (state.stockFilter === a[0]) + '">' + a[1] + ' <em>' + a[2] + '</em></button>'; }).join('');
   var q = state.stockQ.toLowerCase();
@@ -773,17 +771,17 @@ function stockView() {
   // Drawing thousands of rows at once is what makes a long list slow; show them in steps.
   var more = matched.length > list.length ? '<div class="lfoot"><p>' + t('shownOf', list.length.toLocaleString('en-US'), matched.length.toLocaleString('en-US')) + '</p><button type="button" class="btn sm" id="kmore">' + t('showMore') + '</button></div>' : '';
   var rowsHtml = list.length ? list.map(function (it) {
-    var st = !nb ? null : it.level === 0 ? ['bad', 'alert', t('outS')] : it.level === 1 ? ['warn', 'alert', t('lowS')] : ['good', 'check', t('inStock')];
+    var st = it.level === 0 ? ['bad', 'alert', t('outS')] : it.level === 1 ? ['warn', 'alert', t('lowS')] : ['good', 'check', t('inStock')];
     var q2 = it.qty.toLocaleString('en-US', { maximumFractionDigits: 3 }), m2 = it.min == null ? '-' : it.min.toLocaleString('en-US', { maximumFractionDigits: 3 });
     // Each row opens the item (details, and Edit / Adjust stock for a login allowed to change it).
-    return '<button type="button" class="krow" data-prod="' + it.id + '"><span class="nm"><b>' + esc(it.name) + '</b><small class="mono">' + esc(it.barcode) + '</small><small class="m-only"> ' + (nb ? q2 + ' / ' + t('min') + ' ' + m2 + ' &nbsp;' : '') + money(it.price, it.cur) + '</small></span>' +
-      '<span class="num r d-only">' + (nb ? q2 + (it.unit ? ' ' + esc(it.unit) : '') : '') + '</span><span class="num r d-only muted">' + (nb ? m2 : '') + '</span><span class="num r d-only">' + money(it.price, it.cur) + '</span><span class="d-only">' + (st ? chip(st[0], st[1], st[2]) : '') + '</span>' +
-      '<span class="m-only" style="justify-self:end">' + (st ? chip(st[0], st[1], st[2]) : '') + '</span></button>';
+    return '<button type="button" class="krow" data-prod="' + it.id + '"><span class="nm"><b>' + esc(it.name) + '</b><small class="mono">' + esc(it.barcode) + '</small><small class="m-only"> ' + q2 + ' / ' + t('min') + ' ' + m2 + ' &nbsp;' + money(it.price, it.cur) + '</small></span>' +
+      '<span class="num r d-only">' + q2 + (it.unit ? ' ' + esc(it.unit) : '') + '</span><span class="num r d-only muted">' + m2 + '</span><span class="num r d-only">' + money(it.price, it.cur) + '</span><span class="d-only">' + chip(st[0], st[1], st[2]) + '</span>' +
+      '<span class="m-only" style="justify-self:end">' + chip(st[0], st[1], st[2]) + '</span></button>';
   }).join('') : '<p class="empty">' + t('noMatch') + '</p>';
   var addBtn = canAddProduct() ? '<button type="button" class="btn sm pri" data-new="product">' + ic('plus', 'sm') + t('newProduct') + '</button>' : '';
-  var inner = '<header class="head"><div><h1>' + t(nb ? 'stock' : 'products') + '</h1><p>' + t(nb ? 'stockSub' : 'productsSub') + '</p></div><div class="hacts">' + copyChip() + addBtn + '</div></header>' +
-    '<div class="tools"><div class="srch"><label class="sr" for="kq">' + t('find') + '</label>' + ic('search', 'sm') + '<input id="kq" type="search" placeholder="' + t('find') + '" value="' + esc(state.stockQ) + '" autocomplete="off"></div>' + (nb ? fc : '') + '</div>' +
-    '<section class="panel tbl"><div class="kth k4"><span>' + t('cName') + '</span><span class="r">' + (nb ? t('cQty') : '') + '</span><span class="r">' + (nb ? t('cMin') : '') + '</span><span class="r">' + t('cPrice') + '</span><span></span></div>' + rowsHtml + more + '</section>';
+  var inner = '<header class="head"><div><h1>' + t('stock') + '</h1><p>' + t('stockSub') + '</p></div><div class="hacts">' + copyChip() + addBtn + '</div></header>' +
+    '<div class="tools"><div class="srch"><label class="sr" for="kq">' + t('find') + '</label>' + ic('search', 'sm') + '<input id="kq" type="search" placeholder="' + t('find') + '" value="' + esc(state.stockQ) + '" autocomplete="off"></div>' + fc + '</div>' +
+    '<section class="panel tbl"><div class="kth k4"><span>' + t('cName') + '</span><span class="r">' + t('cQty') + '</span><span class="r">' + t('cMin') + '</span><span class="r">' + t('cPrice') + '</span><span></span></div>' + rowsHtml + more + '</section>';
   return shell('stock', inner);
 }
 
@@ -1038,7 +1036,7 @@ function newProduct() {
     (nb ? pair(sel('pcat', t('fCategory'), l.cats, l.cats.length === 1 ? l.cats[0][0] : '', t('choose')), sel('psup', t('fSupplier'), l.sups, l.sups.length === 1 ? l.sups[0][0] : '', t('choose')))
       : sel('pcat', t('fCategory'), l.cats, l.cats.length === 1 ? l.cats[0][0] : '', t('choose')) + hidden('psup', defSup ? defSup[0] : '')) +
     pair(fld('pprice', t('fPrice'), { num: true }), fld('pcost', t('fCost'), { num: true })) + '<p class="help fmargin" id="pmargin"></p>' +
-    (nb ? pair(fld('pstock', t('fStock'), { num: true, value: '0' }), fld('pmin', t('fMin'), { num: true, value: '0' })) : hidden('pstock', 0) + hidden('pmin', 0)) +
+    pair(fld('pstock', t('fStock'), { num: true, value: '0' }), fld('pmin', t('fMin'), { num: true, value: '0' })) +
     sel('punit', t('fUnit'), units, '', t('notSet')), KINDS.product, function () {
     var price = parseNum(val('pprice')), cost = parseNum(val('pcost')), stock = parseNum(val('pstock') || '0'), min = parseNum(val('pmin') || '0');
     var ok = [check('pname', val('pname').length >= 2 ? null : t('eMin2')), check('pbar', val('pbar') ? null : t('eBarcode')),
@@ -1060,9 +1058,9 @@ function editProduct(id) {
   openForm(t('editProduct'), fld('ename', t('fName'), { value: was.name, cap: true }) +
     (showCost ? pair(fld('eprice', t('fPrice'), { num: true, value: nfmt(was.price).replace(/,/g, '') }), fld('ecost', t('fCost'), { num: true, value: was.cost == null ? '' : nfmt(was.cost).replace(/,/g, '') }))
       : fld('eprice', t('fPrice'), { num: true, value: nfmt(was.price).replace(/,/g, '') })) +
-    (basic() ? '<input type="hidden" id="emin" value="">' : fld('emin', t('fMin'), { num: true, value: was.min == null ? '' : nfmt(was.min).replace(/,/g, '') })) +
+    fld('emin', t('fMin'), { num: true, value: was.min == null ? '' : nfmt(was.min).replace(/,/g, '') }) +
     '<label class="tgl"><input type="checkbox" id="eon"' + (was.active ? ' checked' : '') + '><span><b>' + t('fOnSale') + '</b><small>' + t('fOnSaleH') + '</small></span></label>' +
-    (basic() ? '' : '<p class="help" style="margin-top:12px">' + t('stockNote') + '</p>'), KINDS.productEdit, function () {
+    '<p class="help" style="margin-top:12px">' + t('stockNote') + '</p>', KINDS.productEdit, function () {
     var name = val('ename'), price = parseNum(val('eprice')), cost = showCost && val('ecost') ? parseNum(val('ecost')) : null, min = val('emin') ? parseNum(val('emin')) : null, on = $('#eon').checked;
     var ok = [check('ename', name.length >= 2 ? null : t('eMin2')), check('eprice', price != null && price > 0 ? null : t('eAmount')),
       showCost ? check('ecost', !val('ecost') || (cost != null && cost > 0) ? null : t('eAmount')) : true,
@@ -1106,10 +1104,10 @@ function openProduct(id) {
   var d = $('#dlg');
   d.innerHTML = '<div class="dh"><div><h2 id="dlg-t" style="font-size:19px">' + esc(text(r.Name)) + '</h2><p class="muted mono" style="font-size:13.5px;margin-top:2px">' + esc(text(r.Barcode)) + '</p></div>' +
     (flag(r.IsActive) ? '' : chip('mute', 'clock', t('sOff'))) + '</div>' +
-    '<div class="db">' + (basic() ? '' : fact(t('pQty'), nfmt(q) + (unit ? ' ' + esc(unit) : '')) + fact(t('pMin'), r.MinimumStock == null ? '-' : nfmt(r.MinimumStock))) + fact(t('pPrice'), money(toNum(r.SellingPrice), cur)) +
+    '<div class="db">' + fact(t('pQty'), nfmt(q) + (unit ? ' ' + esc(unit) : '')) + fact(t('pMin'), r.MinimumStock == null ? '-' : nfmt(r.MinimumStock)) + fact(t('pPrice'), money(toNum(r.SellingPrice), cur)) +
     (can(P.financials) && r.CostPrice != null ? fact(t('pCost'), money(toNum(r.CostPrice), cur)) : '') + '</div>' +
     '<div class="df"><button type="button" class="btn" data-close>' + t('close') + '</button>' +
-    (can(P.edit) ? '<button type="button" class="btn" id="pdedit">' + ic('edit', 'sm') + t('editProduct') + '</button>' + (basic() ? '' : '<button type="button" class="btn pri" id="pdadj">' + ic('stock', 'sm') + t('adjust') + '</button>') : '') + '</div>';
+    (can(P.edit) ? '<button type="button" class="btn" id="pdedit">' + ic('edit', 'sm') + t('editProduct') + '</button>' + '<button type="button" class="btn pri" id="pdadj">' + ic('stock', 'sm') + t('adjust') + '</button>' : '') + '</div>';
   if (!d.open) d.showModal();
   var e1 = $('#pdedit'); if (e1) e1.onclick = function () { editProduct(id); };
   var e2 = $('#pdadj'); if (e2) e2.onclick = function () { adjustStock(id); };

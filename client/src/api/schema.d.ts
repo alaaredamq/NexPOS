@@ -1638,7 +1638,7 @@ export interface paths {
         put?: never;
         /**
          * Connects with the provider's link and starts syncing at once (no restart). A refused link answers 400 with a stable code:
-         *     `enroll_link_invalid`, `cloud_insecure_url`, `enroll_code_invalid`, `enroll_code_expired`, `enroll_code_used`,
+         *     `enroll_link_invalid`, `cloud_insecure_url`, `cloud_other_server`, `enroll_code_invalid`, `enroll_code_expired`, `enroll_code_used`,
          *     `site_disabled`, `rate_limited`; `cloud_unreachable` answers 502. Nothing changes on failure.
          */
         post: operations["connectOnline"];

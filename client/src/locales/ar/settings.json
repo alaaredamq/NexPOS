@@ -23,6 +23,7 @@
   "Online_Connect": "اتصال",
   "Online_Connect_cloud_error": "حدثت مشكلة في السحابة. حاول مجددًا بعد قليل.",
   "Online_Connect_cloud_insecure_url": "هذا الرابط لا يبدأ بـ https:// ولا يمكن الوثوق به. اطلب رابطًا جديدًا من مزوّد الخدمة.",
+  "Online_Connect_cloud_other_server": "هذا الرابط مخصّص لخادم Coduo POS غير الذي يستخدمه هذا الكمبيوتر. اطلب رابطًا جديدًا من مزوّد الخدمة.",
   "Online_Connect_cloud_unreachable": "تعذّر الوصول إلى السحابة. تحقق من اتصال هذا الكمبيوتر بالإنترنت وحاول مجددًا.",
   "Online_Connect_enroll_code_expired": "انتهت صلاحية هذا الرابط. اطلب رابطًا جديدًا من مزوّد الخدمة.",
   "Online_Connect_enroll_code_invalid": "هذا الرابط غير صالح. تأكد من نسخه كاملًا أو اطلب رابطًا جديدًا.",

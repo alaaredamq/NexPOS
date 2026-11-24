@@ -83,7 +83,7 @@ public sealed class PlanApiTests : CatalogApiTestBase, IDisposable
     }
 
     [Fact]
-    public async Task The_shop_PC_refuses_a_stock_change_or_a_supplier_sent_from_the_phone_but_takes_a_customer()
+    public async Task The_shop_PC_refuses_a_supplier_sent_from_the_phone_but_takes_a_stock_change_and_a_customer()
     {
         async Task<CommandResult> RunAsync(string type, object payload)
         {
@@ -93,9 +93,7 @@ public sealed class PlanApiTests : CatalogApiTestBase, IDisposable
         }
 
         var stock = await RunAsync("stock.adjust", new { productId = 1, type = "add", quantity = 5 });
-        Assert.Equal(CommandResult.Rejected, stock.Outcome);
-        Assert.Equal(CommandErrorCodes.PlanUpgradeRequired, stock.Code);
-        Assert.Equal("Inventory", stock.Data!.Value.GetProperty("feature").GetString());
+        Assert.True(stock.IsApplied, stock.Message);
 
         var supplier = await RunAsync("supplier.create", new { name = "Plan Test Co", phone = "01234567", currencyId = 1 });
         Assert.Equal(CommandErrorCodes.PlanUpgradeRequired, supplier.Code);

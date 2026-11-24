@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { isApiError } from '@/api/http'
 import { Can, useCan } from '@/core/permissions/permissions'
-import { useTracksStock } from '@/core/license/license'
 import { Button } from '@/ui/Button'
 import { ChipGroup } from '@/ui/ChipGroup'
 import { DataTable, type Column, type SortState } from '@/ui/DataTable'
@@ -39,8 +38,6 @@ import styles from './ProductsList.module.css'
 /** `/products`: summary tiles, filters mirrored in the URL, a server-paged table with row actions, CSV import/export. */
 export default function ProductsListPage() {
   const { t } = useTranslation('products')
-  // Basic tracks no stock: no stock column, tiles or filter (the figures would never be kept up to date).
-  const tracksStock = useTracksStock()
   const navigate = useNavigate()
   const [search, setSearch] = useSearchParams()
   const params = useMemo(() => readListParams(search), [search])
@@ -87,7 +84,7 @@ export default function ProductsListPage() {
     }
   }
 
-  const allColumns: Column<ProductListItem>[] = [
+  const columns: Column<ProductListItem>[] = [
     {
       key: 'name',
       header: t('Name'),
@@ -132,7 +129,6 @@ export default function ProductsListPage() {
       cell: (p) => <StatusBadge tone={p.isActive ? 'success' : 'neutral'} label={p.isActive ? t('Active') : t('Inactive')} />,
     },
   ]
-  const columns = tracksStock ? allColumns : allColumns.filter((c) => c.key !== 'stock')
 
   const statusOptions: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: t('All', { ns: 'common' }) },
@@ -167,8 +163,6 @@ export default function ProductsListPage() {
       <div className={styles.tiles}>
         <StatTile label={t('TotalProducts')} value={s ? formatNumber(s.total, 0) : '–'} />
         <StatTile label={t('ActiveProducts')} value={s ? formatNumber(s.active, 0) : '–'} tone="success" />
-        {tracksStock && (
-        <>
         <StatTile
           label={t('LowStock')}
           value={s ? formatNumber(s.lowStock, 0) : '–'}
@@ -176,8 +170,6 @@ export default function ProductsListPage() {
           tone={s && s.lowStock > 0 ? 'danger' : 'default'}
         />
         <StatTile label={t('OutOfStock')} value={s ? formatNumber(s.outOfStock, 0) : '–'} tone={s && s.outOfStock > 0 ? 'danger' : 'default'} />
-        </>
-        )}
       </div>
 
       <DataTable
@@ -222,12 +214,10 @@ export default function ProductsListPage() {
               <span className={styles.chipsLabel}>{t('Status')}</span>
               <ChipGroup size="sm" aria-label={t('Status')} options={statusOptions} value={params.status} onChange={(v) => update({ status: v as StatusFilter })} />
             </div>
-            {tracksStock && (
             <div className={styles.chips}>
               <span className={styles.chipsLabel}>{t('Stock')}</span>
               <ChipGroup size="sm" aria-label={t('Stock')} options={stockOptions} value={params.stock} onChange={(v) => update({ stock: v as StockFilter })} />
             </div>
-            )}
           </div>
         }
         rowActions={(p) => (

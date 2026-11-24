@@ -35,7 +35,7 @@ class FakeApi implements OwnerApi {
 
   @override
   Future<SignedIn> signIn(String email, String password) async {
-    if (signInFails) throw ApiException(401, 'invalid_credentials', 'The email or password is not right.');
+    if (signInFails) throw ApiException(401, 'invalid_credentials', 'The sign-in name or password is not right.');
     return SignedIn(token: 'nxo_test', displayName: 'Layla', clientName: 'Al-Amal Market', siteName: 'Main till', permissions: permissions, role: role);
   }
 

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,7 +18,6 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _form = GlobalKey<FormState>();
-  late final TextEditingController _url;
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
@@ -28,16 +26,7 @@ class _SignInScreenState extends State<SignInScreen> {
   int _shakes = 0;
 
   @override
-  void initState() {
-    super.initState();
-    final saved = context.read<Session>().cloudUrl;
-    // Debug builds start on the PC running the cloud (the emulator's name for it); release builds start empty.
-    _url = TextEditingController(text: saved.isNotEmpty ? saved : (kDebugMode ? 'http://10.0.2.2:51158' : ''));
-  }
-
-  @override
   void dispose() {
-    _url.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -60,8 +49,8 @@ class _SignInScreenState extends State<SignInScreen> {
     }
     FocusScope.of(context).unfocus();
     final offline = context.tr(
-      'Could not reach the cloud. Check the address and your connection.',
-      'تعذّر الوصول إلى السحابة. تحقق من العنوان والاتصال.',
+      'Could not reach Coduo. Check your internet connection.',
+      'تعذّر الوصول إلى Coduo. تحقق من اتصالك بالإنترنت.',
     );
     setState(() {
       _busy = true;
@@ -69,7 +58,6 @@ class _SignInScreenState extends State<SignInScreen> {
     });
     try {
       await context.read<Session>().signIn(
-        cloudUrl: _url.text,
         email: _email.text,
         password: _password.text,
       );
@@ -208,58 +196,33 @@ class _SignInScreenState extends State<SignInScreen> {
                                         ),
                                         const SizedBox(height: 16),
                                         TextFormField(
-                                          controller: _url,
-                                          keyboardType: TextInputType.url,
-                                          textInputAction: TextInputAction.next,
-                                          autocorrect: false,
-                                          textDirection: TextDirection.ltr,
-                                          decoration: InputDecoration(
-                                            labelText: context.tr(
-                                              'Cloud address',
-                                              'عنوان السحابة',
-                                            ),
-                                            hintText:
-                                                'https://cloud.example.com',
-                                            prefixIcon: const Icon(
-                                              Icons.cloud_outlined,
-                                            ),
-                                          ),
-                                          validator: (v) =>
-                                              (Uri.tryParse((v ?? '').trim())
-                                                      ?.hasScheme ??
-                                                  false)
-                                              ? null
-                                              : context.tr(
-                                                  'Enter the address your provider gave you.',
-                                                  'أدخل العنوان الذي زوّدك به مزوّد الخدمة.',
-                                                ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        TextFormField(
                                           controller: _email,
-                                          keyboardType:
-                                              TextInputType.emailAddress,
+                                          // Email, phone number or username: the cloud accepts any of the three.
+                                          keyboardType: TextInputType.text,
                                           textInputAction: TextInputAction.next,
                                           autofillHints: const [
-                                            AutofillHints.email,
+                                            AutofillHints.username,
                                           ],
                                           autocorrect: false,
+                                          enableSuggestions: false,
+                                          textCapitalization:
+                                              TextCapitalization.none,
                                           textDirection: TextDirection.ltr,
                                           decoration: InputDecoration(
                                             labelText: context.tr(
-                                              'Email',
-                                              'البريد الإلكتروني',
+                                              'Email, phone or username',
+                                              'البريد الإلكتروني أو الهاتف أو اسم المستخدم',
                                             ),
                                             prefixIcon: const Icon(
-                                              Icons.alternate_email,
+                                              Icons.person_outline,
                                             ),
                                           ),
                                           validator: (v) =>
-                                              (v ?? '').contains('@')
+                                              (v ?? '').trim().isNotEmpty
                                               ? null
                                               : context.tr(
-                                                  'Enter your email.',
-                                                  'أدخل بريدك الإلكتروني.',
+                                                  'Enter your email, phone number or username.',
+                                                  'أدخل بريدك الإلكتروني أو رقم هاتفك أو اسم المستخدم.',
                                                 ),
                                         ),
                                         const SizedBox(height: 14),
