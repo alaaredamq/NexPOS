@@ -21,6 +21,15 @@ public class FinanceRulesTests
         Assert.Equal(expected, amount);
     }
 
+    // "Whish" (the old name) and any spelling of a usual method are saved one way, so totals by method do not split.
+    [Theory]
+    [InlineData("Whish", "Whish Money")]
+    [InlineData(" whish money ", "Whish Money")]
+    [InlineData("cash", "Cash")]
+    [InlineData("Western Union", "Western Union")]
+    [InlineData(null, "Other")]
+    public void Paid_by_is_saved_with_one_spelling(string? typed, string saved) => Assert.Equal(saved, FinanceRules.Method(typed));
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -203,7 +212,7 @@ public class FinancePortalTests : IClassFixture<CloudFactory>
         Assert.Contains("Payment recorded: $1,200", await c.GetStringAsync($"/admin/Clients/Details/{seeded.ClientId}"));
 
         var csv = await c.GetStringAsync("/admin/Finance?handler=Csv&m=2026-11");
-        Assert.Contains("2026-11-03,In,1200.00,Finance Bakery,Whish,Online subscription,\"'=HYPERLINK(\"\"x\"\")\"", csv);
+        Assert.Contains("2026-11-03,In,1200.00,Finance Bakery,Whish Money,Online subscription,\"'=HYPERLINK(\"\"x\"\")\"", csv);
         Assert.Contains("2026-11-04,Out,-300.00,Hosting & servers,MonsterASP", csv);
 
         // Another month shows none of it, but the balance carries.

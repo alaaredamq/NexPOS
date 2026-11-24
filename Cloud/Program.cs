@@ -114,6 +114,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await services.GetRequiredService<ControlDbContext>().Database.MigrateAsync();
+    await FinanceRules.RenameOldWhishAsync(services.GetRequiredService<ControlDbContext>());
     await AdminSeeder.EnsureAsync(
         services.GetRequiredService<ControlDbContext>(),
         services.GetRequiredService<IOptions<CloudOptions>>().Value,

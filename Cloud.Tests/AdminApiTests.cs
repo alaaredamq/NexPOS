@@ -220,7 +220,7 @@ public class AdminApiTests
         var f = $"{Api}/finance";
 
         var options = await JsonAsync(await app.GetAsync($"{f}/options"));
-        Assert.Contains("Whish", options.GetProperty("methods").EnumerateArray().Select(x => x.GetString()));
+        Assert.Contains("Whish Money", options.GetProperty("methods").EnumerateArray().Select(x => x.GetString()));
 
         var bad = await app.PostAsJsonAsync($"{f}/payments", new { clientId = seeded.ClientId, amount = -5, date = "2026-11-02" });
         Assert.Equal("invalid_payment", (await JsonAsync(bad, HttpStatusCode.BadRequest)).GetProperty("code").GetString());
@@ -269,7 +269,7 @@ public class AdminApiTests
 
         var csv = await app.GetAsync($"{f}/export?m=2026-11");
         Assert.Equal("text/csv", csv.Content.Headers.ContentType!.MediaType);
-        Assert.Contains("2026-11-02,In,160.00,Paying Shop,Whish", await csv.Content.ReadAsStringAsync());
+        Assert.Contains("2026-11-02,In,160.00,Paying Shop,Whish Money", await csv.Content.ReadAsStringAsync());
 
         Assert.Equal(HttpStatusCode.NoContent, (await app.DeleteAsync($"{f}/budgets/2026-10")).StatusCode);
         Assert.Null((await JsonAsync(await app.GetAsync($"{f}/budgets/2026-11"))).GetProperty("setIn").GetString());

@@ -7,7 +7,20 @@ namespace Cloud.Services;
 /// <summary>The choices the Finance forms offer, and the small rules every Finance screen shares.</summary>
 public static class FinanceRules
 {
-    public static readonly string[] Methods = ["Cash", "Bank transfer", "Whish", "OMT", "Card", "Cheque", "Other"];
+    public static readonly string[] Methods = ["Cash", "Whish Money", "Bank transfer", "OMT", "Card", "Cheque", "Other"];
+
+    /// <summary>A typed "Paid by", cleaned: the usual names are spelled one way ("whish" becomes "Whish Money") so totals by method do not split.</summary>
+    public static string Method(string? text)
+    {
+        var t = Clean(text, 40);
+        if (t is null) return "Other";
+        if (t.Equals("whish", StringComparison.OrdinalIgnoreCase)) return "Whish Money";
+        return Methods.FirstOrDefault(m => m.Equals(t, StringComparison.OrdinalIgnoreCase)) ?? t;
+    }
+
+    /// <summary>Payments saved before the method was called "Whish Money" are renamed once at start-up.</summary>
+    public static Task<int> RenameOldWhishAsync(ControlDbContext db)
+        => db.Payments.Where(p => p.Method == "Whish").ExecuteUpdateAsync(u => u.SetProperty(p => p.Method, "Whish Money"));
     public static readonly string[] Purposes = ["Online subscription", "POS licence", "Set-up / installation", "Hardware", "Support", "Other"];
     public static readonly string[] ExpenseCategories =
         ["Hosting & servers", "Software & tools", "Marketing", "Salaries", "Hardware", "Transport", "Rent & utilities", "Fees & taxes", "Other"];
@@ -244,7 +257,7 @@ public sealed class FinanceBook(ControlDbContext db, PortalFormat fmt)
         payment.Payer = payer;
         payment.Amount = amount;
         payment.ReceivedOn = date;
-        payment.Method = FinanceRules.Clean(input.Method, 40) ?? "Other";
+        payment.Method = FinanceRules.Method(input.Method);
         payment.Purpose = FinanceRules.Clean(input.Purpose, 60) ?? "Other";
         payment.Reference = FinanceRules.Clean(input.Reference, 100);
         payment.Note = FinanceRules.Clean(input.Note, 500);
