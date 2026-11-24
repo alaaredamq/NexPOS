@@ -51,8 +51,7 @@
 </form>
 
 @functions {
-    public class CreateModel(ControlDbContext db, EnrollmentService enrollment, TimeProvider time,
-        Microsoft.Extensions.Options.IOptions<CloudOptions> options) : PageModel
+    public class CreateModel(AdminOperations ops) : PageModel
     {
         [BindProperty] public string Name { get; set; } = "";
         [BindProperty] public string? Phone { get; set; }
@@ -63,32 +62,19 @@
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (string.IsNullOrWhiteSpace(Name)) { Error = "Enter the shop's name."; return Page(); }
-            if (Months is < 0 or > 60) { Error = "Months must be between 0 and 60."; return Page(); }
-
-            var now = time.GetUtcNow().UtcDateTime;
-            var client = new Client
+            try
             {
-                Name = Name.Trim(), Phone = Phone?.Trim(), Email = Email?.Trim(), Notes = Notes?.Trim(), CreatedAt = now,
-            };
-            if (Months > 0)
-                client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(Months) };
-            client.Events.Add(new ClientEvent { At = now, Text = Months > 0 ? $"Client created with {Months} month(s) of Online." : "Client created." });
-
-            // The usual case is one branch, so set it up now: the next screen already holds the link to send.
-            var site = new Site { Id = Guid.NewGuid(), Name = "Main branch", CreatedAt = now };
-            client.Sites.Add(site);
-            db.Clients.Add(client);
-            await db.SaveChangesAsync();
-
-            var issued = await enrollment.IssueAsync(site.Id);
-            var baseUrl = string.IsNullOrWhiteSpace(options.Value.PublicUrl)
-                ? $"{Request.Scheme}://{Request.Host}"
-                : options.Value.PublicUrl.TrimEnd('/');
-            TempData["NewLink"] = $"{baseUrl}/enroll/{issued.Display}";
-            TempData["NewLinkExpires"] = issued.ExpiresAt.ToString("yyyy-MM-dd");
-            this.Flash("Client created");
-            return Redirect($"/admin/Sites/Details/{site.Id}");
+                var created = await ops.CreateClientAsync(Name, Phone, Email, Notes, Months, ops.BaseUrl(Request));
+                TempData["NewLink"] = created.Link;
+                TempData["NewLinkExpires"] = created.LinkExpiresAt.ToString("yyyy-MM-dd");
+                this.Flash("Client created");
+                return Redirect($"/admin/Sites/Details/{created.Site.Id}");
+            }
+            catch (AdminRuleException refused)
+            {
+                Error = refused.Message;
+                return Page();
+            }
         }
     }
 }

@@ -306,7 +306,7 @@ Password: @Model.NewLoginPassword</div>
 </div>
 
 @functions {
-    public class DetailsModel(ControlDbContext db, SiteRemoval removal, PortalFormat fmt, TimeProvider time, FinanceBook book) : PageModel
+    public class DetailsModel(ControlDbContext db, AdminOperations ops, PortalFormat fmt, FinanceBook book) : PageModel
     {
         /// <summary>Newest first.</summary>
         public List<Payment> Payments { get; private set; } = [];
@@ -376,142 +376,74 @@ Password: @Model.NewLoginPassword</div>
             return Redirect($"/admin/Clients/Details/{id}#payments");
         }
 
-        private async Task<Client?> TrackedAsync(int id)
-            => await db.Clients.Include(c => c.Subscription).FirstOrDefaultAsync(c => c.Id == id);
-
-        private void Log(Client client, string text)
-            => client.Events.Add(new ClientEvent { At = time.GetUtcNow().UtcDateTime, Text = text });
-
-        public async Task<IActionResult> OnPostSaveAsync(int id, string name, string? phone, string? email, string? notes)
+        /// <summary>Runs a change, turning a refused request into the toast it would show, and comes back to this page.</summary>
+        private async Task<IActionResult> DoAsync(int id, Func<Task<object?>> work, string done)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            if (string.IsNullOrWhiteSpace(name)) return RedirectToPage(new { id });
-            client.Name = name.Trim(); client.Phone = phone?.Trim(); client.Email = email?.Trim(); client.Notes = notes?.Trim();
-            await db.SaveChangesAsync();
-            this.Flash("Changes saved");
+            try
+            {
+                if (await work() is null) return NotFound();
+                this.Flash(done);
+            }
+            catch (AdminRuleException refused)
+            {
+                this.Flash(refused.Message.TrimEnd('.'));
+            }
             return RedirectToPage(new { id });
         }
 
+        public Task<IActionResult> OnPostSaveAsync(int id, string name, string? phone, string? email, string? notes)
+            => DoAsync(id, async () => await ops.UpdateClientAsync(id, name, phone, email, notes), "Changes saved");
+
         public async Task<IActionResult> OnPostToggleActiveAsync(int id)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            client.IsActive = !client.IsActive;
-            Log(client, client.IsActive ? "Client reactivated." : "Client deactivated.");
-            await db.SaveChangesAsync();
-            this.Flash(client.IsActive ? "Client reactivated" : "Client deactivated");
-            return RedirectToPage(new { id });
+            var active = await db.Clients.Where(c => c.Id == id).Select(c => (bool?)c.IsActive).FirstOrDefaultAsync();
+            if (active is null) return NotFound();
+            return await DoAsync(id, async () => await ops.SetClientActiveAsync(id, !active.Value), active.Value ? "Client deactivated" : "Client reactivated");
         }
 
         public async Task<IActionResult> OnPostRemoveAsync(int id)
         {
-            var client = await db.Clients.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
-            if (client is null) return NotFound();
-            await removal.RemoveClientAsync(id);
-            this.Flash($"{client.Name} removed");
+            var name = await ops.RemoveClientAsync(id);
+            if (name is null) return NotFound();
+            this.Flash($"{name} removed");
             return Redirect("/admin");
         }
 
         public async Task<IActionResult> OnPostExtendAsync(int id, int months)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            if (months is < 1 or > 60) return RedirectToPage(new { id });
-
-            var now = time.GetUtcNow().UtcDateTime;
-            if (client.Subscription is null)
-            {
-                client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(months) };
-            }
-            else
-            {
-                client.Subscription.ExpiresAt = SubscriptionRules.ExtendedExpiry(client.Subscription, months, now);
-                client.Subscription.IsSuspended = false;
-            }
-            Log(client, $"Online extended by {months} month(s), now until {client.Subscription.ExpiresAt:yyyy-MM-dd}.");
-            await db.SaveChangesAsync();
-            this.Flash($"Added {months} month{(months == 1 ? "" : "s")}. Online now ends {client.Subscription.ExpiresAt:yyyy-MM-dd}");
+            if (months is < 1 or > AdminOperations.MaxMonths) return RedirectToPage(new { id });
+            var sub = await ops.ExtendAsync(id, months);
+            if (sub is null) return NotFound();
+            this.Flash($"Added {months} month{(months == 1 ? "" : "s")}. Online now ends {sub.ExpiresAt:yyyy-MM-dd}");
             return RedirectToPage(new { id });
         }
 
-        public async Task<IActionResult> OnPostSuspendAsync(int id) => await SetSuspendedAsync(id, true);
-        public async Task<IActionResult> OnPostResumeAsync(int id) => await SetSuspendedAsync(id, false);
-
-        private async Task<IActionResult> SetSuspendedAsync(int id, bool suspended)
-        {
-            var client = await TrackedAsync(id);
-            if (client?.Subscription is null) return NotFound();
-            client.Subscription.IsSuspended = suspended;
-            Log(client, suspended ? "Online suspended." : "Online resumed.");
-            await db.SaveChangesAsync();
-            this.Flash(suspended ? "Online suspended" : "Online resumed");
-            return RedirectToPage(new { id });
-        }
+        public Task<IActionResult> OnPostSuspendAsync(int id) => DoAsync(id, async () => await ops.SetSuspendedAsync(id, true), "Online suspended");
+        public Task<IActionResult> OnPostResumeAsync(int id) => DoAsync(id, async () => await ops.SetSuspendedAsync(id, false), "Online resumed");
 
         // ---- phone logins (the owner's sign-in to the phone app) ----
 
-        public const int MinOwnerPasswordLength = 8;
-        // No 0/O/1/l/I: the owner may have to read it off a screen and type it.
-        private const string PasswordAlphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        public const int MinOwnerPasswordLength = AdminOperations.MinOwnerPasswordLength;
 
-        private static string GeneratePassword(int length = 12)
+        private void HandOver(OwnerHandOver handOver)
         {
-            var chars = new char[length];
-            for (var i = 0; i < length; i++)
-                chars[i] = PasswordAlphabet[System.Security.Cryptography.RandomNumberGenerator.GetInt32(PasswordAlphabet.Length)];
-            return new string(chars);
-        }
-
-        private void HandOver(string email, string password)
-        {
-            TempData["NewLoginEmail"] = email;
-            TempData["NewLoginPassword"] = password;
+            TempData["NewLoginEmail"] = handOver.Owner.Email;
+            TempData["NewLoginPassword"] = handOver.Password;
         }
 
         public async Task<IActionResult> OnPostAddOwnerAsync(int id, string? email, string? displayName, string? password, string? role)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-
-            // Email, phone number or username: whichever the owner would rather type (see OwnerSignIn).
-            if (OwnerSignIn.Normalize(email) is not { } signIn)
+            try
             {
-                this.Flash(OwnerSignIn.Rules);
-                return RedirectToPage(new { id });
+                var added = await ops.AddOwnerAsync(id, email, displayName, password, role);
+                if (added is null) return NotFound();
+                HandOver(added);
+                this.Flash("Phone login added");
             }
-            email = signIn.Value;
-            if (!string.IsNullOrEmpty(password) && (password.Length < MinOwnerPasswordLength || password.Length > 100))
+            catch (AdminRuleException refused)
             {
-                this.Flash($"The password needs at least {MinOwnerPasswordLength} characters");
-                return RedirectToPage(new { id });
+                this.Flash(refused.Message.TrimEnd('.'));
             }
-            // The sign-in name is unique across ALL clients: the phone app asks only for it and the password.
-            if (await OwnerSignIn.TakenAsync(db.OwnerUsers, email, signIn.Kind))
-            {
-                this.Flash(signIn.Kind switch
-                {
-                    OwnerSignIn.Kind.Email => "That email already has a phone login",
-                    OwnerSignIn.Kind.Phone => "That phone number already has a phone login",
-                    _ => "That username already has a phone login",
-                });
-                return RedirectToPage(new { id });
-            }
-
-            var finalPassword = string.IsNullOrEmpty(password) ? GeneratePassword() : password;
-            var name = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim()
-                : signIn.Kind == OwnerSignIn.Kind.Email ? email[..email.IndexOf('@')] : email;
-            db.OwnerUsers.Add(new OwnerUser
-            {
-                ClientId = id, Email = email, DisplayName = name.Length > 100 ? name[..100] : name,
-                PasswordHash = PasswordHasher.Hash(finalPassword), CreatedAt = time.GetUtcNow().UtcDateTime,
-                Permissions = (int)OwnerRoles.For(role),
-            });
-            Log(client, $"Phone login added for {email} ({OwnerRoles.NameOf(OwnerRoles.For(role))}).");  // never the password
-            await db.SaveChangesAsync();
-
-            HandOver(email, finalPassword);
-            this.Flash("Phone login added");
             return RedirectToPage(new { id });
         }
 
@@ -531,93 +463,38 @@ Password: @Model.NewLoginPassword</div>
             _ => "A custom set of permissions",
         };
 
-        public async Task<IActionResult> OnPostSetRoleAsync(int id, int ownerId, string? role)
-        {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            var permissions = OwnerRoles.For(role);
-            if ((int)permissions != owner.Permissions)
-            {
-                owner.Permissions = (int)permissions;
-                // The phone keeps what it was told at sign-in; signing it out makes the new limits apply now.
-                await RevokeSessionsAsync(owner.Id);
-                Log(client, $"Phone login role for {owner.Email} set to {OwnerRoles.NameOf(permissions)}.");
-                await db.SaveChangesAsync();
-            }
-            this.Flash("Role updated");
-            return RedirectToPage(new { id });
-        }
+        public Task<IActionResult> OnPostSetRoleAsync(int id, int ownerId, string? role)
+            => DoAsync(id, async () => await ops.SetOwnerRoleAsync(id, ownerId, role), "Role updated");
 
         public async Task<IActionResult> OnPostResetOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            var password = GeneratePassword();
-            owner.PasswordHash = PasswordHasher.Hash(password);
-            await RevokeSessionsAsync(owner.Id);
-            Log(client, $"Phone login password reset for {owner.Email}.");
-            await db.SaveChangesAsync();
-
-            HandOver(owner.Email, password);
+            var reset = await ops.ResetOwnerPasswordAsync(id, ownerId);
+            if (reset is null) return NotFound();
+            HandOver(reset);
             this.Flash("Password reset");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostToggleOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            owner.IsActive = !owner.IsActive;
-            if (!owner.IsActive) await RevokeSessionsAsync(owner.Id);
-            Log(client, owner.IsActive ? $"Phone login enabled for {owner.Email}." : $"Phone login disabled for {owner.Email}.");
-            await db.SaveChangesAsync();
-            this.Flash(owner.IsActive ? "Phone login enabled" : "Phone login disabled");
-            return RedirectToPage(new { id });
-        }
-
-        /// <summary>Signs every phone of this owner out, so a reset or a disable takes effect now and not when the session would have ended.</summary>
-        private async Task RevokeSessionsAsync(int ownerUserId)
-        {
-            var now = time.GetUtcNow().UtcDateTime;
-            var live = await db.OwnerSessions.Where(s => s.OwnerUserId == ownerUserId && s.RevokedAt == null).ToListAsync();
-            foreach (var session in live) session.RevokedAt = now;
+            var active = await db.OwnerUsers.Where(o => o.Id == ownerId && o.ClientId == id).Select(o => (bool?)o.IsActive).FirstOrDefaultAsync();
+            if (active is null) return NotFound();
+            return await DoAsync(id, async () => await ops.SetOwnerActiveAsync(id, ownerId, !active.Value),
+                active.Value ? "Phone login disabled" : "Phone login enabled");
         }
 
         public async Task<IActionResult> OnPostRemoveOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(o => o.Id == ownerId && o.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            await db.OwnerSessions.Where(s => s.OwnerUserId == ownerId).ExecuteDeleteAsync();
-            db.OwnerUsers.Remove(owner);
-            Log(client, $"Phone sign-in removed for {owner.Email}.");
-            await db.SaveChangesAsync();
+            if (!await ops.RemoveOwnerAsync(id, ownerId)) return NotFound();
             this.Flash("Sign-in removed");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostAddSiteAsync(int id, string siteName, string? machineId)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
             if (string.IsNullOrWhiteSpace(siteName)) return RedirectToPage(new { id });
-
-            var site = new Site
-            {
-                Id = Guid.NewGuid(), ClientId = id, Name = siteName.Trim(),
-                MachineId = string.IsNullOrWhiteSpace(machineId) ? null : machineId.Trim(),
-                CreatedAt = time.GetUtcNow().UtcDateTime,
-            };
-            db.Sites.Add(site);
-            Log(client, $"Branch '{site.Name}' added.");
-            await db.SaveChangesAsync();
+            var site = await ops.AddSiteAsync(id, siteName, machineId);
+            if (site is null) return NotFound();
             this.Flash("Branch added. Create its connection link below");
             return Redirect($"/admin/Sites/Details/{site.Id}");
         }

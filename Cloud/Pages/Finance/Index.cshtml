@@ -347,18 +347,15 @@
         return 10 * pow;
     }
 
-    public sealed record Line(bool IsIncome, int Id, DateOnly Day, string Who, int? ClientId, string Details, string? Note, decimal Amount);
-    public sealed record Renewal(int ClientId, string Name, DateTime Ends, decimal? LastPaid);
-
-    public class FinanceModel(ControlDbContext db, FinanceBook book, PortalFormat fmt) : PageModel
+    public class FinanceModel(FinanceDashboard dashboard, FinanceBook book, PortalFormat fmt) : PageModel
     {
         public FinanceReport Report { get; private set; } = null!;
         public FinanceBudget? MonthBudget { get; private set; }
-        public List<Line> Lines { get; private set; } = [];
-        public List<AttentionItem> Attention { get; private set; } = [];
-        public List<Renewal> Renewals { get; private set; } = [];
-        public List<(int Id, string Name)> Clients { get; private set; } = [];
-        public List<string> Categories { get; private set; } = [];
+        public IReadOnlyList<FinanceLine> Lines { get; private set; } = [];
+        public IReadOnlyList<AttentionItem> Attention { get; private set; } = [];
+        public IReadOnlyList<Renewal> Renewals { get; private set; } = [];
+        public IReadOnlyList<(int Id, string Name)> Clients { get; private set; } = [];
+        public IReadOnlyList<string> Categories { get; private set; } = [];
         public Dictionary<string, string> Route { get; private set; } = [];
 
         [BindProperty] public PaymentInput Pay { get; set; } = new();
@@ -430,80 +427,16 @@
         /// <summary>The period's payments and expenses as a spreadsheet: money in is positive, money out negative.</summary>
         public async Task<IActionResult> OnGetCsvAsync(string? m, string? y)
         {
-            var period = FinancePeriod.Parse(m, y, fmt.Today);
-            await LoadAsync(period);
-            var inv = System.Globalization.CultureInfo.InvariantCulture;
-            var csv = new System.Text.StringBuilder("Date,Type,Amount,From / on,Method or paid to,Purpose,Reference,Note\r\n");
-            foreach (var l in Lines.OrderBy(x => x.Day).ThenBy(x => x.Id))
-            {
-                var pay = l.IsIncome ? Payments.First(x => x.Id == l.Id) : null;
-                var exp = l.IsIncome ? null : Expenses.First(x => x.Id == l.Id);
-                csv.AppendJoin(',', new[]
-                {
-                    l.Day.ToString("yyyy-MM-dd", inv), l.IsIncome ? "In" : "Out",
-                    (l.IsIncome ? l.Amount : -l.Amount).ToString("0.00", inv),
-                    Csv(l.Who), Csv(pay?.Method ?? exp?.Payee), Csv(pay?.Purpose), Csv(pay?.Reference), Csv(l.Note),
-                }).Append("\r\n");
-            }
-            var name = period.IsYear ? $"finance-{period.From.Year}.csv" : $"finance-{period.From:yyyy-MM}.csv";
-            return File(System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(csv.ToString())).ToArray(), "text/csv", name);
+            var view = await dashboard.BuildAsync(FinancePeriod.Parse(m, y, fmt.Today));
+            return File(FinanceDashboard.Csv(view), "text/csv", FinanceDashboard.CsvName(view.Period));
         }
-
-        /// <summary>Quoted when needed, and a leading = + - @ neutralised so a spreadsheet never runs a cell as a formula.</summary>
-        private static string Csv(string? value)
-        {
-            if (string.IsNullOrEmpty(value)) return "";
-            if ("=+-@\t\r".Contains(value[0])) value = "'" + value;
-            return value.IndexOfAny([',', '"', '\n', '\r']) >= 0 ? "\"" + value.Replace("\"", "\"\"") + "\"" : value;
-        }
-
-        private List<Payment> Payments { get; set; } = [];
-        private List<Expense> Expenses { get; set; } = [];
 
         private async Task LoadAsync(FinancePeriod period)
         {
             Route = period.IsYear ? new() { ["y"] = period.From.Year.ToString() } : new() { ["m"] = period.From.ToString("yyyy-MM") };
-            Payments = await db.Payments.AsNoTracking().Include(x => x.Client).ToListAsync();
-            Expenses = await db.Expenses.AsNoTracking().ToListAsync();
-            var budgets = await db.FinanceBudgets.AsNoTracking().ToListAsync();
-            Report = FinanceReport.Build(period, Payments, Expenses, budgets);
-            MonthBudget = period.IsYear ? null : FinanceRules.BudgetFor(budgets, period.From);
-
-            Lines = Payments.Where(x => period.Contains(x.ReceivedOn))
-                .Select(x => new Line(true, x.Id, x.ReceivedOn, x.Client?.Name ?? x.Payer, x.ClientId,
-                    string.Join(" · ", new[] { x.Purpose, x.Method, x.Reference }.Where(s => !string.IsNullOrWhiteSpace(s))), x.Note, x.Amount))
-                .Concat(Expenses.Where(x => period.Contains(x.SpentOn))
-                    .Select(x => new Line(false, x.Id, x.SpentOn, x.Category, null, x.Payee ?? "", x.Note, x.Amount)))
-                .OrderByDescending(x => x.Day).ThenByDescending(x => x.Id).ToList();
-
-            var clients = await db.Clients.AsNoTracking().Include(c => c.Subscription).OrderBy(c => c.Name).ToListAsync();
-            Clients = clients.Select(c => (c.Id, c.Name)).ToList();
-            Categories = FinanceRules.ExpenseCategories
-                .Concat(Expenses.Select(x => x.Category)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-            // Plans that end soon, with what the client paid last time for the subscription: the money that should come in next.
-            var now = fmt.Now;
-            Renewals = clients
-                .Where(c => c.IsActive && c.Subscription is { IsSuspended: false } s && s.ExpiresAt >= now.AddDays(-SubscriptionRules.GraceDays) && s.ExpiresAt <= now.AddDays(30))
-                .Select(c => new Renewal(c.Id, c.Name, c.Subscription!.ExpiresAt,
-                    Payments.Where(x => x.ClientId == c.Id && x.Purpose == FinanceRules.Purposes[0]).MaxBy(x => x.ReceivedOn)?.Amount))
-                .OrderBy(x => x.Ends).ToList();
-
-            Attention = [];
-            if (Report.SpendingBudget is { Left: < 0 } over)
-                Attention.Add(new AttentionItem(AttentionSeverity.Bad, "Over the spending limit",
-                    $"Spent {fmt.Money(over.Actual)} in {period.Label}, {fmt.Money(-over.Left)} more than the {fmt.Money(over.Planned)} limit.", "", ""));
-
-            // Clients whose Online plan is running but who have no payment on record for a year: either unpaid, or not written down here.
-            var yearAgo = fmt.Today.AddYears(-1);
-            var unpaid = clients.Where(c => c.IsActive && SubscriptionRules.Evaluate(c.Subscription, now) is SubscriptionState.Active or SubscriptionState.Grace
-                                            && !Payments.Any(x => x.ClientId == c.Id && x.ReceivedOn > yearAgo)).ToList();
-            if (unpaid.Count > 0)
-                Attention.Add(new AttentionItem(AttentionSeverity.Warn,
-                    unpaid.Count == 1 ? $"{unpaid[0].Name} has no payment on record" : $"{unpaid.Count} clients with a running plan have no payment on record",
-                    (unpaid.Count == 1 ? "Their Online plan is running" : string.Join(", ", unpaid.Take(6).Select(c => c.Name)) + (unpaid.Count > 6 ? $" and {unpaid.Count - 6} more" : "") + ": their plans are running")
-                    + ", but nothing was recorded from them in the last 12 months. Record what they paid, or follow it up.",
-                    $"/admin/Clients/Details/{unpaid[0].Id}#payments", unpaid.Count == 1 ? "Open client" : "Open the first"));
+            var view = await dashboard.BuildAsync(period);
+            (Report, MonthBudget, Lines, Renewals, Attention, Clients, Categories)
+                = (view.Report, view.MonthBudget, view.Lines, view.Renewals, view.Attention, view.Clients, view.Categories);
         }
     }
 }

@@ -223,55 +223,97 @@ public sealed class ExpenseInput
 /// <summary>Writes to the books: checks a form, saves the row, and notes a client's payments in that client's history.</summary>
 public sealed class FinanceBook(ControlDbContext db, PortalFormat fmt)
 {
-    /// <summary>Saves the payment, or returns why it cannot (in words for the form).</summary>
-    public async Task<(Payment? Payment, string? Error)> RecordPaymentAsync(PaymentInput input, string by)
+    /// <summary>Checks a payment form and fills <paramref name="payment"/> from it. Returns why it cannot, or null.</summary>
+    private async Task<string?> FillAsync(Payment payment, PaymentInput input)
     {
         if (!FinanceRules.TryParseAmount(input.Amount, out var amount))
-            return (null, $"Enter the amount received, more than 0 and at most {fmt.Money(FinanceRules.MaxAmount)}, with at most 2 decimals.");
-        if (input.Date is not { } date) return (null, "Enter the day the money came in.");
-        if (date > fmt.Today.AddDays(1)) return (null, "The day the money came in cannot be in the future.");
+            return $"Enter the amount received, more than 0 and at most {fmt.Money(FinanceRules.MaxAmount)}, with at most 2 decimals.";
+        if (input.Date is not { } date) return "Enter the day the money came in.";
+        if (date > fmt.Today.AddDays(1)) return "The day the money came in cannot be in the future.";
 
         Client? client = null;
         if (input.ClientId is { } clientId)
         {
             client = await db.Clients.FindAsync(clientId);
-            if (client is null) return (null, "That client no longer exists.");
+            if (client is null) return "That client no longer exists.";
         }
         var payer = client?.Name ?? FinanceRules.Clean(input.Payer, 200);
-        if (payer is null) return (null, "Pick the client who paid, or say where the money came from.");
+        if (payer is null) return "Pick the client who paid, or say where the money came from.";
 
-        var payment = new Payment
-        {
-            ClientId = client?.Id, Payer = payer, Amount = amount, ReceivedOn = date,
-            Method = FinanceRules.Clean(input.Method, 40) ?? "Other",
-            Purpose = FinanceRules.Clean(input.Purpose, 60) ?? "Other",
-            Reference = FinanceRules.Clean(input.Reference, 100), Note = FinanceRules.Clean(input.Note, 500),
-            CreatedAt = fmt.Now, CreatedBy = by,
-        };
+        payment.ClientId = client?.Id;
+        payment.Payer = payer;
+        payment.Amount = amount;
+        payment.ReceivedOn = date;
+        payment.Method = FinanceRules.Clean(input.Method, 40) ?? "Other";
+        payment.Purpose = FinanceRules.Clean(input.Purpose, 60) ?? "Other";
+        payment.Reference = FinanceRules.Clean(input.Reference, 100);
+        payment.Note = FinanceRules.Clean(input.Note, 500);
+        return null;
+    }
+
+    private string? Fill(Expense expense, ExpenseInput input)
+    {
+        if (!FinanceRules.TryParseAmount(input.Amount, out var amount))
+            return $"Enter the amount spent, more than 0 and at most {fmt.Money(FinanceRules.MaxAmount)}, with at most 2 decimals.";
+        if (input.Date is not { } date) return "Enter the day it was paid.";
+        if (date > fmt.Today.AddDays(1)) return "The day it was paid cannot be in the future.";
+        var category = FinanceRules.Clean(input.Category, 60);
+        if (category is null) return "Pick what the money was spent on.";
+
+        expense.Amount = amount;
+        expense.SpentOn = date;
+        expense.Category = category;
+        expense.Payee = FinanceRules.Clean(input.Payee, 120);
+        expense.Note = FinanceRules.Clean(input.Note, 500);
+        return null;
+    }
+
+    private void NoteForClient(int? clientId, string text)
+    {
+        if (clientId is { } id) db.ClientEvents.Add(new ClientEvent { ClientId = id, At = fmt.Now, Text = text });
+    }
+
+    /// <summary>Saves the payment, or returns why it cannot (in words for the form).</summary>
+    public async Task<(Payment? Payment, string? Error)> RecordPaymentAsync(PaymentInput input, string by)
+    {
+        var payment = new Payment { CreatedAt = fmt.Now, CreatedBy = by };
+        if (await FillAsync(payment, input) is { } error) return (null, error);
         db.Payments.Add(payment);
-        if (client is not null)
-            db.ClientEvents.Add(new ClientEvent { ClientId = client.Id, At = fmt.Now,
-                Text = $"Payment recorded: {fmt.Money(amount)} on {date:yyyy-MM-dd} · {payment.Method} · {payment.Purpose}." });
+        NoteForClient(payment.ClientId,
+            $"Payment recorded: {fmt.Money(payment.Amount)} on {payment.ReceivedOn:yyyy-MM-dd} · {payment.Method} · {payment.Purpose}.");
+        await db.SaveChangesAsync();
+        return (payment, null);
+    }
+
+    /// <summary>Corrects a payment. Null payment and null error: it no longer exists.</summary>
+    public async Task<(Payment? Payment, string? Error)> UpdatePaymentAsync(int id, PaymentInput input)
+    {
+        var payment = await db.Payments.FindAsync(id);
+        if (payment is null) return (null, null);
+        var before = $"{fmt.Money(payment.Amount)} on {payment.ReceivedOn:yyyy-MM-dd}";
+        // A payment from a client that was since removed keeps its recorded name unless a client or a new name is given.
+        if (input.ClientId is null && payment.ClientId is null && string.IsNullOrWhiteSpace(input.Payer)) input.Payer = payment.Payer;
+        if (await FillAsync(payment, input) is { } error) return (null, error);
+        NoteForClient(payment.ClientId, $"Payment of {before} corrected: now {fmt.Money(payment.Amount)} on {payment.ReceivedOn:yyyy-MM-dd}.");
         await db.SaveChangesAsync();
         return (payment, null);
     }
 
     public async Task<(Expense? Expense, string? Error)> RecordExpenseAsync(ExpenseInput input, string by)
     {
-        if (!FinanceRules.TryParseAmount(input.Amount, out var amount))
-            return (null, $"Enter the amount spent, more than 0 and at most {fmt.Money(FinanceRules.MaxAmount)}, with at most 2 decimals.");
-        if (input.Date is not { } date) return (null, "Enter the day it was paid.");
-        if (date > fmt.Today.AddDays(1)) return (null, "The day it was paid cannot be in the future.");
-        var category = FinanceRules.Clean(input.Category, 60);
-        if (category is null) return (null, "Pick what the money was spent on.");
-
-        var expense = new Expense
-        {
-            Amount = amount, SpentOn = date, Category = category,
-            Payee = FinanceRules.Clean(input.Payee, 120), Note = FinanceRules.Clean(input.Note, 500),
-            CreatedAt = fmt.Now, CreatedBy = by,
-        };
+        var expense = new Expense { CreatedAt = fmt.Now, CreatedBy = by };
+        if (Fill(expense, input) is { } error) return (null, error);
         db.Expenses.Add(expense);
+        await db.SaveChangesAsync();
+        return (expense, null);
+    }
+
+    /// <summary>Corrects an expense. Null expense and null error: it no longer exists.</summary>
+    public async Task<(Expense? Expense, string? Error)> UpdateExpenseAsync(int id, ExpenseInput input)
+    {
+        var expense = await db.Expenses.FindAsync(id);
+        if (expense is null) return (null, null);
+        if (Fill(expense, input) is { } error) return (null, error);
         await db.SaveChangesAsync();
         return (expense, null);
     }
@@ -324,6 +366,13 @@ public sealed class FinanceBook(ControlDbContext db, PortalFormat fmt)
         row.UpdatedAt = fmt.Now;
         await db.SaveChangesAsync();
         return null;
+    }
+
+    /// <summary>Removes the budget set for that month, so the one before it carries on. False when none was set for that month.</summary>
+    public async Task<bool> DeleteBudgetAsync(DateOnly month)
+    {
+        var first = FinanceRules.FirstOfMonth(month);
+        return await db.FinanceBudgets.Where(b => b.Month == first).ExecuteDeleteAsync() > 0;
     }
 }
 

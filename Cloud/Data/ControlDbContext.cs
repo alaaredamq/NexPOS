@@ -15,6 +15,7 @@ public class ControlDbContext : DbContext
     protected ControlDbContext(DbContextOptions options) : base(options) { }
 
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<AdminSession> AdminSessions => Set<AdminSession>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Site> Sites => Set<Site>();
@@ -45,6 +46,14 @@ public class ControlDbContext : DbContext
         {
             e.HasIndex(x => x.Username).IsUnique();
             e.Property(x => x.Username).HasMaxLength(100);
+        });
+
+        b.Entity<AdminSession>(e =>
+        {
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.Property(x => x.TokenHash).HasMaxLength(64);
+            e.Property(x => x.DeviceName).HasMaxLength(100);
+            e.HasOne(x => x.AdminUser).WithMany().HasForeignKey(x => x.AdminUserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Client>(e =>
