@@ -1,0 +1,5 @@
+{
+ "state": "Ready",
+ "ready": true,
+ "message": "Ready. You type the key's passphrase each time you issue; it is never stored."
+}

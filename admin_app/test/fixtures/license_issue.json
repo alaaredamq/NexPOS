@@ -1,0 +1,26 @@
+{
+ "license": {
+  "id": 1,
+  "clientId": 1,
+  "clientName": "Cedar Bakery",
+  "siteId": null,
+  "machineId": "ABCDE-I2345-ABCDE-I234Q",
+  "customer": "Cedar Bakery",
+  "kind": "Full",
+  "plan": "Pro",
+  "seats": 2,
+  "issuedOn": "2026-11-24",
+  "validUntil": "2027-11-24",
+  "timeLimited": false,
+  "status": "Updates",
+  "statusLabel": "Updates on",
+  "serial": "70024E22",
+  "key": "NXL1-AIAAA-RBSEN-N6OQA-RBSEN-N6IEE-ICY64-ACJYR-AYQ3F-MRQXE-ICCMF-VWK4T-ZAIXD-H3TY7-KP2RP-EFRVF-YVA4M-YK66U-6QIPQ-EPO3J-ORXF5-T77UZ-XJ2G6-EEZHP-JOFLD-7SGLR-6C65J-HZUDL-JDRYA-E4YG6-YZTBP-CNZMY-5PLEM",
+  "source": "Cloud",
+  "paymentId": 3,
+  "note": null,
+  "createdAtUtc": "2026-11-24T16:45:21.7371785",
+  "createdBy": "owner"
+ },
+ "whatsAppUrl": "https://wa.me/?text=Your%20Coduo%20POS%20licence%20key.%20Open%20Coduo%20POS%20%3E%20License%2C%20paste%20it%20and%20press%20Activate.%0A%D9%85%D9%81%D8%AA%D8%A7%D8%AD%20%D8%AA%D8%B1%D8%AE%D9%8A%D8%B5%20Coduo%20POS.%20%D8%A7%D9%81%D8%AA%D8%AD%20Coduo%20POS%20%D8%AB%D9%85%20%D8%A7%D9%84%D8%AA%D8%B1%D8%AE%D9%8A%D8%B5%20%28License%29%D8%8C%20%D8%A7%D9%84%D8%B5%D9%82%D9%87%20%D9%88%D8%A7%D8%B6%D8%BA%D8%B7%20Activate.%0A%0ANXL1-AIAAA-RBSEN-N6OQA-RBSEN-N6IEE-ICY64-ACJYR-AYQ3F-MRQXE-ICCMF-VWK4T-ZAIXD-H3TY7-KP2RP-EFRVF-YVA4M-YK66U-6QIPQ-EPO3J-ORXF5-T77UZ-XJ2G6-EEZHP-JOFLD-7SGLR-6C65J-HZUDL-JDRYA-E4YG6-YZTBP-CNZMY-5PLEM"
+}

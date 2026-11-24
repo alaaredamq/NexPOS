@@ -1,0 +1,25 @@
+[
+ {
+  "id": 1,
+  "clientId": 1,
+  "clientName": "Cedar Bakery",
+  "siteId": null,
+  "machineId": "ABCDE-I2345-ABCDE-I234Q",
+  "customer": "Cedar Bakery",
+  "kind": "Full",
+  "plan": "Pro",
+  "seats": 2,
+  "issuedOn": "2026-11-24",
+  "validUntil": "2027-11-24",
+  "timeLimited": false,
+  "status": "Updates",
+  "statusLabel": "Updates on",
+  "serial": "70024E22",
+  "key": "NXL1-AIAAA-RBSEN-N6OQA-RBSEN-N6IEE-ICY64-ACJYR-AYQ3F-MRQXE-ICCMF-VWK4T-ZAIXD-H3TY7-KP2RP-EFRVF-YVA4M-YK66U-6QIPQ-EPO3J-ORXF5-T77UZ-XJ2G6-EEZHP-JOFLD-7SGLR-6C65J-HZUDL-JDRYA-E4YG6-YZTBP-CNZMY-5PLEM",
+  "source": "Cloud",
+  "paymentId": 3,
+  "note": null,
+  "createdAtUtc": "2026-11-24T16:45:21.7371785",
+  "createdBy": "owner"
+ }
+]

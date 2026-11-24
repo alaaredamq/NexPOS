@@ -1,6 +1,6 @@
 # Admin API (`/api/admin/v1`)
 
-Everything the provider portal at `/admin` can do, as JSON, for an admin app (phone or desktop).
+Everything the provider portal at `/admin` can do, as JSON, for an admin app (phone or desktop). The phone app is `admin_app/`.
 The portal pages and this API call the same code (`AdminOperations`, `FinanceBook`, `OverviewBuilder`, `FinanceDashboard`),
 so a rule changed in one place applies to both.
 
@@ -92,9 +92,9 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/clients/{id}/logins` | | `[{ id, signIn, displayName, role, permissions, isActive, createdAtUtc, lastSignInAtUtc }]` |
-| POST | `/clients/{id}/logins` | `{ signIn, displayName?, password?, role? }` | 201 `{ login, password, whatsAppUrl }`. With no password, one is made up. The password is shown once. |
+| POST | `/clients/{id}/logins` | `{ signIn, displayName?, password?, role? }` | 201 `{ login, password, message, whatsAppUrl }`. With no password, one is made up. The password is shown once. `message` is the text to send the owner (also in `whatsAppUrl`): for an online-menu-only client it points to the owner website instead of asking for the recovery code. |
 | PUT | `/clients/{id}/logins/{loginId}` | `{ role?, isActive? }` | The login. A role change or disable signs its phones out. |
-| POST | `/clients/{id}/logins/{loginId}/reset-password` | | `{ login, password, whatsAppUrl }` (shown once) |
+| POST | `/clients/{id}/logins/{loginId}/reset-password` | | `{ login, password, message, whatsAppUrl }` (shown once) |
 | DELETE | `/clients/{id}/logins/{loginId}` | | 204 |
 
 `signIn` is an email, a phone number or a username. `role` is `owner`, `manager` or `staff`.

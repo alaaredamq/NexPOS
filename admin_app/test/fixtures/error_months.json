@@ -1,0 +1,7 @@
+[
+ 400,
+ {
+  "code": "months_required",
+  "message": "Pick the months of Online they paid for. Without them their online menu is offline."
+ }
+]

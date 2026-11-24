@@ -17,7 +17,22 @@ public sealed class AdminRuleException(string code, string message) : Exception(
 /// <summary>A new client; for a POS-only client there is no branch or link yet (Site and Link are null).</summary>
 public sealed record NewClientResult(Client Client, Site? Site, string? Link, DateTime? LinkExpiresAt);
 public sealed record IssuedLink(string Url, string Code, DateTime ExpiresAt);
-public sealed record OwnerHandOver(OwnerUser Owner, string Password);
+public sealed record OwnerHandOver(OwnerUser Owner, string Password)
+{
+    /// <summary>
+    /// The message that hands a new or reset login to the owner (WhatsApp, or copied), in English and Arabic. A shop with the POS also
+    /// needs its recovery code on the phone; an online-menu-only shop signs in on the owner website, where the menu editor opens.
+    /// </summary>
+    public static string Message(string signIn, string password, bool menuOnly, string baseUrl) => menuOnly
+        ? $"Your online menu login\nOpen: {baseUrl}/owner\nSign in with: {signIn}\nPassword: {password}\n\n" +
+          "There you add your dishes, pictures and prices, publish the menu and print its QR code.\n" +
+          "هناك تضيف أصنافك وصورها وأسعارها، ثم تنشر القائمة وتطبع رمز QR الخاص بها."
+        : $"Coduo POS app login\nSign in with: {signIn}\nPassword: {password}\n\n" +
+          "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
+          "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.";
+
+    public static string WhatsAppUrl(string text) => "https://wa.me/?text=" + Uri.EscapeDataString(text);
+}
 
 /// <summary>
 /// Everything the provider can do to clients, their branches and their phone logins, in one place. The admin portal's pages and the

@@ -435,20 +435,20 @@ public static partial class AdminEndpoints
         return Json((await db.OwnerUsers.AsNoTracking().Where(o => o.ClientId == id).OrderBy(o => o.CreatedAt).ToListAsync()).Select(LoginView));
     }
 
-    /// <summary>The password comes back once (made up when none was sent), with a ready message to send the owner.</summary>
-    private static object HandOver(OwnerHandOver h) => new
+    /// <summary>
+    /// The password comes back once (made up when none was sent), with the message to send the owner (<c>message</c>, and as a WhatsApp
+    /// link): for an online-menu-only client it points to the owner website instead of asking for a recovery code.
+    /// </summary>
+    private static async Task<object> HandOverAsync(OwnerHandOver h, int clientId, ControlDbContext db, AdminOperations ops, HttpContext http)
     {
-        login = LoginView(h.Owner),
-        password = h.Password,
-        whatsAppUrl = "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"Coduo POS app login\nSign in with: {h.Owner.Email}\nPassword: {h.Password}\n\n" +
-            "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
-            "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد."),
-    };
+        var menuOnly = await db.Clients.Where(c => c.Id == clientId).Select(c => c.HasOnline && !c.HasPos).FirstOrDefaultAsync();
+        var message = OwnerHandOver.Message(h.Owner.Email, h.Password, menuOnly, ops.BaseUrl(http.Request));
+        return new { login = LoginView(h.Owner), password = h.Password, message, whatsAppUrl = OwnerHandOver.WhatsAppUrl(message) };
+    }
 
-    private static Task<IResult> AddLogin(int id, LoginCreateRequest body, AdminOperations ops)
+    private static Task<IResult> AddLogin(int id, LoginCreateRequest body, AdminOperations ops, ControlDbContext db, HttpContext http)
         => Try(async () => await ops.AddOwnerAsync(id, body.SignIn, body.DisplayName, body.Password, body.Role) is { } h
-            ? Json(HandOver(h), StatusCodes.Status201Created)
+            ? Json(await HandOverAsync(h, id, db, ops, http), StatusCodes.Status201Created)
             : NotFound("That client"));
 
     private static async Task<IResult> UpdateLogin(int id, int loginId, LoginUpdateRequest body, AdminOperations ops)
@@ -460,8 +460,8 @@ public static partial class AdminEndpoints
         return Json(LoginView(owner));
     }
 
-    private static async Task<IResult> ResetLogin(int id, int loginId, AdminOperations ops)
-        => await ops.ResetOwnerPasswordAsync(id, loginId) is { } h ? Json(HandOver(h)) : NotFound("That login");
+    private static async Task<IResult> ResetLogin(int id, int loginId, AdminOperations ops, ControlDbContext db, HttpContext http)
+        => await ops.ResetOwnerPasswordAsync(id, loginId) is { } h ? Json(await HandOverAsync(h, id, db, ops, http)) : NotFound("That login");
 
     private static async Task<IResult> RemoveLogin(int id, int loginId, AdminOperations ops)
         => await ops.RemoveOwnerAsync(id, loginId) ? Results.NoContent() : NotFound("That login");

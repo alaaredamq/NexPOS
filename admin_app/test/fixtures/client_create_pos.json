@@ -1,0 +1,28 @@
+{
+ "client": {
+  "id": 3,
+  "name": "Offline Grocer",
+  "phone": null,
+  "email": null,
+  "notes": null,
+  "isActive": true,
+  "createdAtUtc": "2026-11-24T16:45:21.0196749",
+  "hasOnline": false,
+  "hasPos": true,
+  "type": "pos",
+  "menuLive": false,
+  "subscription": null,
+  "subscriptionState": "None",
+  "sites": [],
+  "logins": [],
+  "payments": {
+   "count": 0,
+   "total": 0,
+   "last12Months": 0,
+   "last": null
+  },
+  "attention": []
+ },
+ "siteId": null,
+ "link": null
+}

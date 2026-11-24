@@ -126,6 +126,13 @@ public class MenuOnlyClientTests
         var none = await app.PostAsJsonAsync($"{Api}/clients", new { name = "Api Free", type = "menu", months = 0 });
         Assert.False(none.IsSuccessStatusCode);
         Assert.Contains("months_required", await none.Content.ReadAsStringAsync());
+        // Its phone login is handed over with the owner website, not the POS recovery code it does not have.
+        var menuId = made.GetProperty("client").GetProperty("id").GetInt32();
+        var login = await JsonAsync(await app.PostAsJsonAsync($"{Api}/clients/{menuId}/logins", new { signIn = "menu-owner" }), HttpStatusCode.Created);
+        Assert.Contains("/owner", login.GetProperty("message").GetString());
+        Assert.DoesNotContain("recovery code", login.GetProperty("message").GetString());
+        var reset = await JsonAsync(await app.PostAsync($"{Api}/clients/{menuId}/logins/{login.GetProperty("login").GetProperty("id").GetInt32()}/reset-password", null));
+        Assert.DoesNotContain("recovery code", reset.GetProperty("message").GetString());
         var rows = await JsonAsync(await app.GetAsync($"{Api}/clients?filter=menu"));
         Assert.Equal(["Api Menu", "Juice Corner"], rows.EnumerateArray().Select(r => r.GetProperty("name").GetString()).Order().ToArray());
     }

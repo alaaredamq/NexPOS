@@ -1,0 +1,11 @@
+{
+ "id": 2,
+ "hasOnline": true,
+ "hasPos": true,
+ "type": "online",
+ "link": {
+  "url": "http://localhost:51158/enroll/X64V-KU2N-6N3Q",
+  "code": "X64V-KU2N-6N3Q",
+  "expiresAtUtc": "2026-12-01T16:45:21.7101601Z"
+ }
+}
