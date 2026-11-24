@@ -129,3 +129,27 @@ document.querySelectorAll('[data-payer-toggle]').forEach((select) => {
   })
   window.addEventListener('scroll', hide, { passive: true })
 }
+
+// ---- new client: Online months only matter for a POS + Online client ----
+document.querySelectorAll('[data-type-toggle]').forEach((radio, _, all) => {
+  const months = document.querySelector('[data-online-only]')
+  if (!months) return
+  const sync = () => { months.hidden = [...all].some((r) => r.checked && r.value === 'pos') }
+  radio.addEventListener('change', sync)
+  sync()
+})
+
+// ---- issue a key: Basic is always 1 PC ----
+{
+  const seats = document.querySelector('[data-seats]')
+  const plans = [...document.querySelectorAll('[data-plan]')]
+  if (seats && plans.length) {
+    const sync = () => {
+      const basic = plans.some((p) => p.checked && p.value === 'basic')
+      if (basic) seats.value = '1'
+      seats.readOnly = basic
+    }
+    plans.forEach((p) => p.addEventListener('change', sync))
+    sync()
+  }
+}

@@ -33,6 +33,7 @@
     <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4L2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M17 6l3 3M14 9l2.5 2.5"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
 </svg>
 
@@ -50,6 +51,7 @@ else
             </a>
             <nav aria-label="Main">
                 <a href="/admin" aria-current="@(nav == "clients" ? "page" : null)"><svg class="icon"><use href="#i-store"/></svg><span class="t">Clients</span></a>
+                <a href="/admin/Licenses" aria-current="@(nav == "licences" ? "page" : null)"><svg class="icon"><use href="#i-key"/></svg><span class="t">Licences</span></a>
                 <a href="/admin/Finance" aria-current="@(nav == "finance" ? "page" : null)"><svg class="icon"><use href="#i-chart"/></svg><span class="t">Finance</span></a>
                 <a href="/admin/Clients/Create" aria-current="@(nav == "new" ? "page" : null)"><svg class="icon"><use href="#i-plus"/></svg><span class="t">New client</span></a>
             </nav>

@@ -7,7 +7,7 @@ namespace Cloud.Services;
 
 /// <summary>One client as the overview lists it: the raw facts, plus the short phrases the portal shows beside them.</summary>
 public sealed record ClientRow(
-    int Id, string Name, bool IsActive, string? Phone, string? Email, int Branches, string Sub,
+    int Id, string Name, bool IsActive, bool HasOnline, string? Phone, string? Email, int Branches, string Sub,
     SubscriptionState State, DateTime? ExpiresAt, bool Suspended, string PlanNote,
     PulseData Pulse, DateTime? LastSeenAt, string Seen, string[] Tags, long? Products, long? Orders, bool EndingSoon);
 
@@ -17,7 +17,7 @@ public sealed record ClientOverview(
     int Connected, int PlansActive, int PlansEnding, int PlansEnded, long ProductsTotal, long OrdersTotal, string Summary);
 
 /// <summary>Builds the overview for the portal's Clients page and for the admin app (GET /api/admin/v1/overview and /clients).</summary>
-public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, PortalFormat fmt)
+public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, PortalFormat fmt, LicenseBook licenses)
 {
     private static readonly string[] CountTables = ["Products", "Orders"];
 
@@ -41,8 +41,9 @@ public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, Po
 
             var states = c.Sites.Where(s => !s.IsDisabled).Select(s => SiteInsight.Connection(s, now)).ToList();
             var tags = new List<string>();
+            if (!c.HasOnline) tags.Add("offline");
             if (states.Contains(ConnectionState.Connected)) tags.Add("connected");
-            if (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0) tags.Add("waiting");
+            if (c.HasOnline && (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0)) tags.Add("waiting");
             if (items.Count > 0) tags.Add("attention");
 
             // A client with several branches is one strip: an hour is lit when any of its branches was heard from.
@@ -59,20 +60,22 @@ public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, Po
                 orders = (orders ?? 0) + counts["Orders"];
             }
 
-            var sub = c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
+            var sub = !c.HasOnline && c.Sites.Count == 0 ? "POS only" : c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
             if (!string.IsNullOrWhiteSpace(c.Phone)) sub += " · " + c.Phone;
 
-            return new ClientRow(c.Id, c.Name, c.IsActive, c.Phone, c.Email, c.Sites.Count, sub, state,
+            return new ClientRow(c.Id, c.Name, c.IsActive, c.HasOnline, c.Phone, c.Email, c.Sites.Count, sub, state,
                 c.Subscription?.ExpiresAt, c.Subscription?.IsSuspended ?? false,
                 c.Subscription is null ? "" : state is SubscriptionState.Active or SubscriptionState.Grace
                     ? $"ends {fmt.Until(c.Subscription.ExpiresAt)} · {fmt.Day(c.Subscription.ExpiresAt)}"
                     : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
                 pulse, seenAt,
-                seenAt is null ? (c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
+                seenAt is null ? (!c.HasOnline ? "Offline" : c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
                 tags.ToArray(), products, orders,
                 state == SubscriptionState.Active && c.Subscription is not null && c.Subscription.ExpiresAt - now < TimeSpan.FromDays(14));
         }).ToList();
 
+        // Licences ending or ended need the provider as much as an Online plan does.
+        attention.AddRange(await licenses.AttentionAsync());
         var sorted = attention.OrderByDescending(a => a.Severity).ThenBy(a => a.Client).ToList();
         var connected = rows.Count(r => r.Tags.Contains("connected"));
         var ending = rows.Count(r => r.State == SubscriptionState.Active && r.EndingSoon);
@@ -90,8 +93,11 @@ public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, Po
 /// <summary>One payment (in) or expense (out) in the Finance list.</summary>
 public sealed record FinanceLine(bool IsIncome, int Id, DateOnly Day, string Who, int? ClientId, string Details, string? Note, decimal Amount);
 
-/// <summary>A plan ending soon, with what the client paid for it last time: money that should come in next.</summary>
-public sealed record Renewal(int ClientId, string Name, DateTime Ends, decimal? LastPaid);
+/// <summary>
+/// Something ending soon that the client should pay to renew: their Online plan, a time-limited licence, or a Full licence's updates plan.
+/// <see cref="LastPaid"/> is what they paid last time for that kind of thing, as a guide to what to expect.
+/// </summary>
+public sealed record Renewal(int ClientId, string Name, DateTime Ends, decimal? LastPaid, string What = "Online ends", int? LicenseId = null);
 
 /// <summary>Everything the Finance dashboard shows for one period.</summary>
 public sealed class FinanceView
@@ -110,7 +116,7 @@ public sealed class FinanceView
 }
 
 /// <summary>Builds the Finance dashboard for the portal's Finance page and the admin app (GET /api/admin/v1/finance/summary).</summary>
-public sealed class FinanceDashboard(ControlDbContext db, PortalFormat fmt)
+public sealed class FinanceDashboard(ControlDbContext db, PortalFormat fmt, LicenseBook licenses)
 {
     public async Task<FinanceView> BuildAsync(FinancePeriod period)
     {
@@ -129,11 +135,12 @@ public sealed class FinanceDashboard(ControlDbContext db, PortalFormat fmt)
         var clients = await db.Clients.AsNoTracking().Include(c => c.Subscription).OrderBy(c => c.Name).ToListAsync();
         var now = fmt.Now;
         var renewals = clients
-            .Where(c => c.IsActive && c.Subscription is { IsSuspended: false } s
+            .Where(c => c.IsActive && c.HasOnline && c.Subscription is { IsSuspended: false } s
                         && s.ExpiresAt >= now.AddDays(-SubscriptionRules.GraceDays) && s.ExpiresAt <= now.AddDays(30))
             .Select(c => new Renewal(c.Id, c.Name, c.Subscription!.ExpiresAt,
                 payments.Where(x => x.ClientId == c.Id && x.Purpose == FinanceRules.Purposes[0]).MaxBy(x => x.ReceivedOn)?.Amount))
-            .OrderBy(x => x.Ends).ToList();
+            .ToList();
+        renewals = renewals.Concat(await licenses.RenewalsAsync()).OrderBy(x => x.Ends).ToList();
 
         var attention = new List<AttentionItem>();
         if (report.SpendingBudget is { Left: < 0 } over)
@@ -142,7 +149,7 @@ public sealed class FinanceDashboard(ControlDbContext db, PortalFormat fmt)
 
         // Clients whose Online plan is running but who have no payment on record for a year: either unpaid, or not written down here.
         var yearAgo = fmt.Today.AddYears(-1);
-        var unpaid = clients.Where(c => c.IsActive && SubscriptionRules.Evaluate(c.Subscription, now) is SubscriptionState.Active or SubscriptionState.Grace
+        var unpaid = clients.Where(c => c.IsActive && c.HasOnline && SubscriptionRules.Evaluate(c.Subscription, now) is SubscriptionState.Active or SubscriptionState.Grace
                                         && !payments.Any(x => x.ClientId == c.Id && x.ReceivedOn > yearAgo)).ToList();
         if (unpaid.Count > 0)
             attention.Add(new AttentionItem(AttentionSeverity.Warn,

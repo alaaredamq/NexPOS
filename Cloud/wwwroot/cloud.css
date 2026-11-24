@@ -378,3 +378,12 @@ table.t td .btn.sm { min-height: 28px; padding: 0 8px; margin-top: -4px; }
 .ph h2 .count { font: 600 13px var(--display); background: var(--line-2); color: var(--ink-2); border-radius: 999px; padding: 2px 9px; margin-inline-start: 6px; }
 /* A wide table inside a scroll box must not widen the page on a phone: the column may shrink below its content. */
 @media (max-width: 860px) { .shell { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- licences and client type ---------- */
+.plans.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.plans.two span { font-size: 17px; padding: 12px 10px; }
+fieldset.bare { border: 0; padding: 0; margin: 0; }
+fieldset.bare > legend { font-size: 14px; font-weight: 500; color: var(--ink); margin: 16px 0 6px; padding: 0; }
+.new-key { border-color: var(--ok); }
+.card > h2 > .icon { color: var(--teal); }
+.pill.offline { background: #ece7f8; color: #5a3fa0; }

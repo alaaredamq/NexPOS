@@ -232,19 +232,19 @@
     <section class="card" aria-labelledby="h-due">
         <div class="ph">
             <h2 id="h-due">Renewals due in the next 30 days</h2>
-            <span class="muted">about <b class="num">@Fmt.Money(Model.Renewals.Sum(x => x.LastPaid ?? 0))</b> to collect, going by each client's last subscription payment</span>
+            <span class="muted">about <b class="num">@Fmt.Money(Model.Renewals.Sum(x => x.LastPaid ?? 0))</b> to collect, going by what each client paid last time</span>
         </div>
         <div class="tscroll">
             <table class="t">
-                <thead><tr><th>Client</th><th>Online ends</th><th class="r">Last subscription payment</th><th></th></tr></thead>
+                <thead><tr><th>Client</th><th>What ends</th><th class="r">Paid last time</th><th></th></tr></thead>
                 <tbody>
                     @foreach (var d in Model.Renewals)
                     {
                         <tr>
                             <td><a href="/admin/Clients/Details/@d.ClientId">@d.Name</a></td>
-                            <td>@Fmt.Day(d.Ends) <span class="muted">· @Fmt.Until(d.Ends)</span></td>
+                            <td>@d.What @Fmt.Day(d.Ends) <span class="muted">· @Fmt.Until(d.Ends)</span></td>
                             <td class="r">@(d.LastPaid is { } lp ? Fmt.Money(lp) : "none on record")</td>
-                            <td class="r"><a class="btn sm secondary" href="/admin/Clients/Details/@d.ClientId#payments">Record payment</a></td>
+                            <td class="r nowrap">@if (d.LicenseId is { } lid) { <a class="btn sm secondary" href="/admin/Licenses?renew=@lid#issue">Issue key</a> } else { <a class="btn sm secondary" href="/admin/Clients/Details/@d.ClientId#payments">Record payment</a> }</td>
                         </tr>
                     }
                 </tbody>

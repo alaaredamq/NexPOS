@@ -1,0 +1,372 @@
+@page
+@model LicensesModel
+@{
+    ViewData["Title"] = "Licences";
+    ViewData["Nav"] = "licences";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var shown = Model.Shown;
+}
+
+<div class="page-head">
+    <div>
+        <h1>Licences</h1>
+        <p class="sub">The POS licence keys of every shop, online or not: what each PC runs, when it ends, and who it belongs to.</p>
+    </div>
+    <a class="btn" href="#issue"><svg class="icon"><use href="#i-key"/></svg>Issue a key</a>
+</div>
+
+@if (Model.NewKey is { } fresh)
+{
+    <section class="card new-key" aria-labelledby="h-new">
+        <h2 id="h-new">Key issued: send it to the shop</h2>
+        <p class="muted" style="margin-top:0">@(fresh.ClientName ?? fresh.License.Customer) · @LicenseRules.Describe(fresh.License) · @fresh.License.MachineId</p>
+        <div class="token" id="new-key-text" style="user-select:all">@fresh.License.KeyText</div>
+        <p class="help">They open Coduo POS &gt; License on that PC, paste it and press Activate. No internet needed. It stays on this page, so you can copy it again later.</p>
+        <div class="row" style="margin-top:12px">
+            <button type="button" class="btn" data-copy="#new-key-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy key</span></button>
+            <a class="btn secondary" target="_blank" rel="noopener" href="@LicensesModel.WhatsApp(fresh.License)"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
+        </div>
+    </section>
+}
+
+@if (Model.Attention.Count > 0)
+{
+    <section class="card" aria-labelledby="l-needs">
+        <div class="ph"><h2 id="l-needs">Needs you</h2><span class="pill warn">@Model.Attention.Count</span></div>
+        @foreach (var a in Model.Attention)
+        {
+            <div class="ai">
+                <span class="ico @(a.Severity == AttentionSeverity.Bad ? "bad" : "warn")"><svg class="icon"><use href="#i-alert"/></svg></span>
+                <div class="tx"><b>@a.Client</b><p>@a.Reason</p></div>
+                <a class="btn sm secondary" href="@a.Href">@a.Action</a>
+            </div>
+        }
+    </section>
+}
+
+<section class="card" id="issue" aria-labelledby="h-issue">
+    <h2 id="h-issue"><svg class="icon" aria-hidden="true"><use href="#i-key"/></svg>Issue a key</h2>
+    @if (Model.Signer != SignerState.Ready)
+    {
+        <div class="notice" role="note"><b>Issuing here is not available.</b> @LicenseSigner.Explain(Model.Signer)
+            You can still record keys made with the desktop keygen (it can send them here by itself), paste them below, or import issued.csv.</div>
+    }
+    else
+    {
+        <form method="post" asp-page-handler="Issue" autocomplete="off">
+            <div class="fields2">
+                <div>
+                    <label for="i-client">Client</label>
+                    <select id="i-client" name="Issue.ClientId">
+                        <option value="">No client: type the customer name</option>
+                        @foreach (var (id, name) in Model.Clients)
+                        {
+                            <option value="@id" selected="@(Model.Issue.ClientId == id)">@name</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label for="i-customer">Name in the key <span class="opt">(the client's name when empty)</span></label>
+                    <input id="i-customer" name="Issue.Customer" maxlength="60" value="@Model.Issue.Customer" />
+                </div>
+            </div>
+            <label for="i-machine">Machine ID <span class="opt">(Coduo POS &gt; License on the shop PC)</span></label>
+            <input id="i-machine" name="Issue.MachineId" list="i-machines" required class="mono" placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+                   value="@Model.Issue.MachineId" style="text-transform:uppercase" />
+            <datalist id="i-machines">
+                @foreach (var m in Model.KnownMachines) { <option value="@m.Id">@m.Label</option> }
+            </datalist>
+
+            <fieldset class="bare">
+                <legend>Plan</legend>
+                <div class="plans two">
+                    <label><input type="radio" name="Issue.Plan" value="basic" required checked="@(Model.Issue.Plan == "basic")" data-plan /><span>Basic<small>1 PC, 3 users, no stock or suppliers</small></span></label>
+                    <label><input type="radio" name="Issue.Plan" value="pro" checked="@(Model.Issue.Plan == "pro")" data-plan /><span>Pro<small>everything, extra tills</small></span></label>
+                </div>
+            </fieldset>
+
+            <div class="fields2">
+                <div>
+                    <label for="i-kind">Type</label>
+                    <select id="i-kind" name="Issue.Kind" data-kind>
+                        <option value="full" selected="@(Model.Issue.Kind == "full")">Full: perpetual, the date ends the updates plan</option>
+                        <option value="provisional" selected="@(Model.Issue.Kind == "provisional")">Provisional: expires (instalment sale)</option>
+                        <option value="trial" selected="@(Model.Issue.Kind == "trial")">Trial: expires (evaluation)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="i-seats">PCs <span class="opt">(server + tills; Pro only)</span></label>
+                    <input id="i-seats" name="Issue.Seats" type="number" min="1" max="255" value="@Model.Issue.Seats" data-seats />
+                </div>
+            </div>
+            <div class="fields2">
+                <div>
+                    <label for="i-days">Days from today</label>
+                    <input id="i-days" name="Issue.Days" type="number" min="1" max="3650" value="@Model.Issue.Days" placeholder="Full 365 · Provisional 45 · Trial 14" />
+                </div>
+                <div>
+                    <label for="i-until">Or until <span class="opt">(wins over days)</span></label>
+                    <input id="i-until" name="Issue.Until" type="date" value="@Model.Issue.Until?.ToString("yyyy-MM-dd", inv)" />
+                </div>
+            </div>
+            <div class="fields2">
+                <div>
+                    <label for="i-paid">Paid now <span class="opt">(@Fmt.Currency, optional: recorded in Finance)</span></label>
+                    <input id="i-paid" name="Issue.PaymentAmount" inputmode="decimal" value="@Model.Issue.PaymentAmount" />
+                </div>
+                <div>
+                    <label for="i-method">Paid by</label>
+                    <input id="i-method" name="Issue.PaymentMethod" list="p-methods" value="@(Model.Issue.PaymentMethod ?? FinanceRules.Methods[0])" />
+                    <datalist id="p-methods">@foreach (var x in FinanceRules.Methods) { <option value="@x"></option> }</datalist>
+                </div>
+            </div>
+            <label for="i-note">Note <span class="opt">(optional)</span></label>
+            <input id="i-note" name="Issue.Note" maxlength="500" value="@Model.Issue.Note" />
+
+            <label for="i-pass">Signing key passphrase</label>
+            <input id="i-pass" name="passphrase" type="password" required autocomplete="off" />
+            <p class="help">The passphrase of private.pem. It unlocks the key for this one signature and is never stored.</p>
+
+            @if (Model.IssueError is not null) { <p class="error" role="alert">@Model.IssueError</p> }
+            <p style="margin:16px 0 0"><button type="submit" class="btn"><svg class="icon"><use href="#i-key"/></svg>Sign and issue the key</button></p>
+        </form>
+    }
+</section>
+
+<section class="card" aria-labelledby="h-list">
+    <div class="ph">
+        <h2 id="h-list">All licences <span class="count">@shown.Count</span></h2>
+        <div class="chips" role="group" aria-label="Show">
+            <a class="chip" href="?" aria-pressed="@((Model.Show == "current").ToString().ToLowerInvariant())">In force</a>
+            <a class="chip" href="?show=attention" aria-pressed="@((Model.Show == "attention").ToString().ToLowerInvariant())">Ending or ended</a>
+            <a class="chip" href="?show=unassigned" aria-pressed="@((Model.Show == "unassigned").ToString().ToLowerInvariant())">Not linked</a>
+            <a class="chip" href="?show=all" aria-pressed="@((Model.Show == "all").ToString().ToLowerInvariant())">All, with replaced</a>
+        </div>
+    </div>
+    @if (shown.Count == 0)
+    {
+        <p class="muted">No licences here yet. Issue one above, paste one you issued before, or import your issued.csv below.</p>
+    }
+    else
+    {
+        <div class="search" style="max-width:320px;margin-bottom:10px">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input type="text" data-filter="#lic" placeholder="Filter by client, Machine ID, serial" aria-label="Filter licences" autocomplete="off" />
+        </div>
+        <div class="tscroll">
+            <table class="t lic" id="lic">
+                <thead><tr><th>Client</th><th>Machine ID</th><th>Licence</th><th>Ends</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var row in shown)
+                    {
+                        var l = row.License;
+                        var (tone, label) = LicenseRules.Pill(row.Status);
+                        <tr data-row data-text="@($"{row.ClientName} {l.Customer} {l.MachineId} {l.Serial}".ToLowerInvariant())">
+                            <td>
+                                @if (l.ClientId is { } cid) { <a href="/admin/Clients/Details/@cid#licences">@row.ClientName</a> }
+                                else
+                                {
+                                    <span>@l.Customer</span><small class="muted d">not linked</small>
+                                    <form method="post" asp-page-handler="Assign" asp-route-id="@l.Id" class="row" style="margin-top:6px;flex-wrap:nowrap">
+                                        <select name="clientId" aria-label="Client for @l.Customer" style="min-height:36px;padding:4px 8px">
+                                            @foreach (var (id, name) in Model.Clients) { <option value="@id">@name</option> }
+                                        </select>
+                                        <button type="submit" class="btn sm secondary">Link</button>
+                                    </form>
+                                }
+                                @if (l.ClientId is not null && !string.Equals(l.Customer, row.ClientName, StringComparison.OrdinalIgnoreCase)) { <small class="muted d">key says “@l.Customer”</small> }
+                            </td>
+                            <td><span class="mono">@l.MachineId</span><small class="muted d">serial @l.Serial · @l.Source.ToLowerInvariant()</small></td>
+                            <td>@l.Plan · @l.Kind@(l.Seats > 1 ? $" · {l.Seats} PCs" : "")<small class="muted d">issued @l.IssuedOn.ToString("yyyy-MM-dd", inv)</small>@if (!string.IsNullOrEmpty(l.Note)) { <small class="muted d">@l.Note</small> }</td>
+                            <td class="nowrap"><span class="pill @tone">@label</span><small class="muted d">@(LicenseRules.IsTimeLimited(l) ? "ends" : "updates until") @l.ValidUntil.ToString("yyyy-MM-dd", inv)</small></td>
+                            <td class="r nowrap">
+                                @if (l.KeyText is not null)
+                                {
+                                    <span class="sr" id="key-@l.Id">@l.KeyText</span>
+                                    <button type="button" class="btn ghost sm" data-copy="#key-@l.Id"><span class="label">Copy key</span></button>
+                                }
+                                @if (row.Status != LicenseStatus.Superseded)
+                                {
+                                    <a class="btn ghost sm" href="?renew=@l.Id#issue">Renew</a>
+                                }
+                                @if (l.Source != LicenseSources.Cloud)
+                                {
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@l.Id" style="display:inline"
+                                          data-confirm-title="Remove this record?" data-confirm-yes="Remove"
+                                          data-confirm="Only the record goes. The key keeps working at the shop: offline keys cannot be switched off.">
+                                        <button type="submit" class="btn ghost sm">Remove</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="empty" data-none hidden><p>Nothing matches.</p></div>
+        </div>
+    }
+</section>
+
+<div class="g">
+    <section class="card s6" aria-labelledby="h-paste">
+        <h2 id="h-paste">Add a key you already issued</h2>
+        <form method="post" asp-page-handler="Record">
+            <label for="r-key">Licence key</label>
+            <textarea id="r-key" name="keyText" class="mono" required placeholder="NXL1-..." style="min-height:96px"></textarea>
+            <label for="r-client">Client <span class="opt">(found by Machine ID or name when empty)</span></label>
+            <select id="r-client" name="clientId">
+                <option value="">Find it for me</option>
+                @foreach (var (id, name) in Model.Clients) { <option value="@id">@name</option> }
+            </select>
+            <p class="help">The key's signature is checked, so only real keys are recorded.</p>
+            <p style="margin:14px 0 0"><button type="submit" class="btn secondary">Add key</button></p>
+        </form>
+    </section>
+    <section class="card s6" aria-labelledby="h-import">
+        <h2 id="h-import">Import issued.csv</h2>
+        <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+            <label for="c-file">The issued.csv next to your private.pem</label>
+            <input id="c-file" name="file" type="file" accept=".csv,text/csv" required />
+            <p class="help">Every key you issued on your PC, with its details (not the key text). Each is linked to the client with that Machine ID or exact name; the rest wait under “Not linked”. Importing again skips what is already here.</p>
+            <p style="margin:14px 0 0"><button type="submit" class="btn secondary">Import</button></p>
+        </form>
+    </section>
+</div>
+
+@functions {
+    public sealed record KnownMachine(string Id, string Label, int? ClientId);
+
+    public class LicensesModel(LicenseBook book, LicenseSigner signer, ControlDbContext db) : PageModel
+    {
+        public SignerState Signer => signer.State;
+        public List<LicenseRow> All { get; private set; } = [];
+        public List<LicenseRow> Shown { get; private set; } = [];
+        public List<AttentionItem> Attention { get; private set; } = [];
+        public List<(int Id, string Name)> Clients { get; private set; } = [];
+        public List<KnownMachine> KnownMachines { get; private set; } = [];
+        public LicenseRow? NewKey { get; private set; }
+        public string Show { get; private set; } = "current";
+        [BindProperty] public IssueInput Issue { get; set; } = new();
+        public string? IssueError { get; private set; }
+
+        private string By => User.Identity?.Name ?? "";
+
+        public static string WhatsApp(License l) => "https://wa.me/?text=" + Uri.EscapeDataString(
+            "Your Coduo POS licence key. Open Coduo POS > License, paste it and press Activate.\n" +
+            "مفتاح ترخيص Coduo POS. افتح Coduo POS ثم الترخيص (License)، الصقه واضغط Activate.\n\n" + l.KeyText);
+
+        public async Task OnGetAsync(int? client, int? renew, string? show)
+        {
+            await LoadAsync(show);
+            if (TempData["NewLicenseId"] is int newId) NewKey = All.FirstOrDefault(r => r.License.Id == newId);
+
+            // "Renew": the same PC, client, plan, type and PCs as the key being replaced.
+            if (renew is { } rid && All.FirstOrDefault(r => r.License.Id == rid)?.License is { } old)
+            {
+                Issue = new IssueInput
+                {
+                    ClientId = old.ClientId, MachineId = old.MachineId, Customer = old.ClientId is null ? old.Customer : null,
+                    Plan = old.Plan.ToLowerInvariant(), Kind = old.Kind.ToLowerInvariant(), Seats = old.Seats,
+                };
+            }
+            else if (client is { } cid)
+            {
+                Issue = new IssueInput { ClientId = cid, Kind = "full" };
+                var machines = KnownMachines.Where(m => m.ClientId == cid).ToList();
+                if (machines.Count == 1) Issue.MachineId = machines[0].Id;
+            }
+            else Issue.Kind = "full";
+        }
+
+        public async Task<IActionResult> OnPostIssueAsync(string? passphrase)
+        {
+            try
+            {
+                var license = await book.IssueAsync(Issue, passphrase, By);
+                TempData["NewLicenseId"] = license.Id;
+                this.Flash("Key issued");
+                return Redirect("/admin/Licenses");
+            }
+            catch (Exception ex) when (ex is AdminRuleException or LicenseSignException)
+            {
+                IssueError = ex.Message;
+                await LoadAsync(null);
+                return Page();
+            }
+        }
+
+        public async Task<IActionResult> OnPostRecordAsync(string? keyText, int? clientId)
+        {
+            try
+            {
+                var (license, created) = await book.RecordKeyAsync(keyText, clientId, LicenseSources.Pasted, By);
+                this.Flash(created ? (license.ClientId is null ? "Key added. Link it to its client below" : "Key added") : "That key was already on record");
+            }
+            catch (AdminRuleException refused) { this.Flash(refused.Message.TrimEnd('.')); }
+            return Redirect("/admin/Licenses");
+        }
+
+        public async Task<IActionResult> OnPostImportAsync(IFormFile? file)
+        {
+            if (file is null || file.Length == 0) { this.Flash("Pick the issued.csv file"); return Redirect("/admin/Licenses"); }
+            if (file.Length > 4 * 1024 * 1024) { this.Flash("That file is too large for an issued.csv"); return Redirect("/admin/Licenses"); }
+            try
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                var result = await book.ImportCsvAsync(await reader.ReadToEndAsync(), By);
+                this.Flash($"Imported {result.Added} key{(result.Added == 1 ? "" : "s")} ({result.Assigned} linked to a client)"
+                    + (result.AlreadyKnown > 0 ? $", {result.AlreadyKnown} already here" : "")
+                    + (result.Problems.Count > 0 ? $", {result.Problems.Count} line(s) unreadable" : ""));
+                // Show what still needs its client.
+                if (result.Added > result.Assigned) return Redirect("/admin/Licenses?show=unassigned");
+            }
+            catch (AdminRuleException refused) { this.Flash(refused.Message.TrimEnd('.')); }
+            return Redirect("/admin/Licenses");
+        }
+
+        public async Task<IActionResult> OnPostAssignAsync(int id, int? clientId)
+        {
+            try
+            {
+                if (await book.AssignAsync(id, clientId, null, false) is null) return NotFound();
+                this.Flash("Licence linked");
+            }
+            catch (AdminRuleException refused) { this.Flash(refused.Message.TrimEnd('.')); }
+            return Redirect("/admin/Licenses?show=unassigned");
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            try
+            {
+                if (await book.DeleteAsync(id) is null) return NotFound();
+                this.Flash("Record removed");
+            }
+            catch (AdminRuleException refused) { this.Flash(refused.Message.TrimEnd('.')); }
+            return Redirect("/admin/Licenses");
+        }
+
+        private async Task LoadAsync(string? show)
+        {
+            All = await book.AllAsync();
+            Attention = await book.AttentionAsync(All);
+            Show = show is "attention" or "unassigned" or "all" ? show : "current";
+            Shown = Show switch
+            {
+                "all" => All,
+                "unassigned" => All.Where(r => r.License.ClientId is null && r.Status != LicenseStatus.Superseded).ToList(),
+                "attention" => All.Where(r => r.Status is LicenseStatus.EndingSoon or LicenseStatus.Grace or LicenseStatus.Expired or LicenseStatus.UpdatesEnding).ToList(),
+                _ => All.Where(r => r.Status != LicenseStatus.Superseded).ToList(),
+            };
+            var clients = await db.Clients.AsNoTracking().OrderBy(c => c.Name).Select(c => new { c.Id, c.Name }).ToListAsync();
+            Clients = clients.Select(c => (c.Id, c.Name)).ToList();
+
+            // Machine IDs the cloud already knows (connected branches, earlier keys), so a renewal is picked rather than typed.
+            var names = clients.ToDictionary(c => c.Id, c => c.Name);
+            var sites = await db.Sites.AsNoTracking().Where(s => s.MachineId != null).Select(s => new { s.MachineId, s.ClientId, s.Name }).ToListAsync();
+            KnownMachines = sites.Select(s => new KnownMachine(s.MachineId!, $"{names.GetValueOrDefault(s.ClientId)} · {s.Name}", s.ClientId))
+                .Concat(All.Where(r => r.License.ClientId is not null).Select(r => new KnownMachine(r.License.MachineId, $"{r.ClientName} · licence", r.License.ClientId)))
+                .DistinctBy(m => m.Id).ToList();
+        }
+    }
+}

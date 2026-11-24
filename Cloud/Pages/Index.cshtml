@@ -101,6 +101,7 @@ else
             <button type="button" class="chip" data-chip="connected" aria-pressed="false">Connected<span class="n">@Model.Rows.Count(r => r.Tags.Contains("connected"))</span></button>
             <button type="button" class="chip" data-chip="waiting" aria-pressed="false">Waiting for a link<span class="n">@Model.Rows.Count(r => r.Tags.Contains("waiting"))</span></button>
             <button type="button" class="chip" data-chip="attention" aria-pressed="false">Needs you<span class="n">@Model.Rows.Count(r => r.Tags.Contains("attention"))</span></button>
+            <button type="button" class="chip" data-chip="offline" aria-pressed="false">POS only<span class="n">@Model.Rows.Count(r => r.Tags.Contains("offline"))</span></button>
         </div>
     </div>
 
@@ -115,8 +116,16 @@ else
                     <span class="sub">@r.Sub</span>
                 </span>
                 <span class="plan">
-                    <span class="pill @tone">@label</span>
-                    <small>@r.PlanNote</small>
+                    @if (!r.HasOnline && r.State == SubscriptionState.None)
+                    {
+                        <span class="pill offline plain">POS only</span>
+                        <small>no Online</small>
+                    }
+                    else
+                    {
+                        <span class="pill @tone">@label</span>
+                        <small>@r.PlanNote</small>
+                    }
                 </span>
                 <span class="data">
                     @if (r.Products is null)

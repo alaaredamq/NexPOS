@@ -39,6 +39,7 @@ public class ControlDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<FinanceBudget> FinanceBudgets => Set<FinanceBudget>();
+    public DbSet<License> Licenses => Set<License>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -60,6 +61,8 @@ public class ControlDbContext : DbContext
         {
             e.Property(x => x.Name).HasMaxLength(200);
             e.HasIndex(x => x.Name);
+            // Sentinel true: EF leaves "true" to the column default and always writes "false"; existing clients use Online.
+            e.Property(x => x.HasOnline).HasDefaultValue(true).HasSentinel(true);
             e.HasOne(x => x.Subscription).WithOne(x => x.Client).HasForeignKey<Subscription>(x => x.ClientId);
             e.HasMany(x => x.Sites).WithOne(x => x.Client).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.ClientId);
@@ -264,6 +267,27 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => x.Month).IsUnique();
             e.Property(x => x.IncomeTarget).HasPrecision(18, 2);
             e.Property(x => x.SpendingLimit).HasPrecision(18, 2);
+        });
+
+        b.Entity<License>(e =>
+        {
+            e.Property(x => x.MachineId).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(12);
+            e.Property(x => x.Plan).HasMaxLength(8);
+            e.Property(x => x.Serial).HasMaxLength(8);
+            e.Property(x => x.Customer).HasMaxLength(120);
+            e.Property(x => x.KeyText).HasMaxLength(600);
+            e.Property(x => x.Source).HasMaxLength(12);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            // The same key reported twice (the keygen, then the shop PC) is one record.
+            e.HasIndex(x => new { x.Serial, x.MachineId }).IsUnique();
+            e.HasIndex(x => x.MachineId);
+            e.HasIndex(x => x.ValidUntil);
+            e.HasOne(x => x.Client).WithMany(x => x.Licenses).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+            // No cascade from branches or payments: SQL Server refuses a second path from Clients. SiteRemoval and FinanceBook clear these first.
+            e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne(x => x.Payment).WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.NoAction);
         });
 
         b.Entity<MenuItem>(e =>

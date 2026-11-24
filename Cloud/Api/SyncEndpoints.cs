@@ -82,7 +82,8 @@ public static class SyncEndpoints
                 _ => "There is no online subscription for this client.",
             });
 
-    private static async Task<IResult> Ping(HttpContext http, ControlDbContext db, TimeProvider time, Microsoft.Extensions.Options.IOptions<CloudOptions> options)
+    private static async Task<IResult> Ping(HttpContext http, ControlDbContext db, TimeProvider time, Microsoft.Extensions.Options.IOptions<CloudOptions> options,
+        LicenseBook licenses)
     {
         var (device, failure) = await AuthenticateAsync(http, db, time);
         if (failure is not null) return failure;
@@ -101,6 +102,8 @@ public static class SyncEndpoints
                 site.ShopLicenseSeats = seats;
                 await db.SaveChangesAsync();
             }
+            // Fill in, or confirm, the cloud's own record of this key, linked to this branch.
+            await licenses.SeenAtShopAsync(site, device.Client.Name, licence);
         }
 
         // Whether the owner linked this branch to the online menu, and which product list the cloud already has for it.

@@ -25,6 +25,8 @@
     </div>
 </div>
 
+@if (Model.Client.HasOnline)
+{
 <div class="g">
 <section class="card s5" aria-labelledby="plan">
     <h2 id="plan">Online subscription</h2>
@@ -112,6 +114,60 @@
     </details>
 </section>
 </div>
+}
+else
+{
+    <section class="card" aria-labelledby="h-type">
+        <div class="ph">
+            <h2 id="h-type">POS only <span class="pill offline plain">offline</span></h2>
+            <form method="post" asp-page-handler="Online" asp-route-id="@Model.Client.Id" asp-route-on="true"
+                  data-confirm-title="Turn Online on?" data-confirm-yes="Turn on"
+                  data-confirm="@(Model.Client.Sites.Count == 0 ? "Their first branch is added, with a connection link to send them." : "Their branches are followed again.")">
+                <button type="submit" class="btn secondary sm">They bought Online</button>
+            </form>
+        </div>
+        <p class="muted" style="margin:0">This shop runs Coduo POS on its own PC without the cloud. There is nothing to connect; the portal follows their licence and payments.</p>
+    </section>
+}
+
+<section class="card" id="licences" aria-labelledby="h-lic">
+    <div class="ph">
+        <h2 id="h-lic">POS licences <span class="count">@Model.Licenses.Count(r => r.Status != LicenseStatus.Superseded)</span></h2>
+        <a class="btn sm" href="/admin/Licenses?client=@Model.Client.Id#issue"><svg class="icon"><use href="#i-key"/></svg>Issue a key</a>
+    </div>
+    @if (Model.Licenses.Count == 0)
+    {
+        <p class="muted">No licence on record. Issue their key here, or add one you issued before on the <a href="/admin/Licenses">Licences</a> page.</p>
+    }
+    else
+    {
+        <div class="tscroll">
+            <table class="t">
+                <thead><tr><th>Machine ID</th><th>Licence</th><th>Ends</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var row in Model.Licenses)
+                    {
+                        var l = row.License;
+                        var (lTone, lLabel) = LicenseRules.Pill(row.Status);
+                        <tr>
+                            <td><span class="mono">@l.MachineId</span><small class="muted d">serial @l.Serial</small></td>
+                            <td>@l.Plan · @l.Kind@(l.Seats > 1 ? $" · {l.Seats} PCs" : "")<small class="muted d">issued @l.IssuedOn.ToString("yyyy-MM-dd")</small></td>
+                            <td class="nowrap"><span class="pill @lTone">@lLabel</span><small class="muted d">@(LicenseRules.IsTimeLimited(l) ? "ends" : "updates until") @l.ValidUntil.ToString("yyyy-MM-dd")</small></td>
+                            <td class="r nowrap">
+                                @if (l.KeyText is not null)
+                                {
+                                    <span class="sr" id="ckey-@l.Id">@l.KeyText</span>
+                                    <button type="button" class="btn ghost sm" data-copy="#ckey-@l.Id"><span class="label">Copy key</span></button>
+                                }
+                                @if (row.Status != LicenseStatus.Superseded) { <a class="btn ghost sm" href="/admin/Licenses?renew=@l.Id#issue">Renew</a> }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
 
 <section class="card" id="payments" aria-labelledby="h-payments">
     <div class="ph">
@@ -287,6 +343,14 @@ Password: @Model.NewLoginPassword</div>
               data-confirm-title="@(Model.Client.IsActive ? "Deactivate this client?" : "Reactivate this client?")" data-confirm-yes="@(Model.Client.IsActive ? "Deactivate" : "Reactivate")">
             <button type="submit" class="btn sm @(Model.Client.IsActive ? "danger" : "secondary")">@(Model.Client.IsActive ? "Deactivate client" : "Reactivate client")</button>
         </form>
+        @if (Model.Client.HasOnline)
+        {
+            <form method="post" asp-page-handler="Online" asp-route-id="@Model.Client.Id" asp-route-on="false" style="margin-top:10px"
+                  data-confirm-title="Make this client POS only?" data-confirm-yes="POS only"
+                  data-confirm="For a shop that stopped using Online. Its branches and cloud data stay; the portal just stops asking about them and its Online plan.">
+                <button type="submit" class="btn sm secondary">Make POS only (no Online)</button>
+            </form>
+        }
         <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Client.Id" style="margin-top:10px"
               data-confirm-title="Remove @Model.Client.Name?" data-confirm-yes="Remove client"
               data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too; its payments stay in Finance. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
@@ -306,10 +370,11 @@ Password: @Model.NewLoginPassword</div>
 </div>
 
 @functions {
-    public class DetailsModel(ControlDbContext db, AdminOperations ops, PortalFormat fmt, FinanceBook book) : PageModel
+    public class DetailsModel(ControlDbContext db, AdminOperations ops, PortalFormat fmt, FinanceBook book, LicenseBook licenses) : PageModel
     {
         /// <summary>Newest first.</summary>
         public List<Payment> Payments { get; private set; } = [];
+        public List<LicenseRow> Licenses { get; private set; } = [];
         public bool ShowAllPayments { get; private set; }
         [BindProperty] public PaymentInput Pay { get; set; } = new();
         public string? PaymentError { get; private set; }
@@ -340,6 +405,7 @@ Password: @Model.NewLoginPassword</div>
             Payments = (await db.Payments.AsNoTracking().Where(p => p.ClientId == id).ToListAsync())
                 .OrderByDescending(p => p.ReceivedOn).ThenByDescending(p => p.Id).ToList();
             ShowAllPayments = Request.Query["all"] == "payments";
+            Licenses = await licenses.ForClientAsync(id);
             NewLoginEmail = TempData["NewLoginEmail"] as string;
             NewLoginPassword = TempData["NewLoginPassword"] as string;
 
@@ -399,6 +465,23 @@ Password: @Model.NewLoginPassword</div>
             var active = await db.Clients.Where(c => c.Id == id).Select(c => (bool?)c.IsActive).FirstOrDefaultAsync();
             if (active is null) return NotFound();
             return await DoAsync(id, async () => await ops.SetClientActiveAsync(id, !active.Value), active.Value ? "Client deactivated" : "Client reactivated");
+        }
+
+        public async Task<IActionResult> OnPostOnlineAsync(int id, bool on)
+        {
+            var result = await ops.SetOnlineAsync(id, on, ops.BaseUrl(Request));
+            if (result is null) return NotFound();
+            if (result.Value.Link is { } link)
+            {
+                // A new branch with its link: the branch page shows it, ready to send.
+                TempData["NewLink"] = link.Url;
+                TempData["NewLinkExpires"] = link.ExpiresAt.ToString("yyyy-MM-dd");
+                this.Flash("Online turned on. Send them the link");
+                var siteId = await db.Sites.Where(s => s.ClientId == id).OrderBy(s => s.CreatedAt).Select(s => s.Id).FirstAsync();
+                return Redirect($"/admin/Sites/Details/{siteId}");
+            }
+            this.Flash(on ? "Online turned on" : "Now POS only");
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostRemoveAsync(int id)

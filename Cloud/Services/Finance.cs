@@ -323,6 +323,7 @@ public sealed class FinanceBook(ControlDbContext db, PortalFormat fmt)
     {
         var payment = await db.Payments.FindAsync(id);
         if (payment is null) return null;
+        await db.Licenses.Where(l => l.PaymentId == id).ExecuteUpdateAsync(p => p.SetProperty(l => l.PaymentId, (int?)null));
         db.Payments.Remove(payment);
         if (payment.ClientId is { } clientId)
             db.ClientEvents.Add(new ClientEvent { ClientId = clientId, At = fmt.Now,

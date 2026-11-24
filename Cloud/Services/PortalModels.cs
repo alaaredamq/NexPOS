@@ -156,6 +156,8 @@ public static class AttentionRules
     {
         var items = new List<AttentionItem>();
         if (!client.IsActive) return items; // switched off on purpose
+        // A POS-only client has no Online plan or branch to watch; only its licences matter (see LicenseBook.AttentionAsync).
+        if (!client.HasOnline) return items;
 
         var clientHref = $"/admin/Clients/Details/{client.Id}";
         var state = SubscriptionRules.Evaluate(client.Subscription, now);

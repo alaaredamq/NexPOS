@@ -14,7 +14,8 @@ public sealed class AdminRuleException(string code, string message) : Exception(
     public string Code { get; } = code;
 }
 
-public sealed record NewClientResult(Client Client, Site Site, string Link, DateTime LinkExpiresAt);
+/// <summary>A new client; for a POS-only client there is no branch or link yet (Site and Link are null).</summary>
+public sealed record NewClientResult(Client Client, Site? Site, string? Link, DateTime? LinkExpiresAt);
 public sealed record IssuedLink(string Url, string Code, DateTime ExpiresAt);
 public sealed record OwnerHandOver(OwnerUser Owner, string Password);
 
@@ -50,20 +51,30 @@ public sealed class AdminOperations(
 
     // ---- clients ----
 
-    /// <summary>The client, its first branch ("Main branch") and that branch's connection link: what a new shop needs in one step.</summary>
-    public async Task<NewClientResult> CreateClientAsync(string? name, string? phone, string? email, string? notes, int months, string baseUrl)
+    /// <summary>
+    /// The client, and for an Online client its first branch ("Main branch") and that branch's connection link: what a new shop needs
+    /// in one step. A POS-only client (<paramref name="online"/> false) gets neither; its licences are what the portal follows.
+    /// </summary>
+    public async Task<NewClientResult> CreateClientAsync(string? name, string? phone, string? email, string? notes, int months, string baseUrl, bool online = true)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new AdminRuleException("name_required", "Enter the shop's name.");
         if (months is < 0 or > MaxMonths) throw new AdminRuleException("bad_months", $"Months must be between 0 and {MaxMonths}.");
+        if (!online) months = 0;
 
         var now = Now;
         var client = new Client
         {
-            Name = Trim(name, 200)!, Phone = Trim(phone, 100), Email = Trim(email, 255), Notes = Trim(notes, 4000), CreatedAt = now,
+            Name = Trim(name, 200)!, Phone = Trim(phone, 100), Email = Trim(email, 255), Notes = Trim(notes, 4000), CreatedAt = now, HasOnline = online,
         };
         if (months > 0)
             client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(months) };
-        client.Events.Add(new ClientEvent { At = now, Text = months > 0 ? $"Client created with {months} month(s) of Online." : "Client created." });
+        client.Events.Add(new ClientEvent { At = now, Text = !online ? "Client created (POS only, no Online)." : months > 0 ? $"Client created with {months} month(s) of Online." : "Client created." });
+        if (!online)
+        {
+            db.Clients.Add(client);
+            await db.SaveChangesAsync();
+            return new NewClientResult(client, null, null, null);
+        }
 
         // The usual case is one branch, so set it up now: the next screen already holds the link to send.
         var site = new Site { Id = Guid.NewGuid(), Name = "Main branch", CreatedAt = now };
@@ -88,6 +99,31 @@ public sealed class AdminOperations(
         client.Notes = Trim(notes, 4000);
         await db.SaveChangesAsync();
         return client;
+    }
+
+    /// <summary>
+    /// Turns Online on for a POS-only client (or off). Turning it on gives a client with no branch its "Main branch" and a connection
+    /// link, returned for sending; turning it off keeps branches and data, it only stops the portal asking about them.
+    /// </summary>
+    public async Task<(Client Client, IssuedLink? Link)?> SetOnlineAsync(int id, bool online, string baseUrl)
+    {
+        var client = await db.Clients.Include(c => c.Sites).FirstOrDefaultAsync(c => c.Id == id);
+        if (client is null) return null;
+        IssuedLink? link = null;
+        if (client.HasOnline != online)
+        {
+            client.HasOnline = online;
+            Log(id, online ? "Online turned on." : "Online turned off: POS only.");
+            await db.SaveChangesAsync();
+        }
+        if (online && client.Sites.Count == 0)
+        {
+            var site = new Site { Id = Guid.NewGuid(), ClientId = id, Name = "Main branch", CreatedAt = Now };
+            db.Sites.Add(site);
+            await db.SaveChangesAsync();
+            link = await NewLinkAsync(site.Id, baseUrl);
+        }
+        return (client, link);
     }
 
     /// <summary>Switches the client on or off. Off blocks all its branches from the cloud; its shops keep selling.</summary>

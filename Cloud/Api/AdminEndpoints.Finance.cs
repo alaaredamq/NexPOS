@@ -112,7 +112,7 @@ public static partial class AdminEndpoints
             byPayer = r.ByPayer.Select(Share),
             byPurpose = r.ByPurpose.Select(Share),
             byCategory = r.ByCategory.Select(Share),
-            renewals = view.Renewals.Select(x => new { clientId = x.ClientId, name = x.Name, endsAtUtc = x.Ends, lastPaid = x.LastPaid }),
+            renewals = view.Renewals.Select(x => new { clientId = x.ClientId, name = x.Name, what = x.What, endsAtUtc = x.Ends, lastPaid = x.LastPaid, licenseId = x.LicenseId }),
             renewalsExpected = view.Renewals.Sum(x => x.LastPaid ?? 0),
             attention = view.Attention.Select(Attention),
             lines = view.Lines.Select(l => new

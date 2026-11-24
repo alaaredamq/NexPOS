@@ -18,12 +18,18 @@ public class Client
     public string? Email { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
+    /// <summary>
+    /// False for a shop that only runs the POS offline (it bought a licence, not Online): it has no branch to connect, so the portal
+    /// does not ask for one. Clients made before this existed use Online.
+    /// </summary>
+    public bool HasOnline { get; set; } = true;
     public DateTime CreatedAt { get; set; }
 
     public Subscription? Subscription { get; set; }
     public List<Site> Sites { get; set; } = [];
     public List<ClientEvent> Events { get; set; } = [];
     public List<Payment> Payments { get; set; } = [];
+    public List<License> Licenses { get; set; } = [];
 }
 
 /// <summary>The paid "Online" service for one client. It gates the cloud mirror only; the till itself never depends on it.</summary>

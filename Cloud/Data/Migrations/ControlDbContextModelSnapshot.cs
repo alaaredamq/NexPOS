@@ -95,6 +95,11 @@ namespace Cloud.Data.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("HasOnline")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
@@ -274,6 +279,94 @@ namespace Cloud.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("FinanceBudgets");
+                });
+
+            modelBuilder.Entity("Cloud.Data.License", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Customer")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("IssuedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KeyText")
+                        .HasMaxLength(600)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MachineId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PaymentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Seats")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Serial")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("SiteId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("ValidUntil")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("MachineId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("SiteId");
+
+                    b.HasIndex("ValidUntil");
+
+                    b.HasIndex("Serial", "MachineId")
+                        .IsUnique();
+
+                    b.ToTable("Licenses");
                 });
 
             modelBuilder.Entity("Cloud.Data.Menu", b =>
@@ -1170,6 +1263,30 @@ namespace Cloud.Data.Migrations
                     b.Navigation("Site");
                 });
 
+            modelBuilder.Entity("Cloud.Data.License", b =>
+                {
+                    b.HasOne("Cloud.Data.Client", "Client")
+                        .WithMany("Licenses")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Cloud.Data.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cloud.Data.Site", "Site")
+                        .WithMany()
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Site");
+                });
+
             modelBuilder.Entity("Cloud.Data.Menu", b =>
                 {
                     b.HasOne("Cloud.Data.Client", "Client")
@@ -1364,6 +1481,8 @@ namespace Cloud.Data.Migrations
             modelBuilder.Entity("Cloud.Data.Client", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Licenses");
 
                     b.Navigation("Payments");
 

@@ -51,6 +51,8 @@ builder.Services.AddScoped<AdminOperations>();
 builder.Services.AddScoped<AdminSignIn>();
 builder.Services.AddScoped<OverviewBuilder>();
 builder.Services.AddScoped<FinanceDashboard>();
+builder.Services.AddSingleton<LicenseSigner>();
+builder.Services.AddScoped<LicenseBook>();
 builder.Services.AddSingleton<MenuImages>();
 builder.Services.AddScoped<MenuCatalogMerge>();
 

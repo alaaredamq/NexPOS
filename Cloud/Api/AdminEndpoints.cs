@@ -39,6 +39,8 @@ public static partial class AdminEndpoints
         g.MapDelete("/clients/{id:int}", RemoveClient);
         g.MapPost("/clients/{id:int}/activate", (int id, AdminOperations ops) => SetActive(id, true, ops));
         g.MapPost("/clients/{id:int}/deactivate", (int id, AdminOperations ops) => SetActive(id, false, ops));
+        g.MapPost("/clients/{id:int}/online/enable", (int id, HttpContext http, AdminOperations ops) => SetOnline(id, true, http, ops));
+        g.MapPost("/clients/{id:int}/online/disable", (int id, HttpContext http, AdminOperations ops) => SetOnline(id, false, http, ops));
         g.MapGet("/clients/{id:int}/events", Events);
 
         g.MapPost("/clients/{id:int}/subscription/extend", Extend);
@@ -63,6 +65,7 @@ public static partial class AdminEndpoints
         g.MapDelete("/clients/{id:int}/logins/{loginId:int}", RemoveLogin);
 
         MapFinance(g);
+        MapLicenses(g);
     }
 
     // ---- replies ----
@@ -179,7 +182,8 @@ public static partial class AdminEndpoints
 
     private static object Row(ClientRow r) => new
     {
-        id = r.Id, name = r.Name, isActive = r.IsActive, phone = r.Phone, email = r.Email, branches = r.Branches,
+        id = r.Id, name = r.Name, isActive = r.IsActive, hasOnline = r.HasOnline, type = r.HasOnline ? "online" : "pos",
+        phone = r.Phone, email = r.Email, branches = r.Branches,
         subscription = new { state = r.State.ToString(), expiresAtUtc = r.ExpiresAt, suspended = r.Suspended, endingSoon = r.EndingSoon, note = r.PlanNote },
         lastSeenAtUtc = r.LastSeenAt, seen = r.Seen, tags = r.Tags, products = r.Products, orders = r.Orders,
         pulse = Pulse(r.Pulse),
@@ -216,19 +220,20 @@ public static partial class AdminEndpoints
         return Json(rows.Select(Row));
     }
 
-    public sealed record ClientRequest(string? Name, string? Phone, string? Email, string? Notes, int? Months);
+    /// <summary><c>online</c> false makes a POS-only client (no branch, no link); it is ignored on edit (use /online/enable|disable).</summary>
+    public sealed record ClientRequest(string? Name, string? Phone, string? Email, string? Notes, int? Months, bool? Online);
 
     private static Task<IResult> CreateClient(ClientRequest body, HttpContext http, AdminOperations ops, ControlDbContext db, MirrorStore mirrors, PortalFormat fmt)
         => Try(async () =>
         {
-            var created = await ops.CreateClientAsync(body.Name, body.Phone, body.Email, body.Notes, body.Months ?? 0, ops.BaseUrl(http.Request));
+            var created = await ops.CreateClientAsync(body.Name, body.Phone, body.Email, body.Notes, body.Months ?? 0, ops.BaseUrl(http.Request), body.Online ?? true);
             var detail = await ClientDetailAsync(created.Client.Id, db, fmt);
             return Json(new
             {
                 client = detail,
-                siteId = created.Site.Id,
-                // Shown once: send it to the owner; they paste it in Coduo POS > Settings > Online.
-                link = new { url = created.Link, expiresAtUtc = created.LinkExpiresAt },
+                siteId = created.Site?.Id,
+                // Shown once: send it to the owner; they paste it in Coduo POS > Settings > Online. Null for a POS-only client.
+                link = created.Link is null ? null : new { url = created.Link, expiresAtUtc = created.LinkExpiresAt },
             }, StatusCodes.Status201Created);
         });
 
@@ -251,6 +256,7 @@ public static partial class AdminEndpoints
         return new
         {
             id = c.Id, name = c.Name, phone = c.Phone, email = c.Email, notes = c.Notes, isActive = c.IsActive, createdAtUtc = c.CreatedAt,
+            hasOnline = c.HasOnline, type = c.HasOnline ? "online" : "pos",
             subscription = c.Subscription is null ? null : new
             {
                 state = state.ToString(), plan = c.Subscription.Plan, startsAtUtc = c.Subscription.StartsAt, expiresAtUtc = c.Subscription.ExpiresAt,
@@ -301,6 +307,19 @@ public static partial class AdminEndpoints
 
     private static async Task<IResult> SetActive(int id, bool active, AdminOperations ops)
         => await ops.SetClientActiveAsync(id, active) is { } c ? Json(new { id = c.Id, isActive = c.IsActive }) : NotFound("That client");
+
+    /// <summary>Turns Online on (a client with no branch gets one, and its link comes back once) or off (POS only).</summary>
+    private static async Task<IResult> SetOnline(int id, bool online, HttpContext http, AdminOperations ops)
+    {
+        var result = await ops.SetOnlineAsync(id, online, ops.BaseUrl(http.Request));
+        if (result is null) return NotFound("That client");
+        var (client, link) = result.Value;
+        return Json(new
+        {
+            id = client.Id, hasOnline = client.HasOnline,
+            link = link is null ? null : new { url = link.Url, code = link.Code, expiresAtUtc = link.ExpiresAt },
+        });
+    }
 
     private static async Task<IResult> RemoveClient(int id, AdminOperations ops)
         => await ops.RemoveClientAsync(id) is null ? NotFound("That client") : Results.NoContent();

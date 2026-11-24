@@ -27,13 +27,15 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
             await db.EnrollmentCodes.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
             await db.SiteHeartbeats.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
             await db.SyncBatchLogs.Where(x => siteIds.Contains(x.SiteId)).ExecuteDeleteAsync();
+            // A licence outlives the branch it was seen on: the key still works at the shop.
+            await db.Licenses.Where(x => x.SiteId != null && siteIds.Contains(x.SiteId.Value)).ExecuteUpdateAsync(p => p.SetProperty(x => x.SiteId, (Guid?)null));
             await db.Sites.Where(x => siteIds.Contains(x.Id)).ExecuteDeleteAsync();
         });
     }
 
     /// <summary>
     /// Removes a client with all its branches, its subscription and its history. Its payments stay in the books (they were
-    /// received), detached from the client but still carrying its name.
+    /// received), detached from the client but still carrying its name; so do its licence records (the keys still work).
     /// </summary>
     public async Task RemoveClientAsync(int clientId)
     {
@@ -55,6 +57,7 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
             await db.Subscriptions.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
             await db.ClientEvents.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
             await db.Payments.Where(x => x.ClientId == clientId).ExecuteUpdateAsync(p => p.SetProperty(x => x.ClientId, (int?)null));
+            await db.Licenses.Where(x => x.ClientId == clientId).ExecuteUpdateAsync(p => p.SetProperty(x => x.ClientId, (int?)null));
             await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync(); // their branch and type prices go with them
             await db.MenuOrderTypes.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
             await db.MenuBranches.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();

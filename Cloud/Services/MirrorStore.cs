@@ -35,6 +35,12 @@ public sealed class CloudOptions
     /// shop's plan. Defaults to the key built into the app; only tests change it.
     /// </summary>
     public string LicensePublicKey { get; set; } = Common.Licensing.LicensePublicKey.SpkiBase64;
+    /// <summary>
+    /// Where the licence SIGNING key lives on this server, to issue licence keys from the portal and the admin app. Empty (the default)
+    /// turns online issuing off. It must be the passphrase-protected private.pem (LicenseIssuer protect); the passphrase is typed at
+    /// each issue and never stored, so the server's files alone cannot make a key. Keep the file outside the site folder.
+    /// </summary>
+    public string LicenseSigningKeyPath { get; set; } = "";
 }
 
 /// <summary>
