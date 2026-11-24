@@ -40,7 +40,7 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
   int? _categoryId;
   int? _supplierId;
 
-  /// The Basic plan has no suppliers and no stock tracking: the form leaves both out and files the product under the shop's
+  /// The Basic plan has no suppliers: the form leaves the supplier out and files the product under the shop's
   /// default supplier (every shop has one, id 1, because a product must have a supplier).
   late final bool _basic;
 
@@ -182,7 +182,6 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
           ],
         ),
         if (margin != null) Text(margin, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF11703F))),
-        if (!_basic)
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

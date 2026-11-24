@@ -58,9 +58,6 @@ class ShopWatcher {
   /// A sale older than this is not "new": it only reached the phone late (a shop PC that was off, or a fresh install).
   static const _freshSale = Duration(hours: 36);
 
-  /// The shop's licence plan as the cloud last reported it (null: unknown, treated as Pro).
-  String? _shopPlan;
-
   bool get _ar => prefs.getString('language') == 'ar';
   String _t(String en, String ar) => _ar ? ar : en;
 
@@ -106,8 +103,7 @@ class ShopWatcher {
       }
     });
     await prefs.setString(_lowKey, jsonEncode(low.toList()));
-    // The Basic plan tracks no stock, so it gets no low-stock alerts (the markers above still move on, so an upgrade starts quiet).
-    if (ranLow.isNotEmpty && _shopPlan != 'Basic') {
+    if (ranLow.isNotEmpty) {
       alerts.add(Alert(
         2,
         _t('Low stock', 'مخزون منخفض'),
@@ -180,7 +176,6 @@ class ShopWatcher {
     var cursor = prefs.getString(cursorKey);
     while (true) {
       final page = await api.rows(table, cursor: cursor, limit: 500);
-      if (page.shopPlan != null) _shopPlan = page.shopPlan;
       if (decrypt) {
         for (final r in page.rows) {
           each(r.id, await key.decryptRow(table, r.id, r.payload));

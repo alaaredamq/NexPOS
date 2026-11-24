@@ -150,4 +150,33 @@ public class OnlineMenuProfileTests : IClassFixture<CloudFactory>
         var text = status.Open ? $"until {status.Until:HH\\:mm}" : status.OpensOn == DayOfWeek.Sunday ? "opens Sunday" : $"opens {status.Opens:HH\\:mm}";
         Assert.Equal(expect, text);
     }
+
+    [Theory]
+    [InlineData("2026-11-16 10:00", true, "until 12:00")]   // Monday morning
+    [InlineData("2026-11-16 12:30", false, "opens 13:00")]  // the lunch break
+    [InlineData("2026-11-16 16:30", false, "opens 18:00")]  // between afternoon and evening
+    [InlineData("2026-11-16 20:00", true, "until 21:00")]   // the evening
+    [InlineData("2026-11-16 21:30", false, "opens 09:00")]  // after closing: tomorrow morning
+    public void A_day_can_open_several_times(string at, bool open, string expect)
+    {
+        // Every day 09:00-12:00, 13:00-16:00 and 18:00-21:00, typed out of order.
+        var day = "18:00-21:00, 09:00-12:00,13:00-16:00";
+        var (hours, error) = MenuHours.Normalize([day, day, day, day, day, day, day]);
+        Assert.Null(error);
+        Assert.StartsWith("09:00-12:00,13:00-16:00,18:00-21:00;", hours);
+        var status = MenuHours.At(hours, DateTime.Parse(at, System.Globalization.CultureInfo.InvariantCulture))!;
+        Assert.Equal(open, status.Open);
+        Assert.Equal(expect, status.Open ? $"until {status.Until:HH\\:mm}" : $"opens {status.Opens:HH\\:mm}");
+    }
+
+    [Theory]
+    [InlineData("09:00-13:00,12:00-16:00")]                         // the second opens before the first closes
+    [InlineData("18:00-02:00,20:00-23:00")]                         // a range past midnight must be the last
+    [InlineData("08:00-09:00,10:00-11:00,12:00-13:00,14:00-15:00,16:00-17:00")] // more than four
+    public void Overlapping_or_too_many_opening_times_are_refused(string monday)
+    {
+        var (hours, error) = MenuHours.Normalize(["", monday, "", "", "", "", ""]);
+        Assert.Null(hours);
+        Assert.NotNull(error);
+    }
 }

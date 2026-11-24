@@ -127,7 +127,7 @@ class ShopData extends ChangeNotifier {
   /// Set once a refresh has fully completed on this phone.
   bool get hasData => _loadedAt != null;
 
-  /// The shop runs the Basic licence plan: no stock tracking and no suppliers, so the app hides them. Unknown (an older shop PC or
+  /// The shop runs the Basic licence plan: no suppliers, so the app hides them (stock counts are in every plan). Unknown (an older shop PC or
   /// cloud) counts as Pro, which is what every shop was before plans. The shop PC refuses a Pro change itself either way.
   bool get isBasic => _shopPlan == 'Basic';
 

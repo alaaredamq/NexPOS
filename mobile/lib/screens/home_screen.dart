@@ -71,9 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final shop = context.watch<ShopData>();
     final session = context.watch<Session>();
     final canStock = session.can(Perm.stock);
-    // Basic tracks no stock: the tab is just the product list (prices can still be edited), with no restock count.
-    final basic = shop.isBasic;
-    final restock = canStock && !basic && shop.hasKey && shop.hasData ? stockItems(shop).where((s) => s.level != StockLevel.ok).length : 0;
+    final restock = canStock && shop.hasKey && shop.hasData ? stockItems(shop).where((s) => s.level != StockLevel.ok).length : 0;
 
     NavigationDestination dest(IconData icon, IconData selected, String label, {int count = 0}) => NavigationDestination(
           icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: Icon(icon)),
@@ -87,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (session.can(Perm.sales))
         (id: HomeTabs.sales, page: const SalesScreen(), destination: dest(Icons.receipt_long_outlined, Icons.receipt_long, context.tr('Sales', 'المبيعات'))),
       if (canStock)
-        (id: HomeTabs.stock, page: const StockScreen(), destination: dest(Icons.inventory_2_outlined, Icons.inventory_2, basic ? context.tr('Products', 'المنتجات') : context.tr('Stock', 'المخزون'), count: restock)),
+        (id: HomeTabs.stock, page: const StockScreen(), destination: dest(Icons.inventory_2_outlined, Icons.inventory_2, context.tr('Stock', 'المخزون'), count: restock)),
       if (session.can(Perm.debts))
         (id: HomeTabs.debts, page: const DebtsScreen(), destination: dest(Icons.payments_outlined, Icons.payments, context.tr('Debts', 'الديون'))),
       (id: HomeTabs.manage, page: const _ManageTab(), destination: dest(Icons.add_circle_outline, Icons.add_circle, context.tr('Manage', 'إدارة'), count: badge)),
@@ -136,9 +134,7 @@ class _ManageTab extends StatelessWidget {
       (
         icon: Icons.inventory_2_outlined,
         title: context.tr('Add a product', 'إضافة منتج'),
-        subtitle: shop.isBasic
-            ? context.tr('Name, barcode and prices', 'الاسم والباركود والأسعار')
-            : context.tr('Name, barcode, prices and stock', 'الاسم والباركود والأسعار والمخزون'),
+        subtitle: context.tr('Name, barcode, prices and stock', 'الاسم والباركود والأسعار والمخزون'),
         page: () => const ProductFormScreen(),
       ),
       if (canAdd)

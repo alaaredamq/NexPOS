@@ -31,10 +31,10 @@
       detailsH: 'Name, language and web address', mTitle: 'Menu name', mTag: 'One line under the name', mNote: 'A note at the bottom (delivery area, parking, anything else)',
       mLang: 'Menu language', mCur: 'Currency for items added here', mSlug: 'Address', slugHint: 'Small English letters, digits and dashes.',
       logo: 'Logo', chooseLogo: 'Choose logo', remove: 'Remove', save: 'Save', saved: 'Saved',
-      lsH: 'How dishes are listed', lsP: 'Pick the look customers see. You can change it any time; nothing else changes.', lsOn: 'In use', lsSaved: 'Look changed',
-      ls_compact: 'Compact rows', ls_compact_d: 'Many dishes on one screen. Fine with or without pictures.',
-      ls_grid: 'Photo grid', ls_grid_d: 'Two columns of picture cards. Best when most dishes have a photo.',
-      ls_cards: 'Big photo cards', ls_cards_d: 'One large picture per dish, with its description.',
+      lsH: 'How items are listed', lsP: 'Pick the look customers see. You can change it any time; nothing else changes.', lsOn: 'In use', lsSaved: 'Look changed',
+      ls_compact: 'Compact rows', ls_compact_d: 'Many items on one screen. Fine with or without pictures.',
+      ls_grid: 'Photo grid', ls_grid_d: 'Two columns of picture cards. Best when most items have a photo.',
+      ls_cards: 'Big photo cards', ls_cards_d: 'One large picture per item, with its description.',
       ls_classic: 'Classic menu', ls_classic_d: 'No pictures: name, dotted line, price, like a printed menu.',
       ls_rails: 'Swipe rows', ls_rails_d: 'Each section is a row that customers swipe sideways.',
       itemsH: 'Menu', showMore: 'Show more ({0} left)', nItems: '{0} items', itemsP: 'Use the arrows to change the order. Hidden items stay here but not on the menu.', posOrder: 'Sections and their order come from the Online Menu screen in the POS. Change them there; pictures, descriptions and hiding are set here.',
@@ -49,27 +49,27 @@
       choosePic: 'Choose picture', cancel: 'Cancel', delItemQ: 'Delete "{0}"?',
       picBig: 'That picture could not be read. Try a JPEG or PNG.', signIn: 'Please sign in on the owner website first.', signInBtn: 'Sign in',
       errNet: 'No connection. Check the internet and try again.', errNoEdit: 'This login cannot change the menu. Ask the shop owner.',
-      brH: 'Branches', brP: 'Tick the branches whose POS fills the menu. Customers pick their branch; each sees its own prices and what it sells. The first one is the main branch: it decides the names and where dishes sit.',
-      brMain: 'Main', brMakeMain: 'Make main', brOffQ: 'Take "{0}" off the menu? Its prices go; dishes only it sells stay as ordinary items you edit here.',
+      brH: 'Branches', brP: 'Tick the branches whose POS fills the menu. Customers pick their branch; each sees its own prices and what it sells. The first one is the main branch: it decides the names and where items sit.',
+      brMain: 'Main', brMakeMain: 'Make main', brOffQ: 'Take "{0}" off the menu? Its prices go; items only it sells stay on the menu, and you edit them here.',
       qrFor: 'QR and link for', qrAll: 'All branches (customers pick)',
-      otH: 'Order types', otP: 'Dine in, take out, delivery... Customers pick one and every price follows it. With none, each dish has one price.',
+      otH: 'Order types', otP: 'Dine in, take out, delivery... Customers pick one and every price follows it. With none, each item has one price.',
       otAdd: 'Order type', otNew: 'New order type', otEdit: 'Edit order type', otName: 'Name', otRule: 'Prices', otValue: 'By',
       otNone: 'Same as the normal price', otPct: 'Normal price + a percentage', otAmt: 'Normal price + an amount',
-      otNoneS: 'Normal price', otPctS: '{0}% on the normal price', otAmtS: '{0} on the normal price', otDelQ: 'Delete the order type "{0}"? Prices set for it on dishes go too.',
-      otEmpty: 'No order types: every dish has one price.', otValueHint: 'Use a minus to take off, e.g. -10.',
+      otNoneS: 'Normal price', otPctS: '{0}% on the normal price', otAmtS: '{0} on the normal price', otDelQ: 'Delete the order type "{0}"? Prices set for it on items go too.',
+      otEmpty: 'No order types: every item has one price.', otValueHint: 'Use a minus to take off, e.g. -10.',
       tpH: 'Prices by order type', tpHint: 'Empty = by the rule ({0})', brPrices: 'At each branch',
-      lookH: 'Look', lookP: 'Colours, pictures and how dishes are listed. Customers see the change at once.',
+      lookH: 'Look', lookP: 'Colours, pictures and how items are listed. Customers see the change at once.',
       thH: 'Colours and lettering', thSaved: 'Colours changed',
       th_basil: 'Basil', th_basil_d: 'Herb green. Fresh, suits any kitchen.', th_ember: 'Ember', th_ember_d: 'Grill orange, bold capitals. Burgers, grills, pizza.',
       th_saffron: 'Saffron', th_saffron_d: 'Warm gold, soft serif. Bakeries, breakfast, sweets.', th_harbor: 'Harbor', th_harbor_d: 'Sea blue, clean lettering. Seafood, cafés.',
       th_plum: 'Plum', th_plum_d: 'Deep plum, elegant serif. Bars, desserts, evenings.', th_charcoal: 'Charcoal', th_charcoal_d: 'Black and white, fine serif. Fine dining, coffee.',
-      cover: 'Cover photo', coverP: 'A wide photo across the top: the shop front, the room or a signature dish.', chooseCover: 'Choose cover', logoP: 'Square works best.',
+      cover: 'Cover photo', coverP: 'A wide photo across the top: the shop front, the room, or what you are known for.', chooseCover: 'Choose cover', logoP: 'Square works best.',
       ctH: 'Contact and location', ctP: 'Shown as buttons at the top of the menu and in "Find us" at the bottom. Leave empty what you do not use.',
       cAddr: 'Address', cMap: 'Map link', cMapHint: 'Paste a Google Maps share link. Empty = a map search for the address.', cPhone: 'Phone',
       cWa: 'WhatsApp number', cWaHint: 'With the country code. Customers can also send their order there.',
       cIg: 'Instagram', cFb: 'Facebook', cTt: 'TikTok', cWeb: 'Website', cHandle: '@yourshop or a link',
-      hrH: 'Opening hours', hrP: 'Customers see "Open now" or when you open next. Times after midnight are fine (18:00 to 02:00).',
-      hrOpen: 'Open', hrClosed: 'Closed', hrFrom: 'From', hrTo: 'To', hrCopy: 'Same hours every open day', hrNone: 'No hours given: the menu does not say whether you are open.', hrClear: 'Clear hours',
+      hrH: 'Opening hours', hrP: 'Customers see "Open now" or when you open next. Closed for a break? Add a time (09:00 to 12:00, then 13:00 to 16:00). Times after midnight are fine (18:00 to 02:00).',
+      hrOpen: 'Open', hrClosed: 'Closed', hrFrom: 'From', hrTo: 'To', hrCopy: 'Same hours every open day', hrAdd: 'Add time', hrDel: 'Remove this time', hrNone: 'No hours given: the menu does not say whether you are open.', hrClear: 'Clear hours',
       days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
       brDetails: 'Address and hours', brDlg: 'Branch: {0}', brDlgP: 'Leave a field empty to use the shop\'s own. Hours with every day closed = the shop\'s hours.',
       brOwnHours: 'This branch has its own hours',
@@ -85,14 +85,14 @@
       os_new: 'New', os_accepted: 'Accepted', os_ready: 'Ready', os_done: 'Done', os_rejected: 'Turned down',
       oAccept: 'Accept', oReady: 'Ready', oDone: 'Done', oReject: 'Turn down', oRejectQ: 'Turn down order #{0}? The customer sees that it was not taken.', oCall: 'Call',
       ago0: 'just now', agoM: '{0} min ago', agoH: '{0} h ago', agoD: '{0} days ago',
-      tabHome: 'Home', tabOrders: 'Orders', tabDishes: 'Dishes', tabLook: 'Look', tabShop: 'Shop', pages: 'Menu editor', backTo: 'Back to {0}',
-      needsH: 'Needs you', needOrder: '1 new order is waiting', needOrders: '{0} new orders are waiting', needPics: '{0} dishes have no picture',
+      tabHome: 'Home', tabOrders: 'Orders', tabDishes: 'Items', tabLook: 'Look', tabShop: 'Shop', pages: 'Menu editor', backTo: 'Back to {0}',
+      needsH: 'Needs you', needOrder: '1 new order is waiting', needOrders: '{0} new orders are waiting', needPics: '{0} items have no picture',
       needHours: 'Opening hours are not set', needContact: 'No phone, WhatsApp or address yet', needEmpty: 'Nothing on the menu yet',
       needPos: 'Waiting for the shop PC to send its products', allSet: 'Nothing needs you right now.',
-      search: 'Search dishes', searchNone: 'No dish matches "{0}".', secsH: 'Sections', addDish: 'Add dish', addSec: 'Add section', secShown: 'Shown on the menu',
+      search: 'Search items', searchNone: 'No item matches "{0}".', secsH: 'Sections', addDish: 'Add item', addSec: 'Add section', secShown: 'Shown on the menu',
       picsH: 'Cover and logo', shopSub: 'What customers see about you, and how the menu works.',
       grpSee: 'What customers see', grpOrders: 'Orders', grpSetup: 'Setup', prodH: 'Products and branches',
-      notSet: 'Not set', hrEvery: 'Open every day', hrClosedOn: 'Closed {0}', hrRange: '{0} to {1}', otNoneShort: 'None: one price per dish',
+      notSet: 'Not set', hrEvery: 'Open every day', hrClosedOn: 'Closed {0}', hrRange: '{0} to {1}', otNoneShort: 'None: one price per item',
       srcHandShort: 'Added on this page', withWa: ', with a WhatsApp button', brSame: 'Same hours as the shop', brHoursH: 'Branch hours',
       ordWaiting: 'Waiting', ordFinished: 'Finished today', ordDoneNone: 'Nothing finished today yet.', change: 'Change',
       ordShowMode: 'Orders are not sent here. Customers show their order to a waiter.', ordChange: 'Change how orders arrive',
@@ -152,8 +152,8 @@
       cAddr: 'العنوان', cMap: 'رابط الخريطة', cMapHint: 'الصق رابط مشاركة من خرائط Google. فارغ = بحث في الخريطة عن العنوان.', cPhone: 'الهاتف',
       cWa: 'رقم واتساب', cWaHint: 'مع رمز البلد. يمكن للزبائن أيضاً إرسال طلبهم إليه.',
       cIg: 'إنستغرام', cFb: 'فيسبوك', cTt: 'تيك توك', cWeb: 'الموقع الإلكتروني', cHandle: '@اسم_محلك أو رابط',
-      hrH: 'ساعات العمل', hrP: 'يرى الزبائن "مفتوح الآن" أو موعد الفتح التالي. الأوقات بعد منتصف الليل مقبولة (18:00 إلى 02:00).',
-      hrOpen: 'مفتوح', hrClosed: 'مغلق', hrFrom: 'من', hrTo: 'إلى', hrCopy: 'نفس الساعات لكل أيام الفتح', hrNone: 'لا ساعات: لا تقول القائمة إن كنت مفتوحاً.', hrClear: 'امسح الساعات',
+      hrH: 'ساعات العمل', hrP: 'يرى الزبائن "مفتوح الآن" أو موعد الفتح التالي. تغلق للاستراحة؟ أضف وقتاً (09:00 إلى 12:00، ثم 13:00 إلى 16:00). الأوقات بعد منتصف الليل مقبولة (18:00 إلى 02:00).',
+      hrOpen: 'مفتوح', hrClosed: 'مغلق', hrFrom: 'من', hrTo: 'إلى', hrCopy: 'نفس الساعات لكل أيام الفتح', hrAdd: 'أضف وقتاً', hrDel: 'احذف هذا الوقت', hrNone: 'لا ساعات: لا تقول القائمة إن كنت مفتوحاً.', hrClear: 'امسح الساعات',
       days: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
       brDetails: 'العنوان والساعات', brDlg: 'الفرع: {0}', brDlgP: 'اترك الحقل فارغاً لاستخدام بيانات المحل. الساعات مع كل الأيام مغلقة = ساعات المحل.',
       brOwnHours: 'لهذا الفرع ساعاته الخاصة',
@@ -290,31 +290,49 @@
   }
 
   // ---- pictures: shrunk in the browser so uploads are small and fast on mobile data ----
+  // Safari (every iPhone browser) cannot encode WebP: asking for it gives a PNG, so check once instead of encoding twice.
+  var WEBP_OUT = (function () {
+    try { var c = document.createElement('canvas'); c.width = c.height = 1; return c.toDataURL('image/webp').indexOf('data:image/webp') === 0; }
+    catch (e) { return false; }
+  })();
   function shrink(file, max, keepAlpha) {
     return new Promise(function (resolve, reject) {
       var url = URL.createObjectURL(file), img = new Image();
       img.onload = function () {
-        var s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        URL.revokeObjectURL(url);
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) return reject(new Error(t('picBig')));
+        var s = Math.min(1, max / Math.max(w, h));
         var c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(img.naturalWidth * s)); c.height = Math.max(1, Math.round(img.naturalHeight * s));
+        c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
         var g = c.getContext('2d');
         if (!keepAlpha) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
         g.drawImage(img, 0, 0, c.width, c.height);
-        URL.revokeObjectURL(url);
-        c.toBlob(function (b) {
-          if (b && b.type === 'image/webp') return resolve(b);
-          c.toBlob(function (b2) { b2 ? resolve(b2) : reject(new Error(t('picBig'))); }, keepAlpha ? 'image/png' : 'image/jpeg', 0.86);
-        }, 'image/webp', 0.84);
+        img.src = '';
+        // iOS caps the memory all canvases may hold together and frees a canvas late; zero it so repeated uploads keep working.
+        var done = function (b) { c.width = c.height = 0; b ? resolve(b) : reject(new Error(t('picBig'))); };
+        var fallback = function () { c.toBlob(done, keepAlpha ? 'image/png' : 'image/jpeg', 0.86); };
+        if (!WEBP_OUT) return fallback();
+        c.toBlob(function (b) { b && b.type === 'image/webp' ? done(b) : fallback(); }, 'image/webp', 0.84);
       };
       img.onerror = function () { URL.revokeObjectURL(url); reject(new Error(t('picBig'))); };
       img.src = url;
     });
   }
+  // One file input kept in the page: iOS Safari can drop an input that is not in the page while the photo picker is open,
+  // and then the picked photo never arrives.
+  var picker;
   function pickFile(cb) {
-    var input = document.createElement('input');
-    input.type = 'file'; input.accept = 'image/*';
-    input.onchange = function () { if (input.files && input.files[0]) cb(input.files[0]); };
-    input.click();
+    if (!picker) {
+      picker = document.createElement('input');
+      picker.type = 'file'; picker.accept = 'image/*';
+      picker.setAttribute('aria-hidden', 'true'); picker.tabIndex = -1;
+      picker.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+      document.body.appendChild(picker);
+    }
+    picker.value = ''; // so choosing the same photo again still counts as a change
+    picker.onchange = function () { var f = picker.files && picker.files[0]; if (f) cb(f); };
+    picker.click();
   }
   function uploadItemPic(id, file) {
     return shrink(file, 1000, false).then(function (b) { return actItems(api('PUT', '/items/' + id + '/image', undefined, b)); })
@@ -734,45 +752,79 @@
       }).join('') + '</div><p class="err" id="cerr" hidden></p></form></section>';
   }
 
-  // ---- opening hours: Monday first on screen, Sunday first in the data ----
-  var WEEK = [1, 2, 3, 4, 5, 6, 0];
+  // ---- opening hours: Monday first on screen, Sunday first in the data. A day can open several times (09-12, 13-16, 18-21). ----
+  var WEEK = [1, 2, 3, 4, 5, 6, 0], MAX_RANGES = 4;
+  function rangeField(from, to) {
+    return '<div class="rg"><label class="tm"><span class="sr">' + t('hrFrom') + '</span><input type="time" data-hfrom value="' + esc(from) + '"></label>' +
+      '<span class="dash" aria-hidden="true">–</span>' +
+      '<label class="tm"><span class="sr">' + t('hrTo') + '</span><input type="time" data-hto value="' + esc(to) + '"></label>' +
+      '<button type="button" class="btn icon ghost del" data-hdel title="' + esc(t('hrDel')) + '" aria-label="' + esc(t('hrDel')) + '">' + ic('x') + '</button></div>';
+  }
+  /** "09:00-12:00,13:00-16:00" as [["09:00","12:00"],["13:00","16:00"]]. */
+  function rangesOf(raw) {
+    return (raw || '').split(',').filter(Boolean).map(function (r) { return [r.slice(0, 5), r.slice(6, 11)]; });
+  }
   function hoursFields(id, hours) {
     var days = t('days');
     return '<div class="hours" id="' + id + '">' + WEEK.map(function (d) {
-      var raw = hours ? hours[d] || '' : '', on = !!raw, first = raw.split(',')[0] || '', from = first.slice(0, 5) || '09:00', to = first.slice(6, 11) || '23:00';
+      var raw = hours ? hours[d] || '' : '', on = !!raw, list = rangesOf(raw);
+      if (!list.length) list = [['09:00', '23:00']];
       return '<div class="hr' + (on ? '' : ' off') + '" data-day="' + d + '"><label class="switch"><input type="checkbox" data-hon' + (on ? ' checked' : '') + '><span>' + esc(days[d]) + '</span></label>' +
-        '<span class="hst muted small">' + (on ? '' : t('hrClosed')) + '</span>' +
-        '<label class="tm"><span class="sr">' + t('hrFrom') + '</span><input type="time" data-hfrom value="' + esc(from) + '"' + (on ? '' : ' disabled') + '></label>' +
-        '<label class="tm"><span class="sr">' + t('hrTo') + '</span><input type="time" data-hto value="' + esc(to) + '"' + (on ? '' : ' disabled') + '></label>' +
-        // A second range (a lunch break) typed elsewhere is kept as it is.
-        (raw.indexOf(',') > -1 ? '<input type="hidden" data-hrest value="' + esc(raw.slice(raw.indexOf(',') + 1)) + '">' : '') + '</div>';
+        '<span class="hst muted small">' + t('hrClosed') + '</span>' +
+        '<div class="rgs">' + list.map(function (r) { return rangeField(r[0], r[1]); }).join('') +
+        '<button type="button" class="btn sm ghost add" data-hadd' + (list.length >= MAX_RANGES ? ' hidden' : '') + '>' + ic('plus') + '<span>' + t('hrAdd') + '</span></button></div></div>';
     }).join('') + '<p class="row" style="margin-top:10px"><button type="button" class="btn sm" data-hcopy="' + id + '">' + t('hrCopy') + '</button></p></div>';
   }
   function wireHours(root) {
+    function sync(row) {
+      var n = row.querySelectorAll('.rg').length;
+      row.querySelector('[data-hadd]').hidden = n >= MAX_RANGES;
+      row.classList.toggle('one', n === 1);
+    }
     root.querySelectorAll('.hr').forEach(function (row) {
       var box = row.querySelector('[data-hon]');
-      box.addEventListener('change', function () {
-        row.classList.toggle('off', !box.checked);
-        row.querySelectorAll('input[type=time]').forEach(function (i) { i.disabled = !box.checked; });
-        row.querySelector('.hst').textContent = box.checked ? '' : t('hrClosed');
-      });
+      box.addEventListener('change', function () { row.classList.toggle('off', !box.checked); });
+      sync(row);
+    });
+    // One listener for the add and remove buttons, so ranges added later work too.
+    root.addEventListener('click', function (e) {
+      var add = e.target.closest('[data-hadd]'), del = e.target.closest('[data-hdel]'), row = e.target.closest('.hr');
+      if (add && row) {
+        // The new range starts an hour after the last one closes (12:00 → 13:00-16:00); left empty when that would be late at night.
+        var last = [].slice.call(row.querySelectorAll('[data-hto]')).pop(), h = last && last.value ? +last.value.slice(0, 2) + 1 : 18;
+        var pad = function (n) { return (n < 10 ? '0' : '') + n + ':00'; };
+        add.insertAdjacentHTML('beforebegin', h >= 6 && h <= 20 ? rangeField(pad(h), pad(h + 3)) : rangeField('', ''));
+        sync(row);
+        add.previousElementSibling.querySelector('[data-hfrom]').focus();
+      } else if (del && row && row.querySelectorAll('.rg').length > 1) {
+        del.closest('.rg').remove();
+        sync(row);
+        row.querySelector('[data-hadd]').focus();
+      }
     });
     root.querySelectorAll('[data-hcopy]').forEach(function (b) {
       b.onclick = function () {
         var rows = [].slice.call(root.querySelectorAll('.hr')), src = rows.filter(function (r) { return r.querySelector('[data-hon]').checked; })[0];
         if (!src) return;
-        var f = src.querySelector('[data-hfrom]').value, to = src.querySelector('[data-hto]').value;
-        rows.forEach(function (r) { if (r.querySelector('[data-hon]').checked) { r.querySelector('[data-hfrom]').value = f; r.querySelector('[data-hto]').value = to; } });
+        var list = [].slice.call(src.querySelectorAll('.rg')).map(function (g) { return [g.querySelector('[data-hfrom]').value, g.querySelector('[data-hto]').value]; });
+        rows.forEach(function (r) {
+          if (r === src || !r.querySelector('[data-hon]').checked) return;
+          r.querySelectorAll('.rg').forEach(function (g) { g.remove(); });
+          r.querySelector('[data-hadd]').insertAdjacentHTML('beforebegin', list.map(function (x) { return rangeField(x[0], x[1]); }).join(''));
+          sync(r);
+        });
       };
     });
   }
-  /** Seven strings, Sunday first: "09:00-23:00" (plus any second range kept), or "" for closed. */
+  /** Seven strings, Sunday first: "09:00-12:00,13:00-16:00" in time order, or "" for closed. */
   function readHours(root) {
     var out = ['', '', '', '', '', '', ''];
     root.querySelectorAll('.hr').forEach(function (row) {
       if (!row.querySelector('[data-hon]').checked) return;
-      var f = row.querySelector('[data-hfrom]').value, to = row.querySelector('[data-hto]').value, rest = row.querySelector('[data-hrest]');
-      if (f && to) out[+row.dataset.day] = f + '-' + to + (rest ? ',' + rest.value : '');
+      out[+row.dataset.day] = [].slice.call(row.querySelectorAll('.rg')).map(function (g) {
+        var f = g.querySelector('[data-hfrom]').value, to = g.querySelector('[data-hto]').value;
+        return f && to ? f + '-' + to : '';
+      }).filter(Boolean).sort().join(',');
     });
     return out;
   }
@@ -793,8 +845,8 @@
     if (!hours) return [t('notSet'), 'warn'];
     var days = t('days'), open = WEEK.filter(function (d) { return hours[d]; }), closed = WEEK.filter(function (d) { return !hours[d]; });
     if (!open.length) return [t('notSet'), 'warn'];
-    var first = hours[open[0]].split(',')[0].split('-');
-    return [t('hrRange', first[0], first[1] || '') + ' · ' + (closed.length ? t('hrClosedOn', closed.map(function (d) { return days[d]; }).join(', ')) : t('hrEvery')), ''];
+    var times = rangesOf(hours[open[0]]).map(function (r) { return t('hrRange', r[0], r[1]); }).join(', ');
+    return [times + ' · ' + (closed.length ? t('hrClosedOn', closed.map(function (d) { return days[d]; }).join(', ')) : t('hrEvery')), ''];
   }
 
   /** A branch's own address, map, phone and hours (each empty one falls back to the shop's). */

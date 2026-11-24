@@ -263,14 +263,22 @@ fieldset.styles legend{padding:0}
 
 /* ---- opening hours ---- */
 .hours{display:grid;gap:4px;margin-top:12px}
-.hr{display:grid;grid-template-columns:minmax(150px,1fr) auto auto auto auto;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r)}
+/* A day: its switch, then its opening times (one or more) and a button to add another; "Closed" in their place when off. */
+.hr{display:grid;grid-template-columns:minmax(140px,170px) minmax(0,1fr);align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r)}
 .hr:nth-child(odd){background:var(--surface-2)}
 .hr .switch span{font-weight:500}
-.hr .hst{min-width:52px;text-align:end}
+.hr .hst{display:none}
+.hr.off .hst{display:block}
+.hr.off .rgs{display:none}
+.rgs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.rg{display:inline-flex;align-items:center;gap:6px}
 .hr .tm input{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:6px 8px;min-height:38px;font:inherit;font-variant-numeric:tabular-nums}
-.hr.off .tm,.hr.off .dash{opacity:.35}
 .hr .dash{color:var(--muted)}
-@media (max-width:520px){.hr{grid-template-columns:minmax(0,1fr) auto auto auto}.hr .hst{display:none}}
+.hr .del,.hr .add{border-color:transparent;background:transparent;color:var(--muted)}
+.hr .del:hover,.hr .add:hover{background:var(--surface);color:var(--ink)}
+.hr .add{color:var(--primary)}
+.hr.one .del{display:none}
+.hr .ic{width:16px;height:16px}
 
 /* ---- sections: their picture ---- */
 .sh .sth{width:40px;height:40px;border-radius:9px;flex:none}
@@ -451,12 +459,14 @@ body.shell-on:not(.sub) #toast{bottom:calc(84px + env(safe-area-inset-bottom))}
   dialog form{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
   .secsum .sa{width:100%}
   .mvs .btn.icon{width:36px}
-  /* Opening hours: the day on its own line, then its two times side by side. */
-  .hr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 10px;padding:10px}
-  .hr .switch{grid-column:1/-1}
-  .hr .hst{display:none}
+  /* Opening hours: the day on its own line, then each opening time on a line of its own. */
+  .hr{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:10px}
+  .hr .rgs{grid-column:1/-1;display:grid;gap:6px}
+  .hr.off .rgs{display:none}
+  .rg{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 44px}
+  .hr.one .rg{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
   .hr .tm input{width:100%}
-  .hr.off .tm{display:none}
+  .hr .add{justify-self:start}
 }
 
 /* Wide: the side menu replaces the tab bar. */

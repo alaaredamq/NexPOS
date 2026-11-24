@@ -203,14 +203,13 @@ public sealed class StockChangeRequest
     public string? Reason { get; set; }
 }
 
-public sealed class AdjustStockHandler(IProductCatalogService catalog, IInventoryApiService inventory, ILicenseService license, IAuditContext audit) : OnlineCommandHandler<StockChangeRequest>(audit)
+/// <summary>In every plan: Basic keeps stock counts too (only the Inventory page with its movements and stock value is Pro).</summary>
+public sealed class AdjustStockHandler(IProductCatalogService catalog, IInventoryApiService inventory, IAuditContext audit) : OnlineCommandHandler<StockChangeRequest>(audit)
 {
     public override string Type => "stock.adjust";
 
     protected override async Task<CommandResult> ApplyAsync(StockChangeRequest request, CancellationToken ct)
     {
-        if (RefuseUnlessPlanIncludes(license, ProFeature.Inventory) is { } refused) return refused;
-
         var current = await catalog.GetAsync(request.ProductId);
         if (current is null) return CommandResult.Reject(CommandErrorCodes.NotFound, "That product no longer exists in the shop.");
 

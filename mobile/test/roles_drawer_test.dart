@@ -221,21 +221,22 @@ void main() {
       shop.seedPlan('Basic');
     }
 
-    testWidgets('a Basic shop gets a Products tab with no stock figures, no stock change and nothing about suppliers', (tester) async {
+    testWidgets('a Basic shop keeps its stock (figures and Adjust stock) but gets nothing about suppliers', (tester) async {
       await startApp(tester, seed: basicShop);
 
-      expect(tab('Stock'), findsNothing);
-      expect(tab('Products'), findsOneWidget);
-      expect(find.text('Low stock'), findsNothing);
+      expect(tab('Stock'), findsOneWidget);
+      expect(tab('Products'), findsNothing);
 
-      await tester.tap(tab('Products'));
+      await tester.tap(tab('Stock'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Needs restocking'), findsNothing);
+      expect(find.textContaining('Needs restocking'), findsOneWidget);
+      await tester.tap(find.textContaining('All products'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Fresh milk 1L'));
       await tester.pumpAndSettle();
-      expect(find.text('Adjust stock'), findsNothing);
-      expect(find.text('In stock'), findsNothing);
-      expect(find.widgetWithText(OutlinedButton, 'Edit'), findsOneWidget); // prices can still be changed
+      expect(find.text('Adjust stock'), findsOneWidget);
+      expect(find.text('In stock'), findsWidgets);
+      expect(find.widgetWithText(OutlinedButton, 'Edit'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
 
@@ -246,7 +247,7 @@ void main() {
       await openManage(tester);
       expect(find.text('Add a supplier'), findsNothing);
       expect(find.text('Add a product'), findsOneWidget);
-      expect(find.text('Name, barcode and prices'), findsOneWidget);
+      expect(find.text('Name, barcode, prices and stock'), findsOneWidget);
     });
 
     testWidgets('a Pro shop (or one that has not reported a plan) keeps everything', (tester) async {

@@ -110,7 +110,7 @@ else
 @* Several branches and none in the address: ask, since prices and what is sold differ. A table's QR code already carries its branch. *@
 <main class="wrap branches">
   <h2>@Model.T("Which branch are you at?", "في أي فرع أنت؟")</h2>
-  <p>@Model.T("Prices and dishes can differ between branches.", "قد تختلف الأسعار والأصناف بين الفروع.")</p>
+  <p>@Model.T("Prices and items can differ between branches.", "قد تختلف الأسعار والأصناف بين الفروع.")</p>
   <ul>
     @foreach (var choice in Model.Branches)
     {
@@ -264,7 +264,7 @@ else
             ? Model.T("To order, show this to a member of staff.", "للطلب، اعرض هذا على أحد العاملين.")
             : Model.T("To order, show this to a member of staff, or send it to the shop on WhatsApp.", "للطلب، اعرض هذا على أحد العاملين، أو أرسله إلى المحل عبر واتساب."))</p>
     <div class="t-empty" id="order-empty" hidden>
-      <p>@Model.T("Nothing here yet. Tap a dish to add it.", "لا شيء هنا بعد. اضغط على أي صنف لإضافته.")</p>
+      <p>@Model.T("Nothing here yet. Tap an item to add it.", "لا شيء هنا بعد. اضغط على أي صنف لإضافته.")</p>
       <button type="button" class="ghost" data-close>@Model.T("Back to the menu", "العودة إلى القائمة")</button>
     </div>
   </div>
