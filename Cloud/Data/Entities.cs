@@ -23,6 +23,11 @@ public class Client
     /// does not ask for one. Clients made before this existed use Online.
     /// </summary>
     public bool HasOnline { get; set; } = true;
+    /// <summary>
+    /// False for a shop that bought only the online menu: it has Online (paid months) but no Coduo POS, so no branch to connect and no
+    /// licence key. Clients made before this existed have the POS. See <see cref="ClientKinds"/>.
+    /// </summary>
+    public bool HasPos { get; set; } = true;
     public DateTime CreatedAt { get; set; }
 
     public Subscription? Subscription { get; set; }
@@ -167,4 +172,29 @@ public class AdminSession
     public DateTime ExpiresAt { get; set; }
     public DateTime? LastUsedAt { get; set; }
     public DateTime? RevokedAt { get; set; }
+}
+
+/// <summary>
+/// What a client bought, as the portal and the admin API name it. There is one subscription, Online (paid months); it covers the cloud
+/// copy, the phone app and the online menu. The kinds only say whether the client also runs the POS:
+/// <list type="bullet">
+/// <item><c>pos</c>: POS only. A licence key, no Online.</item>
+/// <item><c>online</c>: POS + Online. A licence key and Online months.</item>
+/// <item><c>menu</c>: Online menu only. Online months, no POS, so no branch and no licence key.</item>
+/// </list>
+/// </summary>
+public static class ClientKinds
+{
+    public const string Pos = "pos", Online = "online", Menu = "menu";
+
+    public static string Of(Client client) => Of(client.HasOnline, client.HasPos);
+
+    public static string Of(bool hasOnline, bool hasPos) => !hasOnline ? Pos : hasPos ? Online : Menu;
+
+    public static string Label(string kind) => kind switch
+    {
+        Pos => "POS only",
+        Menu => "Online menu only",
+        _ => "POS + Online",
+    };
 }

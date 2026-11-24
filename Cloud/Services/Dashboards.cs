@@ -7,7 +7,7 @@ namespace Cloud.Services;
 
 /// <summary>One client as the overview lists it: the raw facts, plus the short phrases the portal shows beside them.</summary>
 public sealed record ClientRow(
-    int Id, string Name, bool IsActive, bool HasOnline, string? Phone, string? Email, int Branches, string Sub,
+    int Id, string Name, bool IsActive, bool HasOnline, bool HasPos, string? Phone, string? Email, int Branches, string Sub,
     SubscriptionState State, DateTime? ExpiresAt, bool Suspended, string PlanNote,
     PulseData Pulse, DateTime? LastSeenAt, string Seen, string[] Tags, long? Products, long? Orders, bool EndingSoon);
 
@@ -32,18 +32,20 @@ public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, Po
 
         var since = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc).AddHours(-23);
         var beats = (await db.SiteHeartbeats.AsNoTracking().Where(h => h.Hour >= since).ToListAsync()).ToLookup(h => h.SiteId);
+        var published = (await db.Menus.AsNoTracking().Where(m => m.IsPublished).Select(m => m.ClientId).ToListAsync()).ToHashSet();
 
         var attention = new List<AttentionItem>();
         var rows = clients.Select(c =>
         {
-            var items = AttentionRules.For(c, now, fmt);
+            var items = AttentionRules.For(c, now, fmt, published.Contains(c.Id));
             attention.AddRange(items);
 
             var states = c.Sites.Where(s => !s.IsDisabled).Select(s => SiteInsight.Connection(s, now)).ToList();
             var tags = new List<string>();
             if (!c.HasOnline) tags.Add("offline");
+            if (c.HasOnline && !c.HasPos) tags.Add("menu");
             if (states.Contains(ConnectionState.Connected)) tags.Add("connected");
-            if (c.HasOnline && (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0)) tags.Add("waiting");
+            if (c.HasOnline && c.HasPos && (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0)) tags.Add("waiting");
             if (items.Count > 0) tags.Add("attention");
 
             // A client with several branches is one strip: an hour is lit when any of its branches was heard from.
@@ -60,16 +62,16 @@ public sealed class OverviewBuilder(ControlDbContext db, MirrorStore mirrors, Po
                 orders = (orders ?? 0) + counts["Orders"];
             }
 
-            var sub = !c.HasOnline && c.Sites.Count == 0 ? "POS only" : c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
+            var sub = !c.HasOnline && c.Sites.Count == 0 ? "POS only" : !c.HasPos && c.Sites.Count == 0 ? "Online menu only" : c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
             if (!string.IsNullOrWhiteSpace(c.Phone)) sub += " · " + c.Phone;
 
-            return new ClientRow(c.Id, c.Name, c.IsActive, c.HasOnline, c.Phone, c.Email, c.Sites.Count, sub, state,
+            return new ClientRow(c.Id, c.Name, c.IsActive, c.HasOnline, c.HasPos, c.Phone, c.Email, c.Sites.Count, sub, state,
                 c.Subscription?.ExpiresAt, c.Subscription?.IsSuspended ?? false,
                 c.Subscription is null ? "" : state is SubscriptionState.Active or SubscriptionState.Grace
                     ? $"ends {fmt.Until(c.Subscription.ExpiresAt)} · {fmt.Day(c.Subscription.ExpiresAt)}"
                     : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
                 pulse, seenAt,
-                seenAt is null ? (!c.HasOnline ? "Offline" : c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
+                seenAt is null ? (!c.HasOnline ? "Offline" : !c.HasPos ? "No POS" : c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
                 tags.ToArray(), products, orders,
                 state == SubscriptionState.Active && c.Subscription is not null && c.Subscription.ExpiresAt - now < TimeSpan.FromDays(14));
         }).ToList();

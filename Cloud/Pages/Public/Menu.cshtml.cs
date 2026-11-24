@@ -63,8 +63,8 @@ public class MenuModel(ControlDbContext db, PortalFormat clock) : PageModel
 
     public async Task<IActionResult> OnGetAsync(string slug, string? preview, string? b, int? t)
     {
-        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
-        if (menu is null || !menu.Client.IsActive) return NotFound();
+        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).ThenInclude(c => c.Subscription).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
+        if (menu is null || !SubscriptionRules.MenuIsLive(menu.Client, clock.Now)) return NotFound();
         IsPreview = !menu.IsPublished;
         if (IsPreview && (string.IsNullOrEmpty(preview) || preview != menu.PreviewKey)) return NotFound();
         Menu = menu;

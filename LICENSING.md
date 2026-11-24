@@ -119,6 +119,16 @@ The admin portal's **Licences** page (and `/api/admin/v1/licenses`, see `docs/on
   **Needs you**. Those and Full keys whose updates plan ends within 30 days are listed as renewals in Finance.
 - **POS-only clients:** a client can be **POS only** (no Online): no branch or link, no Online or connection warnings. Its licences and
   payments are what the portal follows. Online can be turned on later from the client page.
+- **Three kinds of client, one subscription.** New client asks what they bought: **POS only** (a licence key, no Online), **POS +
+  Online** (a licence key and Online months) or **Online menu only** (Online months, no POS: no branch, no link, no licence key; the
+  owner edits the menu on the owner website with a phone login). Online is the only subscription: its months cover the cloud copy,
+  the phone app and the online menu. A menu-only client must be given at least 1 month (the form has no "0" for it). A menu-only
+  client that later buys the POS becomes POS + Online from its page ("They bought the POS"), keeping its months.
+- **The online menu needs Online time.** When a client's months end, the menu keeps working through the 7-day grace week, then the
+  public page, its order button and its sitemap entry answer "not found" until months are added (adding them brings it straight back;
+  nothing is deleted, and the owner can still sign in and edit). This applies to every client, so a POS + Online client with 0 months
+  has no menu either. The owner's menu editor says why the menu is offline; **Needs you** lists published menus that are offline or
+  in their grace week.
 
 ### Issuing keys online
 

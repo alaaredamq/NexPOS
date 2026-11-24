@@ -22,6 +22,12 @@
       shareH: 'Share', published: 'Published', notPublished: 'Not published', publishLbl: 'Anyone with the link can see it',
       copy: 'Copy', copied: 'Link copied', open: 'Open', preview: 'Preview', qrDl: 'Download QR', qrNote: 'Print it for tables, the door or the counter.',
       previewNote: 'Not published yet: only the Preview link opens it.',
+      offH: 'Your menu is offline', offEnded: 'Your Online plan ended on {0}, so customers cannot open the menu. Renew it with your provider and the menu is back at once. Nothing here is lost.',
+      offNone: 'Your Online plan has not started, so customers cannot open the menu yet. Ask your provider to add your months.',
+      offSusp: 'Your Online plan is paused, so customers cannot open the menu. Contact your provider.',
+      offOff: 'This account is switched off, so customers cannot open the menu.',
+      graceH: 'Online has ended', graceP: 'Your Online plan ended on {0}. The menu stays open until {1}, then customers cannot open it. Renew with your provider before then.',
+      needOff: 'The menu is offline: renew Online', needGrace: 'The menu goes offline on {0}: renew Online',
       srcH: 'Where the products come from', srcPos: 'From my POS', srcPosP: 'Names, prices and sections follow the shop PC by themselves.',
       srcHand: 'Added here', srcHandP: 'You type each item and its price on this page.',
       branch: 'Branch', noBranch: 'No shop PC is connected to this account, so the menu can only be filled here.',
@@ -107,6 +113,12 @@
       shareH: 'المشاركة', published: 'منشورة', notPublished: 'غير منشورة', publishLbl: 'يراها كل من لديه الرابط',
       copy: 'نسخ', copied: 'نُسخ الرابط', open: 'فتح', preview: 'معاينة', qrDl: 'تنزيل رمز QR', qrNote: 'اطبعه للطاولات أو الباب أو الصندوق.',
       previewNote: 'لم تُنشر بعد: يفتحها رابط المعاينة فقط.',
+      offH: 'قائمتك متوقفة', offEnded: 'انتهى اشتراك Online في {0}، لذلك لا يستطيع الزبائن فتح القائمة. جدّد الاشتراك مع مزوّدك فتعود القائمة فورًا. لا يضيع شيء مما هنا.',
+      offNone: 'لم يبدأ اشتراك Online بعد، لذلك لا يستطيع الزبائن فتح القائمة. اطلب من مزوّدك إضافة الأشهر.',
+      offSusp: 'اشتراك Online موقوف مؤقتًا، لذلك لا يستطيع الزبائن فتح القائمة. تواصل مع مزوّدك.',
+      offOff: 'هذا الحساب موقوف، لذلك لا يستطيع الزبائن فتح القائمة.',
+      graceH: 'انتهى اشتراك Online', graceP: 'انتهى اشتراك Online في {0}. تبقى القائمة مفتوحة حتى {1}، ثم لا يستطيع الزبائن فتحها. جدّد مع مزوّدك قبل ذلك.',
+      needOff: 'القائمة متوقفة: جدّد Online', needGrace: 'تتوقف القائمة في {0}: جدّد Online',
       srcH: 'من أين تأتي المنتجات', srcPos: 'من نقطة البيع', srcPosP: 'الأسماء والأسعار والأقسام تتبع كمبيوتر المتجر تلقائياً.',
       srcHand: 'تُضاف هنا', srcHandP: 'تكتب كل صنف وسعره في هذه الصفحة.',
       branch: 'الفرع', noBranch: 'لا يوجد كمبيوتر متجر متصل بهذا الحساب، لذا تُملأ القائمة من هنا فقط.',
@@ -482,7 +494,25 @@
 
   // ---- Home: share the menu, and what needs the owner ----
   function homePage() {
-    return head(S.menu.title) + shareCard() + '<section class="group"><h2>' + t('needsH') + '</h2><ul class="list" id="needs">' + needsItems() + '</ul></section>';
+    return head(S.menu.title) + onlineNotice() + shareCard() + '<section class="group"><h2>' + t('needsH') + '</h2><ul class="list" id="needs">' + needsItems() + '</ul></section>';
+  }
+  // The menu is part of Online: without paid time (after the grace week) customers get "not found". Tell the owner why, and when.
+  function day(iso) {
+    try { return new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return String(iso).slice(0, 10); }
+  }
+  function onlineNotice() {
+    var o = S.online;
+    if (!o) return '';
+    var box = function (tone, h, p) {
+      return '<section class="card" role="status" style="border-color:var(--' + tone + ');background:var(--' + tone + '-bg)"><h2 style="color:var(--' + tone + ')">' + esc(h) + '</h2>' +
+        '<p style="margin:6px 0 0">' + esc(p) + '</p></section>';
+    };
+    if (!o.menuLive) {
+      var why = o.state === 'Expired' ? t('offEnded', day(o.expiresAtUtc)) : o.state === 'Suspended' ? t('offSusp') : o.state === 'None' ? t('offNone') : t('offOff');
+      return box('bad', t('offH'), why);
+    }
+    if (o.state === 'Grace') return box('warn', t('graceH'), t('graceP', day(o.expiresAtUtc), day(o.graceEndsAtUtc)));
+    return '';
   }
   function needsItems() {
     var m = S.menu, rows = [], fresh = newCount();
@@ -491,6 +521,8 @@
       return '<li><' + tag + ' class="lrow"' + (href ? ' href="#' + href + '"' : '') + '><span class="li ' + tone + '">' + ic(icon) + '</span>' +
         '<span class="lt"><b>' + esc(text) + '</b></span>' + (href ? ic('next', 'flip') : '') + '</' + tag + '></li>';
     };
+    if (S.online && !S.online.menuLive) rows.push(row('', 'clock', 'bad', t('needOff')));
+    else if (S.online && S.online.state === 'Grace') rows.push(row('', 'clock', 'warn', t('needGrace', day(S.online.graceEndsAtUtc))));
     if (fresh) rows.push(row('orders', 'receipt', 'bad', fresh === 1 ? t('needOrder') : t('needOrders', fresh)));
     if (!S.sections.length && !S.looseCount) rows.push(row('dishes', 'list', 'warn', t('needEmpty')));
     if (S.noPictureCount) rows.push(row('dishes', 'photo', 'warn', t('needPics', S.noPictureCount)));
