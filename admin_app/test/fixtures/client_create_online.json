@@ -1,0 +1,158 @@
+{
+ "client": {
+  "id": 1,
+  "name": "Cedar Bakery",
+  "phone": "03 123 456",
+  "email": null,
+  "notes": null,
+  "isActive": true,
+  "createdAtUtc": "2026-11-24T16:45:20.6491576",
+  "hasOnline": true,
+  "hasPos": true,
+  "type": "online",
+  "menuLive": true,
+  "subscription": {
+   "state": "Active",
+   "plan": "Online",
+   "startsAtUtc": "2026-11-24T16:45:20.6491576",
+   "expiresAtUtc": "2027-11-24T16:45:20.6491576",
+   "suspended": false,
+   "graceEndsAtUtc": "2027-12-01T16:45:20.6491576"
+  },
+  "subscriptionState": "Active",
+  "sites": [
+   {
+    "id": "d436666e-b6bd-44e5-944d-c8b00e682c8a",
+    "clientId": 1,
+    "name": "Main branch",
+    "machineId": null,
+    "isDisabled": false,
+    "createdAtUtc": "2026-11-24T16:45:20.6491576",
+    "connection": "WaitingForShop",
+    "connectionLabel": "Waiting for the shop",
+    "connectionHelp": "A link was created and has not been used yet.",
+    "health": "Never",
+    "lastSeenAtUtc": null,
+    "lastSyncAtUtc": null,
+    "resyncRequested": false,
+    "shop": {
+     "plan": null,
+     "licenseKind": null,
+     "licenseUntil": null,
+     "seats": null
+    },
+    "pulse": [
+     {
+      "hourUtc": "2026-11-23T17:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T18:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T19:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T20:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T21:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T22:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-23T23:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T00:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T01:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T02:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T03:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T04:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T05:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T06:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T07:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T08:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T09:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T10:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T11:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T12:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T13:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T14:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T15:00:00Z",
+      "contacts": 0
+     },
+     {
+      "hourUtc": "2026-11-24T16:00:00Z",
+      "contacts": 0
+     }
+    ]
+   }
+  ],
+  "logins": [],
+  "payments": {
+   "count": 0,
+   "total": 0,
+   "last12Months": 0,
+   "last": null
+  },
+  "attention": []
+ },
+ "siteId": "d436666e-b6bd-44e5-944d-c8b00e682c8a",
+ "link": {
+  "url": "http://localhost:51158/enroll/G99Z-6PJC-ATZW",
+  "expiresAtUtc": "2026-12-01T16:45:20.8314677Z"
+ }
+}

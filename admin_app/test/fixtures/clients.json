@@ -1,0 +1,371 @@
+[
+ {
+  "id": 1,
+  "name": "Cedar Bakery",
+  "isActive": true,
+  "hasOnline": true,
+  "hasPos": true,
+  "type": "online",
+  "phone": "03 123 456",
+  "email": null,
+  "branches": 1,
+  "subscription": {
+   "state": "Active",
+   "expiresAtUtc": "2027-11-24T16:45:20.6491576",
+   "suspended": false,
+   "endingSoon": false,
+   "note": "ends in 364 days \u00b7 2027-11-24"
+  },
+  "lastSeenAtUtc": null,
+  "seen": "Not connected yet",
+  "tags": [
+   "waiting"
+  ],
+  "products": null,
+  "orders": null,
+  "pulse": [
+   {
+    "hourUtc": "2026-11-23T17:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T18:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T19:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T20:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T21:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T22:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T23:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T00:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T01:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T02:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T03:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T04:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T05:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T06:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T07:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T08:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T09:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T10:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T11:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T12:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T13:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T14:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T15:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T16:00:00Z",
+    "contacts": 0
+   }
+  ]
+ },
+ {
+  "id": 2,
+  "name": "Juice Corner",
+  "isActive": true,
+  "hasOnline": true,
+  "hasPos": false,
+  "type": "menu",
+  "phone": null,
+  "email": null,
+  "branches": 0,
+  "subscription": {
+   "state": "Active",
+   "expiresAtUtc": "2027-11-24T16:45:21.0088818",
+   "suspended": false,
+   "endingSoon": false,
+   "note": "ends in 364 days \u00b7 2027-11-24"
+  },
+  "lastSeenAtUtc": null,
+  "seen": "No POS",
+  "tags": [
+   "menu"
+  ],
+  "products": null,
+  "orders": null,
+  "pulse": [
+   {
+    "hourUtc": "2026-11-23T17:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T18:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T19:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T20:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T21:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T22:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T23:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T00:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T01:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T02:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T03:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T04:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T05:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T06:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T07:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T08:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T09:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T10:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T11:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T12:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T13:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T14:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T15:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T16:00:00Z",
+    "contacts": 0
+   }
+  ]
+ },
+ {
+  "id": 3,
+  "name": "Offline Grocer",
+  "isActive": true,
+  "hasOnline": false,
+  "hasPos": true,
+  "type": "pos",
+  "phone": null,
+  "email": null,
+  "branches": 0,
+  "subscription": {
+   "state": "None",
+   "expiresAtUtc": null,
+   "suspended": false,
+   "endingSoon": false,
+   "note": ""
+  },
+  "lastSeenAtUtc": null,
+  "seen": "Offline",
+  "tags": [
+   "offline"
+  ],
+  "products": null,
+  "orders": null,
+  "pulse": [
+   {
+    "hourUtc": "2026-11-23T17:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T18:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T19:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T20:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T21:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T22:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-23T23:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T00:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T01:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T02:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T03:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T04:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T05:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T06:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T07:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T08:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T09:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T10:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T11:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T12:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T13:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T14:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T15:00:00Z",
+    "contacts": 0
+   },
+   {
+    "hourUtc": "2026-11-24T16:00:00Z",
+    "contacts": 0
+   }
+  ]
+ }
+]

@@ -1,0 +1,35 @@
+[
+ {
+  "id": 2,
+  "clientId": null,
+  "payer": "Owner capital",
+  "amount": 1000.0,
+  "date": "2026-11-24",
+  "method": "Cash",
+  "purpose": "Other",
+  "purposes": [
+   "Other"
+  ],
+  "reference": null,
+  "note": null,
+  "createdAtUtc": "2026-11-24T16:45:21.5018117",
+  "createdBy": "owner"
+ },
+ {
+  "id": 1,
+  "clientId": 1,
+  "payer": "Cedar Bakery",
+  "amount": 650.0,
+  "date": "2026-11-24",
+  "method": "Cash",
+  "purpose": "Online subscription + POS licence",
+  "purposes": [
+   "Online subscription",
+   "POS licence"
+  ],
+  "reference": null,
+  "note": null,
+  "createdAtUtc": "2026-11-24T16:45:21.4331306",
+  "createdBy": "owner"
+ }
+]

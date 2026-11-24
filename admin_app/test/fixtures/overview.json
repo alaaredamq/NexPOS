@@ -1,0 +1,119 @@
+{
+ "summary": "3 clients \u00b7 0 connected",
+ "clients": 3,
+ "connected": 0,
+ "plans": {
+  "active": 2,
+  "endingSoon": 0,
+  "ended": 1
+ },
+ "productsHeld": 0,
+ "ordersHeld": 0,
+ "pulse": [
+  {
+   "hourUtc": "2026-11-23T17:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T18:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T19:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T20:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T21:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T22:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-23T23:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T00:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T01:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T02:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T03:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T04:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T05:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T06:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T07:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T08:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T09:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T10:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T11:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T12:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T13:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T14:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T15:00:00Z",
+   "contacts": 0
+  },
+  {
+   "hourUtc": "2026-11-24T16:00:00Z",
+   "contacts": 0
+  }
+ ],
+ "litHours": 0,
+ "attention": [],
+ "thisMonth": {
+  "period": "m=2026-11",
+  "collected": 1950.0,
+  "spent": 40.0,
+  "profit": 1910.0,
+  "balance": 1910.0
+ }
+}

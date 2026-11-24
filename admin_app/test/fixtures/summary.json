@@ -1,0 +1,224 @@
+{
+ "period": {
+  "kind": "month",
+  "label": "November 2026",
+  "from": "2026-11-01",
+  "to": "2026-11-30",
+  "query": "m=2026-11",
+  "previous": "m=2026-10",
+  "next": "m=2026-12"
+ },
+ "currency": "$",
+ "collected": 1950.0,
+ "spent": 40.0,
+ "profit": 1910.0,
+ "marginPercent": 98,
+ "balance": 1910.0,
+ "previous": {
+  "collected": 0,
+  "spent": 0,
+  "profit": 0
+ },
+ "change": {
+  "collected": null,
+  "spent": null
+ },
+ "payingClients": 1,
+ "budget": {
+  "monthBudget": {
+   "month": "2026-11",
+   "incomeTarget": 2000.0,
+   "spendingLimit": 300.0,
+   "updatedAtUtc": "2026-11-24T16:45:21.5539584"
+  },
+  "income": {
+   "planned": 2000.0,
+   "actual": 1950.0,
+   "left": 50.0,
+   "percent": 98,
+   "over": false
+  },
+  "spending": {
+   "planned": 300.0,
+   "actual": 40.0,
+   "left": 260.0,
+   "percent": 13,
+   "over": false
+  }
+ },
+ "trend": [
+  {
+   "month": "2025-12",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-01",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-02",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-03",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-04",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-05",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-06",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-07",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-08",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-09",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-10",
+   "collected": 0,
+   "spent": 0,
+   "profit": 0
+  },
+  {
+   "month": "2026-11",
+   "collected": 1950.0,
+   "spent": 40.0,
+   "profit": 1910.0
+  }
+ ],
+ "averages": {
+  "collected": 162.5,
+  "spent": 3.33,
+  "profit": 159.17
+ },
+ "byPayer": [
+  {
+   "name": "Owner capital",
+   "amount": 1000.0,
+   "count": 1,
+   "clientId": null
+  },
+  {
+   "name": "Cedar Bakery",
+   "amount": 950.0,
+   "count": 2,
+   "clientId": 1
+  }
+ ],
+ "byPurpose": [
+  {
+   "name": "Other",
+   "amount": 1000.0,
+   "count": 1,
+   "clientId": null
+  },
+  {
+   "name": "Online subscription + POS licence",
+   "amount": 650.0,
+   "count": 1,
+   "clientId": null
+  },
+  {
+   "name": "POS licence",
+   "amount": 300.0,
+   "count": 1,
+   "clientId": null
+  }
+ ],
+ "byCategory": [
+  {
+   "name": "Hosting & servers",
+   "amount": 40.0,
+   "count": 1,
+   "clientId": null
+  }
+ ],
+ "renewals": [],
+ "renewalsExpected": 0,
+ "attention": [
+  {
+   "severity": "warn",
+   "title": "Juice Corner has no payment on record",
+   "reason": "Their Online plan is running, but nothing was recorded from them in the last 12 months. Record what they paid, or follow it up.",
+   "action": "Open client",
+   "portalPath": "/admin/Clients/Details/2#payments",
+   "clientId": 2
+  }
+ ],
+ "lines": [
+  {
+   "type": "payment",
+   "id": 3,
+   "date": "2026-11-24",
+   "who": "Cedar Bakery",
+   "clientId": 1,
+   "details": "POS licence \u00b7 Cash \u00b7 Licence 70024E22",
+   "note": null,
+   "amount": 300.0
+  },
+  {
+   "type": "payment",
+   "id": 2,
+   "date": "2026-11-24",
+   "who": "Owner capital",
+   "clientId": null,
+   "details": "Other \u00b7 Cash",
+   "note": null,
+   "amount": 1000.0
+  },
+  {
+   "type": "payment",
+   "id": 1,
+   "date": "2026-11-24",
+   "who": "Cedar Bakery",
+   "clientId": 1,
+   "details": "Online subscription + POS licence \u00b7 Cash",
+   "note": null,
+   "amount": 650.0
+  },
+  {
+   "type": "expense",
+   "id": 1,
+   "date": "2026-11-24",
+   "who": "Hosting & servers",
+   "clientId": null,
+   "details": "MonsterASP",
+   "note": null,
+   "amount": 40.0
+  }
+ ]
+}

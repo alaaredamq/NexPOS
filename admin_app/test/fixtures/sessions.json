@@ -1,0 +1,10 @@
+[
+ {
+  "id": 1,
+  "deviceName": "Test phone",
+  "createdAtUtc": "2026-11-24T16:45:19.2353506",
+  "lastUsedAtUtc": "2026-11-24T16:45:19.2353506",
+  "expiresAtUtc": "2026-12-24T16:45:19.2353506",
+  "current": true
+ }
+]

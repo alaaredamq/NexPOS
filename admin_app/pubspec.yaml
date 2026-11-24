@@ -1,0 +1,31 @@
+name: coduo_admin
+description: "Coduo Admin: see and manage every client, branch, licence and payment from your phone"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_secure_storage: ^11.2.0
+  http: ^1.6.0
+  intl: ^0.20.3
+  provider: ^6.1.5+1
+  url_launcher: ^6.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Coduo Cloud brand (coduo-cloud-brand-kit): the logo on the sign-in screen.
+  assets:
+    - assets/brand/coduo-cloud-logo-for-dark.png
+    - assets/brand/coduo-cloud-mark.png

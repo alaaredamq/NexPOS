@@ -437,13 +437,8 @@ Password: @Model.NewLoginPassword</div>
         // A login made a moment ago, handed over once (TempData lives for one request).
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
-        public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(Client is { HasPos: false }
-            ? $"Your online menu login\nOpen: {OwnerSiteUrl}\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
-              "There you add your dishes, pictures and prices, publish the menu and print its QR code.\n" +
-              "هناك تضيف أصنافك وصورها وأسعارها، ثم تنشر القائمة وتطبع رمز QR الخاص بها."
-            : $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
-            "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
-            "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
+        public string NewLoginWhatsApp => OwnerHandOver.WhatsAppUrl(
+            OwnerHandOver.Message(NewLoginEmail ?? "", NewLoginPassword ?? "", Client is { HasOnline: true, HasPos: false }, ops.BaseUrl(Request)));
 
         private async Task LoadAsync(int id)
         {
@@ -473,7 +468,10 @@ Password: @Model.NewLoginPassword</div>
         public async Task<IActionResult> OnGetAsync(int id)
         {
             await LoadAsync(id);
-            return Client is null ? NotFound() : Page();
+            if (Client is null) return NotFound();
+            // What this client usually pays for, ticked to start with.
+            Pay.Purpose = !Client.HasOnline ? FinanceRules.LicencePurpose : Client.HasPos ? FinanceRules.OnlinePurpose : FinanceRules.MenuPurpose;
+            return Page();
         }
 
         public async Task<IActionResult> OnPostPaymentAsync(int id)

@@ -36,25 +36,31 @@ else
         <input id="p-date" name="Pay.Date" type="date" required value="@((pay.Date ?? Model.Today).ToString("yyyy-MM-dd", inv))" />
     </div>
 </div>
-<div class="fields2">
-    <div>
-        <label for="p-purpose">For</label>
-        <input id="p-purpose" name="Pay.Purpose" list="p-purposes" maxlength="60" value="@pay.Purpose" />
-        <datalist id="p-purposes">@foreach (var x in FinanceRules.Purposes) { <option value="@x"></option> }</datalist>
+@{
+    // A payment can cover several things at once (a licence, a year of Online and the installation): one tick each.
+    var ticked = (pay.Purposes is { Count: > 0 } list ? list : FinanceRules.PurposesOf(pay.Purpose)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+}
+<fieldset class="checks-field">
+    <legend>For <span class="opt">(tick all it covers)</span></legend>
+    @* Sent empty so that nothing ticked is refused, rather than read as the default purpose. *@
+    <input type="hidden" name="Pay.Purpose" value="" />
+    <div class="checks">
+        @foreach (var x in FinanceRules.Purposes)
+        {
+            <label><input type="checkbox" name="Pay.Purposes" value="@x" checked="@ticked.Contains(x)" /><span>@x</span></label>
+        }
     </div>
+</fieldset>
+<div class="fields2">
     <div>
         <label for="p-method">Paid by</label>
         <input id="p-method" name="Pay.Method" list="p-methods" maxlength="40" value="@pay.Method" />
         <datalist id="p-methods">@foreach (var x in FinanceRules.Methods) { <option value="@x"></option> }</datalist>
     </div>
-</div>
-<div class="fields2">
     <div>
         <label for="p-ref">Receipt or transfer no. <span class="opt">(optional)</span></label>
         <input id="p-ref" name="Pay.Reference" maxlength="100" value="@pay.Reference" />
     </div>
-    <div>
-        <label for="p-note">Note <span class="opt">(optional)</span></label>
-        <input id="p-note" name="Pay.Note" maxlength="500" value="@pay.Note" />
-    </div>
 </div>
+<label for="p-note">Note <span class="opt">(optional)</span></label>
+<input id="p-note" name="Pay.Note" maxlength="500" value="@pay.Note" placeholder="For several things, the split if you want it: licence 300, Online 120..." />

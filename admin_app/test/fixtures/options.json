@@ -1,0 +1,34 @@
+{
+ "currency": "$",
+ "methods": [
+  "Cash",
+  "Bank transfer",
+  "Whish",
+  "OMT",
+  "Card",
+  "Cheque",
+  "Other"
+ ],
+ "purposes": [
+  "Online subscription",
+  "Online menu",
+  "POS licence",
+  "Set-up / installation",
+  "Hardware",
+  "Support",
+  "Other"
+ ],
+ "expenseCategories": [
+  "Hosting & servers",
+  "Software & tools",
+  "Marketing",
+  "Salaries",
+  "Hardware",
+  "Transport",
+  "Rent & utilities",
+  "Fees & taxes",
+  "Other"
+ ],
+ "maxAmount": 10000000,
+ "today": "2026-11-24"
+}

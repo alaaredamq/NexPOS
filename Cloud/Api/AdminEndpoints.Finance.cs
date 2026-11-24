@@ -39,7 +39,7 @@ public static partial class AdminEndpoints
     private static object Payment(Payment p) => new
     {
         id = p.Id, clientId = p.ClientId, payer = p.Payer, amount = p.Amount, date = Iso(p.ReceivedOn),
-        method = p.Method, purpose = p.Purpose, reference = p.Reference, note = p.Note,
+        method = p.Method, purpose = p.Purpose, purposes = FinanceRules.PurposesOf(p.Purpose), reference = p.Reference, note = p.Note,
         createdAtUtc = p.CreatedAt, createdBy = p.CreatedBy,
     };
 
@@ -132,12 +132,15 @@ public static partial class AdminEndpoints
     // ---- payments ----
 
     /// <summary>A payment as JSON: <c>amount</c> is a number; <c>date</c> is yyyy-MM-dd; no <c>clientId</c> means other income (then <c>payer</c> says from whom).</summary>
-    public sealed record PaymentRequest(int? ClientId, string? Payer, decimal? Amount, DateOnly? Date, string? Method, string? Purpose, string? Reference, string? Note)
+    /// <summary><c>purposes</c> lists what it was for (several allowed); the older <c>purpose</c> is one, or several joined with " + ".</summary>
+    public sealed record PaymentRequest(int? ClientId, string? Payer, decimal? Amount, DateOnly? Date, string? Method, string? Purpose, string? Reference, string? Note,
+        string[]? Purposes = null)
     {
         public PaymentInput ToInput(PortalFormat fmt) => new()
         {
             ClientId = ClientId, Payer = Payer, Amount = Amount?.ToString(Inv), Date = Date ?? fmt.Today,
-            Method = Method ?? FinanceRules.Methods[0], Purpose = Purpose ?? FinanceRules.Purposes[0], Reference = Reference, Note = Note,
+            Method = Method ?? FinanceRules.Methods[0], Purpose = Purpose ?? FinanceRules.OnlinePurpose, Purposes = Purposes?.ToList(),
+            Reference = Reference, Note = Note,
         };
     }
 

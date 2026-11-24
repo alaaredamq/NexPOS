@@ -1,0 +1,12 @@
+[
+ {
+  "id": 1,
+  "amount": 40.0,
+  "date": "2026-11-24",
+  "category": "Hosting & servers",
+  "payee": "MonsterASP",
+  "note": null,
+  "createdAtUtc": "2026-11-24T16:45:21.5091206",
+  "createdBy": "owner"
+ }
+]

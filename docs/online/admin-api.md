@@ -1,6 +1,6 @@
 # Admin API (`/api/admin/v1`)
 
-Everything the provider portal at `/admin` can do, as JSON, for an admin app (phone or desktop).
+Everything the provider portal at `/admin` can do, as JSON, for an admin app (phone or desktop). The phone app is `admin_app/`.
 The portal pages and this API call the same code (`AdminOperations`, `FinanceBook`, `OverviewBuilder`, `FinanceDashboard`),
 so a rule changed in one place applies to both.
 
@@ -92,9 +92,9 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/clients/{id}/logins` | | `[{ id, signIn, displayName, role, permissions, isActive, createdAtUtc, lastSignInAtUtc }]` |
-| POST | `/clients/{id}/logins` | `{ signIn, displayName?, password?, role? }` | 201 `{ login, password, whatsAppUrl }`. With no password, one is made up. The password is shown once. |
+| POST | `/clients/{id}/logins` | `{ signIn, displayName?, password?, role? }` | 201 `{ login, password, message, whatsAppUrl }`. With no password, one is made up. The password is shown once. `message` is the text to send the owner (also in `whatsAppUrl`): for an online-menu-only client it points to the owner website instead of asking for the recovery code. |
 | PUT | `/clients/{id}/logins/{loginId}` | `{ role?, isActive? }` | The login. A role change or disable signs its phones out. |
-| POST | `/clients/{id}/logins/{loginId}/reset-password` | | `{ login, password, whatsAppUrl }` (shown once) |
+| POST | `/clients/{id}/logins/{loginId}/reset-password` | | `{ login, password, message, whatsAppUrl }` (shown once) |
 | DELETE | `/clients/{id}/logins/{loginId}` | | 204 |
 
 `signIn` is an email, a phone number or a username. `role` is `owner`, `manager` or `staff`.
@@ -114,13 +114,16 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 | GET | `/finance/payments` | `?from=&to=&clientId=` | `[payment]`, newest first |
 | GET | `/clients/{id}/payments` | | That client's payments |
 | GET | `/finance/payments/{id}` | | payment |
-| POST | `/finance/payments` | `{ clientId?, payer?, amount, date?, method?, purpose?, reference?, note? }` | 201 payment |
+| POST | `/finance/payments` | `{ clientId?, payer?, amount, date?, method?, purposes?, purpose?, reference?, note? }` | 201 payment |
 | PUT | `/finance/payments/{id}` | same | payment |
 | DELETE | `/finance/payments/{id}` | | 204 |
 
 With no `clientId`, the payment is other income and `payer` says where it came from (for example "Owner capital").
-`date` defaults to today; `method` defaults to Cash and `purpose` to Online subscription.
-A payment is `{ id, clientId, payer, amount, date, method, purpose, reference, note, createdAtUtc, createdBy }`.
+`date` defaults to today; `method` defaults to Cash. A payment can be for several things: `purposes` lists them (from
+`/finance/options`: Online subscription, Online menu, POS licence, Set-up / installation, Hardware, Support, Other). They are stored
+as one text in the form's order, joined with " + " ("Online subscription + POS licence"), which is what `purpose` holds; the older
+single `purpose` still works, and with neither it is Online subscription. Nothing ticked is refused.
+A payment is `{ id, clientId, payer, amount, date, method, purpose, purposes[], reference, note, createdAtUtc, createdBy }`.
 
 ### Expenses (money out)
 

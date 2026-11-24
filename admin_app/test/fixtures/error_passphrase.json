@@ -1,0 +1,7 @@
+[
+ 400,
+ {
+  "code": "wrong_passphrase",
+  "message": "Wrong passphrase for the signing key."
+ }
+]

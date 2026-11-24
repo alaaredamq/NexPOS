@@ -1,0 +1,17 @@
+{
+ "id": 1,
+ "clientId": 1,
+ "payer": "Cedar Bakery",
+ "amount": 650,
+ "date": "2026-11-24",
+ "method": "Cash",
+ "purpose": "Online subscription + POS licence",
+ "purposes": [
+  "Online subscription",
+  "POS licence"
+ ],
+ "reference": null,
+ "note": null,
+ "createdAtUtc": "2026-11-24T16:45:21.4331306Z",
+ "createdBy": "owner"
+}
