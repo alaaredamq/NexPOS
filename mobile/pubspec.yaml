@@ -73,6 +73,7 @@ flutter:
   # Coduo POS brand mark (from coduo-pos-brand-kit/desktop-app), shown on the sign-in screen.
   assets:
     - assets/brand/coduo-pos-app-icon.png
+    - assets/brand/coduo-pos-wordmark-on-navy.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

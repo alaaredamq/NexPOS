@@ -7,6 +7,7 @@ import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/decor.dart';
 import '../widgets/motion.dart';
+import '../widgets/opening_splash.dart';
 
 /// Puts the lock screen over the whole app (above every page, dialogs included) while the app is locked. The pages underneath stay
 /// alive, so unlocking returns to exactly where the owner was.
@@ -19,11 +20,13 @@ class LockGate extends StatelessWidget {
     final lock = context.watch<AppLock>();
     final signedIn = context.watch<Session>().signedIn;
     final show = lock.locked && signedIn;
+    // While the opening logo plays it covers everything, so the lock screen (and its fingerprint prompt) waits.
+    final opening = OpeningSplash.isPlaying(context);
     return Stack(
       children: [
         // Not painted while locked, so nothing of the shop is behind the lock screen even for a frame.
         Offstage(offstage: show, child: TickerMode(enabled: !show, child: child)),
-        if (show) const Positioned.fill(child: LockScreen()),
+        if (show && !opening) const Positioned.fill(child: LockScreen()),
       ],
     );
   }

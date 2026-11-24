@@ -43,7 +43,7 @@ class App {
 /// Starts the app on a phone-sized screen. By default the owner is signed in and the shop's data is unlocked, with the shop's
 /// categories, suppliers and currencies already on the phone.
 Future<App> startApp(WidgetTester tester,
-    {bool signedIn = true, bool unlocked = true, void Function(ShopData shop)? seed, String language = 'en', Size size = const Size(800, 2200), bool appLock = false, bool fingerprintWorks = true, int permissions = 63, String role = 'owner'}) async {
+    {bool signedIn = true, bool unlocked = true, void Function(ShopData shop)? seed, String language = 'en', Size size = const Size(800, 2200), bool appLock = false, bool fingerprintWorks = true, int permissions = 63, String role = 'owner', bool opening = false}) async {
   // A tall phone by default, so every field of the longest form is on screen and a tap on it lands.
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -72,8 +72,13 @@ Future<App> startApp(WidgetTester tester,
   }
   final extra = services(await SharedPreferences.getInstance(), session);
   extra.bio.accept = fingerprintWorks;
-  await tester.pumpWidget(OwnerApp(session: session, shop: shop, lock: extra.lock, notify: extra.notify));
-  await tester.pumpAndSettle();
+  await tester.pumpWidget(OwnerApp(session: session, shop: shop, lock: extra.lock, notify: extra.notify, opening: opening));
+  // With the opening logo on, the test drives the clock itself.
+  if (opening) {
+    await tester.pump();
+  } else {
+    await tester.pumpAndSettle();
+  }
   return App(session, api, shop, keys, lock: extra.lock, bio: extra.bio, notify: extra.notify, watch: extra.watch);
 }
 
