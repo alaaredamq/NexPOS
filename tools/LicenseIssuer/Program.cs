@@ -36,11 +36,22 @@ internal static class Program
           protect  [--key <path>]
                    Encrypt an existing private key file with a passphrase.
 
+          cloud-login  --url <https://your-cloud> --user <admin name>
+                   Connect to the cloud admin portal. From then on every 'issue' is also recorded there
+                   (Licences page), linked to its client. The password is read from NEXPOS_CLOUD_PASSWORD or prompted;
+                   only a token is kept, in ~/.nexpos-license/cloud.json.
+          cloud-logout
+                   Forget the cloud connection on this PC.
+          cloud-import [--key <path>]
+                   Send the whole issued.csv to the cloud (keys signed before connecting). Safe to repeat.
+
+        'issue' records the key in the cloud when connected; add --no-cloud to skip that once.
+
         The passphrase is read from the NEXPOS_LICENSE_PASSPHRASE variable or prompted.
         Key path: --key, else the NEXPOS_LICENSE_KEY variable, else %USERPROFILE%\.nexpos-license\private.pem
         """;
 
-    private static readonly HashSet<string> FlagOptions = new(StringComparer.OrdinalIgnoreCase) { "encrypt", "force", "allow-past" };
+    private static readonly HashSet<string> FlagOptions = new(StringComparer.OrdinalIgnoreCase) { "encrypt", "force", "allow-past", "no-cloud" };
 
     private static int Main(string[] args)
     {
@@ -62,6 +73,9 @@ internal static class Program
                 "issue" => Issue(options),
                 "inspect" => Inspect(positionals),
                 "protect" => Protect(options),
+                "cloud-login" => CloudLogin(options),
+                "cloud-logout" => CloudLogout(),
+                "cloud-import" => CloudImport(options),
                 _ => Fail($"Unknown command '{command}'. Run without arguments for help.")
             };
         }
@@ -183,6 +197,46 @@ internal static class Program
         Console.WriteLine("License key (send this to the customer):");
         Console.WriteLine(keyText);
         if (options.ContainsKey("out")) Console.WriteLine($"\nAlso saved to {outPath}");
+
+        // Best effort: the key above is valid whatever the cloud says.
+        if (!options.ContainsKey("no-cloud") && Coduo.Tools.CloudLicenseLog.Load() is { } cloud)
+        {
+            var (_, message) = Coduo.Tools.CloudLicenseLog.RecordAsync(cloud, keyText).GetAwaiter().GetResult();
+            Console.WriteLine();
+            Console.WriteLine(message);
+        }
+        return 0;
+    }
+
+    private static int CloudLogin(Dictionary<string, string> options)
+    {
+        var url = Required(options, "url");
+        var user = Required(options, "user");
+        var password = Environment.GetEnvironmentVariable("NEXPOS_CLOUD_PASSWORD");
+        if (string.IsNullOrEmpty(password)) password = ReadSecret("Cloud admin password: ");
+        var (link, message) = Coduo.Tools.CloudLicenseLog.SignInAsync(url, user, password).GetAwaiter().GetResult();
+        if (link is null) throw new CliException(message);
+        Console.WriteLine(message);
+        Console.WriteLine($"Every key you issue is now recorded there too. The connection is kept in {Coduo.Tools.CloudLicenseLog.ConfigPath}.");
+        Console.WriteLine("Run 'cloud-import' once to send the keys you issued before.");
+        return 0;
+    }
+
+    private static int CloudLogout()
+    {
+        Coduo.Tools.CloudLicenseLog.Forget();
+        Console.WriteLine("Cloud connection forgotten on this PC. (Sign the device out on the portal too, if this PC is lost.)");
+        return 0;
+    }
+
+    private static int CloudImport(Dictionary<string, string> options)
+    {
+        var cloud = Coduo.Tools.CloudLicenseLog.Load() ?? throw new CliException("Not connected. Run 'cloud-login' first.");
+        var log = Path.Combine(Path.GetDirectoryName(KeyPath(options))!, "issued.csv");
+        if (!File.Exists(log)) throw new CliException($"No issued.csv at {log}.");
+        var (ok, message) = Coduo.Tools.CloudLicenseLog.ImportAsync(cloud, File.ReadAllText(log)).GetAwaiter().GetResult();
+        if (!ok) throw new CliException("Import failed: " + message);
+        Console.WriteLine("Imported: " + message);
         return 0;
     }
 
@@ -341,7 +395,12 @@ internal static class Program
     {
         var env = Environment.GetEnvironmentVariable("NEXPOS_LICENSE_PASSPHRASE");
         if (!string.IsNullOrEmpty(env)) return env;
+        return ReadSecret(prompt);
+    }
 
+    /// <summary>Reads a line without echoing it.</summary>
+    private static string ReadSecret(string prompt)
+    {
         Console.Error.Write(prompt);
         if (Console.IsInputRedirected) return Console.ReadLine() ?? string.Empty;
 

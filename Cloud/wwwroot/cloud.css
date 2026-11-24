@@ -362,7 +362,7 @@ a.chip { display: inline-flex; align-items: center; text-decoration: none; }
 .hbars .tr { grid-column: 1 / -1; height: 6px; border-radius: 999px; background: var(--line-2); overflow: hidden; }
 .hbars .tr i { display: block; height: 100%; border-radius: 999px; }
 h3.minor { font: 500 13px var(--body); color: var(--muted); margin: 18px 0 2px; }
-.tscroll { overflow-x: auto; }
+.tscroll { overflow-x: auto; position: relative; }  /* relative: hidden copy-text (.sr) inside stays inside the scroll box */
 table.t th.r, table.t td.r { text-align: right; }
 table.t .nowrap, .nowrap { white-space: nowrap; }
 table.t small.d { display: block; font-size: 12.5px; }
@@ -387,3 +387,5 @@ fieldset.bare > legend { font-size: 14px; font-weight: 500; color: var(--ink); m
 .new-key { border-color: var(--ok); }
 .card > h2 > .icon { color: var(--teal); }
 .pill.offline { background: #ece7f8; color: #5a3fa0; }
+/* A card header with filter chips wraps on a phone instead of widening the page. */
+.ph { flex-wrap: wrap; }

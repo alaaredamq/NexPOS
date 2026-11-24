@@ -98,8 +98,47 @@ Other tool commands:
 | `pubkey` | Print the public key (the one embedded in the app). |
 | `inspect <key>` | Decode a key and verify it against the app's public key. |
 | `protect` | Add a passphrase to the private key. The key does not change, so existing licenses stay valid. |
+| `cloud-login --url <https://your-cloud> --user <admin>` | Connect to the cloud admin portal. Every `issue` is then also recorded there (Licences page), linked to its client. Only a token is kept, in `~/.nexpos-license/cloud.json`. |
+| `cloud-import` | Send the whole `issued.csv` to the cloud once (keys from before connecting). Repeating it skips what is there. |
+| `cloud-logout` | Forget the connection on this PC. |
 
-Every key you issue is appended to `issued.csv` next to the private key, so you can find renewals later.
+Every key you issue is appended to `issued.csv` next to the private key, so you can find renewals later. Once connected to the cloud
+(`cloud-login`), each key is also recorded there; add `--no-cloud` to `issue` to skip that once.
+
+The Keygen app has the same thing: the **Cloud** row on the Keys tab (**Connect...**, then **Send issued.csv**).
+
+## Licences in the cloud (built 2026-11-24)
+
+The admin portal's **Licences** page (and `/api/admin/v1/licenses`, see `docs/online/admin-api.md`) keeps every key with its client:
+
+- **Where keys come from:** issued in the portal; reported by the desktop tools after each `issue` (once connected); pasted (the signature
+  is checked); imported from `issued.csv` (details only, no key text); or seen at a connected shop PC's check-in (details only, as before).
+- **Linking:** to the client picked, else the client whose branch has that Machine ID, else the client of an earlier key for that PC,
+  else the one client with exactly the name in the key. The rest wait under **Not linked**.
+- **Following up:** time-limited keys ending within 14 days, in their grace week or expired, and keys not linked to a client, show in
+  **Needs you**. Those and Full keys whose updates plan ends within 30 days are listed as renewals in Finance.
+- **POS-only clients:** a client can be **POS only** (no Online): no branch or link, no Online or connection warnings. Its licences and
+  payments are what the portal follows. Online can be turned on later from the client page.
+
+### Issuing keys online
+
+Off until you set it up. The signing key then lives on the server, so it is protected the same way as on your PC:
+
+1. Make sure your `private.pem` has a passphrase (`LicenseIssuer protect`). **The server refuses a key without one.**
+2. Copy that file to the server, **outside the site folder** (for example next to `cloud.settings.json`, never under `wwwroot`).
+3. Set `"LicenseSigningKeyPath": "<full path>"` in the `Cloud` section of `cloud.settings.json` and restart.
+4. The Licences page now shows **Issue a key**. Each issue asks for the passphrase; the key is unlocked for that one signature and the
+   passphrase is never stored. Five wrong passphrases lock issuing for 15 minutes.
+
+What this protects against, and what it does not:
+
+- **Someone who copies the server's files or database** gets the encrypted key file only. Without the passphrase they cannot sign.
+- **Someone who takes over the running server** could capture the passphrase the next time you type it, and then sign keys. That is the
+  price of issuing online. If you suspect it: stop online issuing (empty the setting), change the passphrase on your PC, and keep
+  issuing from your PC. Changing the key pair itself would invalidate every key already sold, because shop PCs only trust one public key.
+- Every key issued here is recorded and cannot be deleted from the portal, so the Licences page is also the audit trail of what the
+  server signed.
+- A key that does not match the public key the app trusts is refused before anything is handed out.
 
 ## Do these now
 

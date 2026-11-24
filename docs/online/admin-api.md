@@ -34,6 +34,9 @@ so a rule changed in one place applies to both.
 |---|---|---|
 | GET | `/overview` | `{ summary, clients, connected, plans { active, endingSoon, ended }, productsHeld, ordersHeld, pulse[24], litHours, attention[], thisMonth { collected, spent, profit, balance } }` |
 
+Client rows and details carry `hasOnline` and `type` (`online` or `pos`). A POS-only client gets no Online or connection
+warnings; its licences are followed instead (see Licences).
+
 Each item in `attention` is `{ severity: "warn"|"bad", title, reason, action, portalPath, clientId }`.
 Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the current hour.
 
@@ -42,10 +45,12 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 | Method | Path | Body / query | Returns |
 |---|---|---|---|
 | GET | `/clients` | `?search=` (name, phone, email) `&filter=connected\|waiting\|attention` | Client rows |
-| POST | `/clients` | `{ name, phone?, email?, notes?, months? }` | 201 `{ client, siteId, link { url, expiresAtUtc } }`. Creates the client, its "Main branch" and a connection link (shown once). |
+| POST | `/clients` | `{ name, phone?, email?, notes?, months?, online? }` | 201 `{ client, siteId, link { url, expiresAtUtc } }`. Creates the client, its "Main branch" and a connection link (shown once). With `online: false` it is a **POS-only** client: no branch, no link (`siteId` and `link` are null), no Online months. |
 | GET | `/clients/{id}` | | Client detail: fields, `subscription`, `sites[]`, `logins[]`, `payments { count, total, last12Months, last }`, `attention[]` |
 | PUT | `/clients/{id}` | `{ name, phone?, email?, notes? }` | Client detail |
 | POST | `/clients/{id}/activate` | | `{ id, isActive }` |
+| POST | `/clients/{id}/online/enable` | | `{ id, hasOnline, link }`. A client with no branch gets its "Main branch", and `link { url, code, expiresAtUtc }` comes back once. |
+| POST | `/clients/{id}/online/disable` | | `{ id, hasOnline }`. POS only from now on: branches and data stay; the portal stops asking about them. |
 | POST | `/clients/{id}/deactivate` | | `{ id, isActive }`. All its branches are refused by the cloud; the shops keep selling. |
 | DELETE | `/clients/{id}` | | 204. Removes branches, cloud data, subscription and history. **Payments stay** (detached, payer name kept). |
 | GET | `/clients/{id}/events` | `?take=50` (max 500) | History, newest first: `[{ id, atUtc, text }]` |
@@ -162,6 +167,39 @@ A budget applies from its month onward, until a later one replaces it. A year ad
                "details": "Online subscription · OMT", "note": null, "amount": 120 } ]
 }
 ```
+
+## Licences (POS licence keys)
+
+Every Coduo POS licence key the cloud knows about, linked to its client and to the branch whose shop PC has the same Machine ID.
+Keys get here five ways (`source`): **Cloud** (issued here), **Keygen** (the desktop keygen or LicenseIssuer reports each key it
+signs), **Pasted**, **Imported** (from `issued.csv`, details only), **Till** (a connected shop PC showed its key at check-in; the key
+text is not kept). The same key reported twice is one record.
+
+| Method | Path | Body / query | Returns |
+|---|---|---|---|
+| GET | `/licenses` | `?show=current\|attention\|unassigned\|all&search=&clientId=` | `[licence]`, newest first. `current` (default) leaves out replaced keys. |
+| GET | `/clients/{id}/licenses` | | That client's licences, replaced ones included |
+| GET | `/licenses/{id}` | | licence |
+| GET | `/licenses/signer` | | `{ state, ready, message }`: whether keys can be issued here (`Off`, `Missing`, `NotProtected`, `Unreadable`, `Ready`) |
+| POST | `/licenses/issue` | `{ clientId?, machineId, customer?, kind, plan, seats?, days?, until?, note?, paymentAmount?, paymentMethod?, passphrase }` | 201 `{ license, whatsAppUrl }` |
+| POST | `/licenses/record` | `{ key, clientId?, source?: "Keygen", note? }` | 201 new / 200 already on record. The signature is checked. |
+| POST | `/licenses/import` | the issued.csv file as the body (`text/csv`) | `{ added, alreadyKnown, linked, problems[] }` |
+| PUT | `/licenses/{id}` | `{ clientId?, note? }` | licence. `clientId: null` unlinks; a missing field is left as is. |
+| DELETE | `/licenses/{id}` | | 204. Refused (`issued_here`) for keys issued here. The key keeps working at the shop either way. |
+
+A licence is `{ id, clientId, clientName, siteId, machineId, customer, kind, plan, seats, issuedOn, validUntil, timeLimited, status,
+statusLabel, serial, key, source, paymentId, note, createdAtUtc, createdBy }`. `key` is null when only the details are known.
+
+`status` is `Active`, `EndingSoon` (time-limited, 14 days or less), `Grace` (ended, the shop still sells for 7 days), `Expired`,
+`Updates` (Full key), `UpdatesEnding` (updates plan ends within 30 days), `UpdatesEnded` or `Superseded` (a newer key exists for that PC).
+
+**Issuing:** `kind` is `full`, `provisional` or `trial`; `plan` is `basic` or `pro` (required, never assumed); `seats` is 1 for Basic,
+1–255 for Pro. Length: `until` (yyyy-MM-dd), else `days`, else 365 / 45 / 14 by kind. `customer` defaults to the client's name (cut to
+60 bytes). `paymentAmount` also records a "POS licence" payment in Finance, linked to the key. Errors: `wrong_passphrase` (400),
+`passphrase_required` (400), `rate_limited` (429, after 5 wrong passphrases), `signer_off` / `signer_missing` / `signer_notprotected` /
+`key_mismatch` (409: the server is not set up to sign), plus the usual 400 codes (`bad_machine_id`, `bad_plan`, `bad_seats`, ...).
+
+Ending licences also appear in `/overview` `attention` and in `/finance/summary` `renewals` (with `what` and `licenseId`).
 
 ## Online menu editor
 

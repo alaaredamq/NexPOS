@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Common.Licensing;
+using Coduo.Tools;
 
 namespace LicenseKeygen;
 
@@ -32,6 +33,10 @@ internal sealed class KeysPage : UserControl
     private readonly Button _generate = new() { Text = "Generate key", AutoSize = true, Padding = new Padding(14, 4, 14, 4) };
     private readonly Button _copy = new() { Text = "Copy", AutoSize = true, Enabled = false };
     private readonly Button _save = new() { Text = "Save to file...", AutoSize = true, Enabled = false };
+    private readonly Label _cloudState = new() { AutoSize = true, Anchor = AnchorStyles.Left };
+    private readonly Button _cloudConnect = new() { AutoSize = true };
+    private readonly Button _cloudImport = new() { Text = "Send issued.csv", AutoSize = true };
+    private readonly Label _cloudResult = new() { AutoSize = true };
 
     /// <summary>The main action of this tab; the window makes it the Enter key while the tab is open.</summary>
     public Button DefaultButton => _generate;
@@ -104,11 +109,18 @@ internal sealed class KeysPage : UserControl
         Row("Private key", _keyPath, browse);
         Row("Passphrase", _passphrase);
 
+        // The cloud admin portal: each key signed here is recorded there too, linked to its client.
+        var cloud = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0, 4, 0, 4) };
+        _cloudConnect.Margin = new Padding(10, 0, 0, 0);
+        _cloudImport.Margin = new Padding(6, 0, 0, 0);
+        cloud.Controls.AddRange([_cloudState, _cloudConnect, _cloudImport]);
+        Row("Cloud", cloud);
+
         var actions = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(16, 8, 16, 0) };
         actions.Controls.AddRange([_generate, _copy, _save]);
 
-        var summaryHost = new Panel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(16, 10, 16, 0) };
-        summaryHost.Controls.Add(_summary);
+        var summaryHost = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, FlowDirection = FlowDirection.TopDown, Padding = new Padding(16, 10, 16, 0) };
+        summaryHost.Controls.AddRange([_summary, _cloudResult]);
 
         var outputHost = new Panel { Dock = DockStyle.Fill, Padding = new Padding(16) };
         outputHost.Controls.Add(_output);
@@ -139,6 +151,70 @@ internal sealed class KeysPage : UserControl
             _summary.Text = "Copied to the clipboard.";
         };
         _save.Click += (_, _) => SaveToFile();
+        _cloudConnect.Click += (_, _) => ConnectOrDisconnect();
+        _cloudImport.Click += async (_, _) => await SendIssuedCsvAsync();
+        RefreshCloudState();
+    }
+
+    // ---- cloud ----------------------------------------------------------------------------
+
+    private void RefreshCloudState()
+    {
+        var link = CloudLicenseLog.Load();
+        _cloudState.Text = link is null ? "Not connected: keys are kept on this PC only." : $"Connected to {link.Url} as {link.Username}";
+        _cloudState.ForeColor = link is null ? SystemColors.GrayText : Color.SeaGreen;
+        _cloudConnect.Text = link is null ? "Connect..." : "Disconnect";
+        _cloudImport.Visible = link is not null;
+    }
+
+    private void ConnectOrDisconnect()
+    {
+        if (CloudLicenseLog.Load() is not null)
+        {
+            if (MessageBox.Show(this, "Stop recording new keys in the cloud from this PC?", "Coduo POS Keygen", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                CloudLicenseLog.Forget();
+            RefreshCloudState();
+            return;
+        }
+        using var dialog = new CloudConnectDialog();
+        if (dialog.ShowDialog(this) == DialogResult.OK)
+        {
+            RefreshCloudState();
+            if (MessageBox.Show(this, "Connected. Send the keys you issued before (issued.csv) now?", "Coduo POS Keygen", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                _ = SendIssuedCsvAsync();
+        }
+    }
+
+    private async Task SendIssuedCsvAsync()
+    {
+        var link = CloudLicenseLog.Load();
+        if (link is null) return;
+        var log = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(_keyPath.Text))!, "issued.csv");
+        if (!File.Exists(log))
+        {
+            ShowCloudResult(false, "No issued.csv next to the private key yet.");
+            return;
+        }
+        _cloudImport.Enabled = false;
+        var (ok, message) = await CloudLicenseLog.ImportAsync(link, await File.ReadAllTextAsync(log));
+        _cloudImport.Enabled = true;
+        ShowCloudResult(ok, ok ? "issued.csv sent: " + message : "issued.csv not sent: " + message);
+    }
+
+    private async Task RecordInCloudAsync(string keyText)
+    {
+        var link = CloudLicenseLog.Load();
+        if (link is null) { _cloudResult.Text = ""; return; }
+        _cloudResult.ForeColor = SystemColors.GrayText;
+        _cloudResult.Text = "Recording in the cloud...";
+        var (ok, message) = await CloudLicenseLog.RecordAsync(link, keyText);
+        ShowCloudResult(ok, message);
+    }
+
+    private void ShowCloudResult(bool ok, string message)
+    {
+        _cloudResult.ForeColor = ok ? Color.SeaGreen : Color.DarkOrange;
+        _cloudResult.Text = message;
     }
 
     private void RefreshSeatsHint()
@@ -296,6 +372,8 @@ internal sealed class KeysPage : UserControl
                 throw new UserException("This private key does NOT match the public key embedded in the app, so clients would reject the key.\n\nSelect the correct private key.");
 
             AppendToLog(payload);
+            // Best effort, in the background: the key is valid whatever the cloud says.
+            _ = RecordInCloudAsync(keyText);
 
             _output.Text = keyText;
             _copy.Enabled = _save.Enabled = true;
