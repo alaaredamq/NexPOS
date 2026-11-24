@@ -382,6 +382,18 @@ table.t td .btn.sm { min-height: 28px; padding: 0 8px; margin-top: -4px; }
 /* ---------- licences and client type ---------- */
 .plans.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .plans.two span { font-size: 17px; padding: 12px 10px; }
+/* Tick-chips: several choices at once (what a payment was for). */
+.checks-field { border: 0; padding: 0; margin: 14px 0 0; min-width: 0; }
+.checks-field legend { font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0; margin-bottom: 5px; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.checks label { position: relative; margin: 0; cursor: pointer; }
+.checks input { position: absolute; opacity: 0; pointer-events: none; }
+.checks span { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 11px; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; font: 500 14px var(--body); color: var(--ink); }
+.checks span::before { content: ""; flex: none; width: 16px; height: 16px; border: 1.5px solid var(--line); border-radius: 5px; background: #fff center / 12px no-repeat; }
+.checks input:checked + span { border-color: var(--teal); background: var(--teal-l); }
+.checks input:checked + span::before { border-color: var(--teal); background-color: var(--teal);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.5-5' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.checks input:focus-visible + span { outline: 3px solid var(--teal); outline-offset: 2px; }
 .plans.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .plans.three span { font-size: 16px; padding: 12px 8px; }
 @media (max-width: 560px) { .plans.three { grid-template-columns: 1fr; } }

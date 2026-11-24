@@ -114,13 +114,16 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 | GET | `/finance/payments` | `?from=&to=&clientId=` | `[payment]`, newest first |
 | GET | `/clients/{id}/payments` | | That client's payments |
 | GET | `/finance/payments/{id}` | | payment |
-| POST | `/finance/payments` | `{ clientId?, payer?, amount, date?, method?, purpose?, reference?, note? }` | 201 payment |
+| POST | `/finance/payments` | `{ clientId?, payer?, amount, date?, method?, purposes?, purpose?, reference?, note? }` | 201 payment |
 | PUT | `/finance/payments/{id}` | same | payment |
 | DELETE | `/finance/payments/{id}` | | 204 |
 
 With no `clientId`, the payment is other income and `payer` says where it came from (for example "Owner capital").
-`date` defaults to today; `method` defaults to Cash and `purpose` to Online subscription.
-A payment is `{ id, clientId, payer, amount, date, method, purpose, reference, note, createdAtUtc, createdBy }`.
+`date` defaults to today; `method` defaults to Cash. A payment can be for several things: `purposes` lists them (from
+`/finance/options`: Online subscription, Online menu, POS licence, Set-up / installation, Hardware, Support, Other). They are stored
+as one text in the form's order, joined with " + " ("Online subscription + POS licence"), which is what `purpose` holds; the older
+single `purpose` still works, and with neither it is Online subscription. Nothing ticked is refused.
+A payment is `{ id, clientId, payer, amount, date, method, purpose, purposes[], reference, note, createdAtUtc, createdBy }`.
 
 ### Expenses (money out)
 

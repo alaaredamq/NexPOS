@@ -244,7 +244,7 @@ public class ControlDbContext : DbContext
             e.Property(x => x.Amount).HasPrecision(18, 2);
             e.Property(x => x.Payer).HasMaxLength(200);
             e.Property(x => x.Method).HasMaxLength(40);
-            e.Property(x => x.Purpose).HasMaxLength(60);
+            e.Property(x => x.Purpose).HasMaxLength(Cloud.Services.FinanceRules.MaxPurposeLength); // several purposes joined: "POS licence + Online subscription"
             e.Property(x => x.Reference).HasMaxLength(100);
             e.Property(x => x.Note).HasMaxLength(500);
             e.Property(x => x.CreatedBy).HasMaxLength(100);

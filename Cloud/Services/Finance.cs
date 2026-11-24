@@ -8,7 +8,32 @@ namespace Cloud.Services;
 public static class FinanceRules
 {
     public static readonly string[] Methods = ["Cash", "Bank transfer", "Whish", "OMT", "Card", "Cheque", "Other"];
-    public static readonly string[] Purposes = ["Online subscription", "POS licence", "Set-up / installation", "Hardware", "Support", "Other"];
+    public const string OnlinePurpose = "Online subscription", MenuPurpose = "Online menu", LicencePurpose = "POS licence";
+    /// <summary>What a payment can be for, in the order the form lists them. A payment can be for several ("POS licence + Online subscription").</summary>
+    public static readonly string[] Purposes = [OnlinePurpose, MenuPurpose, LicencePurpose, "Set-up / installation", "Hardware", "Support", "Other"];
+    /// <summary>Between the purposes of one payment, as stored and shown.</summary>
+    public const string PurposeSeparator = " + ";
+    /// <summary>The stored text of all of a payment's purposes together.</summary>
+    public const int MaxPurposeLength = 200;
+
+    /// <summary>The purposes a stored text holds: "POS licence + Online subscription" gives both.</summary>
+    public static IReadOnlyList<string> PurposesOf(string? purpose) => string.IsNullOrWhiteSpace(purpose)
+        ? []
+        : purpose.Split(PurposeSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    /// <summary>
+    /// Several purposes as one text, each once and in the form's order (anything else after them, as typed), so the same choice always
+    /// reads the same and groups together in the Finance breakdown. Null when there is none.
+    /// </summary>
+    public static string? JoinPurposes(IEnumerable<string?> purposes)
+    {
+        var picked = purposes.Select(x => Clean(x, 60)).OfType<string>()
+            .Select(x => Purposes.FirstOrDefault(p => p.Equals(x, StringComparison.OrdinalIgnoreCase)) ?? x)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select((x, at) => (Text: x, Order: Array.IndexOf(Purposes, x) is var i and >= 0 ? i : Purposes.Length + at))
+            .OrderBy(x => x.Order).Select(x => x.Text).ToList();
+        return picked.Count == 0 ? null : string.Join(PurposeSeparator, picked);
+    }
     public static readonly string[] ExpenseCategories =
         ["Hosting & servers", "Software & tools", "Marketing", "Salaries", "Hardware", "Transport", "Rent & utilities", "Fees & taxes", "Other"];
 
@@ -205,7 +230,10 @@ public sealed class PaymentInput
     public string? Amount { get; set; }
     public DateOnly? Date { get; set; }
     public string? Method { get; set; } = FinanceRules.Methods[0];
-    public string? Purpose { get; set; } = FinanceRules.Purposes[0];
+    /// <summary>One purpose, or several already joined ("POS licence + Online subscription"). Used when <see cref="Purposes"/> is empty.</summary>
+    public string? Purpose { get; set; } = FinanceRules.OnlinePurpose;
+    /// <summary>The ticked purposes (the form's checkboxes); a payment can be for several.</summary>
+    public List<string>? Purposes { get; set; }
     public string? Reference { get; set; }
     public string? Note { get; set; }
 }
@@ -245,7 +273,10 @@ public sealed class FinanceBook(ControlDbContext db, PortalFormat fmt)
         payment.Amount = amount;
         payment.ReceivedOn = date;
         payment.Method = FinanceRules.Clean(input.Method, 40) ?? "Other";
-        payment.Purpose = FinanceRules.Clean(input.Purpose, 60) ?? "Other";
+        var purpose = FinanceRules.JoinPurposes(input.Purposes is { Count: > 0 } ticked ? ticked : FinanceRules.PurposesOf(input.Purpose));
+        if (purpose is null) return "Tick what the payment was for.";
+        if (purpose.Length > FinanceRules.MaxPurposeLength) return "That is too much in \"For\". Tick fewer, or write the details in the note.";
+        payment.Purpose = purpose;
         payment.Reference = FinanceRules.Clean(input.Reference, 100);
         payment.Note = FinanceRules.Clean(input.Note, 500);
         return null;

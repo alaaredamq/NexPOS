@@ -994,7 +994,7 @@ namespace Cloud.Data.Migrations
 
                     b.Property<string>("Purpose")
                         .IsRequired()
-                        .HasMaxLength(60)
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateOnly>("ReceivedOn")

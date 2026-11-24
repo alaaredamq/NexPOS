@@ -139,8 +139,12 @@ public sealed class FinanceDashboard(ControlDbContext db, PortalFormat fmt, Lice
         var renewals = clients
             .Where(c => c.IsActive && c.HasOnline && c.Subscription is { IsSuspended: false } s
                         && s.ExpiresAt >= now.AddDays(-SubscriptionRules.GraceDays) && s.ExpiresAt <= now.AddDays(30))
+            // What they paid last time for Online alone (the menu alone for a menu-only client): a payment that also covered a licence or
+            // an installation says nothing about the renewal price.
             .Select(c => new Renewal(c.Id, c.Name, c.Subscription!.ExpiresAt,
-                payments.Where(x => x.ClientId == c.Id && x.Purpose == FinanceRules.Purposes[0]).MaxBy(x => x.ReceivedOn)?.Amount))
+                payments.Where(x => x.ClientId == c.Id && x.Purpose == (c.HasPos ? FinanceRules.OnlinePurpose : FinanceRules.MenuPurpose))
+                    .MaxBy(x => x.ReceivedOn)?.Amount,
+                c.HasPos ? "Online ends" : "Online menu ends"))
             .ToList();
         renewals = renewals.Concat(await licenses.RenewalsAsync()).OrderBy(x => x.Ends).ToList();
 

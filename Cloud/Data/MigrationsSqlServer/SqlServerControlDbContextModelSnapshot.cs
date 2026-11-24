@@ -1041,8 +1041,8 @@ namespace Cloud.Data.MigrationsSqlServer
 
                     b.Property<string>("Purpose")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateOnly>("ReceivedOn")
                         .HasColumnType("date");

@@ -88,7 +88,7 @@ public sealed class LicenseBook(ControlDbContext db, LicenseSigner signer, Finan
     {
         rows ??= await AllAsync();
         var today = fmt.Today;
-        var payments = await db.Payments.AsNoTracking().Where(p => p.Purpose == FinanceRules.Purposes[1]).ToListAsync();
+        var payments = await db.Payments.AsNoTracking().Where(p => p.Purpose == FinanceRules.LicencePurpose).ToListAsync();
         return rows.Where(r => r.Status is LicenseStatus.EndingSoon or LicenseStatus.Grace or LicenseStatus.UpdatesEnding
                                || (r.Status == LicenseStatus.Active && r.License.ValidUntil <= today.AddDays(30)))
             .Where(r => r.License.ClientId is not null)
@@ -172,7 +172,7 @@ public sealed class LicenseBook(ControlDbContext db, LicenseSigner signer, Finan
             var (payment, error) = await finance.RecordPaymentAsync(new PaymentInput
             {
                 ClientId = license.ClientId, Amount = amountPaid.ToString(Inv), Date = today,
-                Method = input.PaymentMethod ?? FinanceRules.Methods[0], Purpose = FinanceRules.Purposes[1], Reference = "Licence " + license.Serial,
+                Method = input.PaymentMethod ?? FinanceRules.Methods[0], Purpose = FinanceRules.LicencePurpose, Reference = "Licence " + license.Serial,
             }, by);
             if (payment is not null)
             {

@@ -473,7 +473,10 @@ Password: @Model.NewLoginPassword</div>
         public async Task<IActionResult> OnGetAsync(int id)
         {
             await LoadAsync(id);
-            return Client is null ? NotFound() : Page();
+            if (Client is null) return NotFound();
+            // What this client usually pays for, ticked to start with.
+            Pay.Purpose = !Client.HasOnline ? FinanceRules.LicencePurpose : Client.HasPos ? FinanceRules.OnlinePurpose : FinanceRules.MenuPurpose;
+            return Page();
         }
 
         public async Task<IActionResult> OnPostPaymentAsync(int id)
