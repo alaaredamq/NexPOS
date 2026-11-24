@@ -197,6 +197,13 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Clock")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)")
+                        .HasDefaultValue("24h");
+
                     b.Property<string>("CoverFile")
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");

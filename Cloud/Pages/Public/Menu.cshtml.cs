@@ -213,7 +213,8 @@ public class MenuModel(ControlDbContext db, PortalFormat clock) : PageModel
     private static readonly string[] DaysAr = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
     private static readonly string[] ShortEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     private string Day(int d) => Arabic ? DaysAr[d] : DaysEn[d];
-    private static string Clock(TimeOnly t) => t.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>A time as the owner chose to show them: 13:00 or 1:00 PM.</summary>
+    private string Clock(TimeOnly t) => MenuClocks.Format(t, Menu.Clock, Arabic);
 
     /// <summary>"Open now · until 23:00", "Closed · opens 09:00", "Closed · opens Monday 09:00"; null when no hours were given.</summary>
     private string? StatusText(MenuHours.Status? s)

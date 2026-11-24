@@ -128,6 +128,7 @@ public class ControlDbContext : DbContext
             e.Property(x => x.TikTok).HasMaxLength(200);
             e.Property(x => x.Website).HasMaxLength(200);
             e.Property(x => x.Hours).HasMaxLength(400);
+            e.Property(x => x.Clock).HasMaxLength(4).HasDefaultValue(MenuClocks.Default);
             e.Property(x => x.OrderMode).HasMaxLength(10).HasDefaultValue(MenuOrderModes.Default);
             // Sentinel true: EF leaves "true" to the column default and always writes "false" (a default of true otherwise eats false).
             e.Property(x => x.ShowWhatsApp).HasDefaultValue(true).HasSentinel(true);

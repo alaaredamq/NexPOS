@@ -70,6 +70,7 @@
       cIg: 'Instagram', cFb: 'Facebook', cTt: 'TikTok', cWeb: 'Website', cHandle: '@yourshop or a link',
       hrH: 'Opening hours', hrP: 'Customers see "Open now" or when you open next. Closed for a break? Add a time (09:00 to 12:00, then 13:00 to 16:00). Times after midnight are fine (18:00 to 02:00).',
       hrOpen: 'Open', hrClosed: 'Closed', hrFrom: 'From', hrTo: 'To', hrCopy: 'Same hours every open day', hrAdd: 'Add time', hrDel: 'Remove this time', hrNone: 'No hours given: the menu does not say whether you are open.', hrClear: 'Clear hours',
+      hrClock: 'Show times as', hrHour: 'Hour', hrMin: 'Minutes', am: 'AM', pm: 'PM',
       days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
       brDetails: 'Address and hours', brDlg: 'Branch: {0}', brDlgP: 'Leave a field empty to use the shop\'s own. Hours with every day closed = the shop\'s hours.',
       brOwnHours: 'This branch has its own hours',
@@ -154,6 +155,7 @@
       cIg: 'إنستغرام', cFb: 'فيسبوك', cTt: 'تيك توك', cWeb: 'الموقع الإلكتروني', cHandle: '@اسم_محلك أو رابط',
       hrH: 'ساعات العمل', hrP: 'يرى الزبائن "مفتوح الآن" أو موعد الفتح التالي. تغلق للاستراحة؟ أضف وقتاً (09:00 إلى 12:00، ثم 13:00 إلى 16:00). الأوقات بعد منتصف الليل مقبولة (18:00 إلى 02:00).',
       hrOpen: 'مفتوح', hrClosed: 'مغلق', hrFrom: 'من', hrTo: 'إلى', hrCopy: 'نفس الساعات لكل أيام الفتح', hrAdd: 'أضف وقتاً', hrDel: 'احذف هذا الوقت', hrNone: 'لا ساعات: لا تقول القائمة إن كنت مفتوحاً.', hrClear: 'امسح الساعات',
+      hrClock: 'اعرض الوقت بصيغة', hrHour: 'الساعة', hrMin: 'الدقائق', am: 'ص', pm: 'م',
       days: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
       brDetails: 'العنوان والساعات', brDlg: 'الفرع: {0}', brDlgP: 'اترك الحقل فارغاً لاستخدام بيانات المحل. الساعات مع كل الأيام مغلقة = ساعات المحل.',
       brOwnHours: 'لهذا الفرع ساعاته الخاصة',
@@ -754,11 +756,58 @@
 
   // ---- opening hours: Monday first on screen, Sunday first in the data. A day can open several times (09-12, 13-16, 18-21). ----
   var WEEK = [1, 2, 3, 4, 5, 6, 0], MAX_RANGES = 4;
+  // The clock the hour pickers use: '24h' (13:00) or '12h' (1:00 PM). The owner picks it on the hours page; the data is always 24-hour.
+  var CLOCK = '24h';
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  /** "13:30" as the menu writes it: "13:30" or "1:30 PM". */
+  function fmtTime(v, clock) {
+    if (!v || (clock || S.menu.clock) !== '12h') return v;
+    var h = +v.slice(0, 2);
+    return (h % 12 || 12) + ':' + v.slice(3, 5) + ' ' + t(h < 12 ? 'am' : 'pm');
+  }
+  /** A time picker (hour, minutes and, on the 12-hour clock, AM/PM) holding "HH:mm", or nothing picked for "". */
+  function timePick(attr, v) {
+    var h = v ? +v.slice(0, 2) : -1, m = v ? +v.slice(3, 5) : -1, twelve = CLOCK === '12h', i;
+    var opt = function (val, label, sel) { return '<option value="' + val + '"' + (sel ? ' selected' : '') + '>' + label + '</option>'; };
+    var hs = '<select data-th aria-label="' + esc(t('hrHour')) + '">' + (h < 0 ? opt('', '--', true) : '');
+    if (twelve) for (i = 1; i <= 12; i++) hs += opt(i % 12, i, h >= 0 && h % 12 === i % 12);
+    else for (i = 0; i < 24; i++) hs += opt(i, pad2(i), i === h);
+    hs += '</select>';
+    var ms = '<select data-tm aria-label="' + esc(t('hrMin')) + '">' + (m < 0 ? opt('', '--', true) : '');
+    for (i = 0; i < 60; i += 5) {
+      if (m > i - 5 && m < i && m % 5) ms += opt(pad2(m), pad2(m), true); // an odd minute saved earlier (09:07) stays
+      ms += opt(pad2(i), pad2(i), i === m);
+    }
+    if (m > 55) ms += opt(pad2(m), pad2(m), true);
+    var ap = twelve ? '<select data-tp aria-label="AM / PM">' + opt(0, t('am'), h < 12) + opt(12, t('pm'), h >= 12) + '</select>' : '';
+    return '<span class="tp" ' + attr + ' dir="ltr">' + hs + '<span class="col" aria-hidden="true">:</span>' + ms + '</select>' + ap + '</span>';
+  }
+  /** What a picker holds, as "HH:mm" (24-hour), or "" when the hour or minutes are not picked. */
+  function timeOf(el) {
+    var h = el.querySelector('[data-th]').value, m = el.querySelector('[data-tm]').value, p = el.querySelector('[data-tp]');
+    return h === '' || m === '' ? '' : pad2(+h + (p ? +p.value : 0)) + ':' + m;
+  }
   function rangeField(from, to) {
-    return '<div class="rg"><label class="tm"><span class="sr">' + t('hrFrom') + '</span><input type="time" data-hfrom value="' + esc(from) + '"></label>' +
+    return '<div class="rg"><span class="tm" role="group" aria-label="' + esc(t('hrFrom')) + '">' + timePick('data-hfrom', from) + '</span>' +
       '<span class="dash" aria-hidden="true">–</span>' +
-      '<label class="tm"><span class="sr">' + t('hrTo') + '</span><input type="time" data-hto value="' + esc(to) + '"></label>' +
+      '<span class="tm" role="group" aria-label="' + esc(t('hrTo')) + '">' + timePick('data-hto', to) + '</span>' +
       '<button type="button" class="btn icon ghost del" data-hdel title="' + esc(t('hrDel')) + '" aria-label="' + esc(t('hrDel')) + '">' + ic('x') + '</button></div>';
+  }
+  /** The 13:00 / 1:00 PM choice. Switching redraws the pickers with the same times. */
+  function clockField(clock) {
+    var o = function (k, label) { return '<label><input type="radio" name="hclock" value="' + k + '"' + (k === clock ? ' checked' : '') + '><span dir="ltr">' + label + '</span></label>'; };
+    return '<fieldset class="clk"><legend>' + t('hrClock') + '</legend>' + o('24h', '13:00') + o('12h', '1:00 ' + t('pm')) + '</fieldset>';
+  }
+  function wireClock(form, root) {
+    form.querySelectorAll('input[name=hclock]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        if (!r.checked) return;
+        CLOCK = r.value;
+        root.querySelectorAll('.tp').forEach(function (tp) {
+          tp.outerHTML = timePick(tp.hasAttribute('data-hfrom') ? 'data-hfrom' : 'data-hto', timeOf(tp));
+        });
+      });
+    });
   }
   /** "09:00-12:00,13:00-16:00" as [["09:00","12:00"],["13:00","16:00"]]. */
   function rangesOf(raw) {
@@ -791,11 +840,11 @@
       var add = e.target.closest('[data-hadd]'), del = e.target.closest('[data-hdel]'), row = e.target.closest('.hr');
       if (add && row) {
         // The new range starts an hour after the last one closes (12:00 → 13:00-16:00); left empty when that would be late at night.
-        var last = [].slice.call(row.querySelectorAll('[data-hto]')).pop(), h = last && last.value ? +last.value.slice(0, 2) + 1 : 18;
+        var last = [].slice.call(row.querySelectorAll('[data-hto]')).pop(), lv = last ? timeOf(last) : '', h = lv ? +lv.slice(0, 2) + 1 : 18;
         var pad = function (n) { return (n < 10 ? '0' : '') + n + ':00'; };
         add.insertAdjacentHTML('beforebegin', h >= 6 && h <= 20 ? rangeField(pad(h), pad(h + 3)) : rangeField('', ''));
         sync(row);
-        add.previousElementSibling.querySelector('[data-hfrom]').focus();
+        add.previousElementSibling.querySelector('[data-hfrom] select').focus();
       } else if (del && row && row.querySelectorAll('.rg').length > 1) {
         del.closest('.rg').remove();
         sync(row);
@@ -806,7 +855,7 @@
       b.onclick = function () {
         var rows = [].slice.call(root.querySelectorAll('.hr')), src = rows.filter(function (r) { return r.querySelector('[data-hon]').checked; })[0];
         if (!src) return;
-        var list = [].slice.call(src.querySelectorAll('.rg')).map(function (g) { return [g.querySelector('[data-hfrom]').value, g.querySelector('[data-hto]').value]; });
+        var list = [].slice.call(src.querySelectorAll('.rg')).map(function (g) { return [timeOf(g.querySelector('[data-hfrom]')), timeOf(g.querySelector('[data-hto]'))]; });
         rows.forEach(function (r) {
           if (r === src || !r.querySelector('[data-hon]').checked) return;
           r.querySelectorAll('.rg').forEach(function (g) { g.remove(); });
@@ -822,7 +871,7 @@
     root.querySelectorAll('.hr').forEach(function (row) {
       if (!row.querySelector('[data-hon]').checked) return;
       out[+row.dataset.day] = [].slice.call(row.querySelectorAll('.rg')).map(function (g) {
-        var f = g.querySelector('[data-hfrom]').value, to = g.querySelector('[data-hto]').value;
+        var f = timeOf(g.querySelector('[data-hfrom]')), to = timeOf(g.querySelector('[data-hto]'));
         return f && to ? f + '-' + to : '';
       }).filter(Boolean).sort().join(',');
     });
@@ -830,7 +879,8 @@
   }
   function hoursForm() {
     var m = S.menu;
-    return '<section class="card"><form id="fhours">' + hoursFields('h-menu', m.hours) +
+    CLOCK = m.clock || '24h';
+    return '<section class="card"><form id="fhours">' + clockField(CLOCK) + hoursFields('h-menu', m.hours) +
       (m.hours ? '' : '<p class="small muted" style="margin-top:8px">' + t('hrNone') + '</p>') +
       '<p class="err" id="herr" hidden></p>' + (m.hours ? '<p style="margin-top:14px"><button type="button" class="btn sm" id="hclear">' + t('hrClear') + '</button></p>' : '') + '</form></section>' +
       // With several branches, each can keep its own address and hours.
@@ -845,13 +895,14 @@
     if (!hours) return [t('notSet'), 'warn'];
     var days = t('days'), open = WEEK.filter(function (d) { return hours[d]; }), closed = WEEK.filter(function (d) { return !hours[d]; });
     if (!open.length) return [t('notSet'), 'warn'];
-    var times = rangesOf(hours[open[0]]).map(function (r) { return t('hrRange', r[0], r[1]); }).join(', ');
+    var times = rangesOf(hours[open[0]]).map(function (r) { return t('hrRange', fmtTime(r[0]), fmtTime(r[1])); }).join(', ');
     return [times + ' · ' + (closed.length ? t('hrClosedOn', closed.map(function (d) { return days[d]; }).join(', ')) : t('hrEvery')), ''];
   }
 
   /** A branch's own address, map, phone and hours (each empty one falls back to the shop's). */
   function branchDialog(b) {
     var own = !!b.hours;
+    if (!$('#fhours')) CLOCK = S.menu.clock || '24h'; // on the hours page, the clock picked there (saved or not)
     dialog('<form><h2 id="dlg-t">' + esc(t('brDlg', b.name)) + '</h2><p class="sub">' + t('brDlgP') + '</p><div class="fields">' +
       '<div class="f full"><label for="b-addr">' + t('cAddr') + '</label><input id="b-addr" maxlength="300" dir="auto" value="' + esc(b.address || '') + '" placeholder="' + esc(S.menu.address || '') + '"></div>' +
       '<div class="f full"><label for="b-map">' + t('cMap') + '</label><input id="b-map" maxlength="500" dir="ltr" inputmode="url" value="' + esc(b.mapUrl || '') + '"><span class="hint">' + t('cMapHint') + '</span></div>' +
@@ -1055,11 +1106,12 @@
       api('PUT', '/settings', body).then(function (st) { apply(st); toast(t('saved')); }, function (x) { err.textContent = x.message; err.hidden = false; });
     });
     var hroot = $('#h-menu');
-    if (hroot) wireHours(hroot);
+    if (hroot) { wireHours(hroot); wireClock($('#fhours'), hroot); }
     on('#fhours', 'submit', function (e) {
       e.preventDefault();
       var err = $('#herr'); err.hidden = true;
-      api('PUT', '/settings', { hours: readHours($('#h-menu')) }).then(function (st) { apply(st); toast(t('saved')); }, function (x) { err.textContent = x.message; err.hidden = false; });
+      var ck = $('#fhours input[name=hclock]:checked');
+      api('PUT', '/settings', { hours: readHours($('#h-menu')), clock: ck ? ck.value : CLOCK }).then(function (st) { apply(st); toast(t('saved')); }, function (x) { err.textContent = x.message; err.hidden = false; });
     });
     on('#hclear', 'click', function () { act(api('PUT', '/settings', { hours: ['', '', '', '', '', '', ''] })); });
     document.querySelectorAll('[data-brdet]').forEach(function (b) {
