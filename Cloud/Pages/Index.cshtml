@@ -102,6 +102,7 @@ else
             <button type="button" class="chip" data-chip="waiting" aria-pressed="false">Waiting for a link<span class="n">@Model.Rows.Count(r => r.Tags.Contains("waiting"))</span></button>
             <button type="button" class="chip" data-chip="attention" aria-pressed="false">Needs you<span class="n">@Model.Rows.Count(r => r.Tags.Contains("attention"))</span></button>
             <button type="button" class="chip" data-chip="offline" aria-pressed="false">POS only<span class="n">@Model.Rows.Count(r => r.Tags.Contains("offline"))</span></button>
+            <button type="button" class="chip" data-chip="menu" aria-pressed="false">Menu only<span class="n">@Model.Rows.Count(r => r.Tags.Contains("menu"))</span></button>
         </div>
     </div>
 

@@ -41,6 +41,7 @@ public static partial class AdminEndpoints
         g.MapPost("/clients/{id:int}/deactivate", (int id, AdminOperations ops) => SetActive(id, false, ops));
         g.MapPost("/clients/{id:int}/online/enable", (int id, HttpContext http, AdminOperations ops) => SetOnline(id, true, http, ops));
         g.MapPost("/clients/{id:int}/online/disable", (int id, HttpContext http, AdminOperations ops) => SetOnline(id, false, http, ops));
+        g.MapPost("/clients/{id:int}/pos/enable", AddPos);
         g.MapGet("/clients/{id:int}/events", Events);
 
         g.MapPost("/clients/{id:int}/subscription/extend", Extend);
@@ -182,7 +183,7 @@ public static partial class AdminEndpoints
 
     private static object Row(ClientRow r) => new
     {
-        id = r.Id, name = r.Name, isActive = r.IsActive, hasOnline = r.HasOnline, type = r.HasOnline ? "online" : "pos",
+        id = r.Id, name = r.Name, isActive = r.IsActive, hasOnline = r.HasOnline, hasPos = r.HasPos, type = ClientKinds.Of(r.HasOnline, r.HasPos),
         phone = r.Phone, email = r.Email, branches = r.Branches,
         subscription = new { state = r.State.ToString(), expiresAtUtc = r.ExpiresAt, suspended = r.Suspended, endingSoon = r.EndingSoon, note = r.PlanNote },
         lastSeenAtUtc = r.LastSeenAt, seen = r.Seen, tags = r.Tags, products = r.Products, orders = r.Orders,
@@ -205,7 +206,7 @@ public static partial class AdminEndpoints
         });
     }
 
-    /// <summary>All clients. <c>search</c> matches the name, phone or email; <c>filter</c> is connected, waiting or attention.</summary>
+    /// <summary>All clients. <c>search</c> matches the name, phone or email; <c>filter</c> is connected, waiting, attention, offline (POS only) or menu (online menu only).</summary>
     private static async Task<IResult> ListClients(OverviewBuilder builder, string? search, string? filter)
     {
         IEnumerable<ClientRow> rows = (await builder.BuildAsync()).Rows;
@@ -220,19 +221,24 @@ public static partial class AdminEndpoints
         return Json(rows.Select(Row));
     }
 
-    /// <summary><c>online</c> false makes a POS-only client (no branch, no link); it is ignored on edit (use /online/enable|disable).</summary>
-    public sealed record ClientRequest(string? Name, string? Phone, string? Email, string? Notes, int? Months, bool? Online);
+    /// <summary>
+    /// <c>type</c> is what they bought: <c>online</c> (POS + Online, the default), <c>pos</c> (POS only: no branch, no link) or <c>menu</c>
+    /// (online menu only: Online months, at least 1, and no branch). The older <c>online</c> false still means <c>pos</c>. Both are ignored
+    /// on edit (use /online/enable|disable and /pos/enable).
+    /// </summary>
+    public sealed record ClientRequest(string? Name, string? Phone, string? Email, string? Notes, int? Months, bool? Online, string? Type = null);
 
     private static Task<IResult> CreateClient(ClientRequest body, HttpContext http, AdminOperations ops, ControlDbContext db, MirrorStore mirrors, PortalFormat fmt)
         => Try(async () =>
         {
-            var created = await ops.CreateClientAsync(body.Name, body.Phone, body.Email, body.Notes, body.Months ?? 0, ops.BaseUrl(http.Request), body.Online ?? true);
+            var created = await ops.CreateClientAsync(body.Name, body.Phone, body.Email, body.Notes, body.Months ?? 0, ops.BaseUrl(http.Request),
+                body.Type?.Trim().ToLowerInvariant() ?? (body.Online == false ? ClientKinds.Pos : ClientKinds.Online));
             var detail = await ClientDetailAsync(created.Client.Id, db, fmt);
             return Json(new
             {
                 client = detail,
                 siteId = created.Site?.Id,
-                // Shown once: send it to the owner; they paste it in Coduo POS > Settings > Online. Null for a POS-only client.
+                // Shown once: send it to the owner; they paste it in Coduo POS > Settings > Online. Null for a POS-only or menu-only client.
                 link = created.Link is null ? null : new { url = created.Link, expiresAtUtc = created.LinkExpiresAt },
             }, StatusCodes.Status201Created);
         });
@@ -256,7 +262,8 @@ public static partial class AdminEndpoints
         return new
         {
             id = c.Id, name = c.Name, phone = c.Phone, email = c.Email, notes = c.Notes, isActive = c.IsActive, createdAtUtc = c.CreatedAt,
-            hasOnline = c.HasOnline, type = c.HasOnline ? "online" : "pos",
+            hasOnline = c.HasOnline, hasPos = c.HasPos, type = ClientKinds.Of(c),
+            menuLive = SubscriptionRules.MenuIsLive(c, now),
             subscription = c.Subscription is null ? null : new
             {
                 state = state.ToString(), plan = c.Subscription.Plan, startsAtUtc = c.Subscription.StartsAt, expiresAtUtc = c.Subscription.ExpiresAt,
@@ -273,7 +280,7 @@ public static partial class AdminEndpoints
                 last12Months = payments.Where(p => p.ReceivedOn > fmt.Today.AddYears(-1)).Sum(p => p.Amount),
                 last = payments.FirstOrDefault() is { } last ? Payment(last) : null,
             },
-            attention = AttentionRules.For(c, now, fmt).Select(Attention),
+            attention = AttentionRules.For(c, now, fmt, await db.Menus.AnyAsync(m => m.ClientId == id && m.IsPublished)).Select(Attention),
         };
     }
 
@@ -309,14 +316,20 @@ public static partial class AdminEndpoints
         => await ops.SetClientActiveAsync(id, active) is { } c ? Json(new { id = c.Id, isActive = c.IsActive }) : NotFound("That client");
 
     /// <summary>Turns Online on (a client with no branch gets one, and its link comes back once) or off (POS only).</summary>
-    private static async Task<IResult> SetOnline(int id, bool online, HttpContext http, AdminOperations ops)
+    private static Task<IResult> SetOnline(int id, bool online, HttpContext http, AdminOperations ops)
+        => Try(async () => LinkResult(await ops.SetOnlineAsync(id, online, ops.BaseUrl(http.Request))));
+
+    /// <summary>An online-menu-only client bought the POS: it becomes POS + Online, with a branch and its link (returned once).</summary>
+    private static Task<IResult> AddPos(int id, HttpContext http, AdminOperations ops)
+        => Try(async () => LinkResult(await ops.AddPosAsync(id, ops.BaseUrl(http.Request))));
+
+    private static IResult LinkResult((Client Client, IssuedLink? Link)? result)
     {
-        var result = await ops.SetOnlineAsync(id, online, ops.BaseUrl(http.Request));
         if (result is null) return NotFound("That client");
         var (client, link) = result.Value;
         return Json(new
         {
-            id = client.Id, hasOnline = client.HasOnline,
+            id = client.Id, hasOnline = client.HasOnline, hasPos = client.HasPos, type = ClientKinds.Of(client),
             link = link is null ? null : new { url = link.Url, code = link.Code, expiresAtUtc = link.ExpiresAt },
         });
     }

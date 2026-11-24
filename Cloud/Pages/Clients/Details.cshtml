@@ -15,12 +15,13 @@
     var sub = Model.Client.Subscription;
     var (planTone, planLabel) = Pills.Plan(Model.State);
     var contact = string.Join(" · ", new[] { Model.Client.Phone, Model.Client.Email }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    var menuOnly = Model.Client.HasOnline && !Model.Client.HasPos;
 }
 
 <div class="page-head">
     <div>
         <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
-        <h1>@Model.Client.Name @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
+        <h1>@Model.Client.Name @if (menuOnly) { <span class="pill none plain" style="vertical-align:middle">online menu only</span> } @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
         <p class="sub">@(contact.Length > 0 ? contact : "No contact details")</p>
     </div>
 </div>
@@ -38,12 +39,13 @@
                 <p class="num" style="font-size:28px;margin:6px 0 0">Ends <b>@Fmt.Day(sub.ExpiresAt)</b></p>
                 <p class="muted" style="margin:2px 0 0">
                     @Fmt.Until(sub.ExpiresAt)
-                    @if (Model.State == SubscriptionState.Grace) { <text> · in the grace week: data is still accepted until @Fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))</text> }
+                    @if (Model.State == SubscriptionState.Grace) { <text> · in the grace week: @(menuOnly ? "their menu stays open" : "data is still accepted and their menu stays open") until @Fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))</text> }
+                    @if (Model.State == SubscriptionState.Expired) { <text> · their online menu is offline until you add months</text> }
                 </p>
             }
             else
             {
-                <p style="margin:6px 0 0">No subscription yet. Their shop cannot send data.</p>
+                <p style="margin:6px 0 0">No subscription yet. @(menuOnly ? "Their online menu is offline." : "Their shop cannot send data and their online menu is offline.") Add the months they paid for.</p>
             }
         </div>
         <div>
@@ -62,13 +64,29 @@
     @if (sub is not null)
     {
         <form method="post" asp-page-handler="@(sub.IsSuspended ? "Resume" : "Suspend")" asp-route-id="@Model.Client.Id"
-              data-confirm="@(sub.IsSuspended ? "Their shop will be allowed to send data again." : "Their shop stops sending data to the cloud. It keeps selling, and sends what it saved when you resume.")"
+              data-confirm="@(sub.IsSuspended ? (menuOnly ? "Their online menu opens again." : "Their shop will be allowed to send data again, and their online menu opens again.") : (menuOnly ? "Their online menu goes offline until you resume." : "Their shop stops sending data to the cloud and their online menu goes offline. It keeps selling, and sends what it saved when you resume."))"
               data-confirm-title="@(sub.IsSuspended ? "Resume Online?" : "Suspend Online?")" data-confirm-yes="@(sub.IsSuspended ? "Resume" : "Suspend")" style="margin-top:6px">
             <button type="submit" class="btn @(sub.IsSuspended ? "secondary" : "danger") sm">@(sub.IsSuspended ? "Resume" : "Suspend")</button>
         </form>
     }
 </section>
 
+@if (menuOnly)
+{
+<section class="card s7" aria-labelledby="h-menuonly">
+    <div class="ph">
+        <h2 id="h-menuonly">Online menu only</h2>
+        <form method="post" asp-page-handler="AddPos" asp-route-id="@Model.Client.Id"
+              data-confirm-title="They bought the POS?" data-confirm-yes="Add the POS"
+              data-confirm="They become POS + Online, keeping their months and their menu. Their first branch is added, with a connection link to send them; issue their licence key as usual.">
+            <button type="submit" class="btn secondary sm">They bought the POS</button>
+        </form>
+    </div>
+    <p class="muted" style="margin:0">No Coduo POS: no branch to connect and no licence key. The owner edits the menu on the owner website with their phone login. The menu is part of their Online months: it stays up while those run (plus a grace week), then goes offline until you add more.</p>
+</section>
+}
+else
+{
 <section class="card s7" aria-labelledby="branches">
     <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
@@ -113,6 +131,7 @@
         </form>
     </details>
 </section>
+}
 </div>
 }
 else
@@ -130,6 +149,8 @@ else
     </section>
 }
 
+@if (Model.Client.HasPos || Model.Licenses.Count > 0)
+{
 <section class="card" id="licences" aria-labelledby="h-lic">
     <div class="ph">
         <h2 id="h-lic">POS licences <span class="count">@Model.Licenses.Count(r => r.Status != LicenseStatus.Superseded)</span></h2>
@@ -168,6 +189,7 @@ else
         </div>
     }
 </section>
+}
 
 <section class="card" id="payments" aria-labelledby="h-payments">
     <div class="ph">
@@ -231,11 +253,21 @@ else
         <p class="muted" style="margin-top:0">The password is shown only now. If it is lost, reset it and a new one is made.</p>
         <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Sign in with: @Model.NewLoginEmail
 Password: @Model.NewLoginPassword</div>
+        @if (menuOnly)
+        {
+        <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
+            <li>The owner opens @Model.OwnerSiteUrl and signs in with the name and password above.</li>
+            <li>It opens their online menu editor: they add their dishes, pictures and prices, then publish it and print the QR code.</li>
+        </ol>
+        }
+        else
+        {
         <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
             <li>The owner installs the Coduo POS Owner app and signs in with the name and password above.</li>
             <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: Coduo POS &gt; Settings &gt; Online &gt; Show recovery code.</li>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
+        }
         <div class="row" style="margin-top:12px">
             <button type="button" class="btn" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
             <a class="btn secondary" target="_blank" rel="noopener" href="@Model.NewLoginWhatsApp"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
@@ -244,14 +276,26 @@ Password: @Model.NewLoginPassword</div>
 }
 
 <section class="card" aria-labelledby="menu">
-    <h2 id="menu">Online menu</h2>
-    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. Fill it by hand, or link it to a branch so it follows the POS.</p>
+    <h2 id="menu">Online menu
+        @if (Model.HasMenu)
+        {
+            <span class="pill @(Model.MenuLive ? "ok" : "bad")" style="margin-inline-start:6px">@(Model.MenuLive ? (Model.MenuPublished ? "live" : "not published") : "offline")</span>
+        }
+    </h2>
+    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. @(menuOnly ? "The owner fills it by hand." : "Fill it by hand, or link it to a branch so it follows the POS.") It is part of Online: without Online months (after the grace week) it is offline.</p>
     <p><a class="btn secondary" href="/owner/menu.html?client=@Model.Client.Id">Open the menu editor</a></p>
 </section>
 
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
-    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    @if (menuOnly)
+    {
+        <p class="muted" style="margin-top:0">What the owner types on the owner website (this site, /owner) to edit their online menu. Give them the Owner or Manager role: Staff cannot change the menu.</p>
+    }
+    else
+    {
+        <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    }
     @if (Model.Owners.Count == 0)
     {
         <p class="muted">No phone login yet.</p>
@@ -343,7 +387,7 @@ Password: @Model.NewLoginPassword</div>
               data-confirm-title="@(Model.Client.IsActive ? "Deactivate this client?" : "Reactivate this client?")" data-confirm-yes="@(Model.Client.IsActive ? "Deactivate" : "Reactivate")">
             <button type="submit" class="btn sm @(Model.Client.IsActive ? "danger" : "secondary")">@(Model.Client.IsActive ? "Deactivate client" : "Reactivate client")</button>
         </form>
-        @if (Model.Client.HasOnline)
+        @if (Model.Client.HasOnline && Model.Client.HasPos)
         {
             <form method="post" asp-page-handler="Online" asp-route-id="@Model.Client.Id" asp-route-on="false" style="margin-top:10px"
                   data-confirm-title="Make this client POS only?" data-confirm-yes="POS only"
@@ -384,12 +428,20 @@ Password: @Model.NewLoginPassword</div>
         public DateTime Now => fmt.Now;
         public ILookup<Guid, SiteHeartbeat> Beats { get; private set; } = Array.Empty<SiteHeartbeat>().ToLookup(h => h.SiteId);
         public List<OwnerUser> Owners { get; private set; } = [];
+        /// <summary>Whether the client made a menu, published it, and whether it answers now (SubscriptionRules.MenuIsLive).</summary>
+        public bool HasMenu { get; private set; }
+        public bool MenuPublished { get; private set; }
+        public bool MenuLive { get; private set; }
+        public string OwnerSiteUrl => ops.BaseUrl(Request) + "/owner";
 
         // A login made a moment ago, handed over once (TempData lives for one request).
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
-        public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+        public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(Client is { HasPos: false }
+            ? $"Your online menu login\nOpen: {OwnerSiteUrl}\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+              "There you add your dishes, pictures and prices, publish the menu and print its QR code.\n" +
+              "هناك تضيف أصنافك وصورها وأسعارها، ثم تنشر القائمة وتطبع رمز QR الخاص بها."
+            : $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
             "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
             "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
 
@@ -401,6 +453,10 @@ Password: @Model.NewLoginPassword</div>
                 .Include(c => c.Events)
                 .FirstOrDefaultAsync(c => c.Id == id);
             State = SubscriptionRules.Evaluate(Client?.Subscription, Now);
+            var menu = await db.Menus.AsNoTracking().Where(m => m.ClientId == id).Select(m => new { m.IsPublished }).FirstOrDefaultAsync();
+            HasMenu = menu is not null;
+            MenuPublished = menu?.IsPublished ?? false;
+            MenuLive = Client is not null && SubscriptionRules.MenuIsLive(Client, Now);
             Owners = await db.OwnerUsers.AsNoTracking().Where(o => o.ClientId == id).OrderBy(o => o.CreatedAt).ToListAsync();
             Payments = (await db.Payments.AsNoTracking().Where(p => p.ClientId == id).ToListAsync())
                 .OrderByDescending(p => p.ReceivedOn).ThenByDescending(p => p.Id).ToList();
@@ -469,7 +525,16 @@ Password: @Model.NewLoginPassword</div>
 
         public async Task<IActionResult> OnPostOnlineAsync(int id, bool on)
         {
-            var result = await ops.SetOnlineAsync(id, on, ops.BaseUrl(Request));
+            (Client Client, IssuedLink? Link)? result;
+            try
+            {
+                result = await ops.SetOnlineAsync(id, on, ops.BaseUrl(Request));
+            }
+            catch (AdminRuleException refused)
+            {
+                this.Flash(refused.Message.TrimEnd('.'));
+                return RedirectToPage(new { id });
+            }
             if (result is null) return NotFound();
             if (result.Value.Link is { } link)
             {
@@ -481,6 +546,23 @@ Password: @Model.NewLoginPassword</div>
                 return Redirect($"/admin/Sites/Details/{siteId}");
             }
             this.Flash(on ? "Online turned on" : "Now POS only");
+            return RedirectToPage(new { id });
+        }
+
+        /// <summary>An online-menu-only client bought the POS: POS + Online, and its first branch's link is shown, ready to send.</summary>
+        public async Task<IActionResult> OnPostAddPosAsync(int id)
+        {
+            var result = await ops.AddPosAsync(id, ops.BaseUrl(Request));
+            if (result is null) return NotFound();
+            if (result.Value.Link is { } link)
+            {
+                TempData["NewLink"] = link.Url;
+                TempData["NewLinkExpires"] = link.ExpiresAt.ToString("yyyy-MM-dd");
+                this.Flash("Now POS + Online. Send them the link");
+                var siteId = await db.Sites.Where(s => s.ClientId == id).OrderBy(s => s.CreatedAt).Select(s => s.Id).FirstAsync();
+                return Redirect($"/admin/Sites/Details/{siteId}");
+            }
+            this.Flash("Now POS + Online");
             return RedirectToPage(new { id });
         }
 

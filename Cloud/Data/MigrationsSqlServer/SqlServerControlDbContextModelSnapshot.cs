@@ -111,6 +111,11 @@ namespace Cloud.Data.MigrationsSqlServer
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("HasPos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 

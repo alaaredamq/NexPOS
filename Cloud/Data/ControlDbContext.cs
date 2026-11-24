@@ -63,6 +63,8 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => x.Name);
             // Sentinel true: EF leaves "true" to the column default and always writes "false"; existing clients use Online.
             e.Property(x => x.HasOnline).HasDefaultValue(true).HasSentinel(true);
+            // Same: existing clients have the POS; only an "online menu only" client writes false.
+            e.Property(x => x.HasPos).HasDefaultValue(true).HasSentinel(true);
             e.HasOne(x => x.Subscription).WithOne(x => x.Client).HasForeignKey<Subscription>(x => x.ClientId);
             e.HasMany(x => x.Sites).WithOne(x => x.Client).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.ClientId);

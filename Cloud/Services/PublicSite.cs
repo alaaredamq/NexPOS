@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Cloud.Services;
@@ -141,7 +142,7 @@ public static class PublicSite
             return Results.Text(sb.ToString(), "text/plain; charset=utf-8");
         }).AllowAnonymous();
 
-        app.MapGet("/sitemap.xml", async (HttpContext ctx, IWebHostEnvironment env, Cloud.Data.ControlDbContext db) =>
+        app.MapGet("/sitemap.xml", async (HttpContext ctx, IWebHostEnvironment env, Cloud.Data.ControlDbContext db, TimeProvider time) =>
         {
             var file = env.WebRootFileProvider.GetFileInfo(LandingFile);
             var lastMod = (file.Exists ? file.LastModified : DateTimeOffset.UtcNow).UtcDateTime
@@ -153,8 +154,11 @@ public static class PublicSite
             sb.Append($"  <url>\n    <loc>{origin}/</loc>\n    <lastmod>{lastMod}</lastmod>\n");
             sb.Append("    <changefreq>monthly</changefreq>\n    <priority>1.0</priority>\n  </url>\n");
             // Every published shop menu: a shop gains from being found by its name.
-            var menus = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-                db.Menus.Where(m => m.IsPublished && m.Client.IsActive).Select(m => new { m.Slug, m.UpdatedAt }));
+            // Only menus that answer: a client without Online time has its menu offline (SubscriptionRules.MenuIsLive).
+            var now = time.GetUtcNow().UtcDateTime;
+            var menus = (await db.Menus.Where(m => m.IsPublished && m.Client.IsActive)
+                    .Include(m => m.Client).ThenInclude(c => c.Subscription).AsNoTracking().ToListAsync())
+                .Where(m => SubscriptionRules.MenuIsLive(m.Client, now));
             foreach (var m in menus)
                 sb.Append($"  <url>\n    <loc>{origin}/m/{m.Slug}</loc>\n    <lastmod>{m.UpdatedAt.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}</lastmod>\n  </url>\n");
             sb.Append("</urlset>\n");

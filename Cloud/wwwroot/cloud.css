@@ -382,6 +382,10 @@ table.t td .btn.sm { min-height: 28px; padding: 0 8px; margin-top: -4px; }
 /* ---------- licences and client type ---------- */
 .plans.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .plans.two span { font-size: 17px; padding: 12px 10px; }
+.plans.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.plans.three span { font-size: 16px; padding: 12px 8px; }
+@media (max-width: 560px) { .plans.three { grid-template-columns: 1fr; } }
+.plans label[hidden] { display: none; }
 fieldset.bare { border: 0; padding: 0; margin: 0; }
 fieldset.bare > legend { font-size: 14px; font-weight: 500; color: var(--ink); margin: 16px 0 6px; padding: 0; }
 .new-key { border-color: var(--ok); }

@@ -23,6 +23,13 @@ public static class SubscriptionRules
 
     public static bool AllowsSync(SubscriptionState state) => state is SubscriptionState.Active or SubscriptionState.Grace;
 
+    /// <summary>
+    /// Whether the client's public online menu answers. The menu is part of Online, so it needs paid time like the rest: it stays up through
+    /// the grace week, then goes offline until months are added (nothing is deleted, and the owner can still edit it). A client switched off
+    /// in the portal has no menu either. Needs <see cref="Client.Subscription"/> loaded.
+    /// </summary>
+    public static bool MenuIsLive(Client client, DateTime nowUtc) => client.IsActive && AllowsSync(Evaluate(client.Subscription, nowUtc));
+
     /// <summary>Renewing early keeps the remaining time; renewing late starts from today, so nobody is charged for a gap.</summary>
     public static DateTime ExtendedExpiry(Subscription subscription, int months, DateTime nowUtc)
         => (subscription.ExpiresAt > nowUtc ? subscription.ExpiresAt : nowUtc).AddMonths(months);

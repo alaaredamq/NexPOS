@@ -131,13 +131,29 @@ document.querySelectorAll('[data-payer-toggle]').forEach((select) => {
 }
 
 // ---- new client: Online months only matter for a POS + Online client ----
-document.querySelectorAll('[data-type-toggle]').forEach((radio, _, all) => {
+// New client: months are for POS + Online and the online menu only. The menu always needs some (no "None yet"), and is sold by the
+// year, so picking it selects 12 months unless months were already picked by hand.
+{
+  const types = [...document.querySelectorAll('[data-type-toggle]')]
   const months = document.querySelector('[data-online-only]')
-  if (!months) return
-  const sync = () => { months.hidden = [...all].some((r) => r.checked && r.value === 'pos') }
-  radio.addEventListener('change', sync)
-  sync()
-})
+  if (types.length && months) {
+    let picked = false
+    months.querySelectorAll('input').forEach((m) => m.addEventListener('change', () => { picked = true }))
+    const sync = () => {
+      const type = (types.find((r) => r.checked) || {}).value
+      months.hidden = type === 'pos'
+      const none = months.querySelector('[data-none-yet]')
+      if (none) none.hidden = type === 'menu'
+      const zero = none && none.querySelector('input')
+      if (type === 'menu' && (!picked || (zero && zero.checked))) {
+        const twelve = months.querySelector('input[value="12"]')
+        if (twelve) twelve.checked = true
+      }
+    }
+    types.forEach((r) => r.addEventListener('change', sync))
+    sync()
+  }
+}
 
 // ---- issue a key: Basic is always 1 PC ----
 {

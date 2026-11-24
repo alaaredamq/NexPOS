@@ -34,8 +34,11 @@ so a rule changed in one place applies to both.
 |---|---|---|
 | GET | `/overview` | `{ summary, clients, connected, plans { active, endingSoon, ended }, productsHeld, ordersHeld, pulse[24], litHours, attention[], thisMonth { collected, spent, profit, balance } }` |
 
-Client rows and details carry `hasOnline` and `type` (`online` or `pos`). A POS-only client gets no Online or connection
-warnings; its licences are followed instead (see Licences).
+Client rows and details carry `hasOnline`, `hasPos` and `type`: `online` (POS + Online), `pos` (POS only) or `menu` (online menu
+only). A POS-only client gets no Online or connection warnings; its licences are followed instead (see Licences). A menu-only client
+has Online months but no POS: no branch, no link, no licence, and no branch warnings. Details also carry `menuLive`: whether the
+client's public menu answers. There is one subscription, Online; the menu is part of it and goes offline when the months and the
+grace week run out, for every type.
 
 Each item in `attention` is `{ severity: "warn"|"bad", title, reason, action, portalPath, clientId }`.
 Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the current hour.
@@ -44,13 +47,14 @@ Each item in `pulse` is `{ hourUtc, contacts }`, oldest first, ending with the c
 
 | Method | Path | Body / query | Returns |
 |---|---|---|---|
-| GET | `/clients` | `?search=` (name, phone, email) `&filter=connected\|waiting\|attention` | Client rows |
-| POST | `/clients` | `{ name, phone?, email?, notes?, months?, online? }` | 201 `{ client, siteId, link { url, expiresAtUtc } }`. Creates the client, its "Main branch" and a connection link (shown once). With `online: false` it is a **POS-only** client: no branch, no link (`siteId` and `link` are null), no Online months. |
+| GET | `/clients` | `?search=` (name, phone, email) `&filter=connected\|waiting\|attention\|offline\|menu` | Client rows |
+| POST | `/clients` | `{ name, phone?, email?, notes?, months?, type? }` | 201 `{ client, siteId, link { url, expiresAtUtc } }`. `type` is `online` (default), `pos` or `menu`. `online`: the client, its "Main branch" and a connection link (shown once). `pos`: a **POS-only** client: no branch, no link (`siteId` and `link` are null), no Online months. `menu`: an **online-menu-only** client: its Online months, which must be 1 or more (else 400 `months_required`), and no branch or link. The older `online: false` still means `pos`. |
 | GET | `/clients/{id}` | | Client detail: fields, `subscription`, `sites[]`, `logins[]`, `payments { count, total, last12Months, last }`, `attention[]` |
 | PUT | `/clients/{id}` | `{ name, phone?, email?, notes? }` | Client detail |
 | POST | `/clients/{id}/activate` | | `{ id, isActive }` |
 | POST | `/clients/{id}/online/enable` | | `{ id, hasOnline, link }`. A client with no branch gets its "Main branch", and `link { url, code, expiresAtUtc }` comes back once. |
-| POST | `/clients/{id}/online/disable` | | `{ id, hasOnline }`. POS only from now on: branches and data stay; the portal stops asking about them. |
+| POST | `/clients/{id}/online/disable` | | `{ id, hasOnline, hasPos, type }`. POS only from now on: branches and data stay; the portal stops asking about them. Refused (`menu_only`) for a menu-only client, whose only purchase is Online. |
+| POST | `/clients/{id}/pos/enable` | | `{ id, hasOnline, hasPos, type, link }`. A menu-only client bought the POS: it becomes POS + Online, keeping its months and menu, and gets its "Main branch"; `link` comes back once. |
 | POST | `/clients/{id}/deactivate` | | `{ id, isActive }`. All its branches are refused by the cloud; the shops keep selling. |
 | DELETE | `/clients/{id}` | | 204. Removes branches, cloud data, subscription and history. **Payments stay** (detached, payer name kept). |
 | GET | `/clients/{id}/events` | `?take=50` (max 500) | History, newest first: `[{ id, atUtc, text }]` |

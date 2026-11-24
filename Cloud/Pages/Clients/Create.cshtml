@@ -9,7 +9,7 @@
     <div>
         <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
         <h1>New client</h1>
-        <p class="sub">One form. For Online you get their first branch and the link to send the owner; for POS only, issue their licence key next.</p>
+        <p class="sub">One form. For POS + Online you get their first branch and the link to send the owner; for POS only, issue their licence key next; for the online menu only, add their phone login next.</p>
     </div>
 </div>
 
@@ -31,30 +31,34 @@
 
     <fieldset style="border:0;padding:0;margin:0">
         <legend style="font-size:13px;font-weight:600;color:var(--ink-2);margin:18px 0 5px;padding:0">What they bought</legend>
-        <div class="plans two">
+        <div class="plans three">
             <label>
-                <input type="radio" name="Type" value="online" checked="@(Model.Type != "pos")" data-type-toggle />
-                <span>POS + Online<small>cloud copy, phone app, online menu</small></span>
+                <input type="radio" name="Type" value="pos" checked="@(Model.Type == ClientKinds.Pos)" data-type-toggle />
+                <span>POS only<small>offline: a licence, nothing to connect</small></span>
             </label>
             <label>
-                <input type="radio" name="Type" value="pos" checked="@(Model.Type == "pos")" data-type-toggle />
-                <span>POS only<small>offline: a licence, nothing to connect</small></span>
+                <input type="radio" name="Type" value="online" checked="@(Model.Type is not (ClientKinds.Pos or ClientKinds.Menu))" data-type-toggle />
+                <span>POS + Online<small>a licence, plus cloud copy, phone app and online menu</small></span>
+            </label>
+            <label>
+                <input type="radio" name="Type" value="menu" checked="@(Model.Type == ClientKinds.Menu)" data-type-toggle />
+                <span>Online menu only<small>no POS, no licence: just their menu</small></span>
             </label>
         </div>
     </fieldset>
 
-    <fieldset style="border:0;padding:0;margin:0" data-online-only>
+    <fieldset style="border:0;padding:0;margin:14px 0 0" data-online-only>
         <legend style="font-size:13px;font-weight:600;color:var(--ink-2);margin:18px 0 5px;padding:0">Months of Online, from today</legend>
         <div class="plans">
             @foreach (var (months, text) in new[] { (0, "None yet"), (1, "month"), (3, "months"), (6, "months"), (12, "months") })
             {
-                <label>
+                <label data-none-yet="@(months == 0 ? "1" : null)">
                     <input type="radio" name="Months" value="@months" checked="@(Model.Months == months)" />
                     <span>@(months == 0 ? "0" : months.ToString())<small>@text</small></span>
                 </label>
             }
         </div>
-        <p class="help">What they paid for. You can add more any time. With none, their shop cannot send data yet.</p>
+        <p class="help">What they paid for: one Online subscription covers the cloud copy, the phone app and the online menu. When the months run out (plus a grace week) all of it stops, the menu included, until you add more. You can add months any time. With none, nothing works yet.</p>
     </fieldset>
 
     @if (Model.Error is not null)
@@ -72,17 +76,18 @@
         [BindProperty] public string? Email { get; set; }
         [BindProperty] public string? Notes { get; set; }
         [BindProperty] public int Months { get; set; } = 1;
-        /// <summary>"online" (POS + Online) or "pos" (POS only).</summary>
-        [BindProperty] public string Type { get; set; } = "online";
+        /// <summary>One of <see cref="ClientKinds"/>: "online" (POS + Online), "pos" (POS only) or "menu" (online menu only).</summary>
+        [BindProperty] public string Type { get; set; } = ClientKinds.Online;
         public string? Error { get; private set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
             try
             {
-                var created = await ops.CreateClientAsync(Name, Phone, Email, Notes, Months, ops.BaseUrl(Request), Type != "pos");
+                var created = await ops.CreateClientAsync(Name, Phone, Email, Notes, Months, ops.BaseUrl(Request), Type);
                 this.Flash("Client created");
-                if (created.Site is null) return Redirect($"/admin/Clients/Details/{created.Client.Id}#licences");
+                // POS only: their licence key comes next. Online menu only: their phone login, to edit the menu.
+                if (created.Site is null) return Redirect($"/admin/Clients/Details/{created.Client.Id}" + (Type == ClientKinds.Menu ? "#phone" : "#licences"));
                 TempData["NewLink"] = created.Link;
                 TempData["NewLinkExpires"] = created.LinkExpiresAt!.Value.ToString("yyyy-MM-dd");
                 return Redirect($"/admin/Sites/Details/{created.Site.Id}");

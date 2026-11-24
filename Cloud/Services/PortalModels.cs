@@ -152,7 +152,8 @@ public sealed record AttentionItem(AttentionSeverity Severity, string Client, st
 /// <summary>What to look at first: the few things that need you, instead of a list to scan.</summary>
 public static class AttentionRules
 {
-    public static List<AttentionItem> For(Client client, DateTime now, PortalFormat fmt)
+    /// <param name="hasPublishedMenu">Whether the client published an online menu: it goes offline with their Online time, so that is said too.</param>
+    public static List<AttentionItem> For(Client client, DateTime now, PortalFormat fmt, bool hasPublishedMenu = false)
     {
         var items = new List<AttentionItem>();
         if (!client.IsActive) return items; // switched off on purpose
@@ -165,9 +166,18 @@ public static class AttentionRules
 
         if (state is SubscriptionState.Expired or SubscriptionState.Grace && sub is not null)
             items.Add(new(state == SubscriptionState.Expired ? AttentionSeverity.Bad : AttentionSeverity.Warn, client.Name,
-                $"Online ended on {fmt.Day(sub.ExpiresAt)}" + (state == SubscriptionState.Grace ? " (grace week)" : ""), clientHref, "Renew"));
+                $"Online ended on {fmt.Day(sub.ExpiresAt)}"
+                + (state == SubscriptionState.Grace
+                    ? hasPublishedMenu ? $" (grace week: their menu goes offline after {fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))})" : " (grace week)"
+                    : hasPublishedMenu ? ": their online menu is offline" : ""),
+                clientHref, "Renew"));
         else if (state == SubscriptionState.Active && sub is not null && sub.ExpiresAt - now < TimeSpan.FromDays(14))
             items.Add(new(AttentionSeverity.Warn, client.Name, $"Online ends {fmt.Until(sub.ExpiresAt)}", clientHref, "Renew"));
+        else if (state == SubscriptionState.None && hasPublishedMenu)
+            items.Add(new(AttentionSeverity.Bad, client.Name, "Online menu offline: no months of Online", clientHref, "Add months"));
+
+        // An online-menu-only client has no POS, so no branch to add or watch.
+        if (!client.HasPos) return items;
 
         if (client.Sites.Count == 0)
             items.Add(new(AttentionSeverity.Warn, client.Name, "No branch added yet", clientHref, "Add branch"));

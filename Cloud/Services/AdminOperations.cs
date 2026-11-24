@@ -52,24 +52,42 @@ public sealed class AdminOperations(
     // ---- clients ----
 
     /// <summary>
-    /// The client, and for an Online client its first branch ("Main branch") and that branch's connection link: what a new shop needs
-    /// in one step. A POS-only client (<paramref name="online"/> false) gets neither; its licences are what the portal follows.
+    /// The client, and for a POS + Online client its first branch ("Main branch") and that branch's connection link: what a new shop needs
+    /// in one step. <paramref name="kind"/> is one of <see cref="ClientKinds"/>. A POS-only client gets no branch and no Online; its
+    /// licences are what the portal follows. An online-menu-only client gets its Online months (at least one: the menu is offline without
+    /// paid time) and no branch, since it has no POS to connect.
     /// </summary>
-    public async Task<NewClientResult> CreateClientAsync(string? name, string? phone, string? email, string? notes, int months, string baseUrl, bool online = true)
+    public async Task<NewClientResult> CreateClientAsync(string? name, string? phone, string? email, string? notes, int months, string baseUrl, string kind = ClientKinds.Online)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new AdminRuleException("name_required", "Enter the shop's name.");
+        if (kind is not (ClientKinds.Pos or ClientKinds.Online or ClientKinds.Menu))
+            throw new AdminRuleException("bad_type", "The type must be pos, online or menu.");
         if (months is < 0 or > MaxMonths) throw new AdminRuleException("bad_months", $"Months must be between 0 and {MaxMonths}.");
+        var online = kind != ClientKinds.Pos;
+        var pos = kind != ClientKinds.Menu;
         if (!online) months = 0;
+        if (kind == ClientKinds.Menu && months < 1)
+            throw new AdminRuleException("months_required", "Pick the months of Online they paid for. Without them their online menu is offline.");
 
         var now = Now;
         var client = new Client
         {
-            Name = Trim(name, 200)!, Phone = Trim(phone, 100), Email = Trim(email, 255), Notes = Trim(notes, 4000), CreatedAt = now, HasOnline = online,
+            Name = Trim(name, 200)!, Phone = Trim(phone, 100), Email = Trim(email, 255), Notes = Trim(notes, 4000), CreatedAt = now,
+            HasOnline = online, HasPos = pos,
         };
         if (months > 0)
             client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(months) };
-        client.Events.Add(new ClientEvent { At = now, Text = !online ? "Client created (POS only, no Online)." : months > 0 ? $"Client created with {months} month(s) of Online." : "Client created." });
-        if (!online)
+        client.Events.Add(new ClientEvent
+        {
+            At = now,
+            Text = kind switch
+            {
+                ClientKinds.Pos => "Client created (POS only, no Online).",
+                ClientKinds.Menu => $"Client created (online menu only) with {months} month(s) of Online.",
+                _ => months > 0 ? $"Client created with {months} month(s) of Online." : "Client created.",
+            },
+        });
+        if (!online || !pos)
         {
             db.Clients.Add(client);
             await db.SaveChangesAsync();
@@ -109,6 +127,9 @@ public sealed class AdminOperations(
     {
         var client = await db.Clients.Include(c => c.Sites).FirstOrDefaultAsync(c => c.Id == id);
         if (client is null) return null;
+        // Without Online an online-menu-only client would have bought nothing; it is removed instead, or given the POS first.
+        if (!online && !client.HasPos)
+            throw new AdminRuleException("menu_only", "This client has only the online menu, which is part of Online. Remove the client instead.");
         IssuedLink? link = null;
         if (client.HasOnline != online)
         {
@@ -117,6 +138,32 @@ public sealed class AdminOperations(
             await db.SaveChangesAsync();
         }
         if (online && client.Sites.Count == 0)
+        {
+            var site = new Site { Id = Guid.NewGuid(), ClientId = id, Name = "Main branch", CreatedAt = Now };
+            db.Sites.Add(site);
+            await db.SaveChangesAsync();
+            link = await NewLinkAsync(site.Id, baseUrl);
+        }
+        return (client, link);
+    }
+
+    /// <summary>
+    /// An online-menu-only client bought the POS too: it becomes POS + Online, keeping its Online months and its menu. It gets its "Main
+    /// branch" and a connection link, returned for sending (its licence key is issued as for any POS client).
+    /// </summary>
+    public async Task<(Client Client, IssuedLink? Link)?> AddPosAsync(int id, string baseUrl)
+    {
+        var client = await db.Clients.Include(c => c.Sites).FirstOrDefaultAsync(c => c.Id == id);
+        if (client is null) return null;
+        IssuedLink? link = null;
+        if (!client.HasPos)
+        {
+            client.HasPos = true;
+            client.HasOnline = true;
+            Log(id, "POS added: now POS + Online.");
+            await db.SaveChangesAsync();
+        }
+        if (client.Sites.Count == 0)
         {
             var site = new Site { Id = Guid.NewGuid(), ClientId = id, Name = "Main branch", CreatedAt = Now };
             db.Sites.Add(site);
