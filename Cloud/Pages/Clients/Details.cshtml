@@ -54,7 +54,7 @@
                     </form>
                 }
             </div>
-            <p class="help">Renewing early keeps the time left. Renewing late starts today.</p>
+            <p class="help">Renewing early keeps the time left. Renewing late starts today. Got paid? <a href="#payments">Record the payment</a>.</p>
         </div>
     </div>
     @if (sub is not null)
@@ -112,6 +112,61 @@
     </details>
 </section>
 </div>
+
+<section class="card" id="payments" aria-labelledby="h-payments">
+    <div class="ph">
+        <h2 id="h-payments">Payments <span class="count">@Model.Payments.Count</span></h2>
+        <a class="btn ghost sm" href="/admin/Finance">Finance</a>
+    </div>
+    @if (Model.Payments.Count > 0)
+    {
+        var lastPay = Model.Payments[0];
+        <div class="ledger" style="margin-bottom:14px">
+            <div><b>@Fmt.Money(Model.Payments.Sum(x => x.Amount))</b><span>collected in all</span></div>
+            <div><b>@Fmt.Money(Model.Payments.Where(x => x.ReceivedOn > Fmt.Today.AddYears(-1)).Sum(x => x.Amount))</b><span>in the last 12 months</span></div>
+            <div><b>@lastPay.ReceivedOn.ToString("yyyy-MM-dd")</b><span>last payment, @Fmt.Money(lastPay.Amount)</span></div>
+        </div>
+        <div class="tscroll">
+            <table class="t">
+                <thead><tr><th>Day</th><th>For</th><th>Paid by</th><th class="r">Amount</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var x in Model.Payments.Take(Model.ShowAllPayments ? int.MaxValue : 10))
+                    {
+                        <tr>
+                            <td class="nowrap">@x.ReceivedOn.ToString("yyyy-MM-dd")</td>
+                            <td>@x.Purpose@if (!string.IsNullOrEmpty(x.Note)) { <small class="muted d">@x.Note</small> }</td>
+                            <td>@x.Method@if (!string.IsNullOrEmpty(x.Reference)) { <small class="muted d">@x.Reference</small> }</td>
+                            <td class="r num nowrap">@Fmt.Money(x.Amount)</td>
+                            <td class="r">
+                                <form method="post" asp-page-handler="DeletePayment" asp-route-id="@Model.Client.Id" asp-route-paymentId="@x.Id"
+                                      data-confirm-title="Delete this payment?" data-confirm-yes="Delete"
+                                      data-confirm="@Fmt.Money(x.Amount) on @x.ReceivedOn.ToString("yyyy-MM-dd"). It comes off every total.">
+                                    <button type="submit" class="btn ghost sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Payments.Count > 10 && !Model.ShowAllPayments)
+        {
+            <p class="help"><a href="?all=payments#payments">Show all @Model.Payments.Count payments</a></p>
+        }
+    }
+    else
+    {
+        <p class="muted">Nothing recorded from @Model.Client.Name yet.</p>
+    }
+    <details class="fold" style="margin-top:14px" open="@(Model.PaymentError is not null)">
+        <summary>Record a payment</summary>
+        <form method="post" asp-page-handler="Payment" asp-route-id="@Model.Client.Id">
+            <partial name="_PaymentFields" model="@(new PaymentFieldsView(Model.Pay, [], Fmt.Today, Model.Client.Id))" />
+            @if (Model.PaymentError is not null) { <p class="error" role="alert">@Model.PaymentError</p> }
+            <p style="margin:16px 0 0"><button type="submit" class="btn">Record payment</button></p>
+        </form>
+    </details>
+</section>
 
 @if (Model.NewLoginEmail is not null)
 {
@@ -234,7 +289,7 @@ Password: @Model.NewLoginPassword</div>
         </form>
         <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Client.Id" style="margin-top:10px"
               data-confirm-title="Remove @Model.Client.Name?" data-confirm-yes="Remove client"
-              data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
+              data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too; its payments stay in Finance. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
             <button type="submit" class="btn sm danger">Remove client</button>
         </form>
     </section>
@@ -251,8 +306,14 @@ Password: @Model.NewLoginPassword</div>
 </div>
 
 @functions {
-    public class DetailsModel(ControlDbContext db, SiteRemoval removal, PortalFormat fmt, TimeProvider time) : PageModel
+    public class DetailsModel(ControlDbContext db, SiteRemoval removal, PortalFormat fmt, TimeProvider time, FinanceBook book) : PageModel
     {
+        /// <summary>Newest first.</summary>
+        public List<Payment> Payments { get; private set; } = [];
+        public bool ShowAllPayments { get; private set; }
+        [BindProperty] public PaymentInput Pay { get; set; } = new();
+        public string? PaymentError { get; private set; }
+
         public Client? Client { get; private set; }
         public SubscriptionState State { get; private set; }
         public DateTime Now => fmt.Now;
@@ -276,6 +337,9 @@ Password: @Model.NewLoginPassword</div>
                 .FirstOrDefaultAsync(c => c.Id == id);
             State = SubscriptionRules.Evaluate(Client?.Subscription, Now);
             Owners = await db.OwnerUsers.AsNoTracking().Where(o => o.ClientId == id).OrderBy(o => o.CreatedAt).ToListAsync();
+            Payments = (await db.Payments.AsNoTracking().Where(p => p.ClientId == id).ToListAsync())
+                .OrderByDescending(p => p.ReceivedOn).ThenByDescending(p => p.Id).ToList();
+            ShowAllPayments = Request.Query["all"] == "payments";
             NewLoginEmail = TempData["NewLoginEmail"] as string;
             NewLoginPassword = TempData["NewLoginPassword"] as string;
 
@@ -288,6 +352,28 @@ Password: @Model.NewLoginPassword</div>
         {
             await LoadAsync(id);
             return Client is null ? NotFound() : Page();
+        }
+
+        public async Task<IActionResult> OnPostPaymentAsync(int id)
+        {
+            Pay.ClientId = id;
+            var (payment, error) = await book.RecordPaymentAsync(Pay, User.Identity?.Name ?? "");
+            if (payment is null)
+            {
+                PaymentError = error;
+                await LoadAsync(id);
+                return Client is null ? NotFound() : Page();
+            }
+            this.Flash($"Payment of {fmt.Money(payment.Amount)} recorded");
+            return Redirect($"/admin/Clients/Details/{id}#payments");
+        }
+
+        public async Task<IActionResult> OnPostDeletePaymentAsync(int id, int paymentId)
+        {
+            // Only this client's payment: the id in the address names whose page this is.
+            if (await db.Payments.AnyAsync(p => p.Id == paymentId && p.ClientId == id) && await book.DeletePaymentAsync(paymentId) is not null)
+                this.Flash("Payment deleted");
+            return Redirect($"/admin/Clients/Details/{id}#payments");
         }
 
         private async Task<Client?> TrackedAsync(int id)

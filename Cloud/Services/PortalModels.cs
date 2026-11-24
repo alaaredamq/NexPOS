@@ -12,9 +12,35 @@ public sealed class PortalFormat
     {
         _time = time;
         Zone = Resolve(options.Value.TimeZone);
+        Currency = string.IsNullOrWhiteSpace(options.Value.CurrencySymbol) ? "$" : options.Value.CurrencySymbol.Trim();
     }
 
     public TimeZoneInfo Zone { get; }
+
+    /// <summary>The symbol amounts are shown with ("$").</summary>
+    public string Currency { get; }
+
+    /// <summary>Today in the provider's own calendar: the day money "came in" on when they record it now.</summary>
+    public DateOnly Today => DateOnly.FromDateTime(Local(Now));
+
+    /// <summary>"$1,250" or "$1,250.50" (cents only when there are any); "-$300" below zero.</summary>
+    public string Money(decimal amount)
+    {
+        var abs = Math.Abs(amount);
+        var text = abs.ToString(abs == Math.Truncate(abs) ? "#,0" : "#,0.00", System.Globalization.CultureInfo.InvariantCulture);
+        return (amount < 0 ? "-" : "") + Currency + text;
+    }
+
+    /// <summary>"$12.4k" for axis labels and tight spots.</summary>
+    public string MoneyShort(decimal amount)
+    {
+        var abs = Math.Abs(amount);
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var text = abs >= 1_000_000 ? (abs / 1_000_000).ToString("0.#", inv) + "M"
+            : abs >= 1_000 ? (abs / 1_000).ToString("0.#", inv) + "k"
+            : abs.ToString("0", inv);
+        return (amount < 0 ? "-" : "") + Currency + text;
+    }
 
     public DateTime Now => _time.GetUtcNow().UtcDateTime;
 

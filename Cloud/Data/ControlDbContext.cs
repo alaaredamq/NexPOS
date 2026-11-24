@@ -35,6 +35,9 @@ public class ControlDbContext : DbContext
     public DbSet<MenuItemTypePrice> MenuItemTypePrices => Set<MenuItemTypePrice>();
     public DbSet<MenuOrder> MenuOrders => Set<MenuOrder>();
     public DbSet<MenuOrderLine> MenuOrderLines => Set<MenuOrderLine>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<FinanceBudget> FinanceBudgets => Set<FinanceBudget>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -220,6 +223,38 @@ public class ControlDbContext : DbContext
             e.Property(x => x.ImageFile).HasMaxLength(60);
             e.Property(x => x.PictureAs).HasMaxLength(8).HasDefaultValue(MenuSectionPicture.Banner);
             e.HasIndex(x => new { x.MenuId, x.SortOrder });
+        });
+
+        b.Entity<Payment>(e =>
+        {
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.Payer).HasMaxLength(200);
+            e.Property(x => x.Method).HasMaxLength(40);
+            e.Property(x => x.Purpose).HasMaxLength(60);
+            e.Property(x => x.Reference).HasMaxLength(100);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            e.HasIndex(x => x.ReceivedOn);
+            e.HasIndex(x => new { x.ClientId, x.ReceivedOn });
+            // Money received stays received: removing a client detaches its payments (SiteRemoval.RemoveClientAsync), never deletes them.
+            e.HasOne(x => x.Client).WithMany(x => x.Payments).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<Expense>(e =>
+        {
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.Category).HasMaxLength(60);
+            e.Property(x => x.Payee).HasMaxLength(120);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            e.HasIndex(x => x.SpentOn);
+        });
+
+        b.Entity<FinanceBudget>(e =>
+        {
+            e.HasIndex(x => x.Month).IsUnique();
+            e.Property(x => x.IncomeTarget).HasPrecision(18, 2);
+            e.Property(x => x.SpendingLimit).HasPrecision(18, 2);
         });
 
         b.Entity<MenuItem>(e =>

@@ -31,7 +31,10 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
         });
     }
 
-    /// <summary>Removes a client with all its branches, its subscription and its history.</summary>
+    /// <summary>
+    /// Removes a client with all its branches, its subscription and its history. Its payments stay in the books (they were
+    /// received), detached from the client but still carrying its name.
+    /// </summary>
     public async Task RemoveClientAsync(int clientId)
     {
         var siteIds = await db.Sites.Where(s => s.ClientId == clientId).Select(s => s.Id).ToListAsync();
@@ -51,6 +54,7 @@ public sealed class SiteRemoval(ControlDbContext db, MirrorStore mirrors, MenuCa
             await db.OwnerUsers.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
             await db.Subscriptions.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
             await db.ClientEvents.Where(x => x.ClientId == clientId).ExecuteDeleteAsync();
+            await db.Payments.Where(x => x.ClientId == clientId).ExecuteUpdateAsync(p => p.SetProperty(x => x.ClientId, (int?)null));
             await db.MenuItems.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync(); // their branch and type prices go with them
             await db.MenuOrderTypes.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();
             await db.MenuBranches.Where(x => menuIds.Contains(x.MenuId)).ExecuteDeleteAsync();

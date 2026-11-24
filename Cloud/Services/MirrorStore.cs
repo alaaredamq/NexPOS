@@ -28,6 +28,8 @@ public sealed class CloudOptions
     public string PublicUrl { get; set; } = "";
     /// <summary>Time zone the portal shows times in (IANA name). Data is always stored in UTC.</summary>
     public string TimeZone { get; set; } = "Asia/Beirut";
+    /// <summary>Symbol the Finance pages put before amounts. The books keep one currency; this only changes how it is shown.</summary>
+    public string CurrencySymbol { get; set; } = "$";
     /// <summary>
     /// The licence issuer's PUBLIC key (Base64 SubjectPublicKeyInfo), used to verify the key each till hands over so the cloud knows the
     /// shop's plan. Defaults to the key built into the app; only tests change it.

@@ -46,6 +46,7 @@ builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SiteRemoval>();
+builder.Services.AddScoped<FinanceBook>();
 builder.Services.AddSingleton<MenuImages>();
 builder.Services.AddScoped<MenuCatalogMerge>();
 

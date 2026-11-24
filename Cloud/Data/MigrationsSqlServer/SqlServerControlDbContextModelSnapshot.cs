@@ -182,6 +182,79 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.ToTable("EnrollmentCodes");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Payee")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateOnly>("SpentOn")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpentOn");
+
+                    b.ToTable("Expenses");
+                });
+
+            modelBuilder.Entity("Cloud.Data.FinanceBudget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("IncomeTarget")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("date");
+
+                    b.Property<decimal?>("SpendingLimit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Month")
+                        .IsUnique();
+
+                    b.ToTable("FinanceBudgets");
+                });
+
             modelBuilder.Entity("Cloud.Data.Menu", b =>
                 {
                     b.Property<int>("Id")
@@ -787,6 +860,64 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.ToTable("OwnerUsers");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Payer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<DateOnly>("ReceivedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceivedOn");
+
+                    b.HasIndex("ClientId", "ReceivedOn");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1174,6 +1305,16 @@ namespace Cloud.Data.MigrationsSqlServer
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Payment", b =>
+                {
+                    b.HasOne("Cloud.Data.Client", "Client")
+                        .WithMany("Payments")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Client");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.HasOne("Cloud.Data.Client", "Client")
@@ -1221,6 +1362,8 @@ namespace Cloud.Data.MigrationsSqlServer
             modelBuilder.Entity("Cloud.Data.Client", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Sites");
 

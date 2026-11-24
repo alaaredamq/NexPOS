@@ -23,6 +23,7 @@ public class Client
     public Subscription? Subscription { get; set; }
     public List<Site> Sites { get; set; } = [];
     public List<ClientEvent> Events { get; set; } = [];
+    public List<Payment> Payments { get; set; } = [];
 }
 
 /// <summary>The paid "Online" service for one client. It gates the cloud mirror only; the till itself never depends on it.</summary>

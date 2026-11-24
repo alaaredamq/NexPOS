@@ -167,6 +167,75 @@ namespace Cloud.Data.Migrations
                     b.ToTable("EnrollmentCodes");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Payee")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("SpentOn")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpentOn");
+
+                    b.ToTable("Expenses");
+                });
+
+            modelBuilder.Entity("Cloud.Data.FinanceBudget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("IncomeTarget")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SpendingLimit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Month")
+                        .IsUnique();
+
+                    b.ToTable("FinanceBudgets");
+                });
+
             modelBuilder.Entity("Cloud.Data.Menu", b =>
                 {
                     b.Property<int>("Id")
@@ -750,6 +819,62 @@ namespace Cloud.Data.Migrations
                     b.ToTable("OwnerUsers");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ClientId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Payer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("ReceivedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceivedOn");
+
+                    b.HasIndex("ClientId", "ReceivedOn");
+
+                    b.ToTable("Payments");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1131,6 +1256,16 @@ namespace Cloud.Data.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("Cloud.Data.Payment", b =>
+                {
+                    b.HasOne("Cloud.Data.Client", "Client")
+                        .WithMany("Payments")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Client");
+                });
+
             modelBuilder.Entity("Cloud.Data.Site", b =>
                 {
                     b.HasOne("Cloud.Data.Client", "Client")
@@ -1178,6 +1313,8 @@ namespace Cloud.Data.Migrations
             modelBuilder.Entity("Cloud.Data.Client", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Sites");
 
