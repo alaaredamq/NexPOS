@@ -176,6 +176,22 @@ public class OnlineMenuTests : IClassFixture<CloudFactory>
     }
 
     [Fact]
+    public async Task The_shops_colours_stay_light_on_a_dark_mode_phone()
+    {
+        var (_, owner) = await ShopAsync("lightshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Light Shop" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var anonymous = _cloud.CreateClient();
+
+        // The page asks browsers not to darken it, and the stylesheet has no dark version of any theme.
+        Assert.Contains("<meta name=\"color-scheme\" content=\"only light\">", await anonymous.GetStringAsync("/m/light-shop"));
+        var css = await anonymous.GetStringAsync("/menu/menu.css");
+        Assert.DoesNotContain("prefers-color-scheme", css);
+        Assert.Contains("color-scheme:only light", css);
+    }
+
+    [Fact]
     public async Task Each_shop_picks_how_its_dishes_are_listed()
     {
         var (_, owner) = await ShopAsync("styleshop");

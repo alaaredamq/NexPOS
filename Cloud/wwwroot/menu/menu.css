@@ -15,9 +15,9 @@
   --body:'Geist','Noto Sans Arabic',system-ui,sans-serif;
   --mono:'Geist Mono',ui-monospace,monospace;
   --ease:cubic-bezier(.2,.8,.2,1);
-  color-scheme:light;
+  color-scheme:only light; /* also stops browsers from darkening the page on their own */
 }
-/* ---- themes: light first, then each one's dark ---- */
+/* ---- themes: always light. The shop chose these colours, so a guest phone in dark mode keeps them (no dark override). ---- */
 [data-theme=ember]{--paper:#F6F0E8;--band:#EEE5D9;--ink:#1E1612;--soft:#66574C;--faint:#94867A;--line:#E6DACB;--none:#EDE3D6;--ticket:#FFFCF6;--chipbar:rgb(246 240 232 / .88);
   --accent:#C2410C;--accent-soft:#FBE3D3;--art-2:#9A330A;
   --display:'Barlow Condensed','Noto Sans Arabic',system-ui,sans-serif;--dw:800;--dtrack:.005em;--dcase:uppercase;--dscale:1.12}
@@ -33,17 +33,6 @@
 [data-theme=charcoal]{--paper:#EFEEEB;--band:#E5E3DE;--ink:#161616;--soft:#55524D;--faint:#86837D;--line:#DCD9D3;--none:#E4E1DB;--ticket:#FDFCFA;--chipbar:rgb(239 238 235 / .88);
   --accent:#161616;--on-accent:#FFFFFF;--accent-soft:#E1DFDA;--art-2:#2A2A2A;
   --display:'Instrument Serif','Noto Sans Arabic',Georgia,serif;--dw:400;--dtrack:-.01em;--dscale:1.14}
-@media (prefers-color-scheme:dark){
-  :root{--paper:#111312;--band:#161917;--card:#1A1D1B;--ink:#ECEEEA;--soft:#A7ACA7;--faint:#7E837E;--line:#2B302C;
-    --accent:#86C79C;--on-accent:#0E1A12;--accent-soft:#1D2D22;--art-2:#2E6B45;
-    --none:#232724;--ticket:#1C1F1D;--chipbar:rgb(17 19 18 / .88);--warn:#F2B27A;--warn-bg:#3A2614;--open:#7FD3A0;--open-bg:#16301F;
-    --shadow:0 1px 2px rgb(0 0 0 / .3),0 10px 28px -18px rgb(0 0 0 / .6);color-scheme:dark}
-  [data-theme=ember]{--paper:#15100D;--band:#1B1511;--card:#1F1814;--ink:#F3ECE6;--soft:#B5A69A;--faint:#85776C;--line:#33281F;--none:#2A211B;--ticket:#1E1813;--chipbar:rgb(21 16 13 / .88);--accent:#F59A6B;--on-accent:#2A0F02;--accent-soft:#3A2116;--art-2:#9A330A}
-  [data-theme=saffron]{--paper:#14110A;--band:#1A160E;--card:#1E1A10;--ink:#F4EEDF;--soft:#B6AB92;--faint:#857C68;--line:#332C1C;--none:#29231A;--ticket:#1D1910;--chipbar:rgb(20 17 10 / .88);--accent:#E9B949;--on-accent:#231804;--accent-soft:#3A2F12;--art-2:#7A4804}
-  [data-theme=harbor]{--paper:#0D141A;--band:#111A21;--card:#152029;--ink:#E8EFF5;--soft:#9DAEBD;--faint:#6F8191;--line:#22313D;--none:#1C2832;--ticket:#141E26;--chipbar:rgb(13 20 26 / .88);--accent:#7FB6E0;--on-accent:#081826;--accent-soft:#18303F;--art-2:#174A70}
-  [data-theme=plum]{--paper:#151012;--band:#1B1417;--card:#20181B;--ink:#F4EBEE;--soft:#B9A2AC;--faint:#86737C;--line:#352830;--none:#2B2026;--ticket:#1F171A;--chipbar:rgb(21 16 18 / .88);--accent:#E7A1BE;--on-accent:#2A0E19;--accent-soft:#3B1F2B;--art-2:#5F233C}
-  [data-theme=charcoal]{--paper:#0F0F0F;--band:#141414;--card:#1A1A1A;--ink:#EDEDED;--soft:#A3A3A3;--faint:#747474;--line:#2A2A2A;--none:#232323;--ticket:#191919;--chipbar:rgb(15 15 15 / .88);--accent:#EDEDED;--on-accent:#111111;--accent-soft:#2A2A2A;--art-2:#2A2A2A}
-}
 [dir=rtl]{--display:'Noto Sans Arabic',system-ui,sans-serif;--body:'Noto Sans Arabic','Geist',system-ui,sans-serif;--dw:800;--dtrack:0;--dcase:none;--dscale:1}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -70,7 +59,6 @@ svg{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-l
   background:radial-gradient(120% 90% at 85% 0%,color-mix(in srgb,#fff 18%,transparent),transparent 60%),
     repeating-linear-gradient(135deg,color-mix(in srgb,#fff 7%,transparent) 0 2px,transparent 2px 14px),
     linear-gradient(160deg,var(--accent),var(--art-2))}
-@media (prefers-color-scheme:dark){.cover.art{background:radial-gradient(120% 90% at 85% 0%,color-mix(in srgb,#fff 10%,transparent),transparent 60%),repeating-linear-gradient(135deg,color-mix(in srgb,#fff 5%,transparent) 0 2px,transparent 2px 14px),linear-gradient(160deg,var(--art-2),color-mix(in srgb,var(--art-2) 55%,#000))}}
 .hero-in{position:relative;margin-top:-58px}
 .bare .hero-in{margin-top:-46px}
 .logo{display:block;width:92px;height:92px;border-radius:28px;object-fit:cover;background:var(--card);border:4px solid var(--paper);box-shadow:0 10px 26px -14px rgb(0 0 0 / .45)}

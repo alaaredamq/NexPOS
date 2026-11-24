@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 namespace Cloud.Data;
 
 /// <summary>
-/// The colour sets a public menu can wear. Each is a set of CSS variables in menu.css (<c>html[data-theme=...]</c>), light and dark,
+/// The colour sets a public menu can wear. Each is a set of CSS variables in menu.css (<c>html[data-theme=...]</c>), always light
+/// (a guest's dark-mode phone does not change them),
 /// chosen to sit well with food photos: one accent for what the guest can do, and a paper tone that suits it.
 /// </summary>
 public static class MenuThemes
