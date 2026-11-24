@@ -15,6 +15,7 @@ public class ControlDbContext : DbContext
     protected ControlDbContext(DbContextOptions options) : base(options) { }
 
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<AdminSession> AdminSessions => Set<AdminSession>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<Site> Sites => Set<Site>();
@@ -35,6 +36,10 @@ public class ControlDbContext : DbContext
     public DbSet<MenuItemTypePrice> MenuItemTypePrices => Set<MenuItemTypePrice>();
     public DbSet<MenuOrder> MenuOrders => Set<MenuOrder>();
     public DbSet<MenuOrderLine> MenuOrderLines => Set<MenuOrderLine>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<FinanceBudget> FinanceBudgets => Set<FinanceBudget>();
+    public DbSet<License> Licenses => Set<License>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -44,10 +49,22 @@ public class ControlDbContext : DbContext
             e.Property(x => x.Username).HasMaxLength(100);
         });
 
+        b.Entity<AdminSession>(e =>
+        {
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.Property(x => x.TokenHash).HasMaxLength(64);
+            e.Property(x => x.DeviceName).HasMaxLength(100);
+            e.HasOne(x => x.AdminUser).WithMany().HasForeignKey(x => x.AdminUserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         b.Entity<Client>(e =>
         {
             e.Property(x => x.Name).HasMaxLength(200);
             e.HasIndex(x => x.Name);
+            // Sentinel true: EF leaves "true" to the column default and always writes "false"; existing clients use Online.
+            e.Property(x => x.HasOnline).HasDefaultValue(true).HasSentinel(true);
+            // Same: existing clients have the POS; only an "online menu only" client writes false.
+            e.Property(x => x.HasPos).HasDefaultValue(true).HasSentinel(true);
             e.HasOne(x => x.Subscription).WithOne(x => x.Client).HasForeignKey<Subscription>(x => x.ClientId);
             e.HasMany(x => x.Sites).WithOne(x => x.Client).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.ClientId);
@@ -220,6 +237,59 @@ public class ControlDbContext : DbContext
             e.Property(x => x.ImageFile).HasMaxLength(60);
             e.Property(x => x.PictureAs).HasMaxLength(8).HasDefaultValue(MenuSectionPicture.Banner);
             e.HasIndex(x => new { x.MenuId, x.SortOrder });
+        });
+
+        b.Entity<Payment>(e =>
+        {
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.Payer).HasMaxLength(200);
+            e.Property(x => x.Method).HasMaxLength(40);
+            e.Property(x => x.Purpose).HasMaxLength(60);
+            e.Property(x => x.Reference).HasMaxLength(100);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            e.HasIndex(x => x.ReceivedOn);
+            e.HasIndex(x => new { x.ClientId, x.ReceivedOn });
+            // Money received stays received: removing a client detaches its payments (SiteRemoval.RemoveClientAsync), never deletes them.
+            e.HasOne(x => x.Client).WithMany(x => x.Payments).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        b.Entity<Expense>(e =>
+        {
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.Category).HasMaxLength(60);
+            e.Property(x => x.Payee).HasMaxLength(120);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            e.HasIndex(x => x.SpentOn);
+        });
+
+        b.Entity<FinanceBudget>(e =>
+        {
+            e.HasIndex(x => x.Month).IsUnique();
+            e.Property(x => x.IncomeTarget).HasPrecision(18, 2);
+            e.Property(x => x.SpendingLimit).HasPrecision(18, 2);
+        });
+
+        b.Entity<License>(e =>
+        {
+            e.Property(x => x.MachineId).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(12);
+            e.Property(x => x.Plan).HasMaxLength(8);
+            e.Property(x => x.Serial).HasMaxLength(8);
+            e.Property(x => x.Customer).HasMaxLength(120);
+            e.Property(x => x.KeyText).HasMaxLength(600);
+            e.Property(x => x.Source).HasMaxLength(12);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.CreatedBy).HasMaxLength(100);
+            // The same key reported twice (the keygen, then the shop PC) is one record.
+            e.HasIndex(x => new { x.Serial, x.MachineId }).IsUnique();
+            e.HasIndex(x => x.MachineId);
+            e.HasIndex(x => x.ValidUntil);
+            e.HasOne(x => x.Client).WithMany(x => x.Licenses).HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.SetNull);
+            // No cascade from branches or payments: SQL Server refuses a second path from Clients. SiteRemoval and FinanceBook clear these first.
+            e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne(x => x.Payment).WithMany().HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.NoAction);
         });
 
         b.Entity<MenuItem>(e =>

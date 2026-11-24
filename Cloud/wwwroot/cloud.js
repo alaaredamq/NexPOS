@@ -79,3 +79,93 @@ if (list) {
     })
   }
 }
+
+// ---- table filter: <input data-filter="#table"> hides rows whose data-text does not contain what was typed ----
+document.querySelectorAll('[data-filter]').forEach((input) => {
+  const table = document.querySelector(input.dataset.filter)
+  if (!table) return
+  const rows = [...table.querySelectorAll('[data-row]')]
+  const none = table.parentElement.querySelector('[data-none]')
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase()
+    let shown = 0
+    for (const row of rows) {
+      row.hidden = !!q && !row.dataset.text.includes(q)
+      if (!row.hidden) shown++
+    }
+    if (none) none.hidden = shown !== 0
+  })
+})
+
+// ---- payment form: "where it came from" only matters for income that is not from a client ----
+document.querySelectorAll('[data-payer-toggle]').forEach((select) => {
+  const field = document.querySelector(select.dataset.payerToggle)
+  if (!field) return
+  const sync = () => { field.hidden = select.value !== '' }
+  select.addEventListener('change', sync)
+  sync()
+})
+
+// ---- chart tooltip: data-tip="Title|line|line" on hover or keyboard focus ----
+{
+  let tip = null
+  const show = (el) => {
+    const [title, ...lines] = el.dataset.tip.split('|')
+    tip ??= Object.assign(document.createElement('div'), { className: 'tip', role: 'tooltip' })
+    tip.replaceChildren(Object.assign(document.createElement('b'), { textContent: title }),
+      ...lines.map((l) => Object.assign(document.createElement('div'), { textContent: l })))
+    document.body.append(tip)
+    const r = el.getBoundingClientRect()
+    const w = tip.offsetWidth
+    tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px'
+    tip.style.top = Math.max(8, r.top - tip.offsetHeight - 8) + 'px'
+  }
+  const hide = () => tip?.remove()
+  document.querySelectorAll('[data-tip]').forEach((el) => {
+    el.addEventListener('mouseenter', () => show(el))
+    el.addEventListener('focus', () => show(el))
+    el.addEventListener('mouseleave', hide)
+    el.addEventListener('blur', hide)
+  })
+  window.addEventListener('scroll', hide, { passive: true })
+}
+
+// ---- new client: Online months only matter for a POS + Online client ----
+// New client: months are for POS + Online and the online menu only. The menu always needs some (no "None yet"), and is sold by the
+// year, so picking it selects 12 months unless months were already picked by hand.
+{
+  const types = [...document.querySelectorAll('[data-type-toggle]')]
+  const months = document.querySelector('[data-online-only]')
+  if (types.length && months) {
+    let picked = false
+    months.querySelectorAll('input').forEach((m) => m.addEventListener('change', () => { picked = true }))
+    const sync = () => {
+      const type = (types.find((r) => r.checked) || {}).value
+      months.hidden = type === 'pos'
+      const none = months.querySelector('[data-none-yet]')
+      if (none) none.hidden = type === 'menu'
+      const zero = none && none.querySelector('input')
+      if (type === 'menu' && (!picked || (zero && zero.checked))) {
+        const twelve = months.querySelector('input[value="12"]')
+        if (twelve) twelve.checked = true
+      }
+    }
+    types.forEach((r) => r.addEventListener('change', sync))
+    sync()
+  }
+}
+
+// ---- issue a key: Basic is always 1 PC ----
+{
+  const seats = document.querySelector('[data-seats]')
+  const plans = [...document.querySelectorAll('[data-plan]')]
+  if (seats && plans.length) {
+    const sync = () => {
+      const basic = plans.some((p) => p.checked && p.value === 'basic')
+      if (basic) seats.value = '1'
+      seats.readOnly = basic
+    }
+    plans.forEach((p) => p.addEventListener('change', sync))
+    sync()
+  }
+}

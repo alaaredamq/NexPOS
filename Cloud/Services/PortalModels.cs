@@ -12,9 +12,35 @@ public sealed class PortalFormat
     {
         _time = time;
         Zone = Resolve(options.Value.TimeZone);
+        Currency = string.IsNullOrWhiteSpace(options.Value.CurrencySymbol) ? "$" : options.Value.CurrencySymbol.Trim();
     }
 
     public TimeZoneInfo Zone { get; }
+
+    /// <summary>The symbol amounts are shown with ("$").</summary>
+    public string Currency { get; }
+
+    /// <summary>Today in the provider's own calendar: the day money "came in" on when they record it now.</summary>
+    public DateOnly Today => DateOnly.FromDateTime(Local(Now));
+
+    /// <summary>"$1,250" or "$1,250.50" (cents only when there are any); "-$300" below zero.</summary>
+    public string Money(decimal amount)
+    {
+        var abs = Math.Abs(amount);
+        var text = abs.ToString(abs == Math.Truncate(abs) ? "#,0" : "#,0.00", System.Globalization.CultureInfo.InvariantCulture);
+        return (amount < 0 ? "-" : "") + Currency + text;
+    }
+
+    /// <summary>"$12.4k" for axis labels and tight spots.</summary>
+    public string MoneyShort(decimal amount)
+    {
+        var abs = Math.Abs(amount);
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var text = abs >= 1_000_000 ? (abs / 1_000_000).ToString("0.#", inv) + "M"
+            : abs >= 1_000 ? (abs / 1_000).ToString("0.#", inv) + "k"
+            : abs.ToString("0", inv);
+        return (amount < 0 ? "-" : "") + Currency + text;
+    }
 
     public DateTime Now => _time.GetUtcNow().UtcDateTime;
 
@@ -126,10 +152,13 @@ public sealed record AttentionItem(AttentionSeverity Severity, string Client, st
 /// <summary>What to look at first: the few things that need you, instead of a list to scan.</summary>
 public static class AttentionRules
 {
-    public static List<AttentionItem> For(Client client, DateTime now, PortalFormat fmt)
+    /// <param name="hasPublishedMenu">Whether the client published an online menu: it goes offline with their Online time, so that is said too.</param>
+    public static List<AttentionItem> For(Client client, DateTime now, PortalFormat fmt, bool hasPublishedMenu = false)
     {
         var items = new List<AttentionItem>();
         if (!client.IsActive) return items; // switched off on purpose
+        // A POS-only client has no Online plan or branch to watch; only its licences matter (see LicenseBook.AttentionAsync).
+        if (!client.HasOnline) return items;
 
         var clientHref = $"/admin/Clients/Details/{client.Id}";
         var state = SubscriptionRules.Evaluate(client.Subscription, now);
@@ -137,9 +166,18 @@ public static class AttentionRules
 
         if (state is SubscriptionState.Expired or SubscriptionState.Grace && sub is not null)
             items.Add(new(state == SubscriptionState.Expired ? AttentionSeverity.Bad : AttentionSeverity.Warn, client.Name,
-                $"Online ended on {fmt.Day(sub.ExpiresAt)}" + (state == SubscriptionState.Grace ? " (grace week)" : ""), clientHref, "Renew"));
+                $"Online ended on {fmt.Day(sub.ExpiresAt)}"
+                + (state == SubscriptionState.Grace
+                    ? hasPublishedMenu ? $" (grace week: their menu goes offline after {fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))})" : " (grace week)"
+                    : hasPublishedMenu ? ": their online menu is offline" : ""),
+                clientHref, "Renew"));
         else if (state == SubscriptionState.Active && sub is not null && sub.ExpiresAt - now < TimeSpan.FromDays(14))
             items.Add(new(AttentionSeverity.Warn, client.Name, $"Online ends {fmt.Until(sub.ExpiresAt)}", clientHref, "Renew"));
+        else if (state == SubscriptionState.None && hasPublishedMenu)
+            items.Add(new(AttentionSeverity.Bad, client.Name, "Online menu offline: no months of Online", clientHref, "Add months"));
+
+        // An online-menu-only client has no POS, so no branch to add or watch.
+        if (!client.HasPos) return items;
 
         if (client.Sites.Count == 0)
             items.Add(new(AttentionSeverity.Warn, client.Name, "No branch added yet", clientHref, "Add branch"));

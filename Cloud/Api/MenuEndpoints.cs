@@ -1,5 +1,6 @@
 using Cloud.Data;
 using Cloud.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Sync;
 
@@ -9,7 +10,7 @@ namespace Cloud.Api;
 /// The online menu. Three audiences:
 /// <list type="bullet">
 /// <item>the menu editor (<c>/menu/v1</c>): the shop owner signed in on the owner website (a login allowed to edit products), or you from the
-/// admin portal (admin cookie plus <c>?client=</c>). Every call is bound to one client's single menu; there is no menu id to tamper with.</item>
+/// admin portal (admin cookie plus <c>?client=</c>) or the admin app (its <c>nxa_</c> bearer token plus <c>?client=</c>). Every call is bound to one client's single menu; there is no menu id to tamper with.</item>
 /// <item>the shop PC (<c>POST /api/sync/menu-catalog</c>, device token): its product list, when the owner linked the branch.</item>
 /// <item>everyone: the page itself (Pages/Public/Menu) and its pictures (<c>/m/img/{file}</c>).</item>
 /// </list>
@@ -67,11 +68,11 @@ public static partial class MenuEndpoints
     /// The public menu's items a page at a time, for menu-page.js: the rest of a section (<c>section</c> + <c>skip</c>; 0 = items in no section)
     /// or a search (<c>q</c>). Only what the page itself would show: published (or the right preview key), visible sections, visible items.
     /// </summary>
-    private static async Task<IResult> PublicItems(string slug, HttpContext http, ControlDbContext db, int? section, int? skip, int? take, string? q, string? preview,
+    private static async Task<IResult> PublicItems(string slug, HttpContext http, ControlDbContext db, TimeProvider time, int? section, int? skip, int? take, string? q, string? preview,
         string? b, int? t)
     {
-        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
-        if (menu is null || !menu.Client.IsActive || (!menu.IsPublished && (string.IsNullOrEmpty(preview) || preview != menu.PreviewKey)))
+        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).ThenInclude(c => c.Subscription).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
+        if (menu is null || !SubscriptionRules.MenuIsLive(menu.Client, time.GetUtcNow().UtcDateTime) || (!menu.IsPublished && (string.IsNullOrEmpty(preview) || preview != menu.PreviewKey)))
             return Results.NotFound();
         // The same branch and order type as the page that asks.
         var context = await Cloud.Pages.Public.MenuContext.LoadAsync(db, menu, b, t);
@@ -129,6 +130,17 @@ public static partial class MenuEndpoints
 
     private static async Task<(Editor? Editor, IResult? Failure)> EditorAsync(HttpContext http, ControlDbContext db, TimeProvider time, int? client)
     {
+        // The admin app: its bearer token, plus ?client= like the portal. A bearer token is not sent by a cross-site form, so no editor header is needed.
+        if (AdminTokens.FromHeader(http.Request) is not null)
+        {
+            var signedIn = await http.AuthenticateAsync(AdminTokenHandler.SchemeName);
+            if (!signedIn.Succeeded) return (null, Error(StatusCodes.Status401Unauthorized, SyncErrorCodes.Unauthorized, "Please sign in again."));
+            var row = client is null ? null : await db.Clients.Include(c => c.Sites).FirstOrDefaultAsync(c => c.Id == client);
+            return row is null
+                ? (null, Error(StatusCodes.Status404NotFound, "not_found", "No such client."))
+                : (new Editor(row, true), null);
+        }
+
         if (http.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
             var who = await OwnerAuth.AuthenticateAsync(http, db, time);
@@ -175,8 +187,9 @@ public static partial class MenuEndpoints
         var sites = await db.Sites.Where(s => s.ClientId == editor.Client.Id && !s.IsDisabled).OrderBy(s => s.CreatedAt)
             .Select(s => new { id = s.Id, name = s.Name, lastSeenAtUtc = s.LastSeenAt }).ToListAsync();
         var origin = PublicSite.OriginOf(http);
+        var online = await OnlineViewAsync(db, editor.Client, http.RequestServices.GetRequiredService<TimeProvider>());
         if (menu is null)
-            return new { clientName = editor.Client.Name, admin = editor.IsAdmin, sites, menu = (object?)null, sections = Array.Empty<object>(), looseCount = 0 };
+            return new { clientName = editor.Client.Name, admin = editor.IsAdmin, sites, online, menu = (object?)null, sections = Array.Empty<object>(), looseCount = 0 };
 
         // Counts only: a menu can hold thousands of items, so the editor loads each section's items a page at a time (GET items).
         var counts = await db.MenuItems.Where(i => i.MenuId == menu.Id).GroupBy(i => i.SectionId)
@@ -209,6 +222,7 @@ public static partial class MenuEndpoints
             clientName = editor.Client.Name,
             admin = editor.IsAdmin,
             sites,
+            online,
             menu = new
             {
                 slug = menu.Slug, url = origin + "/m/" + menu.Slug, previewUrl = origin + "/m/" + menu.Slug + "?preview=" + menu.PreviewKey, title = menu.Title, tagline = menu.Tagline, note = menu.Note,
@@ -227,6 +241,24 @@ public static partial class MenuEndpoints
             sections,
             looseCount,
             noPictureCount,
+        };
+    }
+
+    /// <summary>
+    /// The client's Online time as the editor needs it: whether the public menu answers (<see cref="SubscriptionRules.MenuIsLive"/>), the
+    /// state, when the paid time ends and when the grace week does, so the owner learns why the menu is offline, or that it soon will be.
+    /// </summary>
+    private static async Task<object> OnlineViewAsync(ControlDbContext db, Client client, TimeProvider time)
+    {
+        var now = time.GetUtcNow().UtcDateTime;
+        var sub = await db.Subscriptions.AsNoTracking().FirstOrDefaultAsync(x => x.ClientId == client.Id);
+        var state = SubscriptionRules.Evaluate(sub, now);
+        return new
+        {
+            state = state.ToString(),
+            menuLive = client.IsActive && SubscriptionRules.AllowsSync(state),
+            expiresAtUtc = sub?.ExpiresAt,
+            graceEndsAtUtc = sub?.ExpiresAt.AddDays(SubscriptionRules.GraceDays),
         };
     }
 

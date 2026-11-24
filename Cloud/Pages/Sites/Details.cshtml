@@ -217,8 +217,7 @@
 
 @functions {
     public class SiteDetailsModel(
-        ControlDbContext db, MirrorStore mirrors, EnrollmentService enrollment, SiteRemoval removal, PortalFormat fmt, TimeProvider time,
-        Microsoft.Extensions.Options.IOptions<CloudOptions> options) : PageModel
+        ControlDbContext db, MirrorStore mirrors, AdminOperations ops, PortalFormat fmt) : PageModel
     {
         private static readonly string[] SummaryTables = ["Products", "Customers", "Suppliers", "Orders", "Purchases", "Receipts"];
 
@@ -236,9 +235,7 @@
         public string? NewLink { get; private set; }
         public string? NewLinkExpires { get; private set; }
 
-        public string BaseUrl => string.IsNullOrWhiteSpace(options.Value.PublicUrl)
-            ? $"{Request.Scheme}://{Request.Host}"
-            : options.Value.PublicUrl.TrimEnd('/');
+        public string BaseUrl => ops.BaseUrl(Request);
 
         public string WhatsAppUrl => "https://wa.me/?text=" + Uri.EscapeDataString(
             "Coduo POS Online: open Coduo POS > Settings > Online, paste this link and press Connect.\n" +
@@ -272,48 +269,27 @@
             return Page();
         }
 
-        private Task<Site?> TrackedAsync(Guid id)
-            => db.Sites.Include(s => s.Tokens).FirstOrDefaultAsync(s => s.Id == id);
-
-        private void Log(Site site, string text)
-            => db.ClientEvents.Add(new ClientEvent { ClientId = site.ClientId, At = time.GetUtcNow().UtcDateTime, Text = $"[{site.Name}] {text}" });
-
         public async Task<IActionResult> OnPostNewLinkAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            var issued = await enrollment.IssueAsync(id);
-            TempData["NewLink"] = $"{BaseUrl}/enroll/{issued.Display}";
+            var issued = await ops.NewLinkAsync(id, BaseUrl);
+            if (issued is null) return NotFound();
+            TempData["NewLink"] = issued.Url;
             TempData["NewLinkExpires"] = issued.ExpiresAt.ToString("yyyy-MM-dd");
-            Log(site, "Connection link created.");
-            await db.SaveChangesAsync();
             this.Flash("Connection link created");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostDisconnectAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            var now = time.GetUtcNow().UtcDateTime;
-            foreach (var t in site.Tokens.Where(t => t.RevokedAt == null)) t.RevokedAt = now;
-            await enrollment.CancelOpenCodesAsync(id);
-            Log(site, "Disconnected.");
-            await db.SaveChangesAsync();
+            if (await ops.DisconnectAsync(id) is null) return NotFound();
             this.Flash("Disconnected");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostIssueTokenAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            var now = time.GetUtcNow().UtcDateTime;
-            foreach (var old in site.Tokens.Where(t => t.RevokedAt == null)) old.RevokedAt = now;
-            var (token, hash, prefix) = DeviceTokens.Generate();
-            site.Tokens.Add(new DeviceToken { TokenHash = hash, Prefix = prefix, CreatedAt = now });
-            Log(site, "Device token issued manually.");
-            await db.SaveChangesAsync();
+            var token = await ops.IssueTokenAsync(id);
+            if (token is null) return NotFound();
             TempData["NewToken"] = token;
             this.Flash("Device token issued");
             return RedirectToPage(new { id });
@@ -321,35 +297,26 @@
 
         public async Task<IActionResult> OnPostResyncAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            site.ResyncRequested = true;
-            Log(site, "Full resync requested.");
-            await db.SaveChangesAsync();
+            if (await ops.RequestResyncAsync(id) is null) return NotFound();
             this.Flash("Full resync requested. It starts at the shop PC's next contact");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostRemoveAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            var (clientId, name) = (site.ClientId, site.Name);
-            await removal.RemoveAsync([id]);
-            db.ClientEvents.Add(new ClientEvent { ClientId = clientId, At = time.GetUtcNow().UtcDateTime, Text = $"Branch '{name}' removed." });
-            await db.SaveChangesAsync();
+            var name = await db.Sites.Where(s => s.Id == id).Select(s => s.Name).FirstOrDefaultAsync();
+            var clientId = await ops.RemoveSiteAsync(id);
+            if (clientId is null) return NotFound();
             this.Flash($"Branch '{name}' removed");
             return Redirect($"/admin/Clients/Details/{clientId}");
         }
 
         public async Task<IActionResult> OnPostToggleDisabledAsync(Guid id)
         {
-            var site = await TrackedAsync(id);
-            if (site is null) return NotFound();
-            site.IsDisabled = !site.IsDisabled;
-            Log(site, site.IsDisabled ? "Branch disabled." : "Branch enabled.");
-            await db.SaveChangesAsync();
-            this.Flash(site.IsDisabled ? "Branch disabled" : "Branch enabled");
+            var disabled = await db.Sites.Where(s => s.Id == id).Select(s => (bool?)s.IsDisabled).FirstOrDefaultAsync();
+            if (disabled is null) return NotFound();
+            await ops.SetSiteDisabledAsync(id, !disabled.Value);
+            this.Flash(disabled.Value ? "Branch enabled" : "Branch disabled");
             return RedirectToPage(new { id });
         }
     }

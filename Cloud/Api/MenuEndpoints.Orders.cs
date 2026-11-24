@@ -46,8 +46,8 @@ public static partial class MenuEndpoints
     private static async Task<IResult> SendOrder(string slug, SendOrderRequest body, HttpContext http, ControlDbContext db, TimeProvider time,
         MenuOrderThrottle throttle)
     {
-        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
-        if (menu is null || !menu.Client.IsActive || (!menu.IsPublished && (string.IsNullOrEmpty(body.Preview) || body.Preview != menu.PreviewKey)))
+        var menu = await db.Menus.AsNoTracking().Include(m => m.Client).ThenInclude(c => c.Subscription).FirstOrDefaultAsync(m => m.Slug == slug.ToLower());
+        if (menu is null || !SubscriptionRules.MenuIsLive(menu.Client, time.GetUtcNow().UtcDateTime) || (!menu.IsPublished && (string.IsNullOrEmpty(body.Preview) || body.Preview != menu.PreviewKey)))
             return Results.NotFound();
         if (menu.OrderMode is not (MenuOrderModes.Request or MenuOrderModes.Pos))
             return Error(StatusCodes.Status409Conflict, "orders_off", "This menu does not take orders online. Show your order to a member of staff.");

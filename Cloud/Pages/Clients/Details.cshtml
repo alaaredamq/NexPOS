@@ -15,16 +15,19 @@
     var sub = Model.Client.Subscription;
     var (planTone, planLabel) = Pills.Plan(Model.State);
     var contact = string.Join(" · ", new[] { Model.Client.Phone, Model.Client.Email }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    var menuOnly = Model.Client.HasOnline && !Model.Client.HasPos;
 }
 
 <div class="page-head">
     <div>
         <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
-        <h1>@Model.Client.Name @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
+        <h1>@Model.Client.Name @if (menuOnly) { <span class="pill none plain" style="vertical-align:middle">online menu only</span> } @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
         <p class="sub">@(contact.Length > 0 ? contact : "No contact details")</p>
     </div>
 </div>
 
+@if (Model.Client.HasOnline)
+{
 <div class="g">
 <section class="card s5" aria-labelledby="plan">
     <h2 id="plan">Online subscription</h2>
@@ -36,12 +39,13 @@
                 <p class="num" style="font-size:28px;margin:6px 0 0">Ends <b>@Fmt.Day(sub.ExpiresAt)</b></p>
                 <p class="muted" style="margin:2px 0 0">
                     @Fmt.Until(sub.ExpiresAt)
-                    @if (Model.State == SubscriptionState.Grace) { <text> · in the grace week: data is still accepted until @Fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))</text> }
+                    @if (Model.State == SubscriptionState.Grace) { <text> · in the grace week: @(menuOnly ? "their menu stays open" : "data is still accepted and their menu stays open") until @Fmt.Day(sub.ExpiresAt.AddDays(SubscriptionRules.GraceDays))</text> }
+                    @if (Model.State == SubscriptionState.Expired) { <text> · their online menu is offline until you add months</text> }
                 </p>
             }
             else
             {
-                <p style="margin:6px 0 0">No subscription yet. Their shop cannot send data.</p>
+                <p style="margin:6px 0 0">No subscription yet. @(menuOnly ? "Their online menu is offline." : "Their shop cannot send data and their online menu is offline.") Add the months they paid for.</p>
             }
         </div>
         <div>
@@ -54,19 +58,35 @@
                     </form>
                 }
             </div>
-            <p class="help">Renewing early keeps the time left. Renewing late starts today.</p>
+            <p class="help">Renewing early keeps the time left. Renewing late starts today. Got paid? <a href="#payments">Record the payment</a>.</p>
         </div>
     </div>
     @if (sub is not null)
     {
         <form method="post" asp-page-handler="@(sub.IsSuspended ? "Resume" : "Suspend")" asp-route-id="@Model.Client.Id"
-              data-confirm="@(sub.IsSuspended ? "Their shop will be allowed to send data again." : "Their shop stops sending data to the cloud. It keeps selling, and sends what it saved when you resume.")"
+              data-confirm="@(sub.IsSuspended ? (menuOnly ? "Their online menu opens again." : "Their shop will be allowed to send data again, and their online menu opens again.") : (menuOnly ? "Their online menu goes offline until you resume." : "Their shop stops sending data to the cloud and their online menu goes offline. It keeps selling, and sends what it saved when you resume."))"
               data-confirm-title="@(sub.IsSuspended ? "Resume Online?" : "Suspend Online?")" data-confirm-yes="@(sub.IsSuspended ? "Resume" : "Suspend")" style="margin-top:6px">
             <button type="submit" class="btn @(sub.IsSuspended ? "secondary" : "danger") sm">@(sub.IsSuspended ? "Resume" : "Suspend")</button>
         </form>
     }
 </section>
 
+@if (menuOnly)
+{
+<section class="card s7" aria-labelledby="h-menuonly">
+    <div class="ph">
+        <h2 id="h-menuonly">Online menu only</h2>
+        <form method="post" asp-page-handler="AddPos" asp-route-id="@Model.Client.Id"
+              data-confirm-title="They bought the POS?" data-confirm-yes="Add the POS"
+              data-confirm="They become POS + Online, keeping their months and their menu. Their first branch is added, with a connection link to send them; issue their licence key as usual.">
+            <button type="submit" class="btn secondary sm">They bought the POS</button>
+        </form>
+    </div>
+    <p class="muted" style="margin:0">No Coduo POS: no branch to connect and no licence key. The owner edits the menu on the owner website with their phone login. The menu is part of their Online months: it stays up while those run (plus a grace week), then goes offline until you add more.</p>
+</section>
+}
+else
+{
 <section class="card s7" aria-labelledby="branches">
     <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
@@ -111,7 +131,120 @@
         </form>
     </details>
 </section>
+}
 </div>
+}
+else
+{
+    <section class="card" aria-labelledby="h-type">
+        <div class="ph">
+            <h2 id="h-type">POS only <span class="pill offline plain">offline</span></h2>
+            <form method="post" asp-page-handler="Online" asp-route-id="@Model.Client.Id" asp-route-on="true"
+                  data-confirm-title="Turn Online on?" data-confirm-yes="Turn on"
+                  data-confirm="@(Model.Client.Sites.Count == 0 ? "Their first branch is added, with a connection link to send them." : "Their branches are followed again.")">
+                <button type="submit" class="btn secondary sm">They bought Online</button>
+            </form>
+        </div>
+        <p class="muted" style="margin:0">This shop runs Coduo POS on its own PC without the cloud. There is nothing to connect; the portal follows their licence and payments.</p>
+    </section>
+}
+
+@if (Model.Client.HasPos || Model.Licenses.Count > 0)
+{
+<section class="card" id="licences" aria-labelledby="h-lic">
+    <div class="ph">
+        <h2 id="h-lic">POS licences <span class="count">@Model.Licenses.Count(r => r.Status != LicenseStatus.Superseded)</span></h2>
+        <a class="btn sm" href="/admin/Licenses?client=@Model.Client.Id#issue"><svg class="icon"><use href="#i-key"/></svg>Issue a key</a>
+    </div>
+    @if (Model.Licenses.Count == 0)
+    {
+        <p class="muted">No licence on record. Issue their key here, or add one you issued before on the <a href="/admin/Licenses">Licences</a> page.</p>
+    }
+    else
+    {
+        <div class="tscroll">
+            <table class="t">
+                <thead><tr><th>Machine ID</th><th>Licence</th><th>Ends</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var row in Model.Licenses)
+                    {
+                        var l = row.License;
+                        var (lTone, lLabel) = LicenseRules.Pill(row.Status);
+                        <tr>
+                            <td><span class="mono">@l.MachineId</span><small class="muted d">serial @l.Serial</small></td>
+                            <td>@l.Plan · @l.Kind@(l.Seats > 1 ? $" · {l.Seats} PCs" : "")<small class="muted d">issued @l.IssuedOn.ToString("yyyy-MM-dd")</small></td>
+                            <td class="nowrap"><span class="pill @lTone">@lLabel</span><small class="muted d">@(LicenseRules.IsTimeLimited(l) ? "ends" : "updates until") @l.ValidUntil.ToString("yyyy-MM-dd")</small></td>
+                            <td class="r nowrap">
+                                @if (l.KeyText is not null)
+                                {
+                                    <span class="sr" id="ckey-@l.Id">@l.KeyText</span>
+                                    <button type="button" class="btn ghost sm" data-copy="#ckey-@l.Id"><span class="label">Copy key</span></button>
+                                }
+                                @if (row.Status != LicenseStatus.Superseded) { <a class="btn ghost sm" href="/admin/Licenses?renew=@l.Id#issue">Renew</a> }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+}
+
+<section class="card" id="payments" aria-labelledby="h-payments">
+    <div class="ph">
+        <h2 id="h-payments">Payments <span class="count">@Model.Payments.Count</span></h2>
+        <a class="btn ghost sm" href="/admin/Finance">Finance</a>
+    </div>
+    @if (Model.Payments.Count > 0)
+    {
+        var lastPay = Model.Payments[0];
+        <div class="ledger" style="margin-bottom:14px">
+            <div><b>@Fmt.Money(Model.Payments.Sum(x => x.Amount))</b><span>collected in all</span></div>
+            <div><b>@Fmt.Money(Model.Payments.Where(x => x.ReceivedOn > Fmt.Today.AddYears(-1)).Sum(x => x.Amount))</b><span>in the last 12 months</span></div>
+            <div><b>@lastPay.ReceivedOn.ToString("yyyy-MM-dd")</b><span>last payment, @Fmt.Money(lastPay.Amount)</span></div>
+        </div>
+        <div class="tscroll">
+            <table class="t">
+                <thead><tr><th>Day</th><th>For</th><th>Paid by</th><th class="r">Amount</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var x in Model.Payments.Take(Model.ShowAllPayments ? int.MaxValue : 10))
+                    {
+                        <tr>
+                            <td class="nowrap">@x.ReceivedOn.ToString("yyyy-MM-dd")</td>
+                            <td>@x.Purpose@if (!string.IsNullOrEmpty(x.Note)) { <small class="muted d">@x.Note</small> }</td>
+                            <td>@x.Method@if (!string.IsNullOrEmpty(x.Reference)) { <small class="muted d">@x.Reference</small> }</td>
+                            <td class="r num nowrap">@Fmt.Money(x.Amount)</td>
+                            <td class="r">
+                                <form method="post" asp-page-handler="DeletePayment" asp-route-id="@Model.Client.Id" asp-route-paymentId="@x.Id"
+                                      data-confirm-title="Delete this payment?" data-confirm-yes="Delete"
+                                      data-confirm="@Fmt.Money(x.Amount) on @x.ReceivedOn.ToString("yyyy-MM-dd"). It comes off every total.">
+                                    <button type="submit" class="btn ghost sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Payments.Count > 10 && !Model.ShowAllPayments)
+        {
+            <p class="help"><a href="?all=payments#payments">Show all @Model.Payments.Count payments</a></p>
+        }
+    }
+    else
+    {
+        <p class="muted">Nothing recorded from @Model.Client.Name yet.</p>
+    }
+    <details class="fold" style="margin-top:14px" open="@(Model.PaymentError is not null)">
+        <summary>Record a payment</summary>
+        <form method="post" asp-page-handler="Payment" asp-route-id="@Model.Client.Id">
+            <partial name="_PaymentFields" model="@(new PaymentFieldsView(Model.Pay, [], Fmt.Today, Model.Client.Id))" />
+            @if (Model.PaymentError is not null) { <p class="error" role="alert">@Model.PaymentError</p> }
+            <p style="margin:16px 0 0"><button type="submit" class="btn">Record payment</button></p>
+        </form>
+    </details>
+</section>
 
 @if (Model.NewLoginEmail is not null)
 {
@@ -120,11 +253,21 @@
         <p class="muted" style="margin-top:0">The password is shown only now. If it is lost, reset it and a new one is made.</p>
         <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Sign in with: @Model.NewLoginEmail
 Password: @Model.NewLoginPassword</div>
+        @if (menuOnly)
+        {
+        <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
+            <li>The owner opens @Model.OwnerSiteUrl and signs in with the name and password above.</li>
+            <li>It opens their online menu editor: they add their dishes, pictures and prices, then publish it and print the QR code.</li>
+        </ol>
+        }
+        else
+        {
         <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
             <li>The owner installs the Coduo POS Owner app and signs in with the name and password above.</li>
             <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: Coduo POS &gt; Settings &gt; Online &gt; Show recovery code.</li>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
+        }
         <div class="row" style="margin-top:12px">
             <button type="button" class="btn" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
             <a class="btn secondary" target="_blank" rel="noopener" href="@Model.NewLoginWhatsApp"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
@@ -133,14 +276,26 @@ Password: @Model.NewLoginPassword</div>
 }
 
 <section class="card" aria-labelledby="menu">
-    <h2 id="menu">Online menu</h2>
-    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. Fill it by hand, or link it to a branch so it follows the POS.</p>
+    <h2 id="menu">Online menu
+        @if (Model.HasMenu)
+        {
+            <span class="pill @(Model.MenuLive ? "ok" : "bad")" style="margin-inline-start:6px">@(Model.MenuLive ? (Model.MenuPublished ? "live" : "not published") : "offline")</span>
+        }
+    </h2>
+    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. @(menuOnly ? "The owner fills it by hand." : "Fill it by hand, or link it to a branch so it follows the POS.") It is part of Online: without Online months (after the grace week) it is offline.</p>
     <p><a class="btn secondary" href="/owner/menu.html?client=@Model.Client.Id">Open the menu editor</a></p>
 </section>
 
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
-    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    @if (menuOnly)
+    {
+        <p class="muted" style="margin-top:0">What the owner types on the owner website (this site, /owner) to edit their online menu. Give them the Owner or Manager role: Staff cannot change the menu.</p>
+    }
+    else
+    {
+        <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    }
     @if (Model.Owners.Count == 0)
     {
         <p class="muted">No phone login yet.</p>
@@ -232,9 +387,17 @@ Password: @Model.NewLoginPassword</div>
               data-confirm-title="@(Model.Client.IsActive ? "Deactivate this client?" : "Reactivate this client?")" data-confirm-yes="@(Model.Client.IsActive ? "Deactivate" : "Reactivate")">
             <button type="submit" class="btn sm @(Model.Client.IsActive ? "danger" : "secondary")">@(Model.Client.IsActive ? "Deactivate client" : "Reactivate client")</button>
         </form>
+        @if (Model.Client.HasOnline && Model.Client.HasPos)
+        {
+            <form method="post" asp-page-handler="Online" asp-route-id="@Model.Client.Id" asp-route-on="false" style="margin-top:10px"
+                  data-confirm-title="Make this client POS only?" data-confirm-yes="POS only"
+                  data-confirm="For a shop that stopped using Online. Its branches and cloud data stay; the portal just stops asking about them and its Online plan.">
+                <button type="submit" class="btn sm secondary">Make POS only (no Online)</button>
+            </form>
+        }
         <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Client.Id" style="margin-top:10px"
               data-confirm-title="Remove @Model.Client.Name?" data-confirm-yes="Remove client"
-              data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
+              data-confirm="@(Model.Client.Sites.Count == 0 ? "" : $"This also removes its {Model.Client.Sites.Count} branch{(Model.Client.Sites.Count == 1 ? "" : "es")} and deletes their cloud copy of the data for good. ")The subscription and history go too; its payments stay in Finance. Nothing is deleted at the shop, and it keeps selling. This cannot be undone.">
             <button type="submit" class="btn sm danger">Remove client</button>
         </form>
     </section>
@@ -251,19 +414,34 @@ Password: @Model.NewLoginPassword</div>
 </div>
 
 @functions {
-    public class DetailsModel(ControlDbContext db, SiteRemoval removal, PortalFormat fmt, TimeProvider time) : PageModel
+    public class DetailsModel(ControlDbContext db, AdminOperations ops, PortalFormat fmt, FinanceBook book, LicenseBook licenses) : PageModel
     {
+        /// <summary>Newest first.</summary>
+        public List<Payment> Payments { get; private set; } = [];
+        public List<LicenseRow> Licenses { get; private set; } = [];
+        public bool ShowAllPayments { get; private set; }
+        [BindProperty] public PaymentInput Pay { get; set; } = new();
+        public string? PaymentError { get; private set; }
+
         public Client? Client { get; private set; }
         public SubscriptionState State { get; private set; }
         public DateTime Now => fmt.Now;
         public ILookup<Guid, SiteHeartbeat> Beats { get; private set; } = Array.Empty<SiteHeartbeat>().ToLookup(h => h.SiteId);
         public List<OwnerUser> Owners { get; private set; } = [];
+        /// <summary>Whether the client made a menu, published it, and whether it answers now (SubscriptionRules.MenuIsLive).</summary>
+        public bool HasMenu { get; private set; }
+        public bool MenuPublished { get; private set; }
+        public bool MenuLive { get; private set; }
+        public string OwnerSiteUrl => ops.BaseUrl(Request) + "/owner";
 
         // A login made a moment ago, handed over once (TempData lives for one request).
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
-        public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+        public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(Client is { HasPos: false }
+            ? $"Your online menu login\nOpen: {OwnerSiteUrl}\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+              "There you add your dishes, pictures and prices, publish the menu and print its QR code.\n" +
+              "هناك تضيف أصنافك وصورها وأسعارها، ثم تنشر القائمة وتطبع رمز QR الخاص بها."
+            : $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
             "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
             "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
 
@@ -275,7 +453,15 @@ Password: @Model.NewLoginPassword</div>
                 .Include(c => c.Events)
                 .FirstOrDefaultAsync(c => c.Id == id);
             State = SubscriptionRules.Evaluate(Client?.Subscription, Now);
+            var menu = await db.Menus.AsNoTracking().Where(m => m.ClientId == id).Select(m => new { m.IsPublished }).FirstOrDefaultAsync();
+            HasMenu = menu is not null;
+            MenuPublished = menu?.IsPublished ?? false;
+            MenuLive = Client is not null && SubscriptionRules.MenuIsLive(Client, Now);
             Owners = await db.OwnerUsers.AsNoTracking().Where(o => o.ClientId == id).OrderBy(o => o.CreatedAt).ToListAsync();
+            Payments = (await db.Payments.AsNoTracking().Where(p => p.ClientId == id).ToListAsync())
+                .OrderByDescending(p => p.ReceivedOn).ThenByDescending(p => p.Id).ToList();
+            ShowAllPayments = Request.Query["all"] == "payments";
+            Licenses = await licenses.ForClientAsync(id);
             NewLoginEmail = TempData["NewLoginEmail"] as string;
             NewLoginPassword = TempData["NewLoginPassword"] as string;
 
@@ -290,142 +476,139 @@ Password: @Model.NewLoginPassword</div>
             return Client is null ? NotFound() : Page();
         }
 
-        private async Task<Client?> TrackedAsync(int id)
-            => await db.Clients.Include(c => c.Subscription).FirstOrDefaultAsync(c => c.Id == id);
-
-        private void Log(Client client, string text)
-            => client.Events.Add(new ClientEvent { At = time.GetUtcNow().UtcDateTime, Text = text });
-
-        public async Task<IActionResult> OnPostSaveAsync(int id, string name, string? phone, string? email, string? notes)
+        public async Task<IActionResult> OnPostPaymentAsync(int id)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            if (string.IsNullOrWhiteSpace(name)) return RedirectToPage(new { id });
-            client.Name = name.Trim(); client.Phone = phone?.Trim(); client.Email = email?.Trim(); client.Notes = notes?.Trim();
-            await db.SaveChangesAsync();
-            this.Flash("Changes saved");
+            Pay.ClientId = id;
+            var (payment, error) = await book.RecordPaymentAsync(Pay, User.Identity?.Name ?? "");
+            if (payment is null)
+            {
+                PaymentError = error;
+                await LoadAsync(id);
+                return Client is null ? NotFound() : Page();
+            }
+            this.Flash($"Payment of {fmt.Money(payment.Amount)} recorded");
+            return Redirect($"/admin/Clients/Details/{id}#payments");
+        }
+
+        public async Task<IActionResult> OnPostDeletePaymentAsync(int id, int paymentId)
+        {
+            // Only this client's payment: the id in the address names whose page this is.
+            if (await db.Payments.AnyAsync(p => p.Id == paymentId && p.ClientId == id) && await book.DeletePaymentAsync(paymentId) is not null)
+                this.Flash("Payment deleted");
+            return Redirect($"/admin/Clients/Details/{id}#payments");
+        }
+
+        /// <summary>Runs a change, turning a refused request into the toast it would show, and comes back to this page.</summary>
+        private async Task<IActionResult> DoAsync(int id, Func<Task<object?>> work, string done)
+        {
+            try
+            {
+                if (await work() is null) return NotFound();
+                this.Flash(done);
+            }
+            catch (AdminRuleException refused)
+            {
+                this.Flash(refused.Message.TrimEnd('.'));
+            }
             return RedirectToPage(new { id });
         }
 
+        public Task<IActionResult> OnPostSaveAsync(int id, string name, string? phone, string? email, string? notes)
+            => DoAsync(id, async () => await ops.UpdateClientAsync(id, name, phone, email, notes), "Changes saved");
+
         public async Task<IActionResult> OnPostToggleActiveAsync(int id)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            client.IsActive = !client.IsActive;
-            Log(client, client.IsActive ? "Client reactivated." : "Client deactivated.");
-            await db.SaveChangesAsync();
-            this.Flash(client.IsActive ? "Client reactivated" : "Client deactivated");
+            var active = await db.Clients.Where(c => c.Id == id).Select(c => (bool?)c.IsActive).FirstOrDefaultAsync();
+            if (active is null) return NotFound();
+            return await DoAsync(id, async () => await ops.SetClientActiveAsync(id, !active.Value), active.Value ? "Client deactivated" : "Client reactivated");
+        }
+
+        public async Task<IActionResult> OnPostOnlineAsync(int id, bool on)
+        {
+            (Client Client, IssuedLink? Link)? result;
+            try
+            {
+                result = await ops.SetOnlineAsync(id, on, ops.BaseUrl(Request));
+            }
+            catch (AdminRuleException refused)
+            {
+                this.Flash(refused.Message.TrimEnd('.'));
+                return RedirectToPage(new { id });
+            }
+            if (result is null) return NotFound();
+            if (result.Value.Link is { } link)
+            {
+                // A new branch with its link: the branch page shows it, ready to send.
+                TempData["NewLink"] = link.Url;
+                TempData["NewLinkExpires"] = link.ExpiresAt.ToString("yyyy-MM-dd");
+                this.Flash("Online turned on. Send them the link");
+                var siteId = await db.Sites.Where(s => s.ClientId == id).OrderBy(s => s.CreatedAt).Select(s => s.Id).FirstAsync();
+                return Redirect($"/admin/Sites/Details/{siteId}");
+            }
+            this.Flash(on ? "Online turned on" : "Now POS only");
+            return RedirectToPage(new { id });
+        }
+
+        /// <summary>An online-menu-only client bought the POS: POS + Online, and its first branch's link is shown, ready to send.</summary>
+        public async Task<IActionResult> OnPostAddPosAsync(int id)
+        {
+            var result = await ops.AddPosAsync(id, ops.BaseUrl(Request));
+            if (result is null) return NotFound();
+            if (result.Value.Link is { } link)
+            {
+                TempData["NewLink"] = link.Url;
+                TempData["NewLinkExpires"] = link.ExpiresAt.ToString("yyyy-MM-dd");
+                this.Flash("Now POS + Online. Send them the link");
+                var siteId = await db.Sites.Where(s => s.ClientId == id).OrderBy(s => s.CreatedAt).Select(s => s.Id).FirstAsync();
+                return Redirect($"/admin/Sites/Details/{siteId}");
+            }
+            this.Flash("Now POS + Online");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostRemoveAsync(int id)
         {
-            var client = await db.Clients.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
-            if (client is null) return NotFound();
-            await removal.RemoveClientAsync(id);
-            this.Flash($"{client.Name} removed");
+            var name = await ops.RemoveClientAsync(id);
+            if (name is null) return NotFound();
+            this.Flash($"{name} removed");
             return Redirect("/admin");
         }
 
         public async Task<IActionResult> OnPostExtendAsync(int id, int months)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-            if (months is < 1 or > 60) return RedirectToPage(new { id });
-
-            var now = time.GetUtcNow().UtcDateTime;
-            if (client.Subscription is null)
-            {
-                client.Subscription = new Subscription { StartsAt = now, ExpiresAt = now.AddMonths(months) };
-            }
-            else
-            {
-                client.Subscription.ExpiresAt = SubscriptionRules.ExtendedExpiry(client.Subscription, months, now);
-                client.Subscription.IsSuspended = false;
-            }
-            Log(client, $"Online extended by {months} month(s), now until {client.Subscription.ExpiresAt:yyyy-MM-dd}.");
-            await db.SaveChangesAsync();
-            this.Flash($"Added {months} month{(months == 1 ? "" : "s")}. Online now ends {client.Subscription.ExpiresAt:yyyy-MM-dd}");
+            if (months is < 1 or > AdminOperations.MaxMonths) return RedirectToPage(new { id });
+            var sub = await ops.ExtendAsync(id, months);
+            if (sub is null) return NotFound();
+            this.Flash($"Added {months} month{(months == 1 ? "" : "s")}. Online now ends {sub.ExpiresAt:yyyy-MM-dd}");
             return RedirectToPage(new { id });
         }
 
-        public async Task<IActionResult> OnPostSuspendAsync(int id) => await SetSuspendedAsync(id, true);
-        public async Task<IActionResult> OnPostResumeAsync(int id) => await SetSuspendedAsync(id, false);
-
-        private async Task<IActionResult> SetSuspendedAsync(int id, bool suspended)
-        {
-            var client = await TrackedAsync(id);
-            if (client?.Subscription is null) return NotFound();
-            client.Subscription.IsSuspended = suspended;
-            Log(client, suspended ? "Online suspended." : "Online resumed.");
-            await db.SaveChangesAsync();
-            this.Flash(suspended ? "Online suspended" : "Online resumed");
-            return RedirectToPage(new { id });
-        }
+        public Task<IActionResult> OnPostSuspendAsync(int id) => DoAsync(id, async () => await ops.SetSuspendedAsync(id, true), "Online suspended");
+        public Task<IActionResult> OnPostResumeAsync(int id) => DoAsync(id, async () => await ops.SetSuspendedAsync(id, false), "Online resumed");
 
         // ---- phone logins (the owner's sign-in to the phone app) ----
 
-        public const int MinOwnerPasswordLength = 8;
-        // No 0/O/1/l/I: the owner may have to read it off a screen and type it.
-        private const string PasswordAlphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        public const int MinOwnerPasswordLength = AdminOperations.MinOwnerPasswordLength;
 
-        private static string GeneratePassword(int length = 12)
+        private void HandOver(OwnerHandOver handOver)
         {
-            var chars = new char[length];
-            for (var i = 0; i < length; i++)
-                chars[i] = PasswordAlphabet[System.Security.Cryptography.RandomNumberGenerator.GetInt32(PasswordAlphabet.Length)];
-            return new string(chars);
-        }
-
-        private void HandOver(string email, string password)
-        {
-            TempData["NewLoginEmail"] = email;
-            TempData["NewLoginPassword"] = password;
+            TempData["NewLoginEmail"] = handOver.Owner.Email;
+            TempData["NewLoginPassword"] = handOver.Password;
         }
 
         public async Task<IActionResult> OnPostAddOwnerAsync(int id, string? email, string? displayName, string? password, string? role)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
-
-            // Email, phone number or username: whichever the owner would rather type (see OwnerSignIn).
-            if (OwnerSignIn.Normalize(email) is not { } signIn)
+            try
             {
-                this.Flash(OwnerSignIn.Rules);
-                return RedirectToPage(new { id });
+                var added = await ops.AddOwnerAsync(id, email, displayName, password, role);
+                if (added is null) return NotFound();
+                HandOver(added);
+                this.Flash("Phone login added");
             }
-            email = signIn.Value;
-            if (!string.IsNullOrEmpty(password) && (password.Length < MinOwnerPasswordLength || password.Length > 100))
+            catch (AdminRuleException refused)
             {
-                this.Flash($"The password needs at least {MinOwnerPasswordLength} characters");
-                return RedirectToPage(new { id });
+                this.Flash(refused.Message.TrimEnd('.'));
             }
-            // The sign-in name is unique across ALL clients: the phone app asks only for it and the password.
-            if (await OwnerSignIn.TakenAsync(db.OwnerUsers, email, signIn.Kind))
-            {
-                this.Flash(signIn.Kind switch
-                {
-                    OwnerSignIn.Kind.Email => "That email already has a phone login",
-                    OwnerSignIn.Kind.Phone => "That phone number already has a phone login",
-                    _ => "That username already has a phone login",
-                });
-                return RedirectToPage(new { id });
-            }
-
-            var finalPassword = string.IsNullOrEmpty(password) ? GeneratePassword() : password;
-            var name = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim()
-                : signIn.Kind == OwnerSignIn.Kind.Email ? email[..email.IndexOf('@')] : email;
-            db.OwnerUsers.Add(new OwnerUser
-            {
-                ClientId = id, Email = email, DisplayName = name.Length > 100 ? name[..100] : name,
-                PasswordHash = PasswordHasher.Hash(finalPassword), CreatedAt = time.GetUtcNow().UtcDateTime,
-                Permissions = (int)OwnerRoles.For(role),
-            });
-            Log(client, $"Phone login added for {email} ({OwnerRoles.NameOf(OwnerRoles.For(role))}).");  // never the password
-            await db.SaveChangesAsync();
-
-            HandOver(email, finalPassword);
-            this.Flash("Phone login added");
             return RedirectToPage(new { id });
         }
 
@@ -445,93 +628,38 @@ Password: @Model.NewLoginPassword</div>
             _ => "A custom set of permissions",
         };
 
-        public async Task<IActionResult> OnPostSetRoleAsync(int id, int ownerId, string? role)
-        {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            var permissions = OwnerRoles.For(role);
-            if ((int)permissions != owner.Permissions)
-            {
-                owner.Permissions = (int)permissions;
-                // The phone keeps what it was told at sign-in; signing it out makes the new limits apply now.
-                await RevokeSessionsAsync(owner.Id);
-                Log(client, $"Phone login role for {owner.Email} set to {OwnerRoles.NameOf(permissions)}.");
-                await db.SaveChangesAsync();
-            }
-            this.Flash("Role updated");
-            return RedirectToPage(new { id });
-        }
+        public Task<IActionResult> OnPostSetRoleAsync(int id, int ownerId, string? role)
+            => DoAsync(id, async () => await ops.SetOwnerRoleAsync(id, ownerId, role), "Role updated");
 
         public async Task<IActionResult> OnPostResetOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            var password = GeneratePassword();
-            owner.PasswordHash = PasswordHasher.Hash(password);
-            await RevokeSessionsAsync(owner.Id);
-            Log(client, $"Phone login password reset for {owner.Email}.");
-            await db.SaveChangesAsync();
-
-            HandOver(owner.Email, password);
+            var reset = await ops.ResetOwnerPasswordAsync(id, ownerId);
+            if (reset is null) return NotFound();
+            HandOver(reset);
             this.Flash("Password reset");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostToggleOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(u => u.Id == ownerId && u.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            owner.IsActive = !owner.IsActive;
-            if (!owner.IsActive) await RevokeSessionsAsync(owner.Id);
-            Log(client, owner.IsActive ? $"Phone login enabled for {owner.Email}." : $"Phone login disabled for {owner.Email}.");
-            await db.SaveChangesAsync();
-            this.Flash(owner.IsActive ? "Phone login enabled" : "Phone login disabled");
-            return RedirectToPage(new { id });
-        }
-
-        /// <summary>Signs every phone of this owner out, so a reset or a disable takes effect now and not when the session would have ended.</summary>
-        private async Task RevokeSessionsAsync(int ownerUserId)
-        {
-            var now = time.GetUtcNow().UtcDateTime;
-            var live = await db.OwnerSessions.Where(s => s.OwnerUserId == ownerUserId && s.RevokedAt == null).ToListAsync();
-            foreach (var session in live) session.RevokedAt = now;
+            var active = await db.OwnerUsers.Where(o => o.Id == ownerId && o.ClientId == id).Select(o => (bool?)o.IsActive).FirstOrDefaultAsync();
+            if (active is null) return NotFound();
+            return await DoAsync(id, async () => await ops.SetOwnerActiveAsync(id, ownerId, !active.Value),
+                active.Value ? "Phone login disabled" : "Phone login enabled");
         }
 
         public async Task<IActionResult> OnPostRemoveOwnerAsync(int id, int ownerId)
         {
-            var client = await TrackedAsync(id);
-            var owner = await db.OwnerUsers.FirstOrDefaultAsync(o => o.Id == ownerId && o.ClientId == id);
-            if (client is null || owner is null) return NotFound();
-
-            await db.OwnerSessions.Where(s => s.OwnerUserId == ownerId).ExecuteDeleteAsync();
-            db.OwnerUsers.Remove(owner);
-            Log(client, $"Phone sign-in removed for {owner.Email}.");
-            await db.SaveChangesAsync();
+            if (!await ops.RemoveOwnerAsync(id, ownerId)) return NotFound();
             this.Flash("Sign-in removed");
             return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostAddSiteAsync(int id, string siteName, string? machineId)
         {
-            var client = await TrackedAsync(id);
-            if (client is null) return NotFound();
             if (string.IsNullOrWhiteSpace(siteName)) return RedirectToPage(new { id });
-
-            var site = new Site
-            {
-                Id = Guid.NewGuid(), ClientId = id, Name = siteName.Trim(),
-                MachineId = string.IsNullOrWhiteSpace(machineId) ? null : machineId.Trim(),
-                CreatedAt = time.GetUtcNow().UtcDateTime,
-            };
-            db.Sites.Add(site);
-            Log(client, $"Branch '{site.Name}' added.");
-            await db.SaveChangesAsync();
+            var site = await ops.AddSiteAsync(id, siteName, machineId);
+            if (site is null) return NotFound();
             this.Flash("Branch added. Create its connection link below");
             return Redirect($"/admin/Sites/Details/{site.Id}");
         }
