@@ -45,6 +45,8 @@ public class Menu
     public string? Website { get; set; }
     /// <summary>Opening hours for each weekday, in <see cref="MenuHours"/> form. Null = not given.</summary>
     public string? Hours { get; set; }
+    /// <summary>How the menu writes times: 13:00 or 1:00 PM; one of <see cref="MenuClocks.All"/>.</summary>
+    public string Clock { get; set; } = MenuClocks.Default;
 
     /// <summary>What "Send order" does: one of <see cref="MenuOrderModes.All"/>.</summary>
     public string OrderMode { get; set; } = MenuOrderModes.Default;

@@ -215,7 +215,7 @@ public static partial class MenuEndpoints
                 language = menu.Language, currency = menu.Currency, listingStyle = menu.ListingStyle, logoUrl = menu.LogoFile is null ? null : "/m/img/" + menu.LogoFile,
                 coverUrl = menu.CoverFile is null ? null : "/m/img/" + menu.CoverFile, theme = menu.Theme,
                 address = menu.Address, mapUrl = menu.MapUrl, phone = menu.Phone, whatsApp = menu.WhatsApp,
-                instagram = menu.Instagram, facebook = menu.Facebook, tikTok = menu.TikTok, website = menu.Website, hours = HoursView(menu.Hours),
+                instagram = menu.Instagram, facebook = menu.Facebook, tikTok = menu.TikTok, website = menu.Website, hours = HoursView(menu.Hours), clock = menu.Clock,
                 orderMode = menu.OrderMode, showWhatsApp = menu.ShowWhatsApp,
                 isPublished = menu.IsPublished,
                 // The main branch (the first); kept under its old name for clients that knew only one.
@@ -349,7 +349,7 @@ public static partial class MenuEndpoints
         string? LinkedSiteId, string? ListingStyle = null, string[]? BranchIds = null,
         string? Theme = null, string? Address = null, string? MapUrl = null, string? Phone = null, string? WhatsApp = null,
         string? Instagram = null, string? Facebook = null, string? TikTok = null, string? Website = null, string?[]? Hours = null,
-        string? OrderMode = null, bool? ShowWhatsApp = null);
+        string? OrderMode = null, bool? ShowWhatsApp = null, string? Clock = null);
 
     /// <summary>
     /// A contact field from the editor: null = leave as is, "" = clear, else checked by <paramref name="ok"/>. Returns the refusal, if any.
@@ -411,6 +411,11 @@ public static partial class MenuEndpoints
             menu!.OrderMode = body.OrderMode;
         }
         if (body.ShowWhatsApp is { } wa) menu!.ShowWhatsApp = wa;
+        if (body.Clock is not null)
+        {
+            if (!MenuClocks.IsValid(body.Clock)) return Error(StatusCodes.Status400BadRequest, "bad_clock", "Pick the 24-hour (13:00) or the 12-hour (1:00 PM) clock.");
+            menu!.Clock = body.Clock;
+        }
         var m = menu!;
         var refused = Place(body.Address, body.MapUrl, body.Phone, body.Hours, v => m.Address = v, v => m.MapUrl = v, v => m.Phone = v, v => m.Hours = v)
             ?? Contact(body.WhatsApp, 30, MenuContact.IsPhone, "Write the WhatsApp number with its country code, e.g. +961 70 123 456.", v => m.WhatsApp = v)

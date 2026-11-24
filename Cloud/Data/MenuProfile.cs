@@ -22,6 +22,26 @@ public static class MenuThemes
     public static bool IsValid(string? theme) => theme is not null && All.Contains(theme);
 }
 
+/// <summary>How a menu writes its times: the 24-hour clock (13:00) or the 12-hour one (1:00 PM). Stored hours are always 24-hour.</summary>
+public static class MenuClocks
+{
+    public const string H24 = "24h";
+    public const string H12 = "12h";
+
+    public const string Default = H24;
+    public static readonly string[] All = [H24, H12];
+    public static bool IsValid(string? clock) => clock is not null && All.Contains(clock);
+
+    /// <summary>"13:00", or "1:00 PM" ("1:00 م" in Arabic) on the 12-hour clock. Midnight is 12:00 AM, noon 12:00 PM.</summary>
+    public static string Format(TimeOnly t, string? clock, bool arabic = false)
+    {
+        if (clock != H12) return t.ToString("HH:mm", CultureInfo.InvariantCulture);
+        var hour = t.Hour % 12 == 0 ? 12 : t.Hour % 12;
+        var half = t.Hour < 12 ? (arabic ? "ص" : "AM") : (arabic ? "م" : "PM");
+        return $"{hour}:{t.Minute:00} {half}";
+    }
+}
+
 /// <summary>
 /// Opening hours, one entry per weekday (Sunday first, as <see cref="DayOfWeek"/>), separated by <c>;</c>. An entry is one or more ranges
 /// <c>HH:mm-HH:mm</c> separated by <c>,</c> (a lunch break), or empty for closed. A range that ends at or before it starts runs past

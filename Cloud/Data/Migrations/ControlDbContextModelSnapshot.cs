@@ -180,6 +180,13 @@ namespace Cloud.Data.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Clock")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(4)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("24h");
+
                     b.Property<string>("CoverFile")
                         .HasMaxLength(60)
                         .HasColumnType("TEXT");

@@ -179,4 +179,34 @@ public class OnlineMenuProfileTests : IClassFixture<CloudFactory>
         Assert.Null(hours);
         Assert.NotNull(error);
     }
+
+    [Theory]
+    [InlineData("13:00", "24h", false, "13:00")]
+    [InlineData("13:00", "12h", false, "1:00 PM")]
+    [InlineData("00:30", "12h", false, "12:30 AM")]
+    [InlineData("12:00", "12h", false, "12:00 PM")]
+    [InlineData("09:05", "12h", false, "9:05 AM")]
+    [InlineData("21:45", "12h", true, "9:45 م")]
+    public void Times_are_written_on_the_clock_the_owner_picked(string at, string clock, bool arabic, string expect)
+        => Assert.Equal(expect, MenuClocks.Format(TimeOnly.Parse(at, System.Globalization.CultureInfo.InvariantCulture), clock, arabic));
+
+    [Fact]
+    public async Task The_owner_picks_the_24_or_12_hour_clock_for_the_menu()
+    {
+        var owner = await OwnerAsync("profile-clock");
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Clock Shop" }));
+        Assert.Equal("24h", state.GetProperty("menu").GetProperty("clock").GetString());
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/menu/v1/settings", new { clock = "ampm" })).StatusCode);
+
+        var day = "09:00-13:30,18:00-23:00";
+        state = await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { clock = "12h", isPublished = true, hours = new[] { day, day, day, day, day, day, day } }));
+        Assert.Equal("12h", state.GetProperty("menu").GetProperty("clock").GetString());
+        var html = await _cloud.CreateClient().GetStringAsync("/m/" + state.GetProperty("menu").GetProperty("slug").GetString());
+        Assert.Contains("9:00 AM&#x2013;1:30 PM, 6:00 PM&#x2013;11:00 PM", html);
+        Assert.DoesNotContain("13:30", html);
+
+        state = await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { clock = "24h" }));
+        html = await _cloud.CreateClient().GetStringAsync("/m/" + state.GetProperty("menu").GetProperty("slug").GetString());
+        Assert.Contains("09:00&#x2013;13:30, 18:00&#x2013;23:00", html);
+    }
 }
