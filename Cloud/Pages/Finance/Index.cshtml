@@ -1,0 +1,442 @@
+@page
+@model FinanceModel
+@{
+    ViewData["Title"] = "Finance";
+    ViewData["Nav"] = "finance";
+    var r = Model.Report;
+    var p = r.Period;
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    string Pct(double v) => v.ToString("0.##", inv);
+}
+
+<div class="page-head">
+    <div>
+        <h1>Finance</h1>
+        <p class="sub">What came in, what went out, and what is left. Amounts in @Fmt.Currency.</p>
+    </div>
+    <div class="row">
+        <a class="btn secondary" href="#record-payment"><svg class="icon"><use href="#i-plus"/></svg>Record payment</a>
+        <a class="btn secondary" href="#record-expense"><svg class="icon"><use href="#i-plus"/></svg>Record expense</a>
+    </div>
+</div>
+
+<div class="toolbar period" role="group" aria-label="Period">
+    <a class="btn secondary sm" href="?@p.Previous.Query" aria-label="Previous @(p.IsYear ? "year" : "month")"><svg class="icon"><use href="#i-back"/></svg></a>
+    <h2 class="period-label num">@p.Label</h2>
+    <a class="btn secondary sm" href="?@p.Next.Query" aria-label="Next @(p.IsYear ? "year" : "month")"><svg class="icon"><use href="#i-chev"/></svg></a>
+    <div class="chips">
+        <a class="chip" href="?m=@Fmt.Today.ToString("yyyy-MM", inv)" aria-pressed="@((!p.IsYear).ToString().ToLowerInvariant())">Month</a>
+        <a class="chip" href="?y=@(p.IsYear ? p.From.Year : p.From.Year)" aria-pressed="@(p.IsYear.ToString().ToLowerInvariant())">Year</a>
+    </div>
+    <a class="btn ghost sm" style="margin-inline-start:auto" href="?handler=Csv&amp;@p.Query" download>Export CSV</a>
+</div>
+
+<div class="g">
+    <section class="card s3 tile" aria-labelledby="k-in">
+        <h2 id="k-in"><span class="sw" style="background:var(--income)"></span>Collected</h2>
+        <div class="kpi num">@Fmt.Money(r.Income)</div>
+        <p class="delta">@(FinanceReport.Change(r.Income, r.PreviousIncome) is { } ci ? $"{ci} vs {(p.IsYear ? "last year" : "last month")}" : $"{Fmt.Money(r.PreviousIncome)} {(p.IsYear ? "last year" : "last month")}")</p>
+    </section>
+    <section class="card s3 tile" aria-labelledby="k-out">
+        <h2 id="k-out"><span class="sw" style="background:var(--spend)"></span>Spent</h2>
+        <div class="kpi num">@Fmt.Money(r.Expenses)</div>
+        <p class="delta">@(FinanceReport.Change(r.Expenses, r.PreviousExpenses) is { } ce ? $"{ce} vs {(p.IsYear ? "last year" : "last month")}" : $"{Fmt.Money(r.PreviousExpenses)} {(p.IsYear ? "last year" : "last month")}")</p>
+    </section>
+    <section class="card s3 tile" aria-labelledby="k-profit">
+        <h2 id="k-profit">Profit</h2>
+        <div class="kpi num @(r.Profit < 0 ? "neg" : "")">@Fmt.Money(r.Profit)</div>
+        <p class="delta">@(r.Margin is { } mg ? $"{mg}% of what came in" : "Nothing collected yet")</p>
+    </section>
+    <section class="card s3 tile" aria-labelledby="k-bal">
+        <h2 id="k-bal">Balance</h2>
+        <div class="kpi num @(r.Balance < 0 ? "neg" : "")">@Fmt.Money(r.Balance)</div>
+        <p class="delta">All money in minus out, to @p.To.ToString("d MMM yyyy", inv)</p>
+    </section>
+</div>
+
+@if (Model.Attention.Count > 0)
+{
+    <section class="card" aria-labelledby="f-needs">
+        <div class="ph"><h2 id="f-needs">Needs you</h2><span class="pill warn">@Model.Attention.Count</span></div>
+        @foreach (var a in Model.Attention)
+        {
+            <div class="ai">
+                <span class="ico @(a.Severity == AttentionSeverity.Bad ? "bad" : "warn")"><svg class="icon"><use href="#i-alert"/></svg></span>
+                <div class="tx"><b>@a.Client</b><p>@a.Reason</p></div>
+                @if (a.Href.Length > 0) { <a class="btn sm secondary" href="@a.Href">@a.Action</a> }
+            </div>
+        }
+    </section>
+}
+
+<div class="g">
+    <section class="card s8" aria-labelledby="h-trend">
+        <div class="ph">
+            <h2 id="h-trend">Last 12 months</h2>
+            <div class="legend" aria-hidden="true">
+                <span><i style="background:var(--income)"></i>Collected</span>
+                <span><i style="background:var(--spend)"></i>Spent</span>
+            </div>
+        </div>
+        @{
+            var maxV = r.Trend.Select(t => Math.Max(t.Income, t.Expenses)).DefaultIfEmpty(0).Max();
+            var top = NiceTop(maxV);
+        }
+        <div class="chart fchart" dir="ltr" role="img" aria-label="Collected and spent in each of the last 12 months; the table below has the figures">
+            <div class="yax">
+                @foreach (var v in new[] { 0m, top / 2, top }) { <span style="bottom:@Pct((double)(v * 100 / top))%">@Fmt.MoneyShort(v)</span> }
+            </div>
+            <div class="plot">
+                @foreach (var v in new[] { 0m, top / 2, top }) { <div class="gl" style="bottom:@Pct((double)(v * 100 / top))%"></div> }
+                <div class="cols m12">
+                    @foreach (var t in r.Trend)
+                    {
+                        var current = FinancePeriod.Month(t.Month);
+                        <a class="col pair @(p.Contains(t.Month) ? "sel" : "")" href="?m=@t.Month.ToString("yyyy-MM", inv)"
+                           data-tip="@t.Month.ToString("MMM yyyy", inv)|Collected @Fmt.Money(t.Income)|Spent @Fmt.Money(t.Expenses)|Profit @Fmt.Money(t.Profit)"
+                           aria-label="@t.Month.ToString("MMMM yyyy", inv): collected @Fmt.Money(t.Income), spent @Fmt.Money(t.Expenses)">
+                            <i class="bar in" style="height:@Pct((double)(t.Income * 100 / top))%"></i>
+                            <i class="bar out" style="height:@Pct((double)(t.Expenses * 100 / top))%"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="xl m12">
+                @foreach (var t in r.Trend) { <span>@t.Month.ToString("MMM", inv)</span> }
+            </div>
+        </div>
+        <div class="kv">
+            <div><b>@Fmt.Money(r.TrendAverageIncome)</b><span>average collected a month</span></div>
+            <div><b>@Fmt.Money(r.TrendAverageExpenses)</b><span>average spent a month</span></div>
+            <div><b>@Fmt.Money(r.TrendAverageIncome - r.TrendAverageExpenses)</b><span>average profit a month</span></div>
+        </div>
+        <details class="fold" style="margin-top:14px">
+            <summary>Show as a table</summary>
+            <div class="tscroll">
+                <table class="t">
+                    <thead><tr><th>Month</th><th class="r">Collected</th><th class="r">Spent</th><th class="r">Profit</th></tr></thead>
+                    <tbody>
+                        @foreach (var t in r.Trend.Reverse())
+                        {
+                            <tr><td>@t.Month.ToString("MMMM yyyy", inv)</td><td class="r">@Fmt.Money(t.Income)</td><td class="r">@Fmt.Money(t.Expenses)</td><td class="r @(t.Profit < 0 ? "neg" : "")">@Fmt.Money(t.Profit)</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+
+    <section class="card s4" aria-labelledby="h-budget">
+        <div class="ph"><h2 id="h-budget">Budget · @p.Label</h2></div>
+        @if (r.IncomeBudget is null && r.SpendingBudget is null)
+        {
+            <p class="muted">No budget set. Set what you mean to collect and the most you mean to spend each month, and see how the month is going.</p>
+        }
+        @if (r.IncomeBudget is { } ib)
+        {
+            <div class="meter-row">
+                <div class="mh"><span>Collected of target</span><b class="num">@ib.PercentRounded%</b></div>
+                <div class="meter" role="img" aria-label="Collected @Fmt.Money(ib.Actual) of a @Fmt.Money(ib.Planned) target"><i style="width:@Pct(ib.Percent)%;background:var(--income)"></i></div>
+                <p class="help">@Fmt.Money(ib.Actual) of @Fmt.Money(ib.Planned) · @(ib.Left > 0 ? $"{Fmt.Money(ib.Left)} to go" : "target reached")</p>
+            </div>
+        }
+        @if (r.SpendingBudget is { } sb)
+        {
+            <div class="meter-row">
+                <div class="mh"><span>Spent of limit</span><b class="num">@sb.PercentRounded%</b></div>
+                <div class="meter" role="img" aria-label="Spent @Fmt.Money(sb.Actual) of a @Fmt.Money(sb.Planned) limit"><i style="width:@Pct(sb.Percent)%;background:@(sb.Left < 0 ? "var(--bad)" : "var(--spend)")"></i></div>
+                <p class="help">@Fmt.Money(sb.Actual) of @Fmt.Money(sb.Planned) · @(sb.Left >= 0 ? $"{Fmt.Money(sb.Left)} left" : $"{Fmt.Money(-sb.Left)} over the limit")</p>
+            </div>
+        }
+        @if (!p.IsYear)
+        {
+            <details class="fold" style="margin-top:10px" open="@(Model.BudgetError is not null)">
+                <summary>@(Model.MonthBudget is null ? "Set a budget" : "Change the budget")</summary>
+                <form method="post" asp-page-handler="Budget" asp-all-route-data="Model.Route">
+                    <input type="hidden" name="month" value="@p.From.ToString("yyyy-MM", inv)" />
+                    <label for="b-target">Collect each month <span class="opt">(target)</span></label>
+                    <input id="b-target" name="target" inputmode="decimal" autocomplete="off" value="@Model.MonthBudget?.IncomeTarget?.ToString("0.##", inv)" />
+                    <label for="b-limit">Spend at most each month <span class="opt">(limit)</span></label>
+                    <input id="b-limit" name="limit" inputmode="decimal" autocomplete="off" value="@Model.MonthBudget?.SpendingLimit?.ToString("0.##", inv)" />
+                    <p class="help">Applies from @p.Label on, until you change it. Leave a box empty for none.</p>
+                    @if (Model.BudgetError is not null) { <p class="error" role="alert">@Model.BudgetError</p> }
+                    <p style="margin:12px 0 0"><button type="submit" class="btn">Save budget</button></p>
+                </form>
+            </details>
+        }
+        else
+        {
+            <p class="help">The year adds up each month's budget. Open a month to change it.</p>
+        }
+        <div class="kv">
+            <div><b>@r.PayingClients</b><span>client@(r.PayingClients == 1 ? "" : "s") paid</span></div>
+            <div><b>@(r.PayingClients == 0 ? "–" : Fmt.Money(Math.Round(r.ByPayer.Where(x => x.ClientId != null).Sum(x => x.Amount) / r.PayingClients, 2)))</b><span>average per paying client</span></div>
+        </div>
+    </section>
+</div>
+
+<div class="g">
+    <section class="card s6" aria-labelledby="h-from">
+        <div class="ph"><h2 id="h-from">Collected from</h2><span class="muted num">@Fmt.Money(r.Income)</span></div>
+        @if (r.ByPayer.Count == 0)
+        {
+            <p class="muted">Nothing collected in @p.Label.</p>
+        }
+        else
+        {
+            var maxPayer = r.ByPayer.Max(x => x.Amount);
+            <ul class="hbars">
+                @foreach (var row in r.ByPayer.Take(12))
+                {
+                    <li>
+                        <span class="nm">@if (row.ClientId is { } cid) { <a href="/admin/Clients/Details/@cid">@row.Name</a> } else { @row.Name }<small>@row.Count payment@(row.Count == 1 ? "" : "s")</small></span>
+                        <span class="am num">@Fmt.Money(row.Amount)</span>
+                        <span class="tr"><i style="width:@Pct((double)(row.Amount * 100 / maxPayer))%;background:var(--income)"></i></span>
+                    </li>
+                }
+            </ul>
+            @if (r.ByPayer.Count > 12) { <p class="help">And @(r.ByPayer.Count - 12) more; the list below has them all.</p> }
+            <h3 class="minor">What it was for</h3>
+            @foreach (var row in r.ByPurpose)
+            {
+                <div class="pr"><span class="nm">@row.Name</span><span class="muted">@(r.Income == 0 ? 0 : (int)Math.Round(row.Amount * 100 / r.Income))%</span><span class="am">@Fmt.Money(row.Amount)</span></div>
+            }
+        }
+    </section>
+
+    <section class="card s6" aria-labelledby="h-on">
+        <div class="ph"><h2 id="h-on">Spent on</h2><span class="muted num">@Fmt.Money(r.Expenses)</span></div>
+        @if (r.ByCategory.Count == 0)
+        {
+            <p class="muted">Nothing spent in @p.Label.</p>
+        }
+        else
+        {
+            var maxCat = r.ByCategory.Max(x => x.Amount);
+            <ul class="hbars">
+                @foreach (var row in r.ByCategory)
+                {
+                    <li>
+                        <span class="nm">@row.Name<small>@(r.Expenses == 0 ? 0 : (int)Math.Round(row.Amount * 100 / r.Expenses))% · @row.Count expense@(row.Count == 1 ? "" : "s")</small></span>
+                        <span class="am num">@Fmt.Money(row.Amount)</span>
+                        <span class="tr"><i style="width:@Pct((double)(row.Amount * 100 / maxCat))%;background:var(--spend)"></i></span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
+
+@if (Model.Renewals.Count > 0)
+{
+    <section class="card" aria-labelledby="h-due">
+        <div class="ph">
+            <h2 id="h-due">Renewals due in the next 30 days</h2>
+            <span class="muted">about <b class="num">@Fmt.Money(Model.Renewals.Sum(x => x.LastPaid ?? 0))</b> to collect, going by what each client paid last time</span>
+        </div>
+        <div class="tscroll">
+            <table class="t">
+                <thead><tr><th>Client</th><th>What ends</th><th class="r">Paid last time</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var d in Model.Renewals)
+                    {
+                        <tr>
+                            <td><a href="/admin/Clients/Details/@d.ClientId">@d.Name</a></td>
+                            <td>@d.What @Fmt.Day(d.Ends) <span class="muted">· @Fmt.Until(d.Ends)</span></td>
+                            <td class="r">@(d.LastPaid is { } lp ? Fmt.Money(lp) : "none on record")</td>
+                            <td class="r nowrap">@if (d.LicenseId is { } lid) { <a class="btn sm secondary" href="/admin/Licenses?renew=@lid#issue">Issue key</a> } else { <a class="btn sm secondary" href="/admin/Clients/Details/@d.ClientId#payments">Record payment</a> }</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+<div class="g">
+    <section class="card s6" id="record-payment" aria-labelledby="h-pay">
+        <h2 id="h-pay"><span class="sw" style="background:var(--income)"></span>Record payment</h2>
+        <form method="post" asp-page-handler="Payment" asp-all-route-data="Model.Route">
+            <partial name="_PaymentFields" model="@(new PaymentFieldsView(Model.Pay, Model.Clients, Fmt.Today))" />
+            @if (Model.PaymentError is not null) { <p class="error" role="alert">@Model.PaymentError</p> }
+            <p style="margin:16px 0 0"><button type="submit" class="btn">Record payment</button></p>
+        </form>
+    </section>
+
+    <section class="card s6" id="record-expense" aria-labelledby="h-exp">
+        <h2 id="h-exp"><span class="sw" style="background:var(--spend)"></span>Record expense</h2>
+        <form method="post" asp-page-handler="Expense" asp-all-route-data="Model.Route">
+            <div class="fields2">
+                <div>
+                    <label for="e-amount">Amount (@Fmt.Currency)</label>
+                    <input id="e-amount" name="Exp.Amount" inputmode="decimal" autocomplete="off" required value="@Model.Exp.Amount" />
+                </div>
+                <div>
+                    <label for="e-date">Paid on</label>
+                    <input id="e-date" name="Exp.Date" type="date" required value="@((Model.Exp.Date ?? Fmt.Today).ToString("yyyy-MM-dd", inv))" />
+                </div>
+            </div>
+            <label for="e-cat">Spent on</label>
+            <input id="e-cat" name="Exp.Category" list="e-cats" required maxlength="60" value="@Model.Exp.Category" placeholder="Pick or type" />
+            <datalist id="e-cats">
+                @foreach (var c in Model.Categories) { <option value="@c"></option> }
+            </datalist>
+            <label for="e-payee">Paid to <span class="opt">(optional)</span></label>
+            <input id="e-payee" name="Exp.Payee" maxlength="120" value="@Model.Exp.Payee" />
+            <label for="e-note">Note <span class="opt">(optional)</span></label>
+            <input id="e-note" name="Exp.Note" maxlength="500" value="@Model.Exp.Note" />
+            @if (Model.ExpenseError is not null) { <p class="error" role="alert">@Model.ExpenseError</p> }
+            <p style="margin:16px 0 0"><button type="submit" class="btn">Record expense</button></p>
+        </form>
+    </section>
+</div>
+
+<section class="card" aria-labelledby="h-tx">
+    <div class="ph">
+        <h2 id="h-tx">Everything in @p.Label <span class="count">@Model.Lines.Count</span></h2>
+        @if (Model.Lines.Count > 0)
+        {
+            <div class="search" style="max-width:260px">
+                <svg class="icon"><use href="#i-search"/></svg>
+                <input type="text" data-filter="#tx" placeholder="Filter" aria-label="Filter the list" autocomplete="off" />
+            </div>
+        }
+    </div>
+    @if (Model.Lines.Count == 0)
+    {
+        <p class="muted">Nothing recorded in @p.Label yet.</p>
+    }
+    else
+    {
+        <div class="tscroll">
+            <table class="t tx" id="tx">
+                <thead><tr><th>Day</th><th></th><th>From / on</th><th>Details</th><th class="r">Amount</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var l in Model.Lines)
+                    {
+                        <tr data-row data-text="@($"{l.Who} {l.Details} {l.Note}".ToLowerInvariant())">
+                            <td class="nowrap">@l.Day.ToString("d MMM", inv)</td>
+                            <td><span class="pill plain @(l.IsIncome ? "in" : "out")">@(l.IsIncome ? "In" : "Out")</span></td>
+                            <td>@if (l.ClientId is { } cid) { <a href="/admin/Clients/Details/@cid">@l.Who</a> } else { @l.Who }</td>
+                            <td><span>@l.Details</span>@if (!string.IsNullOrEmpty(l.Note)) { <small class="muted d">@l.Note</small> }</td>
+                            <td class="r num nowrap @(l.IsIncome ? "" : "neg-soft")">@(l.IsIncome ? "+" : "−")@Fmt.Money(l.Amount)</td>
+                            <td class="r">
+                                <form method="post" asp-page-handler="@(l.IsIncome ? "DeletePayment" : "DeleteExpense")" asp-route-id="@l.Id" asp-all-route-data="Model.Route"
+                                      data-confirm-title="Delete this @(l.IsIncome ? "payment" : "expense")?" data-confirm-yes="Delete"
+                                      data-confirm="@Fmt.Money(l.Amount) on @l.Day.ToString("d MMM yyyy", inv), @l.Who. It comes off every total.">
+                                    <button type="submit" class="btn ghost sm" aria-label="Delete">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="empty" data-none hidden><p>Nothing matches.</p></div>
+        </div>
+    }
+</section>
+
+@functions {
+    /// <summary>A round top for the chart's scale (1, 2 or 5 times a power of ten) so the gridlines read as plain numbers.</summary>
+    public static decimal NiceTop(decimal max)
+    {
+        if (max <= 0) return 100;
+        var pow = (decimal)Math.Pow(10, Math.Floor(Math.Log10((double)max)));
+        foreach (var step in new[] { 1m, 2m, 5m, 10m })
+            if (step * pow >= max) return step * pow;
+        return 10 * pow;
+    }
+
+    public class FinanceModel(FinanceDashboard dashboard, FinanceBook book, PortalFormat fmt) : PageModel
+    {
+        public FinanceReport Report { get; private set; } = null!;
+        public FinanceBudget? MonthBudget { get; private set; }
+        public IReadOnlyList<FinanceLine> Lines { get; private set; } = [];
+        public IReadOnlyList<AttentionItem> Attention { get; private set; } = [];
+        public IReadOnlyList<Renewal> Renewals { get; private set; } = [];
+        public IReadOnlyList<(int Id, string Name)> Clients { get; private set; } = [];
+        public IReadOnlyList<string> Categories { get; private set; } = [];
+        public Dictionary<string, string> Route { get; private set; } = [];
+
+        [BindProperty] public PaymentInput Pay { get; set; } = new();
+        [BindProperty] public ExpenseInput Exp { get; set; } = new();
+        public string? PaymentError { get; private set; }
+        public string? ExpenseError { get; private set; }
+        public string? BudgetError { get; private set; }
+
+        public async Task OnGetAsync(string? m, string? y) => await LoadAsync(FinancePeriod.Parse(m, y, fmt.Today));
+
+        private string By => User.Identity?.Name ?? "";
+
+        private IActionResult Back(FinancePeriod period) => Redirect("/admin/Finance?" + period.Query);
+
+        public async Task<IActionResult> OnPostPaymentAsync(string? m, string? y)
+        {
+            var (payment, error) = await book.RecordPaymentAsync(Pay, By);
+            if (payment is null)
+            {
+                PaymentError = error;
+                await LoadAsync(FinancePeriod.Parse(m, y, fmt.Today));
+                return Page();
+            }
+            this.Flash($"Payment of {fmt.Money(payment.Amount)} from {payment.Payer} recorded");
+            return Back(FinancePeriod.Month(payment.ReceivedOn));
+        }
+
+        public async Task<IActionResult> OnPostExpenseAsync(string? m, string? y)
+        {
+            var (expense, error) = await book.RecordExpenseAsync(Exp, By);
+            if (expense is null)
+            {
+                ExpenseError = error;
+                await LoadAsync(FinancePeriod.Parse(m, y, fmt.Today));
+                return Page();
+            }
+            this.Flash($"Expense of {fmt.Money(expense.Amount)} recorded");
+            return Back(FinancePeriod.Month(expense.SpentOn));
+        }
+
+        public async Task<IActionResult> OnPostBudgetAsync(string? m, string? y, string? month, string? target, string? limit)
+        {
+            var period = FinancePeriod.Parse(month, null, fmt.Today);
+            var error = await book.SetBudgetAsync(period.From, target, limit);
+            if (error is not null)
+            {
+                BudgetError = error;
+                await LoadAsync(period);
+                return Page();
+            }
+            this.Flash("Budget saved");
+            return Back(period);
+        }
+
+        public async Task<IActionResult> OnPostDeletePaymentAsync(int id, string? m, string? y)
+        {
+            var gone = await book.DeletePaymentAsync(id);
+            if (gone is not null) this.Flash("Payment deleted");
+            return Back(FinancePeriod.Parse(m, y, fmt.Today));
+        }
+
+        public async Task<IActionResult> OnPostDeleteExpenseAsync(int id, string? m, string? y)
+        {
+            var gone = await book.DeleteExpenseAsync(id);
+            if (gone is not null) this.Flash("Expense deleted");
+            return Back(FinancePeriod.Parse(m, y, fmt.Today));
+        }
+
+        /// <summary>The period's payments and expenses as a spreadsheet: money in is positive, money out negative.</summary>
+        public async Task<IActionResult> OnGetCsvAsync(string? m, string? y)
+        {
+            var view = await dashboard.BuildAsync(FinancePeriod.Parse(m, y, fmt.Today));
+            return File(FinanceDashboard.Csv(view), "text/csv", FinanceDashboard.CsvName(view.Period));
+        }
+
+        private async Task LoadAsync(FinancePeriod period)
+        {
+            Route = period.IsYear ? new() { ["y"] = period.From.Year.ToString() } : new() { ["m"] = period.From.ToString("yyyy-MM") };
+            var view = await dashboard.BuildAsync(period);
+            (Report, MonthBudget, Lines, Renewals, Attention, Clients, Categories)
+                = (view.Report, view.MonthBudget, view.Lines, view.Renewals, view.Attention, view.Clients, view.Categories);
+        }
+    }
+}

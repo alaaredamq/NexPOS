@@ -46,6 +46,13 @@ builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SiteRemoval>();
+builder.Services.AddScoped<FinanceBook>();
+builder.Services.AddScoped<AdminOperations>();
+builder.Services.AddScoped<AdminSignIn>();
+builder.Services.AddScoped<OverviewBuilder>();
+builder.Services.AddScoped<FinanceDashboard>();
+builder.Services.AddSingleton<LicenseSigner>();
+builder.Services.AddScoped<LicenseBook>();
 builder.Services.AddSingleton<MenuImages>();
 builder.Services.AddScoped<MenuCatalogMerge>();
 
@@ -68,7 +75,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = PublicSite.AdminLogin;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
-    });
+    })
+    // The admin app's bearer tokens (/api/admin/v1). Only that API asks for this scheme; the portal pages stay on the cookie.
+    .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, AdminTokenHandler>(AdminTokenHandler.SchemeName, null);
 
 // Behind a TLS-terminating proxy the forwarded scheme is https, so Always is right in production.
 builder.Services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -145,6 +154,7 @@ app.MapOwnerApi();
 app.MapEnrollApi();
 app.MapMenuApi();
 app.MapPublicSite();
+app.MapAdminApi();
 app.MapRazorPages();
 
 app.Run();

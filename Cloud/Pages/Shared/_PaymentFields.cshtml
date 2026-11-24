@@ -1,0 +1,60 @@
+@model PaymentFieldsView
+@{
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var pay = Model.Input;
+}
+@if (Model.FixedClientId is { } fixedId)
+{
+    <input type="hidden" name="Pay.ClientId" value="@fixedId" />
+}
+else
+{
+    <div class="fields2">
+        <div>
+            <label for="p-client">From</label>
+            <select id="p-client" name="Pay.ClientId" data-payer-toggle="#p-payer-field">
+                <option value="" selected="@(pay.ClientId is null)">Other income (not a client)</option>
+                @foreach (var (id, name) in Model.Clients)
+                {
+                    <option value="@id" selected="@(pay.ClientId == id)">@name</option>
+                }
+            </select>
+        </div>
+        <div id="p-payer-field">
+            <label for="p-payer">Where it came from <span class="opt">(if not a client)</span></label>
+            <input id="p-payer" name="Pay.Payer" maxlength="200" value="@pay.Payer" placeholder="Capital, loan, refund..." />
+        </div>
+    </div>
+}
+<div class="fields2">
+    <div>
+        <label for="p-amount">Amount (@Fmt.Currency)</label>
+        <input id="p-amount" name="Pay.Amount" inputmode="decimal" autocomplete="off" required value="@pay.Amount" />
+    </div>
+    <div>
+        <label for="p-date">Received on</label>
+        <input id="p-date" name="Pay.Date" type="date" required value="@((pay.Date ?? Model.Today).ToString("yyyy-MM-dd", inv))" />
+    </div>
+</div>
+<div class="fields2">
+    <div>
+        <label for="p-purpose">For</label>
+        <input id="p-purpose" name="Pay.Purpose" list="p-purposes" maxlength="60" value="@pay.Purpose" />
+        <datalist id="p-purposes">@foreach (var x in FinanceRules.Purposes) { <option value="@x"></option> }</datalist>
+    </div>
+    <div>
+        <label for="p-method">Paid by</label>
+        <input id="p-method" name="Pay.Method" list="p-methods" maxlength="40" value="@pay.Method" />
+        <datalist id="p-methods">@foreach (var x in FinanceRules.Methods) { <option value="@x"></option> }</datalist>
+    </div>
+</div>
+<div class="fields2">
+    <div>
+        <label for="p-ref">Receipt or transfer no. <span class="opt">(optional)</span></label>
+        <input id="p-ref" name="Pay.Reference" maxlength="100" value="@pay.Reference" />
+    </div>
+    <div>
+        <label for="p-note">Note <span class="opt">(optional)</span></label>
+        <input id="p-note" name="Pay.Note" maxlength="500" value="@pay.Note" />
+    </div>
+</div>

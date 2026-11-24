@@ -101,6 +101,7 @@ else
             <button type="button" class="chip" data-chip="connected" aria-pressed="false">Connected<span class="n">@Model.Rows.Count(r => r.Tags.Contains("connected"))</span></button>
             <button type="button" class="chip" data-chip="waiting" aria-pressed="false">Waiting for a link<span class="n">@Model.Rows.Count(r => r.Tags.Contains("waiting"))</span></button>
             <button type="button" class="chip" data-chip="attention" aria-pressed="false">Needs you<span class="n">@Model.Rows.Count(r => r.Tags.Contains("attention"))</span></button>
+            <button type="button" class="chip" data-chip="offline" aria-pressed="false">POS only<span class="n">@Model.Rows.Count(r => r.Tags.Contains("offline"))</span></button>
         </div>
     </div>
 
@@ -115,8 +116,16 @@ else
                     <span class="sub">@r.Sub</span>
                 </span>
                 <span class="plan">
-                    <span class="pill @tone">@label</span>
-                    <small>@r.PlanNote</small>
+                    @if (!r.HasOnline && r.State == SubscriptionState.None)
+                    {
+                        <span class="pill offline plain">POS only</span>
+                        <small>no Online</small>
+                    }
+                    else
+                    {
+                        <span class="pill @tone">@label</span>
+                        <small>@r.PlanNote</small>
+                    }
                 </span>
                 <span class="data">
                     @if (r.Products is null)
@@ -139,16 +148,10 @@ else
 }
 
 @functions {
-    public sealed record ClientRow(
-        int Id, string Name, bool IsActive, string Sub, SubscriptionState State, string PlanNote,
-        PulseData Pulse, string Seen, string[] Tags, long? Products, long? Orders, bool EndingSoon);
-
-    public class IndexModel(ControlDbContext db, MirrorStore mirrors, PortalFormat fmt) : PageModel
+    public class IndexModel(OverviewBuilder overview) : PageModel
     {
-        private static readonly string[] CountTables = ["Products", "Orders"];
-
-        public List<ClientRow> Rows { get; private set; } = [];
-        public List<AttentionItem> Attention { get; private set; } = [];
+        public IReadOnlyList<ClientRow> Rows { get; private set; } = [];
+        public IReadOnlyList<AttentionItem> Attention { get; private set; } = [];
         public string Summary { get; private set; } = "";
         public PulseData Overall { get; private set; } = new([]);
         public int Connected { get; private set; }
@@ -160,67 +163,9 @@ else
 
         public async Task OnGetAsync()
         {
-            var now = fmt.Now;
-            var clients = await db.Clients.AsNoTracking()
-                .Include(c => c.Subscription)
-                .Include(c => c.Sites).ThenInclude(s => s.Tokens)
-                .Include(c => c.Sites).ThenInclude(s => s.EnrollmentCodes)
-                .OrderBy(c => c.Name).ToListAsync();
-
-            var since = new DateTime(now.Year, now.Month, now.Day, now.Hour, 0, 0, DateTimeKind.Utc).AddHours(-23);
-            var beats = (await db.SiteHeartbeats.AsNoTracking().Where(h => h.Hour >= since).ToListAsync())
-                .ToLookup(h => h.SiteId);
-
-            var attention = new List<(AttentionItem Item, int ClientId)>();
-            Rows = clients.Select(c =>
-            {
-                var items = AttentionRules.For(c, now, fmt);
-                attention.AddRange(items.Select(i => (i, c.Id)));
-
-                var states = c.Sites.Where(s => !s.IsDisabled).Select(s => SiteInsight.Connection(s, now)).ToList();
-                var tags = new List<string>();
-                if (states.Contains(ConnectionState.Connected)) tags.Add("connected");
-                if (states.Any(s => s is ConnectionState.WaitingForShop or ConnectionState.LinkExpired or ConnectionState.NotLinked) || c.Sites.Count == 0) tags.Add("waiting");
-                if (items.Count > 0) tags.Add("attention");
-
-                // A client with several branches is one strip: an hour is lit when any of its branches was heard from.
-                var pulse = PulseData.Build(c.Sites.SelectMany(s => beats[s.Id]), now);
-                var seenAt = c.Sites.Where(s => s.LastSeenAt != null).Select(s => s.LastSeenAt).DefaultIfEmpty().Max();
-                var state = SubscriptionRules.Evaluate(c.Subscription, now);
-
-                // What the cloud holds for the client, summed over its branches. Null until some branch has uploaded.
-                long? products = null, orders = null;
-                foreach (var s in c.Sites.Where(s => mirrors.Exists(s.Id)))
-                {
-                    var counts = mirrors.CountRows(s.Id, CountTables);
-                    products = (products ?? 0) + counts["Products"];
-                    orders = (orders ?? 0) + counts["Orders"];
-                }
-
-                var sub = c.Sites.Count switch { 0 => "No branch yet", 1 => "1 branch", var n => $"{n} branches" };
-                if (!string.IsNullOrWhiteSpace(c.Phone)) sub += " · " + c.Phone;
-
-                return new ClientRow(c.Id, c.Name, c.IsActive, sub, state,
-                    c.Subscription is null ? "" : state is SubscriptionState.Active or SubscriptionState.Grace
-                        ? $"ends {fmt.Until(c.Subscription.ExpiresAt)} · {fmt.Day(c.Subscription.ExpiresAt)}"
-                        : $"ended {fmt.Day(c.Subscription.ExpiresAt)}",
-                    pulse,
-                    seenAt is null ? (c.Sites.Count == 0 ? "No branch yet" : "Not connected yet") : fmt.Ago(seenAt),
-                    tags.ToArray(), products, orders,
-                    state == SubscriptionState.Active && c.Subscription is not null && c.Subscription.ExpiresAt - now < TimeSpan.FromDays(14));
-            }).ToList();
-
-            Attention = attention.OrderByDescending(a => a.Item.Severity).ThenBy(a => a.Item.Client).Select(a => a.Item).ToList();
-            var connected = Rows.Count(r => r.Tags.Contains("connected"));
-            Connected = connected;
-            Overall = PulseData.Build(clients.SelectMany(c => c.Sites).SelectMany(x => beats[x.Id]), now);
-            PlansEnding = Rows.Count(r => r.State == SubscriptionState.Active && r.EndingSoon);
-            PlansActive = Rows.Count(r => r.State is SubscriptionState.Active or SubscriptionState.Grace) - PlansEnding;
-            PlansEnded = Rows.Count - PlansActive - PlansEnding;
-            ProductsTotal = Rows.Sum(r => r.Products ?? 0);
-            OrdersTotal = Rows.Sum(r => r.Orders ?? 0);
-            Summary = Rows.Count == 0 ? "Nobody yet."
-                : $"{Rows.Count} client{(Rows.Count == 1 ? "" : "s")} · {connected} connected" + (Attention.Count > 0 ? $" · {Attention.Count} need{(Attention.Count == 1 ? "s" : "")} you" : "");
+            var o = await overview.BuildAsync();
+            (Rows, Attention, Overall, Connected, PlansActive, PlansEnding, PlansEnded, ProductsTotal, OrdersTotal, Summary)
+                = (o.Rows, o.Attention, o.Overall, o.Connected, o.PlansActive, o.PlansEnding, o.PlansEnded, o.ProductsTotal, o.OrdersTotal, o.Summary);
         }
     }
 }

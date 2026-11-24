@@ -5,6 +5,8 @@
     "PublicUrl": "https://your-domain.example",
     "TimeZone": "Asia/Beirut",
     "DataRoot": "data",
-    "ControlConnectionString": ""
+    "ControlConnectionString": "",
+    "CurrencySymbol": "$",
+    "LicenseSigningKeyPath": ""
   }
 }

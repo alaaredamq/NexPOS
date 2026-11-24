@@ -15,4 +15,9 @@
         <ProjectReference Include="..\..\Common\Common.csproj" />
     </ItemGroup>
 
+    <!-- Records each signed key in the cloud (shared with the other issuer tool). -->
+    <ItemGroup>
+        <Compile Include="..\Shared\CloudLicenseLog.cs" Link="Shared\CloudLicenseLog.cs" />
+    </ItemGroup>
+
 </Project>

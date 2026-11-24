@@ -18,11 +18,18 @@ public class Client
     public string? Email { get; set; }
     public string? Notes { get; set; }
     public bool IsActive { get; set; } = true;
+    /// <summary>
+    /// False for a shop that only runs the POS offline (it bought a licence, not Online): it has no branch to connect, so the portal
+    /// does not ask for one. Clients made before this existed use Online.
+    /// </summary>
+    public bool HasOnline { get; set; } = true;
     public DateTime CreatedAt { get; set; }
 
     public Subscription? Subscription { get; set; }
     public List<Site> Sites { get; set; } = [];
     public List<ClientEvent> Events { get; set; } = [];
+    public List<Payment> Payments { get; set; } = [];
+    public List<License> Licenses { get; set; } = [];
 }
 
 /// <summary>The paid "Online" service for one client. It gates the cloud mirror only; the till itself never depends on it.</summary>
@@ -142,4 +149,22 @@ public class SiteHeartbeat
     /// <summary>Start of the hour, UTC.</summary>
     public DateTime Hour { get; set; }
     public int Contacts { get; set; }
+}
+
+/// <summary>
+/// One signed-in admin app (a phone or desktop app using /api/admin/v1). Only the token's hash is stored, so a leaked control
+/// database cannot be used to sign in. The portal in the browser uses its cookie instead and has no row here.
+/// </summary>
+public class AdminSession
+{
+    public int Id { get; set; }
+    public int AdminUserId { get; set; }
+    public AdminUser AdminUser { get; set; } = null!;
+    public string TokenHash { get; set; } = "";
+    /// <summary>What the app called itself at sign-in ("Alaa's iPhone"), so a lost device can be told apart and signed out.</summary>
+    public string? DeviceName { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public DateTime? LastUsedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
 }

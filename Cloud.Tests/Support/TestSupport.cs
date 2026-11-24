@@ -40,9 +40,19 @@ public sealed class CloudFactory : WebApplicationFactory<Program>
         => LicenseCodec.Encode(new LicensePayload(kind, MachineId.FromComponents(["test-cpu", "test-board", "test-disk", "test-bios"]),
             new DateOnly(2026, 11, 1), until ?? new DateOnly(2027, 11, 1), 42, "Test Shop", seats, plan), signer ?? LicenseIssuer);
 
+    /// <summary>The passphrase of the signing key file the cloud under test issues keys with (<see cref="LicenseIssuer"/>, encrypted).</summary>
+    public const string SigningPassphrase = "test-signing-passphrase";
+
+    public string SigningKeyPath => Path.Combine(DataRoot, "signing.pem");
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Directory.CreateDirectory(DataRoot);
+        if (!File.Exists(SigningKeyPath))
+            File.WriteAllText(SigningKeyPath, LicenseIssuer.ExportEncryptedPkcs8PrivateKeyPem(SigningPassphrase,
+                new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, 1000)));
         builder.UseEnvironment("Testing");
+        builder.UseSetting("Cloud:LicenseSigningKeyPath", SigningKeyPath);
         builder.UseSetting("Cloud:LicensePublicKey", LicenseCodec.ExportPublicKeyBase64(LicenseIssuer));
         builder.UseSetting("Cloud:DataRoot", DataRoot);
         builder.UseSetting("Cloud:AdminUser", AdminUser);
