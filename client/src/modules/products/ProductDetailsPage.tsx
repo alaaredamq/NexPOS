@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Permissions } from '@/api/permissions'
 import { useSession } from '@/core/auth/useSession'
+import { useIsPro } from '@/core/license/license'
 import { Can, useCan } from '@/core/permissions/permissions'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
@@ -12,6 +13,7 @@ import { formatDate, formatMoney, formatPercent, formatQty } from '@/ui/format'
 import { toast } from '@/ui/toast'
 import { flattenNav } from '@/shell/nav'
 import { useDeleteProduct, useProduct, type ProductDetail } from './api'
+import { describeUnit, UNITS } from './form'
 import { useStickerLabel } from './labels/StickerLabelDialog'
 import { formatStickerPrice } from './labels/stickerLabel'
 import { NotFoundCard } from './NotFoundCard'
@@ -31,6 +33,8 @@ export default function ProductDetailsPage() {
 
 function Details({ product: p }: { product: ProductDetail }) {
   const { t } = useTranslation('products')
+  // Basic has no suppliers: the supplier is left out.
+  const pro = useIsPro()
   const navigate = useNavigate()
   const session = useSession()
   const remove = useDeleteProduct()
@@ -56,7 +60,13 @@ function Details({ product: p }: { product: ProductDetail }) {
   }
 
   const stockTone = p.stockLevel === 'ok' ? 'success' : p.stockLevel === 'low' ? 'warning' : 'danger'
-  const units = t('details.units', { count: formatQty(p.stockQuantity) })
+  // Weighed / measured products show stock and prices in their unit (12.5 kg, $4.00 / kg); counted ones in "units".
+  const unit = describeUnit(p.unit)
+  const unitName = (UNITS as readonly string[]).includes(unit.key) ? t(`Prod_Unit_${unit.key}`, { ns: 'common' }) : (p.unit ?? '')
+  const qty = (amount: number) =>
+    unit.measured ? `${formatQty(amount)} ${unit.measured}` : t('details.units', { count: formatQty(amount) })
+  const perUnit = unit.measured ? ` / ${unit.measured}` : ''
+  const units = qty(p.stockQuantity)
 
   return (
     <div className={styles.page}>
@@ -90,6 +100,7 @@ function Details({ product: p }: { product: ProductDetail }) {
             <Item label={t('Category', { ns: 'common' })}>
               <StatusBadge tone="info" label={p.categoryName ?? t('details.uncategorized')} />
             </Item>
+            {pro && (
             <Item label={t('Supplier', { ns: 'common' })}>
               <StatusBadge tone="neutral" label={p.supplierName ?? t('details.noSupplier')} />
               {p.supplierDiscountRate > 0 && (
@@ -98,6 +109,11 @@ function Details({ product: p }: { product: ProductDetail }) {
                   <StatusBadge tone="warning" label={t('Prod_Discount', { 0: p.supplierDiscountRate, ns: 'common' })} />
                 </>
               )}
+            </Item>
+            )}
+            <Item label={t('Unit', { ns: 'common' })}>
+              <StatusBadge tone={unit.family === 'count' ? 'neutral' : 'info'} label={unitName} />{' '}
+              <span className={styles.hint}>{t(`details.soldBy.${unit.family}`)}</span>
             </Item>
             <Item label={t('Status')}>
               <StatusBadge tone={p.isActive ? 'success' : 'danger'} label={p.isActive ? t('Active') : t('Inactive')} />
@@ -113,9 +129,11 @@ function Details({ product: p }: { product: ProductDetail }) {
           <dl className={styles.grid3}>
             <Item label={t('Purchase Price', { ns: 'common' })}>
               <strong className="tabular-nums">{money(p.purchasePrice)}</strong>
+              {perUnit && <span className={styles.hint}>{perUnit}</span>}
             </Item>
             <Item label={t('Selling Price', { ns: 'common' })}>
               <strong className={`${styles.good} tabular-nums`}>{money(p.sellingPrice)}</strong>
+              {perUnit && <span className={styles.hint}>{perUnit}</span>}
             </Item>
             <Item label={t('details.profitMargin')}>
               <strong className="tabular-nums">{money(p.profitMargin)}</strong>
@@ -142,7 +160,7 @@ function Details({ product: p }: { product: ProductDetail }) {
             <Item label={t('Stock')}>
               <StatusBadge tone={stockTone} filled label={p.stockLevel === 'low' ? `${units} · ${t('LowStock')}` : p.stockLevel === 'out' ? `${units} · ${t('OutOfStock')}` : units} />
             </Item>
-            <Item label={t('Minimum Stock Level', { ns: 'common' })}>{t('details.units', { count: formatQty(p.minStockLevel) })}</Item>
+            <Item label={t('Minimum Stock Level', { ns: 'common' })}>{qty(p.minStockLevel)}</Item>
           </dl>
         </section>
 

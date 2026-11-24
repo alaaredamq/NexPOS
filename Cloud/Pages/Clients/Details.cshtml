@@ -7,7 +7,7 @@
 
 @if (Model.Client is null)
 {
-    <div class="list"><div class="empty"><h3>Client not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
+    <div class="list"><div class="empty"><h3>Client not found</h3><a class="btn secondary" href="/admin">Back to clients</a></div></div>
     return;
 }
 
@@ -19,13 +19,14 @@
 
 <div class="page-head">
     <div>
-        <a class="crumb" href="/"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
+        <a class="crumb" href="/admin"><svg class="icon"><use href="#i-back"/></svg>Clients</a>
         <h1>@Model.Client.Name @if (!Model.Client.IsActive) { <span class="pill none plain" style="vertical-align:middle">inactive</span> }</h1>
         <p class="sub">@(contact.Length > 0 ? contact : "No contact details")</p>
     </div>
 </div>
 
-<section class="card" aria-labelledby="plan">
+<div class="g">
+<section class="card s5" aria-labelledby="plan">
     <h2 id="plan">Online subscription</h2>
     <div class="row" style="justify-content:space-between;align-items:flex-start;gap:20px">
         <div>
@@ -66,7 +67,7 @@
     }
 </section>
 
-<section class="card" aria-labelledby="branches">
+<section class="card s7" aria-labelledby="branches">
     <h2 id="branches">Branches <span class="count">@Model.Client.Sites.Count</span></h2>
     @if (Model.Client.Sites.Count == 0)
     {
@@ -84,8 +85,8 @@
                 <partial name="_Pulse" model="@(new PulseView(PulseData.Build(Model.Beats[site.Id], Model.Now), false, Fmt))" />
             </div>
             <div class="row">
-                <a class="btn secondary" href="/Sites/Details/@site.Id">Open</a>
-                <form method="post" asp-page="/Sites/Details" asp-page-handler="Remove" asp-route-id="@site.Id"
+                <a class="btn secondary" href="/admin/Sites/Details/@site.Id">Open</a>
+                <form method="post" asp-page="/admin/Sites/Details" asp-page-handler="Remove" asp-route-id="@site.Id"
                       data-confirm-title="Remove @site.Name?" data-confirm-yes="Remove branch"
                       data-confirm="@(state == ConnectionState.Connected ? "This branch is connected. Its cloud copy of the data is deleted for good and it stops syncing. The shop keeps selling and everything stays on its PC. " : "Its cloud copy of the data is deleted for good. ")This cannot be undone.">
                     <button type="submit" class="btn danger">Remove</button>
@@ -110,29 +111,36 @@
         </form>
     </details>
 </section>
+</div>
 
 @if (Model.NewLoginEmail is not null)
 {
     <section class="card" aria-labelledby="newlogin" style="border-color:var(--ok)">
         <h2 id="newlogin">Phone login ready: send it to the owner</h2>
         <p class="muted" style="margin-top:0">The password is shown only now. If it is lost, reset it and a new one is made.</p>
-        <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Email: @Model.NewLoginEmail
+        <div class="link" id="new-login-text" style="white-space:pre-line;user-select:all">Sign in with: @Model.NewLoginEmail
 Password: @Model.NewLoginPassword</div>
         <ol class="help" style="margin:12px 0 0;padding-inline-start:20px">
-            <li>The owner installs the Coduo POS Owner app and signs in with the email and password above.</li>
+            <li>The owner installs the Coduo POS Owner app and signs in with the name and password above.</li>
             <li>The shop's data is encrypted, so the app then asks for the <b>recovery code</b>. The owner finds it on the shop PC: Coduo POS &gt; Settings &gt; Online &gt; Show recovery code.</li>
             <li>They type or paste it once. You never see it and cannot recover it for them.</li>
         </ol>
         <div class="row" style="margin-top:12px">
-            <button type="button" class="btn tag" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
+            <button type="button" class="btn" data-copy="#new-login-text"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy</span></button>
             <a class="btn secondary" target="_blank" rel="noopener" href="@Model.NewLoginWhatsApp"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
         </div>
     </section>
 }
 
+<section class="card" aria-labelledby="menu">
+    <h2 id="menu">Online menu</h2>
+    <p class="help">A public page with this shop's products, pictures and prices, shared by link or QR code. Fill it by hand, or link it to a branch so it follows the POS.</p>
+    <p><a class="btn secondary" href="/owner/menu.html?client=@Model.Client.Id">Open the menu editor</a></p>
+</section>
+
 <section class="card" aria-labelledby="phone">
     <h2 id="phone">Phone logins <span class="count">@Model.Owners.Count</span></h2>
-    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app. It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
+    <p class="muted" style="margin-top:0">What the shop owner types in the Coduo POS phone app or on the owner website (this site, /owner). It is not the till PIN, and it only ever opens this shop. Sales, stock and debts also need the shop's recovery code, typed once on the phone (see the Till page).</p>
     @if (Model.Owners.Count == 0)
     {
         <p class="muted">No phone login yet.</p>
@@ -180,8 +188,10 @@ Password: @Model.NewLoginPassword</div>
         <form method="post" asp-page-handler="AddOwner" asp-route-id="@Model.Client.Id">
             <div class="fields2">
                 <div>
-                    <label for="ownerEmail">Email <span class="opt">(what they type to sign in)</span></label>
-                    <input id="ownerEmail" name="Email" type="email" placeholder="owner@example.com" required maxlength="255" autocomplete="off" />
+                    <label for="ownerEmail">Sign-in name <span class="opt">(email, phone number or username)</span></label>
+                    <input id="ownerEmail" name="Email" type="text" placeholder="owner@example.com, 03 123 456 or hassan" required maxlength="255"
+                           autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="ownerEmailHelp" />
+                    <div id="ownerEmailHelp" class="help" style="margin-top:4px">A phone number works with or without the country code.</div>
                 </div>
                 <div>
                     <label for="ownerName">Name <span class="opt">(shown in the app)</span></label>
@@ -253,7 +263,7 @@ Password: @Model.NewLoginPassword</div>
         public string? NewLoginEmail { get; private set; }
         public string? NewLoginPassword { get; private set; }
         public string NewLoginWhatsApp => "https://wa.me/?text=" + Uri.EscapeDataString(
-            $"Coduo POS app login\nEmail: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
+            $"Coduo POS app login\nSign in with: {NewLoginEmail}\nPassword: {NewLoginPassword}\n\n" +
             "After signing in the app asks for the recovery code. Find it on the shop PC: Coduo POS > Settings > Online > Show recovery code.\n" +
             "بعد تسجيل الدخول سيطلب التطبيق رمز الاسترداد. تجده على جهاز المحل: Coduo POS > الإعدادات > Online > إظهار رمز الاسترداد.");
 
@@ -314,7 +324,7 @@ Password: @Model.NewLoginPassword</div>
             if (client is null) return NotFound();
             await removal.RemoveClientAsync(id);
             this.Flash($"{client.Name} removed");
-            return Redirect("/");
+            return Redirect("/admin");
         }
 
         public async Task<IActionResult> OnPostExtendAsync(int id, int months)
@@ -378,26 +388,33 @@ Password: @Model.NewLoginPassword</div>
             var client = await TrackedAsync(id);
             if (client is null) return NotFound();
 
-            email = email?.Trim().ToLowerInvariant();
-            if (string.IsNullOrEmpty(email) || email.Length > 255 || !System.Net.Mail.MailAddress.TryCreate(email, out var parsed) || parsed.Address != email)
+            // Email, phone number or username: whichever the owner would rather type (see OwnerSignIn).
+            if (OwnerSignIn.Normalize(email) is not { } signIn)
             {
-                this.Flash("Enter a valid email address");
+                this.Flash(OwnerSignIn.Rules);
                 return RedirectToPage(new { id });
             }
+            email = signIn.Value;
             if (!string.IsNullOrEmpty(password) && (password.Length < MinOwnerPasswordLength || password.Length > 100))
             {
                 this.Flash($"The password needs at least {MinOwnerPasswordLength} characters");
                 return RedirectToPage(new { id });
             }
-            // The sign-in name is unique across ALL clients: the phone app asks only for email and password.
-            if (await db.OwnerUsers.AnyAsync(u => u.Email == email))
+            // The sign-in name is unique across ALL clients: the phone app asks only for it and the password.
+            if (await OwnerSignIn.TakenAsync(db.OwnerUsers, email, signIn.Kind))
             {
-                this.Flash("That email already has a phone login");
+                this.Flash(signIn.Kind switch
+                {
+                    OwnerSignIn.Kind.Email => "That email already has a phone login",
+                    OwnerSignIn.Kind.Phone => "That phone number already has a phone login",
+                    _ => "That username already has a phone login",
+                });
                 return RedirectToPage(new { id });
             }
 
             var finalPassword = string.IsNullOrEmpty(password) ? GeneratePassword() : password;
-            var name = string.IsNullOrWhiteSpace(displayName) ? email[..email.IndexOf('@')] : displayName.Trim();
+            var name = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim()
+                : signIn.Kind == OwnerSignIn.Kind.Email ? email[..email.IndexOf('@')] : email;
             db.OwnerUsers.Add(new OwnerUser
             {
                 ClientId = id, Email = email, DisplayName = name.Length > 100 ? name[..100] : name,
@@ -516,7 +533,7 @@ Password: @Model.NewLoginPassword</div>
             Log(client, $"Branch '{site.Name}' added.");
             await db.SaveChangesAsync();
             this.Flash("Branch added. Create its connection link below");
-            return Redirect($"/Sites/Details/{site.Id}");
+            return Redirect($"/admin/Sites/Details/{site.Id}");
         }
     }
 }

@@ -130,8 +130,9 @@ describe('receipts list', () => {
 
     await waitFor(() => expect(router.state.location.search).toBe('?status=void'))
     expect(await screen.findByText('Wrong item')).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'Void Date' })).toBeInTheDocument()
-    expect(screen.queryByText('RCP-20261031-001')).not.toBeInTheDocument()
+    // The void rows can land a render before the columns swap and the old rows leave, so wait for the settled table.
+    await waitFor(() => expect(screen.getByRole('columnheader', { name: 'Void Date' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText('RCP-20261031-001')).not.toBeInTheDocument())
   })
 
   it('a viewer sees no void button', async () => {

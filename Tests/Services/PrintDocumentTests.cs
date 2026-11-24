@@ -37,7 +37,7 @@ public class PrintDocumentTests
     [Fact]
     public void BuildPdf_HandlesArabicText()
     {
-        var pdf = _builder.BuildPdf(Doc(PrintLine.Header("متجر النور"), PrintLine.Row("الإجمالي:", "10.00 ل.ل")));
+        var pdf = _builder.BuildPdf(Doc(PrintLine.Header("متجر كوديو"), PrintLine.Row("الإجمالي:", "10.00 ل.ل")));
 
         Assert.Equal("%PDF", Encoding.ASCII.GetString(pdf, 0, 4));
     }

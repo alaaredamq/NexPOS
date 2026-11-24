@@ -94,6 +94,12 @@
   color: var(--color-success);
 }
 
+/* "Sold by weight", "/ kg": quieter than the value it qualifies. */
+.hint {
+  color: var(--color-muted);
+  font-size: 0.9em;
+}
+
 .rule {
   margin: 0;
   border: 0;

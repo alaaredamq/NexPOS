@@ -1,0 +1,70 @@
+/* Online orders at the till: a top-bar button that wakes up when an order arrives, and the list the cashier works from. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+.button:hover { border-color: var(--color-primary); }
+.button:focus-visible { outline: none; box-shadow: var(--ring); }
+.button[data-new] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  animation: nudge 1.6s ease-in-out infinite;
+}
+@keyframes nudge { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-primary) 22%, transparent); } }
+.count {
+  min-width: 20px;
+  padding-inline: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+@media (max-width: 860px) { .label { display: none; } }
+
+.plain { margin: 0; color: var(--color-muted); }
+.notice { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-control); background: var(--color-warning-bg, #fdf1dc); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+.order { border: 1px solid var(--color-border); border-radius: var(--radius-card, 12px); padding: var(--space-3) var(--space-4); background: var(--color-card); }
+.order[data-status='new'] { border-color: var(--color-primary); box-shadow: inset 3px 0 0 var(--color-primary); }
+.head { display: flex; align-items: center; gap: var(--space-2); }
+.number { font-family: var(--font-mono); font-size: 1.25rem; }
+.status { padding: 2px 8px; border-radius: var(--radius-pill); background: var(--color-surface-2, #eef1f5); color: var(--color-muted); font-size: 0.75rem; font-weight: 700; }
+.status[data-status='new'] { background: var(--color-primary); color: #fff; }
+.status[data-status='ready'] { background: var(--color-success, #1f7a47); color: #fff; }
+.spacer { flex: 1; }
+.hint { color: var(--color-muted); font-size: 0.8125rem; }
+.who { margin: 6px 0 0; }
+.lines { list-style: none; margin: var(--space-2) 0 0; padding: var(--space-2) 0 0; border-top: 1px dashed var(--color-border); display: grid; gap: 4px; }
+.lines li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-2); }
+.lines li[data-missing] { color: var(--color-danger); }
+.qty { font-weight: 700; }
+.lineTotal { color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.note { margin: var(--space-2) 0 0; padding: 6px 10px; border-radius: var(--radius-control); background: var(--color-surface-2, #eef1f5); }
+.foot { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+@media (prefers-reduced-motion: reduce) { .button[data-new] { animation: none; } }
+
+/* Who an online order is for */
+.who2 { border: 0; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-2); }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pick { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 7%, var(--color-card)); }
+.pick input { margin-block-start: 3px; accent-color: var(--color-primary); }
+.pick > span { display: grid; gap: 2px; }
+.owes { color: var(--color-danger); font-size: 0.8125rem; font-weight: 600; }
+.names { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); padding-inline-start: 34px; }
+.names label { display: grid; gap: 4px; font-size: 0.8125rem; color: var(--color-muted); }
+.names input { min-height: 40px; padding-inline: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-card); color: var(--color-ink); font: inherit; }
+.error { margin: var(--space-3) 0 0; color: var(--color-danger); font-weight: 600; }

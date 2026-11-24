@@ -73,7 +73,8 @@ export function OrderStatusDialog({ order, onClose }: Props) {
       </ModalBody>
       <ModalFooter>
         <Button variant="ghost" onClick={onClose} disabled={update.isPending}>
-          {t('Cancel')}
+          {/* Not "Cancel" next to "Cancel order": at a busy till the two read alike. */}
+          {cancelling && !unchanged ? t('details.keepOrder') : t('Cancel')}
         </Button>
         <Button variant={cancelling ? 'danger' : 'primary'} onClick={() => void submit()} loading={update.isPending} disabled={unchanged}>
           {cancelling ? t('details.cancelOrder') : t('UpdateStatus')}

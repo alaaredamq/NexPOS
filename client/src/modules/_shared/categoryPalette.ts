@@ -4,7 +4,7 @@
  * same colour on both screens. Keep the colours and the hash identical to the C# (golden cases are in categoryPalette.test.ts).
  * Red is left out on purpose: it already means "out of stock" / "danger".
  */
-export const CATEGORY_COLORS = ['#0a7b85', '#2361d8', '#b4610f', '#178a50', '#a8456b', '#5a4ad1', '#5c6472'] as const
+export const CATEGORY_COLORS = ['#1e3a8a', '#0e9a8d', '#b4610f', '#178a50', '#a8456b', '#5a4ad1', '#5c6472'] as const
 
 /** Index into {@link CATEGORY_COLORS}. Stable across runs: `hash = hash * 31 + char` over 32-bit ints, like the C# loop. */
 export function categoryTone(categoryName: string | null | undefined): number {

@@ -1,0 +1,405 @@
+@page "/m/{slug}"
+@model Cloud.Pages.Public.MenuModel
+@using Cloud.Pages.Public
+@using Cloud.Services
+@{
+    Layout = null;
+    var m = Model.Menu;
+    var canonical = $"{Model.Origin}/m/{m.Slug}";
+    var actions = Model.Actions;
+    var status = Model.Status;
+}
+<!DOCTYPE html>
+<html lang="@(Model.Arabic ? "ar" : "en")" dir="@(Model.Arabic ? "rtl" : "ltr")" data-theme="@Model.Theme">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+@* The shop's chosen colours always show: no dark version, and browsers are asked not to darken the page themselves. *@
+<meta name="color-scheme" content="only light">
+<title>@m.Title · @Model.T("Menu", "القائمة")</title>
+<meta name="description" content="@Model.Description">
+@if (Model.IsPreview)
+{
+<meta name="robots" content="noindex">
+}
+else
+{
+<link rel="canonical" href="@canonical">
+}
+<meta property="og:type" content="website">
+<meta property="og:title" content="@m.Title">
+<meta property="og:description" content="@Model.Description">
+<meta property="og:url" content="@canonical">
+@if (Model.ShareImage is { } img)
+{
+<meta property="og:image" content="@img">
+}
+<meta name="twitter:card" content="@(m.CoverFile is null ? "summary" : "summary_large_image")">
+<link rel="icon" href="@(m.LogoFile is null ? "/favicon.svg" : "/m/img/" + m.LogoFile)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="@Model.FontHref">
+<link rel="stylesheet" href="/menu/menu.css" asp-append-version="true">
+</head>
+<body class="style-@Model.Style" data-items="/m/@m.Slug/items" data-preview="@Model.PreviewKey" data-b="@Model.Branch?.Slug" data-t="@Model.OrderType?.Id" data-branch-name="@Model.Branch?.Name" data-type-name="@Model.OrderType?.Name" data-wa="@Model.OrderWhatsApp" data-mode="@m.OrderMode">
+@* One set of line icons, drawn with the page's stroke; the brand marks are simple outlines so they sit with the rest. *@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.6-2.3 1.4a11 11 0 0 0 6 6l1.4-2.3L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4z"/></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M4 20l1.3-4A8.5 8.5 0 1 1 8.4 19z"/><path d="M9 8.6c0 3.3 2.9 6.4 6.3 6.4l1-1.6-2-1-1 .9a5 5 0 0 1-2.6-2.6l.9-1-1-2z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 24 24"><path d="M14.5 21v-7.5H17l.5-3h-3V8.8c0-.9.4-1.6 1.7-1.6h1.4V4.6A15 15 0 0 0 15.3 4.5c-2.5 0-4 1.5-4 4.1v1.9H9v3h2.3V21"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M14 3.5v11.2a3.8 3.8 0 1 1-3.3-3.8"/><path d="M14 3.5c.4 2.6 2.2 4.4 5 4.6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.6 3.5 5.4 3.5 8.5s-1.1 5.9-3.5 8.5c-2.4-2.6-3.5-5.4-3.5-8.5s1.1-5.9 3.5-8.5z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+</svg>
+@if (Model.IsPreview)
+{
+<div class="preview">@Model.T("Preview: only people with this link can see the menu until it is published.", "معاينة: لا يرى القائمة إلا من لديه هذا الرابط حتى تُنشر.")</div>
+}
+<header class="top hero@(m.CoverFile is null ? " bare" : "")">
+  @if (m.CoverFile is not null)
+  {
+  <img class="cover" src="/m/img/@m.CoverFile" alt="" fetchpriority="high" decoding="async">
+  }
+  else
+  {
+  @* No photo: a band of the theme's colour with a quiet pattern, so the page still opens on something that belongs to the shop. *@
+  <div class="cover art" aria-hidden="true"></div>
+  }
+  <div class="wrap hero-in">
+    @if (m.LogoFile is not null)
+    {
+    <img class="logo" src="/m/img/@MenuImages.ThumbOf(m.LogoFile)" alt="" width="88" height="88">
+    }
+    else
+    {
+    <span class="logo mono" aria-hidden="true">@MenuModel.Initial(m.Title)</span>
+    }
+    <h1 dir="auto">@m.Title</h1>
+    @if (m.Tagline is not null)
+    {
+    <p class="tag" dir="auto">@m.Tagline</p>
+    }
+    @if (Model.StatusLine is not null || (Model.Branch is not null && Model.Branches.Count > 1))
+    {
+    <div class="meta">
+      @if (Model.StatusLine is { } line)
+      {
+      <a class="state@(status!.Open ? " is-open" : "")" href="#visit"><i aria-hidden="true"></i>@line</a>
+      }
+      @if (Model.Branch is { } here && Model.Branches.Count > 1)
+      {
+      <span class="here"><svg aria-hidden="true"><use href="#i-pin"/></svg><b dir="auto">@here.Name</b><a href="@Model.Link(null, Model.OrderType?.Id)" data-pick>@Model.T("Change", "غيّر")</a></span>
+      }
+    </div>
+    }
+    @if (actions.Count > 0 && !Model.NeedsBranch)
+    {
+    <nav class="acts" aria-label="@Model.T("Contact", "التواصل")">
+      @foreach (var a in actions)
+      {
+      <a href="@a.Href" @(a.External ? Html.Raw("target=\"_blank\" rel=\"noopener\"") : null)><span class="ai"><svg aria-hidden="true"><use href="#i-@a.Icon"/></svg></span><span class="al">@a.Label</span></a>
+      }
+    </nav>
+    }
+  </div>
+</header>
+
+@if (Model.NeedsBranch)
+{
+@* Several branches and none in the address: ask, since prices and what is sold differ. A table's QR code already carries its branch. *@
+<main class="wrap branches">
+  <h2>@Model.T("Which branch are you at?", "في أي فرع أنت؟")</h2>
+  <p>@Model.T("Prices and items can differ between branches.", "قد تختلف الأسعار والأصناف بين الفروع.")</p>
+  <ul>
+    @foreach (var choice in Model.Branches)
+    {
+    <li><a href="@Model.Link(choice.Slug, Model.OrderType?.Id)" data-branch="@choice.Slug">
+      <svg class="bp" aria-hidden="true"><use href="#i-pin"/></svg>
+      <span class="bt"><b dir="auto">@choice.Name</b>
+        @if (choice.Address is not null) {<span class="ba" dir="auto">@choice.Address</span>}
+        @if (choice.Status is not null) {<span class="bs@(choice.Open == true ? " is-open" : "")"><i aria-hidden="true"></i>@choice.Status</span>}
+      </span>
+      <small hidden>@Model.T("Last time", "آخر مرة")</small><svg class="go-on" aria-hidden="true"><use href="#i-next"/></svg></a></li>
+    }
+  </ul>
+</main>
+}
+else if (Model.Groups.Count == 0)
+{
+<main class="wrap empty"><p>@Model.T("The menu is being prepared. Please check back soon.", "القائمة قيد التحضير. عُد قريباً.")</p></main>
+}
+else
+{
+<nav class="cats" aria-label="@Model.T("Sections", "الأقسام")">
+  <div class="wrap">
+    @if (Model.OrderTypes.Count > 0)
+    {
+    @* Dine in, take out, delivery...: prices follow the one picked. Links, so the page is priced by the server and works without script. *@
+    <div class="types" role="group" aria-label="@Model.T("How you are ordering", "طريقة الطلب")">
+      @foreach (var type in Model.OrderTypes)
+      {
+      <a href="@Model.Link(Model.Branch?.Slug, type.Id)" dir="auto" aria-current="@(type.Id == Model.OrderType?.Id ? "true" : null)">@type.Name</a>
+      }
+    </div>
+    }
+    <label class="find">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg>
+      <input type="search" id="q" placeholder="@Model.T("Search the menu", "ابحث في القائمة")" autocomplete="off" aria-label="@Model.T("Search the menu", "ابحث في القائمة")">
+    </label>
+    @if (Model.Groups.Count > 1)
+    {
+    <div class="chips" id="chips">
+      @foreach (var g in Model.Groups)
+      {
+      <a href="#s@(g.Key)" dir="auto">@if (g.Section?.ImageFile is { } chipPic){<img src="/m/img/@chipPic" alt="" loading="lazy" decoding="async" width="28" height="28">}@(g.Section?.Name ?? Model.T("More", "المزيد"))</a>
+      }
+    </div>
+    }
+  </div>
+</nav>
+
+<main class="wrap" id="menu">
+  @foreach (var g in Model.Groups)
+  {
+  var secPic = g.Section?.ImageFile;
+  // A banner behind the heading, or a small logo before the name: the owner picks per section.
+  var asIcon = secPic is not null && g.Section!.PictureAs == Cloud.Data.MenuSectionPicture.Icon;
+  <section class="sec@(secPic is null ? "" : asIcon ? " has-icon" : " has-pic")" id="s@(g.Key)" aria-labelledby="h@(g.Key)">
+    <header class="sh">
+      @if (secPic is not null)
+      {
+      <img class="@(asIcon ? "si" : "sp")" src="/m/img/@secPic" alt="" loading="lazy" decoding="async">
+      }
+      <div class="st">
+        <h2 id="h@(g.Key)" dir="auto"><span>@(g.Section?.Name ?? Model.T("More", "المزيد"))</span> <small aria-hidden="true">@g.Total</small></h2>
+        @if (g.Section?.Description is { } secDesc)
+        {
+        <p class="sd" dir="auto">@secDesc</p>
+        }
+      </div>
+    </header>
+    <ul>
+      @foreach (var i in g.Items)
+      {
+      var desc = i.Description ?? i.PosDescription;
+      @* The same markup as itemNode() in menu-page.js. The name is a button stretched over the whole item, so tapping anywhere opens the dish. *@
+      <li class="item@(i.IsSoldOut ? " out" : "")" data-id="@i.Id" data-price="@Model.Amount(i)" data-cur="@Model.CurrencyOf(i)">
+        @if (i.ImageFile is not null)
+        {
+        <img class="pic" src="@MenuImages.PublicUrl(i.ImageFile, Model.Style)" alt="" loading="lazy" decoding="async" width="300" height="300">
+        }
+        else
+        {
+        <span class="pic blank" aria-hidden="true">@MenuModel.Initial(i.Name)</span>
+        }
+        <div class="txt">
+          <h3 dir="auto"><button type="button" class="open">@i.Name</button></h3>
+          @if (desc is not null)
+          {
+          <p dir="auto">@desc</p>
+          }
+          <div class="price"><span dir="ltr">@Model.PriceOf(i)</span>@if (i.IsSoldOut)
+          {<em>@Model.T("Sold out", "نفد")</em>}
+          else
+          {<button type="button" class="add" aria-label="@Model.T("Add", "أضف") @i.Name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><b></b></button>}</div>
+        </div>
+      </li>
+      }
+      @if (g.Remaining > 0)
+      {
+      @* Sized for what is still to come, so the page length and the section chips are right before it loads. *@
+      <li class="more" data-more data-section="@g.Key" data-skip="@g.Items.Count" style="--n:@g.Remaining" aria-hidden="true"></li>
+      }
+    </ul>
+  </section>
+  }
+  <section class="sec" id="results" hidden aria-live="polite">
+    <ul></ul>
+    <p class="none" id="none" hidden>@Model.T("Nothing matches that.", "لا شيء يطابق بحثك.")</p>
+  </section>
+</main>
+
+@* The guest's order lives in their browser only: there is no ordering yet, so it is something to show to staff or send. *@
+<button type="button" class="bag" id="bag" aria-haspopup="dialog">
+  <span class="n" id="bag-n">0</span>
+  <span class="l">@Model.T("View order", "عرض الطلب")</span>
+  <span class="t" id="bag-t" dir="ltr"></span>
+</button>
+
+<dialog class="sheet dish" id="dish" aria-labelledby="dish-name">
+  <button type="button" class="x" data-close aria-label="@Model.T("Close", "إغلاق")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="sheet-scroll">
+    <div class="d-pic" data-drag><span class="grab" aria-hidden="true"></span><div id="dish-pic"></div></div>
+    <div class="d-body">
+      <h2 id="dish-name" dir="auto"></h2>
+      <p class="d-price"><span id="dish-price" dir="ltr"></span><em id="dish-out" hidden>@Model.T("Sold out", "نفد")</em></p>
+      <p class="d-desc" id="dish-desc" dir="auto"></p>
+    </div>
+  </div>
+  <div class="d-act" id="dish-act">
+    <div class="step" id="dish-step">
+      <button type="button" data-q="-1" aria-label="@Model.T("One less", "واحد أقل")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+      <output id="dish-q" aria-live="polite">1</output>
+      <button type="button" data-q="1" aria-label="@Model.T("One more", "واحد إضافي")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <button type="button" class="go" id="dish-go"><span class="go-l"></span><span class="go-p" dir="ltr"></span></button>
+  </div>
+</dialog>
+
+<dialog class="sheet ticket" id="order" aria-labelledby="order-h">
+  <button type="button" class="x" data-close aria-label="@Model.T("Close", "إغلاق")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="sheet-scroll">
+    <header class="t-head" data-drag>
+      <span class="grab" aria-hidden="true"></span>
+      <p class="t-eyebrow" dir="auto">@m.Title@(Model.Branch is { } br && Model.Branches.Count > 1 ? " · " + br.Name : "")</p>
+      <h2 id="order-h">@Model.T("Your order", "طلبك")</h2>
+      <p class="t-meta" id="order-meta"></p>
+    </header>
+    <ul class="t-lines" id="order-lines"></ul>
+    <div class="t-total" id="order-total"><span>@Model.T("Total", "المجموع")</span><b id="order-sum" dir="ltr"></b></div>
+    <p class="t-hint" id="order-hint">@(Model.TakesOrders
+        ? Model.T("Check your order, then send it to the shop.", "راجع طلبك، ثم أرسله إلى المحل.")
+        : Model.OrderWhatsApp is null
+            ? Model.T("To order, show this to a member of staff.", "للطلب، اعرض هذا على أحد العاملين.")
+            : Model.T("To order, show this to a member of staff, or send it to the shop on WhatsApp.", "للطلب، اعرض هذا على أحد العاملين، أو أرسله إلى المحل عبر واتساب."))</p>
+    <div class="t-empty" id="order-empty" hidden>
+      <p>@Model.T("Nothing here yet. Tap an item to add it.", "لا شيء هنا بعد. اضغط على أي صنف لإضافته.")</p>
+      <button type="button" class="ghost" data-close>@Model.T("Back to the menu", "العودة إلى القائمة")</button>
+    </div>
+  </div>
+  <div class="t-act" id="order-act">
+    @if (Model.TakesOrders)
+    {
+    <button type="button" class="go solo" data-checkout>@Model.T("Send order", "أرسل الطلب")</button>
+    }
+    else
+    {
+    <button type="button" class="go solo" data-staff>@Model.T("Show to staff", "اعرضه على العامل")</button>
+    }
+    @if (Model.OrderWhatsApp is not null)
+    {
+    <button type="button" class="ghost wa" data-share><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span>WhatsApp</span></button>
+    }
+    <div class="t-links">
+      @if (Model.TakesOrders)
+      {
+      <button type="button" class="link" data-staff>@Model.T("Show to staff", "اعرضه على العامل")</button>
+      }
+      <button type="button" class="link" data-clear>@Model.T("Clear order", "امسح الطلب")</button>
+    </div>
+    <button type="button" class="ghost back" data-unstaff>@Model.T("Back to my order", "العودة إلى طلبي")</button>
+  </div>
+</dialog>
+@if (Model.TakesOrders)
+{
+@* Sending the order to the shop: who it is for and where, then its number and where it stands (asked again every few seconds). *@
+<dialog class="sheet ticket checkout" id="checkout" aria-labelledby="ck-h">
+  <button type="button" class="x" data-close aria-label="@Model.T("Close", "إغلاق")"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="sheet-scroll">
+    <header class="t-head" data-drag>
+      <span class="grab" aria-hidden="true"></span>
+      <p class="t-eyebrow" dir="auto">@m.Title@(Model.Branch is { } br2 && Model.Branches.Count > 1 ? " · " + br2.Name : "")</p>
+      <h2 id="ck-h">@Model.T("Your details", "بياناتك")</h2>
+      <p class="t-meta" id="ck-meta"></p>
+    </header>
+    <form class="ck" id="ck-form" novalidate>
+      <label class="fld"><span>@Model.T("Your name", "اسمك")</span><input id="ck-name" name="name" autocomplete="name" maxlength="80" required dir="auto"></label>
+      <label class="fld"><span>@Model.T("Phone (so the shop can call you)", "الهاتف (ليتصل بك المحل)")</span><input id="ck-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" dir="ltr"></label>
+      <label class="fld"><span>@Model.T("Table number, or your address for delivery", "رقم الطاولة، أو عنوانك للتوصيل")</span><input id="ck-place" name="place" maxlength="300" dir="auto"></label>
+      <label class="fld"><span>@Model.T("Note for the kitchen (optional)", "ملاحظة للمطبخ (اختياري)")</span><textarea id="ck-note" name="note" maxlength="500" rows="2" dir="auto"></textarea></label>
+      <p class="ck-err" id="ck-err" role="alert" hidden></p>
+    </form>
+    <div class="sent" id="ck-done" hidden aria-live="polite">
+      <p class="num" id="ck-num"></p>
+      <ol class="track" id="ck-track">
+        <li data-s="new">@Model.T("Sent", "أُرسل")</li><li data-s="accepted">@Model.T("Accepted", "قُبل")</li><li data-s="ready">@Model.T("Ready", "جاهز")</li>
+      </ol>
+      <p class="ck-state" id="ck-state"></p>
+      <ul class="t-lines" id="ck-lines"></ul>
+      <div class="t-total"><span>@Model.T("Total", "المجموع")</span><b id="ck-sum" dir="ltr"></b></div>
+    </div>
+  </div>
+  <div class="t-act" id="ck-act">
+    <button type="submit" class="go" id="ck-send" form="ck-form"><span class="go-l">@Model.T("Send order", "أرسل الطلب")</span><span class="go-p" id="ck-total" dir="ltr"></span></button>
+    <button type="button" class="ghost" id="ck-back" data-close hidden>@Model.T("Back to the menu", "العودة إلى القائمة")</button>
+  </div>
+</dialog>
+@* While an order sent from this phone is still open, a small bar follows it. *@
+<button type="button" class="tracker" id="tracker" hidden><i aria-hidden="true"></i><span id="tracker-t"></span></button>
+}
+<p class="sr" id="say" aria-live="polite"></p>
+}
+
+@if (Model.HasVisit && !Model.NeedsBranch)
+{
+@* Where the shop is, when it is open, and how to reach it: the last thing on the page, and where the "open now" line leads. *@
+<section class="visit" id="visit" aria-labelledby="visit-h">
+  <div class="wrap">
+    <h2 id="visit-h">@Model.T("Find us", "زورونا")</h2>
+    <div class="vgrid">
+      @if (Model.Address is not null || Model.Phone is not null)
+      {
+      <div class="vcard place">
+        @if (Model.Address is not null)
+        {
+        <p class="vaddr" dir="auto"><svg aria-hidden="true"><use href="#i-pin"/></svg><span>@if (Model.Branch is { } at && Model.Branches.Count > 1){<b dir="auto">@at.Name</b>}@Model.Address</span></p>
+        }
+        <div class="vbtns">
+          @if (Model.MapLink is { } map)
+          {
+          <a class="go solo" href="@map" target="_blank" rel="noopener">@Model.T("Get directions", "احصل على الاتجاهات")</a>
+          }
+          @if (MenuContact.PhoneLink(Model.Phone) is { } tel)
+          {
+          <a class="ghost" href="@tel"><svg aria-hidden="true"><use href="#i-phone"/></svg><span dir="ltr">@Model.Phone</span></a>
+          }
+        </div>
+      </div>
+      }
+      @if (Model.HoursTable is { Count: > 0 } hours)
+      {
+      <div class="vcard hours">
+        <h3><svg aria-hidden="true"><use href="#i-clock"/></svg>@Model.T("Opening hours", "ساعات العمل")</h3>
+        @if (Model.StatusLine is { } now)
+        {
+        <p class="state@(status!.Open ? " is-open" : "")"><i aria-hidden="true"></i>@now</p>
+        }
+        <dl>
+          @foreach (var row in hours)
+          {
+          <div class="@(row.Today ? "today" : null)"><dt>@row.Days</dt><dd dir="ltr">@row.Hours</dd></div>
+          }
+        </dl>
+      </div>
+      }
+    </div>
+    @if (m.Note is not null)
+    {
+    <p class="note" dir="auto">@m.Note</p>
+    }
+  </div>
+</section>
+}
+
+<footer class="foot">
+  <div class="wrap">
+    @if (actions.Count > 0)
+    {
+    <nav class="socials" aria-label="@Model.T("Contact", "التواصل")">
+      @foreach (var a in actions)
+      {
+      <a href="@a.Href" aria-label="@a.Label" @(a.External ? Html.Raw("target=\"_blank\" rel=\"noopener\"") : null)><svg aria-hidden="true"><use href="#i-@a.Icon"/></svg></a>
+      }
+    </nav>
+    }
+    @* "Coduo", not "Coduo POS": a shop can run its menu without our POS (items added by hand). *@
+    <p class="by"><a href="/">@Model.T("Menu by Coduo", "القائمة من Coduo")</a></p>
+  </div>
+</footer>
+<script type="application/json" id="words">@Json.Serialize(Model.Words)</script>
+<script src="/menu/menu-page.js" asp-append-version="true" defer></script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+using Common.Licensing;
 using System.Globalization;
 using System.Text.Json;
 using Application.IServices.Logging;
@@ -18,6 +19,7 @@ namespace Web.Controllers;
 /// </summary>
 [Authorize]
 [RequirePermission(PermissionHelper.Permissions.AuditLogs_View)]
+[RequirePlan(ProFeature.AuditLog)]
 public class AuditLogsController : BaseController
 {
     private static readonly JsonSerializerOptions Pretty = new() { WriteIndented = true };

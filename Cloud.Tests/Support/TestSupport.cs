@@ -1,7 +1,9 @@
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Cloud.Data;
 using Cloud.Services;
+using Common.Licensing;
 using Core.Entities.Products;
 using Core.Entities.Users;
 using Infrastructure.Data;
@@ -30,9 +32,18 @@ public sealed class CloudFactory : WebApplicationFactory<Program>
     public string DataRoot { get; } = Path.Combine(Path.GetTempPath(), "nexpos-cloud-tests-" + Guid.NewGuid().ToString("N"));
     public TestClock Clock { get; } = new();
 
+    /// <summary>Stands in for the licence issuer's private key: the cloud under test trusts its public half instead of the real one.</summary>
+    public ECDsa LicenseIssuer { get; } = LicenseCodec.CreatePrivateKey();
+
+    /// <summary>A licence key signed by <see cref="LicenseIssuer"/> (or by <paramref name="signer"/>, to forge one).</summary>
+    public string IssueLicense(LicensePlan plan, LicenseKind kind = LicenseKind.Full, int seats = 1, DateOnly? until = null, ECDsa? signer = null)
+        => LicenseCodec.Encode(new LicensePayload(kind, MachineId.FromComponents(["test-cpu", "test-board", "test-disk", "test-bios"]),
+            new DateOnly(2026, 11, 1), until ?? new DateOnly(2027, 11, 1), 42, "Test Shop", seats, plan), signer ?? LicenseIssuer);
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("Cloud:LicensePublicKey", LicenseCodec.ExportPublicKeyBase64(LicenseIssuer));
         builder.UseSetting("Cloud:DataRoot", DataRoot);
         builder.UseSetting("Cloud:AdminUser", AdminUser);
         builder.UseSetting("Cloud:AdminPassword", AdminPassword);

@@ -28,6 +28,11 @@ public sealed class CloudOptions
     public string PublicUrl { get; set; } = "";
     /// <summary>Time zone the portal shows times in (IANA name). Data is always stored in UTC.</summary>
     public string TimeZone { get; set; } = "Asia/Beirut";
+    /// <summary>
+    /// The licence issuer's PUBLIC key (Base64 SubjectPublicKeyInfo), used to verify the key each till hands over so the cloud knows the
+    /// shop's plan. Defaults to the key built into the app; only tests change it.
+    /// </summary>
+    public string LicensePublicKey { get; set; } = Common.Licensing.LicensePublicKey.SpkiBase64;
 }
 
 /// <summary>
@@ -166,6 +171,49 @@ public sealed class MirrorStore(IOptions<CloudOptions> options)
         using var reader = cmd.ExecuteReader();
         while (reader.Read()) rows.Add(new EncryptedRow(reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
         return rows;
+    }
+
+    /// <summary>
+    /// Up to <paramref name="limit"/> encrypted rows of one table, highest row id first, below <paramref name="beforeId"/> (null: from the top).
+    /// The till numbers rows as it creates them, so for receipts this is newest first: a long history can be read a page at a time
+    /// instead of all at once. The server still learns nothing it did not have: the row ids are already in the clear.
+    /// </summary>
+    public IReadOnlyList<EncryptedRow> ReadNewestEncryptedRows(Guid siteId, string table, long? beforeId, int limit)
+    {
+        var rows = new List<EncryptedRow>();
+        if (!Exists(siteId)) return rows;
+        using var connection = OpenReadOnly(siteId);
+        if (!HasEncryptedTable(connection)) return rows;
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT RowId, Payload, UpdatedAt FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)}
+            WHERE TableName = $t AND ($b IS NULL OR RowId < $b)
+            ORDER BY RowId DESC LIMIT $limit
+            """;
+        cmd.Parameters.AddWithValue("$t", table);
+        cmd.Parameters.AddWithValue("$b", (object?)beforeId ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$limit", limit);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read()) rows.Add(new EncryptedRow(reader.GetInt64(0), reader.GetString(1), reader.GetString(2)));
+        return rows;
+    }
+
+    /// <summary>The row of a table that arrived last (null for an empty table): the point to ask "what changed since" from.</summary>
+    public EncryptedRow? LastArrival(Guid siteId, string table)
+    {
+        if (!Exists(siteId)) return null;
+        using var connection = OpenReadOnly(siteId);
+        if (!HasEncryptedTable(connection)) return null;
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = $"""
+            SELECT RowId, UpdatedAt FROM {SyncSchema.Q(MirrorApplier.EncryptedTable)}
+            WHERE TableName = $t ORDER BY UpdatedAt DESC, RowId DESC LIMIT 1
+            """;
+        cmd.Parameters.AddWithValue("$t", table);
+        using var reader = cmd.ExecuteReader();
+        return reader.Read() ? new EncryptedRow(reader.GetInt64(0), "", reader.GetString(1)) : null;
     }
 
     /// <summary>Ids of every encrypted row of one table. A phone uses it to drop rows the shop has since deleted.</summary>

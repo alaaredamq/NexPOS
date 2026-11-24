@@ -24,6 +24,8 @@ public interface ISettingsApiService
 
     Task<PrinterTestResultDto> TestPrinterAsync(string printerName);
 
+    Task<PrintingSettingsDto> SetPrinterModeAsync(PrinterModeRequest request);
+
     BrandingSettingsDto GetBranding();
 
     /// <summary>Throws <see cref="SettingsRuleException"/> for a name that is too long, a file of a type that is not allowed, or one that is too big.</summary>
@@ -94,7 +96,14 @@ public sealed class SettingsApiService : ISettingsApiService
 
     // ---- printers & labels ---------------------------------------------------------------------------------------
 
-    public async Task<PrintingSettingsDto> GetPrintingAsync() => ToDto(await _system.GetAppSettingsAsync());
+    public async Task<PrintingSettingsDto> GetPrintingAsync() => ToDto(await _system.GetAppSettingsAsync(), await _printers.GetPrinterModesAsync());
+
+    public async Task<PrintingSettingsDto> SetPrinterModeAsync(PrinterModeRequest request)
+    {
+        Core.Printing.PrinterMode? mode = Core.Printing.PrinterModes.TryRead(request.Mode, out var m) ? m : null;
+        await _printers.SetPrinterModeAsync(request.PrinterName, mode);
+        return await GetPrintingAsync();
+    }
 
     public async Task<PrintingSettingsDto> SavePrintingAsync(PrintingSettingsRequest request)
     {
@@ -103,7 +112,7 @@ public sealed class SettingsApiService : ISettingsApiService
         current.ReceiptPrinterName = request.ReceiptPrinterName?.Trim() ?? string.Empty;
         current.StickerWidthMm = request.StickerWidthMm;
         current.StickerHeightMm = request.StickerHeightMm;
-        return ToDto(await _system.UpdateAppSettingsAsync(current));
+        return ToDto(await _system.UpdateAppSettingsAsync(current), await _printers.GetPrinterModesAsync());
     }
 
     public IReadOnlyList<string> InstalledPrinters() => _printers.GetAvailablePrinters();
@@ -191,11 +200,12 @@ public sealed class SettingsApiService : ISettingsApiService
         FooterLine3 = s.FooterLine3,
     };
 
-    private static PrintingSettingsDto ToDto(AppSettingsDTO s) => new()
+    private static PrintingSettingsDto ToDto(AppSettingsDTO s, IReadOnlyDictionary<string, Core.Printing.PrinterMode> modes) => new()
     {
         ReceiptPrinterName = s.ReceiptPrinterName,
         StickerWidthMm = s.StickerWidthMm,
         StickerHeightMm = s.StickerHeightMm,
+        PrinterModes = modes.ToDictionary(p => p.Key, p => Core.Printing.PrinterModes.Name(p.Value)),
     };
 
     private static BrandingSettingsDto ToDto(IBrandingService b)

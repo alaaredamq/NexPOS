@@ -6,8 +6,8 @@
     1. dotnet publish (Release, framework-dependent: MonsterASP provides the .NET 9 runtime).
     2. Unless -BuildOnly: puts app_offline.htm on the site, uploads the new files, removes app_offline.htm.
 
-    Server settings: if Cloud\deploy\cloud.settings.json exists on this PC (copy it from cloud.settings.json.example), it is published
-    with the site as cloud.settings.json. Visual Studio's publish does the same.
+    Server settings: each server keeps its own cloud.settings.json in the site root (make it once from cloud.settings.json.example).
+    A publish never contains one, so it is never overwritten; Visual Studio's publish is the same.
     It NEVER touches the server's data/ folder (control.db, sites/*.db, keys/), and never deletes anything on the server:
     files that no longer exist in a new build are left behind (harmless).
 
@@ -60,6 +60,7 @@ if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed." }
 Remove-Item (Join-Path $out 'data') -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $out 'appsettings.Development.json') -Force -ErrorAction SilentlyContinue
 Remove-Item (Join-Path $out 'deploy') -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $out 'cloud.settings.json') -Force -ErrorAction SilentlyContinue # the server's own copy must survive
 
 if (-not (Test-Path (Join-Path $out 'Cloud.dll')) -or -not (Test-Path (Join-Path $out 'web.config'))) {
     throw "Publish output is missing Cloud.dll or web.config."

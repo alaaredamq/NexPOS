@@ -1,3 +1,4 @@
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.IServices.Products;
@@ -14,6 +15,7 @@ namespace Web.Controllers;
 
 [Authorize]
 [RequirePermission(PermissionHelper.Permissions.Inventory_View)]
+[RequirePlan(ProFeature.Inventory)]
 public class InventoryController : BaseController
 {
     private readonly IProductService _productService;

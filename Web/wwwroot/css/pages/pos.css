@@ -1193,10 +1193,13 @@ html[dir="rtl"] .totals-section .total-row {
     justify-content: space-between;
     gap: 4px;
     min-height: 72px;
-    padding: 8px 10px 8px;
-    border: 1px solid color-mix(in srgb, var(--tile-accent) 35%, var(--color-border));
+    overflow: hidden;
+    padding-block: 11px 8px;
+    padding-inline: 10px;
+    /* White key in the brand frame. The category colour is a band across the top edge: a band follows the rounded corners by nature, so nothing looks bent. */
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-card);
-    background: color-mix(in srgb, var(--tile-accent) 9%, var(--color-card));
+    background: var(--color-card);
     color: var(--cart-ink);
     text-align: start;
     cursor: pointer;
@@ -1204,7 +1207,17 @@ html[dir="rtl"] .totals-section .total-row {
     transition: border-color .12s ease-out, background-color .12s ease-out, transform .08s ease-out;
 }
 
-.product-card[data-tone="1"] { --tile-accent: #2361d8; }
+.product-card::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 0;
+    block-size: 4px;
+    background: var(--tile-accent);
+    pointer-events: none;
+}
+
+.product-card[data-tone="1"] { --tile-accent: #0e9a8d; }
 .product-card[data-tone="2"] { --tile-accent: #b4610f; }
 .product-card[data-tone="3"] { --tile-accent: #178a50; }
 .product-card[data-tone="4"] { --tile-accent: #a8456b; }
@@ -1217,8 +1230,8 @@ html[dir="rtl"] .totals-section .total-row {
 
 @media (hover: hover) {
     .product-card:hover {
-        border-color: var(--tile-accent);
-        background: color-mix(in srgb, var(--tile-accent) 16%, var(--color-card));
+        border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+        background: color-mix(in srgb, var(--color-primary) 5%, var(--color-card));
     }
 }
 
@@ -1622,7 +1635,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
 .swal2-container .form-control:focus,
 .swal2-container .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(10, 123, 133, .18);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, .18);
 }
 
 .swal2-container .form-control::placeholder {
@@ -1716,7 +1729,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     --bs-btn-active-border-color: var(--primary-darker);
     --bs-btn-disabled-bg: var(--primary-dark);
     --bs-btn-disabled-border-color: var(--primary-dark);
-    --bs-btn-focus-shadow-rgb: 10, 123, 133;
+    --bs-btn-focus-shadow-rgb: 30, 58, 138;
 }
 
 .pos-page .btn-outline-primary {
@@ -1730,7 +1743,7 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     --bs-btn-active-border-color: var(--primary-dark);
     --bs-btn-disabled-color: var(--neutral-400);
     --bs-btn-disabled-border-color: var(--neutral-300);
-    --bs-btn-focus-shadow-rgb: 10, 123, 133;
+    --bs-btn-focus-shadow-rgb: 30, 58, 138;
 }
 
 .pos-page .btn-light {
@@ -1901,7 +1914,10 @@ html[dir="rtl"] .pp-head { padding: 14px 16px 6px 8px; }
     padding: .75rem;
     border: 1px solid var(--primary-light);
     border-inline-start: 3px solid var(--primary-color);
+    /* The colour stripe runs the full height, so the stripe side has square corners: a stripe never bends round a curve. */
     border-radius: .4rem;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
     background: var(--primary-lighter);
 }
 

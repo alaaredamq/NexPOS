@@ -65,6 +65,16 @@ public sealed class SettingsController : ApiControllerBase
     [SwaggerOperation(OperationId = "savePrintingSettings")]
     public async Task<PrintingSettingsDto> SavePrinting(PrintingSettingsRequest request) => await _settings.SavePrintingAsync(request);
 
+    /// <summary>
+    /// Records the mode a 2-in-1 printer (Xprinter XP-365B) is set to on the printer, so receipts and labels both go out in the language it
+    /// is listening for. Saved at once; answers the printing settings with the new modes.
+    /// </summary>
+    [HttpPut("printers/mode")]
+    [ProducesResponseType<PrintingSettingsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ApiProblemDetails>(StatusCodes.Status400BadRequest, ApiProblem.ContentType)]
+    [SwaggerOperation(OperationId = "setPrinterMode")]
+    public async Task<PrintingSettingsDto> SetPrinterMode(PrinterModeRequest request) => await _settings.SetPrinterModeAsync(request);
+
     /// <summary>Printers installed on the machine that runs the server, for the receipt-printer picker.</summary>
     [HttpGet("printers")]
     [ProducesResponseType<InstalledPrintersDto>(StatusCodes.Status200OK)]

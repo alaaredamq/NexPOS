@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/ui/Button'
 import { Permissions } from '@/api/permissions'
@@ -73,6 +73,42 @@ export function LicenseStoppedPage() {
       {license.message}
     </StatusCard>
   )
+}
+
+/**
+ * A Pro page on a Basic plan. Rendered in place by `RequirePlan` (the address stays the page's own) and at `/upgrade?feature=`, where the
+ * old Razor pages send people. Names the page when it knows it, says nothing is lost, and links to the License page for whoever may open it.
+ */
+export function UpgradePage({ feature }: { feature?: string | null }) {
+  const { t } = useTranslation()
+  const { search } = useLocation()
+  const { nav } = useSession()
+  const canManage = useCan(Permissions.License_Manage)
+  const items = flattenNav(nav)
+  const wanted = feature ?? new URLSearchParams(search).get('feature')
+  const page = wanted ? items.find((item) => item.feature === wanted) : undefined
+  const license = items.find((item) => item.key === 'License')
+  const manage =
+    canManage && license ? (
+      license.migrated ? (
+        <Link className={styles.link} to={license.routerPath}>{t('License_Manage')}</Link>
+      ) : (
+        <a className={styles.link} href={license.href}>{t('License_Manage')}</a>
+      )
+    ) : undefined
+  return (
+    <StatusCard glyph="lock" title={page ? `${page.label} · ${t('Plan_UpgradeTitle')}` : t('Plan_UpgradeTitle')} actions={manage}>
+      <p>{t('Plan_UpgradeBody')}</p>
+      <p>{t('Plan_UpgradeKeepsData')}</p>
+      <p>{t('Plan_UpgradeHow')}</p>
+    </StatusCard>
+  )
+}
+
+/** Route guard for a Pro page: `{ element: <RequirePlan feature="Inventory" />, children: [...] }`. The API refuses the calls independently. */
+export function RequirePlan({ feature }: { feature: string }) {
+  const { license } = useSession()
+  return license.plan === 'Pro' ? <Outlet /> : <UpgradePage feature={feature} />
 }
 
 /**

@@ -35,11 +35,12 @@ A key that is missing, damaged, or issued for another PC gives the same "selling
 2. On your PC, from the repo root:
 
    ```powershell
-   dotnet run --project tools/LicenseIssuer -- issue --machine <ID> --customer "<name>" --kind full|provisional|trial
+   dotnet run --project tools/LicenseIssuer -- issue --machine <ID> --customer "<name>" --kind full|provisional|trial --plan basic|pro
    ```
 
    | Option | Meaning |
    |---|---|
+   | `--plan basic` or `--plan pro` | **Required.** The edition (see *Plans* below). |
    | `--days N` or `--until yyyy-MM-dd` | Length. Defaults: full 365 days, provisional 45, trial 14. |
    | `--out <file>` | Also save the key to a file. |
    | `--allow-past` | Allow an end date in the past (only for testing the expiry screens). |
@@ -49,10 +50,10 @@ A key that is missing, damaged, or issued for another PC gives the same "selling
 
 ### Packages with several PCs (seats)
 
-A key can cover more than one PC: `--seats N` (1 to 255, default 1) is the package size, **the store server plus its tills**. The GUI keygen has a "PCs (package)" box for the same thing. The key is still bound to the **store server's** Machine ID; tills are browsers that open the server, so they show the server's ID and need no key of their own. The seat count is part of the signed key, so it cannot be raised by editing it.
+Pro only: a Basic key always covers exactly 1 PC (the issuer refuses `--plan basic --seats 2`, and the app treats any Basic key as 1 PC). A key can cover more than one PC: `--seats N` (1 to 255, default 1) is the package size, **the store server plus its tills**. The GUI keygen has a "PCs (package)" box for the same thing. The key is still bound to the **store server's** Machine ID; tills are browsers that open the server, so they show the server's ID and need no key of their own. The seat count is part of the signed key, so it cannot be raised by editing it.
 
 ```powershell
-dotnet run --project tools/LicenseIssuer -- issue --machine <server ID> --customer "<name>" --kind full --seats 3
+dotnet run --project tools/LicenseIssuer -- issue --machine <server ID> --customer "<name>" --kind full --plan pro --seats 3
 ```
 
 - **Compatibility:** a 1-seat key is written exactly as before, so every installed build still accepts it. A multi-seat key (format version 2) is refused by builds that predate seats with "unsupported version", never read as a 1-PC key. Ship the update before issuing multi-seat keys to a customer.
@@ -62,6 +63,28 @@ dotnet run --project tools/LicenseIssuer -- issue --machine <server ID> --custom
 - **Not enforceable yet:** the app still listens on `localhost:5000` only, so no other PC can connect and every request counts as the server's own. The check starts to matter the day the server is opened to the shop network ("store server mode", `docs/online/STORE-SERVER.md`). It trusts only the socket address (never `X-Forwarded-For`), so **do not put a reverse proxy on the server PC in front of a multi-seat install** - every request would look local.
 - **Backstop gap:** the sale services (`POSCheckoutService`, `OrderService`) still only repeat the licence check, not the till check, because they have no request to look at. The endpoints are the gate.
 - `issued.csv` gets a `seats` column (last, so older rows still line up).
+
+### Plans: Basic and Pro (built 2026-11-15)
+
+The plan is part of the signed key, like the seats. `Common/Licensing/PlanRules.cs` is the one place that says what each plan includes.
+
+| | Basic | Pro |
+|---|---|---|
+| POS, products, categories, customers and debts, receipts, cash drawer and Z-report, currencies, taxes, backups, reports, dashboard | yes | yes |
+| Inventory (stock, low stock, stock value), Suppliers, Purchases, Audit log | locked | yes |
+| PCs | 1 | the key's seats |
+| Active users | 3 (the owner and 2 cashiers, any roles) | unlimited |
+| Reports and the dashboard chart | up to 7 days (today, last 7 days, any 7-day range) | any range |
+
+- **Old keys are Pro.** A Pro key is still written as format version 1 or 2, so every installed build accepts it, and every key issued before plans existed reads as Pro. A Basic key is format version 3; a build that predates plans refuses it ("unsupported version") instead of running it as Pro. Ship the update before issuing Basic keys.
+- **Locked pages:** the controllers carry `[RequirePlan(ProFeature.X)]` (API: 403 `plan_upgrade_required` with `feature`; Razor: redirect to `/app/upgrade`). The menu still lists them with a lock, and opening one shows the upgrade screen. Nothing is deleted, so after an upgrade everything is there again.
+- **User limit:** creating an active user, or switching one on, is refused (409 `plan_user_limit`) when 3 are already active. Users who were already active over the limit (after a downgrade) stay active.
+- **No key / Debug:** with no key installed the plan is Basic (selling is stopped anyway). A Debug build without a key is Pro, so development sees every page; install a Basic key to try Basic.
+- **Online** (cloud sync, owner portal, mobile app) is a separate subscription that works with either plan. The shop PC hands the cloud its **signed licence key** on its regular check-in (`X-Coduo-License` header on `GET api/sync/ping`: at once on connecting, then every 10 minutes; an older cloud ignores it). The cloud verifies the issuer's signature with the same public key the app embeds (`Cloud:LicensePublicKey`, defaults to `LicensePublicKey.SpkiBase64`) and keeps only what the key says: `Site.ShopPlan`, `ShopLicenseKind`, `ShopLicenseUntil`, `ShopLicenseSeats` (admin portal: branch page, "Licence plan" / "Licence key"). The key text and the customer name in it are not stored. A forged or edited key, or plain text like `Pro`, fails the signature and is ignored, so the plan cannot be claimed, only proven. The cloud then hands the plan and hands it to the phone and the owner website (`shopPlan` on `/owner/v1/me` and on every `/owner/v1/rows` page). On Basic they show a **Products** list with prices (no stock figures, low-stock alerts, Adjust stock, suppliers or "Add a supplier"); a new product goes under the default supplier (id 1). A shop whose key the cloud has not seen yet (a shop PC older than 2.5.1, or no key installed) is shown everything, as before. The real check stays on the shop PC: the phone's `stock.adjust` and `supplier.create` are refused there with `plan_upgrade_required`.
+- **Reports on Basic (`ProFeature.Reports`):** `GET api/v1/reports/sales` (and `.csv` / `.pdf`) answer 403 `plan_upgrade_required` for a range over 7 days, and `api/v1/dashboard/sales-trend` for any period but `week`. The React pages show only Today among the tiles, the week chart and the quick picks that fit; the month / all-time tiles and the category donut are Pro. The old Razor report and dashboard-analytics endpoints are locked on Basic (no range limit there). The phone's reports stay on "last 7 days". Discounts need no limit: a discount is already just a name and a rate.
+- **Products on Basic:** no stock column, tiles or filter on the list; no supplier, stock or stock value on the details; the form hides the supplier (it keeps the default one) and the stock fields.
+- **POS on Basic:** no stock on the product keys, search results or price check, and no "selling past stock" toast (selling past stock was always allowed).
+- `issued.csv` gets a `plan` column (last).
 
 Renewing is the same thing: issue a new key and paste it in. A newer key replaces an older one; an older key can never replace a newer one (same day: Full beats time-limited).
 

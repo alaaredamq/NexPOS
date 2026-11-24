@@ -48,7 +48,7 @@ public class TestContentSeederTests : IDisposable
         using var read = _dbFactory.CreateContext();
         Assert.True(await read.Products.AnyAsync(p => p.Name == "زيت زيتون (باللتر)"));
         Assert.True(await read.ProductCategories.AnyAsync(c => c.Name == "منتجات بالقطعة"));
-        Assert.True(await read.Suppliers.AnyAsync(s => s.Name == "شركة النور للتوريد"));
+        Assert.True(await read.Suppliers.AnyAsync(s => s.Name == "شركة كوديو للتوريد"));
     }
 
     [Fact]

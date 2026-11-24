@@ -112,6 +112,7 @@
   "details.cancelledDone": "تم إلغاء الطلب {{0}}: أُلغي الإيصال وأُعيد {{1}} بند إلى المخزون.",
   "details.currency": "العملة",
   "details.downloadPdf": "تحميل PDF",
+  "details.keepOrder": "الإبقاء على الطلب",
   "details.noReceipts": "لم يصدر إيصال لهذا الطلب.",
   "details.notFound": "لم يتم العثور على الطلب.",
   "details.receipts": "الإيصالات",

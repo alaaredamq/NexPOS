@@ -32,6 +32,8 @@ public class ErpDbContext : DbContext
     public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<MainScreenProduct> MainScreenProducts { get; set; }
         public DbSet<ProductDisplayOrder> ProductDisplayOrders { get; set; }
+    public DbSet<OnlineMenuSection> OnlineMenuSections { get; set; }
+    public DbSet<OnlineMenuEntry> OnlineMenuEntries { get; set; }
     public DbSet<ProductPrice> ProductPrices { get; set; }
     public DbSet<ProductHistory> ProductHistories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
@@ -59,7 +61,12 @@ public class ErpDbContext : DbContext
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<ReceiptItem> ReceiptItems { get; set; }
         public DbSet<ReceiptPayment> ReceiptPayments { get; set; }
-        
+
+        // Wallets (Whish Money): money the shop holds outside the drawer
+        public DbSet<Wallet> Wallets { get; set; }
+        public DbSet<WalletTransaction> WalletTransactions { get; set; }
+        public DbSet<WalletPaymentRequest> WalletPaymentRequests { get; set; }
+
         // User Management
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -372,6 +379,73 @@ public class ErpDbContext : DbContext
                 entity.HasIndex(e => new { e.ProductId }).IsUnique();
                 entity.HasIndex(e => e.DisplayOrder);
             });
+
+        // Wallets: one per payment method; the ledger is append-only, so nothing it points at may cascade it away.
+        modelBuilder.Entity<Wallet>(entity =>
+        {
+            entity.ToTable("Wallets");
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.AccountNumber).HasMaxLength(50);
+            entity.HasOne(e => e.PaymentMethod).WithMany().HasForeignKey(e => e.PaymentMethodId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => e.PaymentMethodId).IsUnique();
+            entity.Property(e => e.ApiChannel).HasMaxLength(200);
+            entity.Property(e => e.ApiSecret).HasMaxLength(500);
+            entity.Property(e => e.ApiWebsiteUrl).HasMaxLength(300);
+        });
+
+        modelBuilder.Entity<WalletPaymentRequest>(entity =>
+        {
+            entity.ToTable("WalletPaymentRequests");
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.CurrencyCode).HasMaxLength(3).IsRequired();
+            entity.Property(e => e.CollectUrl).HasMaxLength(1000);
+            entity.Property(e => e.PayerPhone).HasMaxLength(40);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(64).IsRequired();
+            entity.Property(e => e.FailureMessage).HasMaxLength(500);
+            entity.HasOne(e => e.Wallet).WithMany().HasForeignKey(e => e.WalletId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => e.ExternalId).IsUnique();
+            entity.HasIndex(e => new { e.UserId, e.IdempotencyKey }).IsUnique();
+            // One paid request completes one sale.
+            entity.HasIndex(e => e.OrderId).IsUnique();
+        });
+
+        modelBuilder.Entity<WalletTransaction>(entity =>
+        {
+            entity.ToTable("WalletTransactions");
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Reference).HasMaxLength(100);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.HasOne(e => e.Wallet).WithMany(w => w.Transactions).HasForeignKey(e => e.WalletId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Order).WithMany().HasForeignKey(e => e.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Supplier).WithMany().HasForeignKey(e => e.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(e => new { e.WalletId, e.OccurredAt });
+            entity.HasIndex(e => e.OrderId);
+        });
+
+        // The online menu's own sections (see OnlineMenuSection). Removing a product or category removes it from the menu.
+        modelBuilder.Entity<OnlineMenuSection>(entity =>
+        {
+            entity.ToTable("OnlineMenuSections");
+            entity.Property(e => e.Name).HasMaxLength(120).IsRequired();
+            entity.HasIndex(e => e.SortOrder);
+            entity.HasMany(e => e.Entries).WithOne(e => e.Section).HasForeignKey(e => e.SectionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<OnlineMenuEntry>(entity =>
+        {
+            entity.ToTable("OnlineMenuEntries");
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Category).WithMany().HasForeignKey(e => e.CategoryId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.SectionId, e.SortOrder });
+            // A product or a category is placed once on the whole menu.
+            entity.HasIndex(e => e.ProductId).IsUnique();
+            entity.HasIndex(e => e.CategoryId).IsUnique();
+        });
 
         modelBuilder.Entity<ProductPrice>(entity =>
         {

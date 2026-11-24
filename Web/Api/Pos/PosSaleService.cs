@@ -61,13 +61,15 @@ public sealed class PosSaleService : IPosSaleService
     private readonly IAuditTrail _audit;
     private readonly IStringLocalizer<SharedResource> _text;
     private readonly ILogger<PosSaleService> _logger;
+    private readonly IWalletPaymentService _payments;
 
     public PosSaleService(
         IPosPricingService pricing, ICartService carts, ICartRepository cartRepo, ICartItemRepository cartItems,
         IPOSCheckoutService checkout, ICustomerService customers, ICashDrawerService drawer, IReceiptRepository receipts, IOrderRepository orderRepo,
         IOrderService orders, IThermalPrinterService printer, IAuditTrail audit, IStringLocalizer<SharedResource> text,
-        ILogger<PosSaleService> logger)
+        ILogger<PosSaleService> logger, IWalletPaymentService payments)
     {
+        _payments = payments;
         _pricing = pricing;
         _carts = carts;
         _cartRepo = cartRepo;
@@ -147,6 +149,23 @@ public sealed class PosSaleService : IPosSaleService
             throw new PosRuleException(StatusCodes.Status400BadRequest, PosCodes.PaymentMethodInvalid, "Pos_PaymentMethodInvalid", "paymentMethodId");
         }
 
+        // An online Whish payment: refuse early, with a clear reason, what the checkout transaction would refuse anyway.
+        string? onlineReference = null;
+        if (request.WalletPaymentRequestId is { } paymentId)
+        {
+            if (request.AddToDebt)
+                throw PosRuleException.Raw(StatusCodes.Status400BadRequest, WalletPaymentCodes.Mismatch, "A sale paid by Whish cannot go on the customer's account.");
+            var paid = await _payments.RefreshAsync(paymentId)
+                ?? throw PosRuleException.Raw(StatusCodes.Status404NotFound, WalletPaymentCodes.NotFound, "That Whish payment request does not exist.");
+            if (paid.Status != Core.Entities.Sales.WalletPaymentStatus.Paid)
+                throw PosRuleException.Raw(StatusCodes.Status409Conflict, WalletPaymentCodes.NotPaid, "Whish has not confirmed this payment yet.");
+            if (paid.OrderId is not null)
+                throw PosRuleException.Raw(StatusCodes.Status409Conflict, WalletPaymentCodes.AlreadyUsed, "This Whish payment already paid for another sale.");
+            if (paid.CurrencyId != request.Cart.CurrencyId || paid.Amount != Math.Round(request.TotalAmount, 2))
+                throw PosRuleException.Raw(StatusCodes.Status409Conflict, WalletPaymentCodes.Mismatch, "The Whish payment does not match this sale's total or currency.");
+            onlineReference = paid.ExternalId.ToString();
+        }
+
         var drawerSessionId = await _drawer.GetOpenSessionIdByUserIdAsync(userId);
         if (request.RequireOpenDrawer && drawerSessionId is null)
             throw new PosRuleException(StatusCodes.Status409Conflict, PosCodes.DrawerNotOpen, "Pos_DrawerNotOpen");
@@ -186,6 +205,9 @@ public sealed class PosSaleService : IPosSaleService
                 TotalAmount = request.TotalAmount,
                 PaymentMethodId = request.PaymentMethodId,
                 AddToDebt = request.AddToDebt,
+                PaymentReference = onlineReference
+                    ?? (request.AddToDebt || string.IsNullOrWhiteSpace(request.PaymentReference) ? null : request.PaymentReference.Trim()),
+                WalletPaymentRequestId = request.WalletPaymentRequestId,
                 DiscountAmount = built.DiscountAmount,
                 DiscountPercentage = built.DiscountPercentage,
                 DiscountCode = built.DiscountCode,
@@ -295,7 +317,7 @@ public sealed class PosSaleService : IPosSaleService
     /// <summary>What makes two requests "the same sale" - everything that changes money, nothing that is a retry flag.</summary>
     private static string Fingerprint(PosCheckoutRequest r)
     {
-        var json = JsonSerializer.Serialize(new { r.Cart, r.CustomerId, r.PaymentMethodId, r.AddToDebt, r.TotalAmount });
+        var json = JsonSerializer.Serialize(new { r.Cart, r.CustomerId, r.PaymentMethodId, r.AddToDebt, r.TotalAmount, r.WalletPaymentRequestId });
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
     }
 

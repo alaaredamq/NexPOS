@@ -99,6 +99,27 @@ public class EncryptedSyncTests : IClassFixture<CloudFactory>
         Assert.Null(CommandSeal.Open(DataKey.Generate().Cipher(), "stock.adjust", payload)); // another shop's key
     }
 
+    /// <summary>Made by the owner website's own parseCode/importKey/seal (Cloud/wwwroot/owner/owner.js, WebCrypto) from the same recovery code.</summary>
+    private const string WebSealedStockChange =
+        "e1.HesrFT7m6apdKr+J0ljL9gKFsSq9zkbRxkHD/Sej9oA5pzv7uSm4S7LhyY3qg+o/QbVu2ZoueQweRi3QISvjyXpkPnVrpyEEprcnsELOgxyC7MbCc040uYtKj2xqKdkVfz0vo0aS0if0GxSAw3K6aZ1F2T+cJ3TZGJU=";
+
+    [Fact]
+    public void A_change_sealed_by_the_owner_website_opens_on_the_shop_pc_like_a_phone_change()
+    {
+        Assert.True(DataKey.TryParseRecoveryCode(PhoneRecoveryCode, out var key));
+        var payload = System.Text.Json.JsonSerializer.SerializeToElement(new Dictionary<string, string> { ["enc"] = WebSealedStockChange });
+
+        var opened = CommandSeal.Open(key!.Cipher(), "stock.adjust", payload);
+
+        Assert.NotNull(opened);
+        Assert.Equal("web-vector-key-1", opened!.Value.Key);
+        Assert.Equal(42, opened.Value.Body.GetProperty("productId").GetInt32());
+        Assert.Equal("add", opened.Value.Body.GetProperty("type").GetString());
+        Assert.Equal(5, opened.Value.Body.GetProperty("quantity").GetInt32());
+        Assert.Equal("Delivery", opened.Value.Body.GetProperty("reason").GetString());
+        Assert.Null(CommandSeal.Open(key.Cipher(), "product.update", payload));
+    }
+
     [Fact]
     public void Two_keys_are_never_the_same()
         => Assert.NotEqual(DataKey.Generate().ToBase64(), DataKey.Generate().ToBase64());

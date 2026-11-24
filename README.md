@@ -244,7 +244,7 @@ Even when selling is stopped, products, orders, reports, backups and settings ke
 Issue a key from a customer's Machine ID:
 
 ```powershell
-dotnet run --project tools/LicenseIssuer -- issue --machine <ID> --customer "<name>" --kind full
+dotnet run --project tools/LicenseIssuer -- issue --machine <ID> --customer "<name>" --kind full --plan pro
 ```
 
 Full details in [`LICENSING.md`](LICENSING.md).

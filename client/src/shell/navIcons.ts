@@ -4,6 +4,9 @@ import { ICON_PATHS } from '@/ui/Icon'
  * `session.nav[].icon` is the Font Awesome class of the Razor rail; the SPA draws its own stroke icons on the same
  * 24-grid as `ui/Icon`, so the packs never mix. Unknown classes fall back to a dot.
  */
+/** Marks a Pro page on a Basic plan. */
+export const LOCK_ICON = 'M6 11h12v9H6z M9 11V8a3 3 0 016 0v3'
+
 const NAV_ICON_PATHS: Record<string, string> = {
   'fa-cash-register': 'M6 4h12v5H6z M4 9h16v11H4z M8 13h2 M12 13h2 M16 13h.01 M8 16.5h8',
   'fa-tachometer-alt': 'M4 18a8.5 8.5 0 1116 0 M12 14l4-5 M7 18h.01 M17 18h.01',
@@ -12,6 +15,9 @@ const NAV_ICON_PATHS: Record<string, string> = {
   'fa-receipt': 'M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z M9 8h6 M9 12h6',
   'fa-box': 'M4 8l8-4 8 4v8l-8 4-8-4z M4 8l8 4 8-4 M12 12v8',
   'fa-tags': 'M3 12V4h8l9 9-8 8z M7.5 8h.01',
+  // Fork and knife: the online menu.
+  'fa-wallet': 'M4 7h14a2 2 0 012 2v9a2 2 0 01-2 2H4z M4 7l11-3v3 M16 13.5h.01',
+  'fa-utensils': 'M7 3v8 M4.5 3v5a2.5 2.5 0 005 0V3 M7 11v10 M17 3c-2 1-3 3.5-3 6.5V13h3v8',
   'fa-sort-amount-down': 'M4 6h10 M4 12h7 M4 18h4 M17 5v14 M14 16l3 3 3-3',
   'fa-warehouse': 'M3 10l9-6 9 6v10H3z M8 20v-6h8v6',
   'fa-file-invoice': 'M6 3h9l4 4v14H6z M15 3v4h4 M9 12h6 M9 16h6 M9 8h2',

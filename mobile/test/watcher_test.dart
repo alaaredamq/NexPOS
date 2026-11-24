@@ -110,6 +110,18 @@ void main() {
     expect(await watcher().check(), hasLength(1));
   });
 
+  test('a shop on the Basic plan tracks stock too, so running low is announced there as well', () async {
+    api.shopPlan = 'Basic';
+    await product(1, 'Milk', 50);
+    await watcher().check();
+
+    await product(1, 'Milk', 0);
+    expect((await watcher().check()).single.title, 'Low stock');
+
+    await sale(12); // sales are still news
+    expect((await watcher().check()).single.title, 'New sales');
+  });
+
   test('products that were already low at the first look do not alert, and the names show only when allowed', () async {
     await product(1, 'Milk', 1);
     await watcher().check();

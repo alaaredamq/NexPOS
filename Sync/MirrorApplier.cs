@@ -27,6 +27,7 @@ public sealed class MirrorApplier(SyncSchema schema)
             UpdatedAt TEXT NOT NULL,
             PRIMARY KEY (TableName, RowId)
         ) WITHOUT ROWID;
+        CREATE INDEX IF NOT EXISTS {Q("IX_EncryptedRows_Arrival")} ON {Q(EncryptedTable)} (TableName, UpdatedAt, RowId);
         """;
 
     /// <param name="requireEncrypted">Refuse readable rows. Turn on once nothing that reads the copy needs them.</param>

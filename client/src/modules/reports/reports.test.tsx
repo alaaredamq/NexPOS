@@ -148,3 +148,30 @@ describe('reports', () => {
     expect(screen.queryByRole('table', { name: 'Top Products' })).not.toBeInTheDocument()
   })
 })
+
+describe('reports on the Basic plan', () => {
+  function openBasic(path: string) {
+    const session = sessionWith(Permissions.Reports_View)
+    api = fakeApi({ ...session, license: { ...session.license, plan: 'Basic' } })
+    api.routes['GET /api/v1/reports/summary'] = () => json(summary)
+    api.routes['GET /api/v1/reports/sales'] = () => json(report)
+    return mountModule(path, routes)
+  }
+
+  it('shows a week: only today among the tiles and only the quick picks that fit', async () => {
+    openBasic('/reports?from=2026-10-03&to=2026-10-05')
+
+    expect(await screen.findByText('Total Sales')).toBeInTheDocument()
+    expect(screen.queryByText("This Year's Profit")).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'This year' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '30 days' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '7 days' })).toBeInTheDocument()
+  })
+
+  it('explains a longer range instead of asking the server for it', async () => {
+    openBasic('/reports?from=2026-10-01&to=2026-10-31')
+
+    expect(await screen.findByText(/up to 7 days/)).toBeInTheDocument()
+    expect(api.calls.some((c) => c.url.includes('/reports/sales?'))).toBe(false)
+  })
+})

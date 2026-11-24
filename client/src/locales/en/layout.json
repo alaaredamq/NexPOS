@@ -14,6 +14,7 @@
   "LowStockAlert": "Low Stock Alert",
   "NewOrderReceived": "New Order Received",
   "Notifications": "Notifications",
+  "OnlineMenu": "Online Menu",
   "Orders": "Orders",
   "POS": "POS",
   "PointOfSale": "Point of Sale",
@@ -26,5 +27,6 @@
   "Suppliers": "Suppliers",
   "Tax": "Tax",
   "Users": "Users",
-  "ViewAll": "View All"
+  "ViewAll": "View All",
+  "WhishWallet": "Whish Wallet"
 }

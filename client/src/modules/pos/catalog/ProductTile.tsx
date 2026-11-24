@@ -14,8 +14,9 @@ interface ProductTileProps {
 
 /**
  * A compact "keycap": name, a dashed tear rule, then price and stock. No picture on purpose (the register is scanned by name and price,
- * and without images the grid fits far more keys). The tint is the category's palette colour, the same one the dashboard donut uses.
+ * and without images the grid fits far more keys). The leading stripe is the category's palette colour, the same one the dashboard donut uses.
  * A sold-out key stays pressable: the cashier may still sell it, and the cart/checkout ask before selling past zero.
+ * On the Basic plan (no stock tracking) the stock part is left out: the key is name and price only.
  */
 export const ProductTile = memo(function ProductTile({ product, onPress }: ProductTileProps) {
   const { t } = useTranslation(['pos', 'common'])

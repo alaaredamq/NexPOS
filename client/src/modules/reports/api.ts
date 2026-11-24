@@ -24,11 +24,12 @@ export function useReportsSummary() {
   return useQuery({ queryKey: reportKeys.summary, queryFn: ({ signal }) => http.get<ReportsSummary>('/reports/summary', { signal }) })
 }
 
-export function useSalesReport(range: Range) {
+/** [enabled] false skips the request (a range the plan does not cover: the page explains instead of asking). */
+export function useSalesReport(range: Range, enabled = true) {
   return useQuery({
     queryKey: reportKeys.sales(range),
     queryFn: ({ signal }) => http.get<SalesReport>('/reports/sales', { query: { ...range }, signal }),
-    enabled: range.from !== '' && range.to !== '',
+    enabled: enabled && range.from !== '' && range.to !== '',
     placeholderData: keepPreviousData,
   })
 }

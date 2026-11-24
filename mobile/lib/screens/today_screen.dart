@@ -85,8 +85,8 @@ class TodayScreen extends StatelessWidget {
           if (session.can(Perm.debts))
           _AttentionRow(
             icon: Icons.payments_outlined,
-            tint: const Color(0xFFE3F6F7),
-            ink: const Color(0xFF08636B),
+            tint: const Color(0xFFE8ECF6),
+            ink: const Color(0xFF172E6E),
             title: context.tr('Customer debts', 'ديون الزبائن'),
             subtitle: debts.owedToShop.isEmpty
                 ? context.tr('Nobody owes the shop', 'لا أحد مدين للمحل')

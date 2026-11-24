@@ -10,7 +10,7 @@ export const LIVE_POLL_MS = 3_000
  * The screens that show numbers another PC can change (stock after a sale, a customer's balance, the drawer, today's totals). Everything
  * else (session, licence, notifications) has its own refresh, and edit forms are left alone so a reload can never overwrite what someone is typing.
  */
-const LIVE_ROOTS = new Set(['pos', 'products', 'inventory', 'orders', 'customers', 'suppliers', 'purchases', 'cash-drawer', 'dashboard', 'receipts'])
+const LIVE_ROOTS = new Set(['pos', 'products', 'inventory', 'orders', 'customers', 'suppliers', 'purchases', 'cash-drawer', 'dashboard', 'receipts', 'wallets'])
 
 export function isLiveQuery(query: Query): boolean {
   const [root, kind] = query.queryKey

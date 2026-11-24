@@ -25,6 +25,13 @@ public static class AppDataPathProvider
 
     public static string GetConnectionString() => $"Data Source={GetDatabaseFilePath()}";
 
+    /// <summary>
+    /// This installation's own JWT signing key (see <c>Infrastructure.Security.JwtKeyStore</c>). It sits beside the database, so a demo or
+    /// test database (<see cref="DatabasePathEnvVar"/>) gets its own key and never touches the real one.
+    /// </summary>
+    public static string GetJwtKeyFilePath()
+        => Path.Combine(Path.GetDirectoryName(Path.GetFullPath(GetDatabaseFilePath()))!, "jwt.key");
+
     /// <summary>Environment variable that overrides the audit database location (development and testing only).</summary>
     public const string AuditDatabasePathEnvVar = "NEXPOS_AUDIT_DB_PATH";
 

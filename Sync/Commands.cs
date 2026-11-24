@@ -84,6 +84,9 @@ public static class CommandErrorCodes
     public const string UnknownType = "unknown_type";
     public const string BadPayload = "bad_payload";
     public const string ServerError = "server_error";
+
+    /// <summary>The shop runs the Basic plan, which does not include this change (stock, suppliers). <c>Data</c> holds <c>{ feature }</c>.</summary>
+    public const string PlanUpgradeRequired = "plan_upgrade_required";
 }
 
 /// <summary>Who is asking and which command this is, passed to a handler.</summary>

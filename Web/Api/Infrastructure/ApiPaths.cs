@@ -53,6 +53,12 @@ public static class ApiCodes
 
     public const string InvalidPairingCode = "invalid_pairing_code";
 
+    /// <summary>The page or action is part of the Pro plan and this shop runs Basic. The problem carries <c>feature</c>.</summary>
+    public const string PlanUpgradeRequired = "plan_upgrade_required";
+
+    /// <summary>Basic already has its most active users (the owner plus two cashiers). Nothing was changed.</summary>
+    public const string PlanUserLimit = "plan_user_limit";
+
     public const string InvalidCredentials = "invalid_credentials";
     public const string AccountDisabled = "account_disabled";
 
@@ -93,6 +99,8 @@ public static class ApiCodes
         SeatsExceeded => "License_SeatsExceeded",
         SeatsFull => "License_SeatsFull",
         InvalidPairingCode => "License_InvalidPairingCode",
+        PlanUpgradeRequired => "Plan_UpgradeRequired",
+        PlanUserLimit => "Plan_UserLimit",
         InvalidCredentials => "Invalid username or PIN",
         AccountDisabled => "Account is disabled",
         BadRequest => "Api_BadRequest",

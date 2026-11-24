@@ -8,8 +8,12 @@ import 'package:nexpos_owner/widgets/common.dart' show isolateAmounts, money;
 import 'package:nexpos_owner/screens/customer_screen.dart';
 import 'package:nexpos_owner/screens/product_screen.dart';
 import 'package:nexpos_owner/screens/sale_detail_screen.dart';
+import 'package:nexpos_owner/widgets/opening_splash.dart';
 
 import 'app_test.dart' show startApp, tab, openManage;
+
+/// The opening logo, while it is on screen.
+final logoOnScreen = find.byWidgetPredicate((w) => w is CustomPaint && w.painter is LogoPainter);
 
 String utc(DateTime d) => d.toUtc().toIso8601String().replaceFirst('T', ' ').replaceFirst('Z', '0000');
 
@@ -245,6 +249,76 @@ void main() {
       await tester.tap(find.text('Last 30 days'));
       await tester.pumpAndSettle();
       expect(find.text('Sales, last 30 days'), findsOneWidget);
+    });
+  });
+
+  group('opening logo', () {
+    testWidgets('the logo covers the app while it plays, then fades away', (tester) async {
+      await startApp(tester, opening: true);
+      expect(logoOnScreen, findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 1500));
+      expect(logoOnScreen, findsOneWidget, reason: 'still playing');
+
+      await tester.pumpAndSettle();
+      expect(logoOnScreen, findsNothing);
+      expect(tab('Today'), findsOneWidget);
+    });
+
+    testWidgets('a tap skips the logo', (tester) async {
+      await startApp(tester, opening: true);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tapAt(const Offset(400, 1100));
+      // Only the short fade-out is left; without the tap the logo would play for about 3 more seconds.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump();
+      expect(logoOnScreen, findsNothing);
+    });
+
+    testWidgets('with the lock on, the fingerprint is asked only after the logo, never over it', (tester) async {
+      final app = await startApp(tester, appLock: true, opening: true);
+      await tester.pump(const Duration(milliseconds: 2000));
+      expect(app.bio.asked, 0, reason: 'the logo is still playing');
+      expect(find.text('Coduo POS is locked'), findsNothing);
+      expect(find.text('Today'), findsNothing, reason: 'nothing of the shop shows even while the logo plays');
+
+      await tester.pumpAndSettle();
+      expect(app.bio.asked, 1);
+      expect(tab('Today'), findsOneWidget, reason: 'the fingerprint worked');
+    });
+
+    testWidgets('nothing plays when the phone asks for less motion', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      await startApp(tester, opening: true);
+      expect(logoOnScreen, findsNothing);
+      expect(tab('Today'), findsOneWidget);
+    });
+
+    test('peek-a-boo: only the eyes first, they blink and look around, the monitor draws around them, then a wink', () {
+      final start = LogoTimeline.at(0);
+      expect([start.leftEye, start.rightEye, start.monitor, start.stand, start.base, start.wordOpacity], [0, 0, 0, 0, 0, 0]);
+
+      final eyesOnly = LogoTimeline.at(1120);
+      expect([eyesOnly.leftEye, eyesOnly.rightEye], [1, 1], reason: 'both eyes are in');
+      expect([eyesOnly.monitor, eyesOnly.stand, eyesOnly.base], [0, 0, 0], reason: 'nothing but the eyes yet');
+      expect(eyesOnly.lookX, -4, reason: 'looks left');
+      expect(LogoTimeline.at(608).blink, closeTo(.1, .001), reason: 'both eyes blink');
+      expect(LogoTimeline.at(1300).lookX, greaterThan(3), reason: 'then looks right');
+
+      final half = LogoTimeline.at(1850).monitor;
+      expect(half, greaterThan(.3));
+      expect(half, lessThan(.7), reason: 'the outline is half drawn');
+
+      final winking = LogoTimeline.at(2800);
+      expect(winking.wink, closeTo(.1, .001), reason: 'right eye closed');
+      expect(winking.blink, 1, reason: 'left eye open');
+      expect([winking.monitor, winking.stand, winking.base], [1, 1, 1]);
+
+      final end = LogoTimeline.at(LogoTimeline.endMs.toDouble());
+      expect([end.leftEye, end.rightEye, end.blink, end.wink, end.lookX, end.lookY, end.monitor, end.stand, end.base, end.wordOpacity, end.wordLift],
+          [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0]);
     });
   });
 

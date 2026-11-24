@@ -7,7 +7,7 @@
 
 @if (Model.Site is null)
 {
-    <div class="list"><div class="empty"><h3>Branch not found</h3><a class="btn secondary" href="/">Back to clients</a></div></div>
+    <div class="list"><div class="empty"><h3>Branch not found</h3><a class="btn secondary" href="/admin">Back to clients</a></div></div>
     return;
 }
 
@@ -18,7 +18,7 @@
 
 <div class="page-head">
     <div>
-        <a class="crumb" href="/Clients/Details/@Model.Site.ClientId"><svg class="icon"><use href="#i-back"/></svg>@Model.Site.Client.Name</a>
+        <a class="crumb" href="/admin/Clients/Details/@Model.Site.ClientId"><svg class="icon"><use href="#i-back"/></svg>@Model.Site.Client.Name</a>
         <h1>@Model.Site.Name
             <span class="pill @SiteInsight.Tone(Model.Connection)" style="vertical-align:middle;margin-inline-start:6px">@Model.ConnectionLabel</span>
             @if (Model.Site.IsDisabled) { <span class="pill bad" style="vertical-align:middle">disabled</span> }
@@ -48,7 +48,7 @@
                 <li>Press Connect. That is all.</li>
             </ol>
             <div class="row">
-                <button type="button" class="btn tag" data-copy="#enroll-link"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy link</span></button>
+                <button type="button" class="btn" data-copy="#enroll-link"><svg class="icon"><use href="#i-copy"/></svg><span class="label">Copy link</span></button>
                 <a class="btn secondary" target="_blank" rel="noopener" href="@Model.WhatsAppUrl"><svg class="icon"><use href="#i-send"/></svg>Send on WhatsApp</a>
             </div>
         </div>
@@ -96,6 +96,11 @@
         <dl class="facts">
             <dt>Last data</dt><dd>@(Model.Site.LastSyncAt is null ? "none yet" : Fmt.Clock(Model.Site.LastSyncAt.Value) + " · " + Fmt.Ago(Model.Site.LastSyncAt))</dd>
             <dt>Online plan</dt><dd><span class="pill @planTone">@planLabel</span></dd>
+            <dt>Licence plan</dt><dd>@(Model.Site.ShopPlan ?? "no key received yet")</dd>
+            @if (Model.Site.ShopLicenseKind is { } licenceKind)
+            {
+                <dt>Licence key</dt><dd>@licenceKind · @(Model.Site.ShopLicenseSeats ?? 1) PC(s) · @(licenceKind == "Full" ? "updates until" : "expires") @Model.Site.ShopLicenseUntil?.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)</dd>
+            }
             <dt>Machine ID</dt><dd class="mono">@(Model.Site.MachineId ?? "-")</dd>
             <dt>Database version</dt><dd class="mono" style="font-weight:400">@(Model.Site.LastSchemaVersion ?? "-")</dd>
         </dl>
@@ -334,7 +339,7 @@
             db.ClientEvents.Add(new ClientEvent { ClientId = clientId, At = time.GetUtcNow().UtcDateTime, Text = $"Branch '{name}' removed." });
             await db.SaveChangesAsync();
             this.Flash($"Branch '{name}' removed");
-            return Redirect($"/Clients/Details/{clientId}");
+            return Redirect($"/admin/Clients/Details/{clientId}");
         }
 
         public async Task<IActionResult> OnPostToggleDisabledAsync(Guid id)

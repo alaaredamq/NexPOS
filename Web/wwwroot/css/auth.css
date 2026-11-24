@@ -58,7 +58,7 @@ body::before {
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
     outline: none;
     transform: translateY(-1px);
 }
@@ -80,18 +80,18 @@ body::before {
     font-size: 16px;
     font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.3);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(10, 123, 133, 0.4);
+    box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
 }
 
 .btn-primary:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(10, 123, 133, 0.3);
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
 }
 
 /* =====================================================
@@ -161,8 +161,13 @@ body::before {
    ===================================================== */
 
 .erp-alert {
+    --alert-stripe: transparent;
     border: none;
+    border-inline-start: 4px solid var(--alert-stripe);
+    /* The colour stripe runs the full height, so the stripe side has square corners: a stripe never bends round a curve. */
     border-radius: 12px;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
     padding: 16px;
     margin-bottom: 20px;
 }
@@ -170,7 +175,7 @@ body::before {
 .erp-alert-info {
     background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
     color: var(--info-color);
-    border-left: 4px solid var(--info-color);
+    --alert-stripe: var(--info-color);
 }
 
 /* =====================================================
@@ -203,7 +208,7 @@ body::before {
     background: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.3);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 /* =====================================================
@@ -517,7 +522,7 @@ body::before {
 }
 
 .bg-primary.bg-opacity-10 {
-    background: rgba(10, 123, 133, 0.1) !important;
+    background: rgba(30, 58, 138, 0.1) !important;
 }
 
 .bg-white.bg-opacity-20 {

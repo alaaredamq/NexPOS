@@ -30,11 +30,12 @@ class ProductPage extends StatelessWidget {
     final waiting = changes.items.where((c) => c.status.isPending && c.productId == productId).length;
     return Scaffold(
       appBar: AppBar(title: Text(d?.name ?? context.tr('Product', 'منتج'), style: const TextStyle(fontWeight: FontWeight.w700))),
-      body: d == null ? const Gone() : _body(context, d, waiting, context.watch<Session>()),
+      body: d == null ? const Gone() : _body(context, d, waiting, context.watch<Session>(), shop.isBasic),
     );
   }
 
-  Widget _body(BuildContext context, ProductDetail d, int waiting, Session session) {
+  /// [basic]: the shop's plan has no suppliers, so the supplier is left out.
+  Widget _body(BuildContext context, ProductDetail d, int waiting, Session session, bool basic) {
     final locale = Localizations.localeOf(context).languageCode;
     final unit = d.unit.isEmpty ? '' : ' ${unitShort(context, d.unit)}';
     final (levelText, levelBg, levelFg) = switch (d.level) {
@@ -107,7 +108,7 @@ class ProductPage extends StatelessWidget {
         RowGroup(children: [
           if (d.barcode.isNotEmpty) Fact(context.tr('Barcode', 'الباركود'), d.barcode),
           if (d.category.isNotEmpty) Fact(context.tr('Category', 'الفئة'), d.category),
-          if (d.supplier.isNotEmpty) Fact(context.tr('Supplier', 'المورّد'), d.supplier),
+          if (!basic && d.supplier.isNotEmpty) Fact(context.tr('Supplier', 'المورّد'), d.supplier),
         ]),
         SectionTitle(context.tr('Recent sales', 'آخر المبيعات')),
         RowGroup(

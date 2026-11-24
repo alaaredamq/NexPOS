@@ -34,6 +34,10 @@ public sealed record LicenseDecodeResult(bool Success, LicensePayload? Payload, 
 /// A key for a single seat is still written as version 1, so builds that predate seats keep accepting it; only
 /// multi-seat keys need a build that knows version 2 (an older build says "unsupported version" rather than
 /// quietly treating a 5-PC package as one PC).
+///
+/// Version 3 adds a second trailing byte after the seat count: the plan (<see cref="LicensePlan"/>). Only Basic keys are
+/// written as version 3. A Pro key stays version 1 or 2, because that is what every key from before plans meant, so
+/// existing builds keep accepting it. A build that predates plans rejects a Basic key instead of running it as Pro.
 /// </summary>
 public static class LicenseCodec
 {
@@ -46,6 +50,7 @@ public static class LicenseCodec
 
     private const byte FormatVersion = 1;
     private const byte FormatVersionWithSeats = 2;
+    private const byte FormatVersionWithPlan = 3;
     private const int SignatureLength = 64;
     private const int FixedPayloadLength = 23;
     private static readonly DateOnly Epoch = new(2024, 1, 1);
@@ -88,10 +93,16 @@ public static class LicenseCodec
             return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
         var version = raw[0];
-        if (version != FormatVersion && version != FormatVersionWithSeats)
-            return LicenseDecodeResult.Fail(LicenseDecodeError.UnsupportedVersion);
+        var trailingBytes = version switch
+        {
+            FormatVersion => 0,
+            FormatVersionWithSeats => 1,
+            FormatVersionWithPlan => 2,
+            _ => -1
+        };
+        if (trailingBytes < 0) return LicenseDecodeResult.Fail(LicenseDecodeError.UnsupportedVersion);
 
-        var payloadLength = FixedPayloadLength + raw[22] + (version == FormatVersionWithSeats ? 1 : 0);
+        var payloadLength = FixedPayloadLength + raw[22] + trailingBytes;
         if (raw.Length != payloadLength + SignatureLength) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
         var payloadBytes = raw.AsSpan(0, payloadLength);
@@ -114,10 +125,17 @@ public static class LicenseCodec
         if (!Enum.IsDefined(kind)) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
 
         var seats = 1;
-        if (version == FormatVersionWithSeats)
+        var plan = LicensePlan.Pro;
+        var nameEnd = FixedPayloadLength + raw[22];
+        if (trailingBytes >= 1)
         {
-            seats = payloadBytes[^1];
+            seats = payloadBytes[nameEnd];
             if (seats < 1) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
+        }
+        if (trailingBytes >= 2)
+        {
+            plan = (LicensePlan)payloadBytes[nameEnd + 1];
+            if (!Enum.IsDefined(plan)) return LicenseDecodeResult.Fail(LicenseDecodeError.Malformed);
         }
 
         var payload = new LicensePayload(
@@ -127,7 +145,8 @@ public static class LicenseCodec
             FromDay(BinaryPrimitives.ReadUInt16BigEndian(payloadBytes.Slice(16, 2))),
             BinaryPrimitives.ReadUInt32BigEndian(payloadBytes.Slice(18, 4)),
             Encoding.UTF8.GetString(payloadBytes.Slice(FixedPayloadLength, raw[22])),
-            seats);
+            seats,
+            plan);
 
         return LicenseDecodeResult.Ok(payload);
     }
@@ -168,9 +187,16 @@ public static class LicenseCodec
         if (payload.Seats is < 1 or > MaxSeats)
             throw new ArgumentOutOfRangeException(nameof(payload), $"A license covers between 1 and {MaxSeats} PCs.");
 
-        var withSeats = payload.Seats > 1;
-        var bytes = new byte[FixedPayloadLength + nameBytes.Length + (withSeats ? 1 : 0)];
-        bytes[0] = withSeats ? FormatVersionWithSeats : FormatVersion;
+        if (!Enum.IsDefined(payload.Plan))
+            throw new ArgumentOutOfRangeException(nameof(payload), $"Unknown plan {payload.Plan}.");
+
+        if (payload.Plan == LicensePlan.Basic && payload.Seats != PlanRules.BasicSeats)
+            throw new ArgumentOutOfRangeException(nameof(payload), "A Basic license covers exactly 1 PC. Issue a Pro license for extra tills.");
+
+        var withPlan = payload.Plan != LicensePlan.Pro;
+        var withSeats = withPlan || payload.Seats > 1;
+        var bytes = new byte[FixedPayloadLength + nameBytes.Length + (withPlan ? 2 : withSeats ? 1 : 0)];
+        bytes[0] = withPlan ? FormatVersionWithPlan : withSeats ? FormatVersionWithSeats : FormatVersion;
         bytes[1] = (byte)payload.Kind;
         payload.Machine.Bytes.CopyTo(bytes.AsSpan(2, MachineId.Length));
         BinaryPrimitives.WriteUInt16BigEndian(bytes.AsSpan(14, 2), ToDay(payload.IssuedOn));
@@ -178,7 +204,9 @@ public static class LicenseCodec
         BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(18, 4), payload.Serial);
         bytes[22] = (byte)nameBytes.Length;
         nameBytes.CopyTo(bytes, FixedPayloadLength);
-        if (withSeats) bytes[^1] = (byte)payload.Seats;
+        var nameEnd = FixedPayloadLength + nameBytes.Length;
+        if (withSeats) bytes[nameEnd] = (byte)payload.Seats;
+        if (withPlan) bytes[nameEnd + 1] = (byte)payload.Plan;
         return bytes;
     }
 

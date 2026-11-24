@@ -1,8 +1,12 @@
+using Common.Licensing;
+
 namespace Web.Helpers;
 
 /// <summary>
 /// One page a user can navigate to. <see cref="Permissions"/> is any-of; empty means every signed-in user.
 /// <see cref="AlsoActiveOn"/> lists extra controllers that should light this entry up in the rail.
+/// <see cref="Feature"/> puts the page in the Pro plan: on Basic it stays in the menu with a lock and opens the upgrade
+/// screen. Put the same <c>[RequirePlan]</c> on its controllers.
 /// </summary>
 public sealed record NavPage(
     string Controller,
@@ -10,9 +14,13 @@ public sealed record NavPage(
     string Icon,
     NavSection Section,
     string[] Permissions,
-    string[]? AlsoActiveOn = null)
+    string[]? AlsoActiveOn = null,
+    ProFeature? Feature = null)
 {
     public string Action => "Index";
+
+    /// <summary>True when the shop's plan does not include this page.</summary>
+    public bool IsLockedOn(LicensePlan plan) => Feature is { } feature && !PlanRules.Includes(plan, feature);
 
     public bool IsActiveFor(string? controller) =>
         string.Equals(controller, Controller, StringComparison.OrdinalIgnoreCase)
@@ -48,16 +56,21 @@ public static class NavCatalog
         new NavPage("POS", "PointOfSale", "fa-cash-register", NavSection.Sales, P(), new[] { "Home" }),
         new NavPage("Dashboard", "Dashboard", "fa-tachometer-alt", NavSection.Sales, P(PermissionHelper.Permissions.Dashboard_View)),
         new NavPage("Orders", "Orders", "fa-shopping-cart", NavSection.Sales, P(PermissionHelper.Permissions.Orders_View)),
-        new NavPage("CashDrawer", "CashDrawer", "fa-vault", NavSection.Sales, P(PermissionHelper.Permissions.Sales_View)),
+        // Sales.Manage: a cashier opens their own drawer (the API shows them only their own sessions).
+        new NavPage("CashDrawer", "CashDrawer", "fa-vault", NavSection.Sales, P(PermissionHelper.Permissions.Sales_View, PermissionHelper.Permissions.Sales_Manage)),
         new NavPage("Receipts", "Receipts", "fa-receipt", NavSection.Sales, P(PermissionHelper.Permissions.Sales_View)),
+        // React-only page: the shop's Whish Money account (balance, movements, ticking off). Every plan.
+        new NavPage("Wallet", "WhishWallet", "fa-wallet", NavSection.Sales, P(PermissionHelper.Permissions.PaymentMethods_View)),
 
         // Catalog & people
         new NavPage("Products", "Products", "fa-box", NavSection.Catalog, P(PermissionHelper.Permissions.Products_View)),
         new NavPage("Categories", "Categories", "fa-tags", NavSection.Catalog, P(PermissionHelper.Permissions.Categories_View)),
         new NavPage("ProductDisplayOrder", "ProductDisplayOrder", "fa-sort-amount-down", NavSection.Catalog, P(PermissionHelper.Permissions.MainScreenProducts_Manage)),
-        new NavPage("Inventory", "Inventory", "fa-warehouse", NavSection.Catalog, P(PermissionHelper.Permissions.Inventory_View)),
-        new NavPage("Suppliers", "Suppliers", "fa-truck", NavSection.Catalog, P(PermissionHelper.Permissions.Suppliers_View)),
-        new NavPage("Purchases", "Purchases", "fa-file-invoice", NavSection.Catalog, P(PermissionHelper.Permissions.Purchases_View)),
+        // React-only page: sections for the shop's public online menu (no Razor version).
+        new NavPage("OnlineMenu", "OnlineMenu", "fa-utensils", NavSection.Catalog, P(PermissionHelper.Permissions.Products_Edit)),
+        new NavPage("Inventory", "Inventory", "fa-warehouse", NavSection.Catalog, P(PermissionHelper.Permissions.Inventory_View), Feature: ProFeature.Inventory),
+        new NavPage("Suppliers", "Suppliers", "fa-truck", NavSection.Catalog, P(PermissionHelper.Permissions.Suppliers_View), Feature: ProFeature.Suppliers),
+        new NavPage("Purchases", "Purchases", "fa-file-invoice", NavSection.Catalog, P(PermissionHelper.Permissions.Purchases_View), Feature: ProFeature.Purchases),
         new NavPage("Customers", "Customers", "fa-users", NavSection.Catalog, P(PermissionHelper.Permissions.Customers_View)),
 
         // Insights
@@ -71,7 +84,7 @@ public static class NavCatalog
         new NavPage("Tax", "Tax", "fa-percentage", NavSection.Admin, P(PermissionHelper.Permissions.Tax_View)),
         new NavPage("Settings", "Settings", "fa-cog", NavSection.Admin, P(PermissionHelper.Permissions.Settings_Manage)),
         new NavPage("License", "License_Title", "fa-key", NavSection.Admin, P(PermissionHelper.Permissions.License_Manage)),
-        new NavPage("AuditLogs", "AuditLog", "fa-clipboard-list", NavSection.Admin, P(PermissionHelper.Permissions.AuditLogs_View)),
+        new NavPage("AuditLogs", "AuditLog", "fa-clipboard-list", NavSection.Admin, P(PermissionHelper.Permissions.AuditLogs_View), Feature: ProFeature.AuditLog),
     };
 
     /// <summary>The pages this user may open, in rail order.</summary>

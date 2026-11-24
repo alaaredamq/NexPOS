@@ -109,6 +109,31 @@ public class OwnerEncryptedReadTests : IClassFixture<CloudFactory>
     }
 
     [Fact]
+    public async Task A_growing_table_reads_newest_first_a_page_at_a_time_and_says_where_to_ask_for_changes()
+    {
+        var key = DataKey.Generate();
+        var owner = await SeedOwnerAsync("rows-newest@shop.test", "Rows Newest");
+        await PushAsync(owner.Site, key.Cipher(), 0, Enumerable.Range(1, 5).Select(i => ("Receipts", (long)i, $"R{i}")).ToArray());
+
+        var first = await owner.Owner.GetFromJsonAsync<JsonElement>("/owner/v1/rows?table=Receipts&newest=true&limit=2");
+        Assert.Equal([5, 4], Rows(first).Select(r => r.GetProperty("id").GetInt32()).ToArray());
+        Assert.True(first.GetProperty("hasMore").GetBoolean());
+        var changes = first.GetProperty("changesCursor").GetString()!;
+
+        var second = await owner.Owner.GetFromJsonAsync<JsonElement>($"/owner/v1/rows?table=Receipts&newest=true&limit=2&before={first.GetProperty("nextBefore").GetInt64()}");
+        Assert.Equal([3, 2], Rows(second).Select(r => r.GetProperty("id").GetInt32()).ToArray());
+        var third = await owner.Owner.GetFromJsonAsync<JsonElement>($"/owner/v1/rows?table=Receipts&newest=true&limit=2&before={second.GetProperty("nextBefore").GetInt64()}");
+        Assert.Equal([1], Rows(third).Select(r => r.GetProperty("id").GetInt32()).ToArray());
+        Assert.False(third.GetProperty("hasMore").GetBoolean());
+
+        // Later: a new receipt and a void of an old one. The changes cursor returns just those two, not the history.
+        await Task.Delay(5);
+        await PushAsync(owner.Site, key.Cipher(), 5, ("Receipts", 6, "R6"), ("Receipts", 2, "R2 void"));
+        var since = await owner.Owner.GetFromJsonAsync<JsonElement>("/owner/v1/rows?table=Receipts&cursor=" + Uri.EscapeDataString(changes));
+        Assert.Equal([2, 6], Rows(since).Select(r => r.GetProperty("id").GetInt32()).Order().ToArray());
+    }
+
+    [Fact]
     public async Task A_row_changed_after_the_cursor_is_returned_again()
     {
         var key = DataKey.Generate();

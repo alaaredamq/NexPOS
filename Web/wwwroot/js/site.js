@@ -232,12 +232,12 @@ function initializeCharts() {
         Chart.defaults.plugins.legend.labels.padding = 20;
         
         // Default colors for charts
-        Chart.defaults.elements.bar.backgroundColor = 'rgba(10, 123, 133, 0.8)';
-        Chart.defaults.elements.bar.borderColor = '#0a7b85';
+        Chart.defaults.elements.bar.backgroundColor = 'rgba(30, 58, 138, 0.8)';
+        Chart.defaults.elements.bar.borderColor = '#1e3a8a';
         Chart.defaults.elements.bar.borderWidth = 1;
         
-        Chart.defaults.elements.line.borderColor = '#0a7b85';
-        Chart.defaults.elements.line.backgroundColor = 'rgba(10, 123, 133, 0.1)';
+        Chart.defaults.elements.line.borderColor = '#1e3a8a';
+        Chart.defaults.elements.line.backgroundColor = 'rgba(30, 58, 138, 0.1)';
         Chart.defaults.elements.line.borderWidth = 3;
         Chart.defaults.elements.line.tension = 0.4;
     }
@@ -674,25 +674,31 @@ window.ERP = window.NexPos;
     var REFRESH_MS = 60000;
     var busy = false;
 
-    function setState(chip, open, openingCash) {
+    function money(value) {
+        return '$' + Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setState(chip, open, cashInDrawer, openingCash) {
         var label = chip.querySelector('.drawer-label');
         if (!label) return;
         chip.setAttribute('data-open', open ? 'true' : 'false');
         chip.hidden = false;
         label.textContent = '';
         if (open) {
-            // "Drawer open · {0}": the amount sits in its own left-to-right run so Arabic text can't flip "$100.00"
+            // "Drawer open · {0} in drawer": the amount sits in its own left-to-right run so Arabic text can't flip "$100.00"
             var parts = (chip.getAttribute('data-label-open') || '{0}').split('{0}');
             var amount = document.createElement('bdi');
             amount.dir = 'ltr';
-            amount.textContent = '$' + Number(openingCash || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            amount.textContent = money(cashInDrawer);
             label.appendChild(document.createTextNode(parts[0]));
             label.appendChild(amount);
             label.appendChild(document.createTextNode(parts.slice(1).join('{0}')));
+            var started = chip.getAttribute('data-label-started');
+            chip.title = label.textContent + (started ? ' · ' + started.split('{0}').join(money(openingCash)) : '');
         } else {
             label.textContent = chip.getAttribute('data-label-closed') || '';
+            chip.title = label.textContent;
         }
-        chip.title = label.textContent;
     }
 
     function refresh() {
@@ -705,7 +711,9 @@ window.ERP = window.NexPos;
             .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
             .then(function (res) {
                 var open = !!(res && res.success && res.data);
-                chips.forEach(function (chip) { setState(chip, open, open ? res.data.openingCash : 0); });
+                var d = open ? res.data : null;
+                var inDrawer = d ? (d.summary && d.summary.expectedCash != null ? d.summary.expectedCash : d.openingCash) : 0;
+                chips.forEach(function (chip) { setState(chip, open, inDrawer, d ? d.openingCash : 0); });
             })
             .catch(function () { /* offline or signed out: keep what the page rendered */ })
             .then(function () { busy = false; });

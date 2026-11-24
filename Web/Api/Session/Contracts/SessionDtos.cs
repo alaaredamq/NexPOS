@@ -103,6 +103,12 @@ public sealed record NavItemDto
 
     /// <summary>Where a link should go right now: <see cref="SpaPath"/> when migrated, otherwise <see cref="LegacyPath"/> (full navigation, same cookie).</summary>
     public required string Href { get; init; }
+
+    /// <summary>The Pro feature this page belongs to (<c>Inventory</c>, <c>Suppliers</c>, <c>Purchases</c>, <c>AuditLog</c>); null for pages in every plan.</summary>
+    public string? Feature { get; init; }
+
+    /// <summary>The shop's plan does not include this page: show it with a lock; the route shows the upgrade screen.</summary>
+    public required bool Locked { get; init; }
 }
 
 public sealed record LicenseSummaryDto
@@ -126,6 +132,12 @@ public sealed record LicenseSummaryDto
 
     /// <summary>A Debug build: nothing is enforced.</summary>
     public required bool EnforcementDisabled { get; init; }
+
+    /// <summary><c>Basic</c> or <c>Pro</c>.</summary>
+    public required string Plan { get; init; }
+
+    /// <summary>Most users that may be active at once; null = no limit (Pro).</summary>
+    public int? MaxActiveUsers { get; init; }
 
     /// <summary>Banner headline, localized for this response (same text as the Razor banner).</summary>
     public required string Title { get; init; }
@@ -159,6 +171,9 @@ public sealed record DrawerStatusDto
 
     /// <summary>Opening cash of the open session; 0 when closed.</summary>
     public required decimal OpeningCash { get; init; }
+
+    /// <summary>What the drawer should hold now: opening cash + cash sales - cash drops (the "expected cash"); 0 when closed.</summary>
+    public required decimal CashInDrawer { get; init; }
 
     public DateTime? OpenedAt { get; init; }
 }

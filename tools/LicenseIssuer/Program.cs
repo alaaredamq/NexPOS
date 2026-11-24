@@ -20,10 +20,12 @@ internal static class Program
           pubkey   [--key <path>]
                    Print the public key (Base64) that is embedded in the app.
 
-          issue    --machine <ID> --customer "<name>" --kind full|provisional|trial
+          issue    --machine <ID> --customer "<name>" --kind full|provisional|trial --plan basic|pro
                    [--seats <n>] [--days <n> | --until yyyy-MM-dd] [--key <path>] [--out <file>]
                    Sign a license for a store server. --seats is the package size: how many PCs may sell,
-                   the server included (default 1; 1..255).
+                   the server included (default 1; 1..255). Pro only: Basic is always 1 PC.
+                     basic        one till, up to 3 active users; no stock, suppliers, purchases or audit log
+                     pro          everything, extra tills (--seats), unlimited users
                      full         perpetual; the date is the end of the updates plan   (default 365 days)
                      provisional  expires on the date (instalment sales)               (default 45 days)
                      trial        expires on the date (evaluation)                     (default 14 days)
@@ -118,10 +120,20 @@ internal static class Program
             var other => throw new CliException($"Unknown kind '{other}'. Use full, provisional or trial.")
         };
 
+        // Required, so a key can never come out as Pro just because the flag was forgotten.
+        var plan = Required(options, "plan").ToLowerInvariant() switch
+        {
+            "basic" => LicensePlan.Basic,
+            "pro" => LicensePlan.Pro,
+            var other => throw new CliException($"Unknown plan '{other}'. Use basic or pro.")
+        };
+
         var seats = 1;
         if (options.TryGetValue("seats", out var seatsText)
             && (!int.TryParse(seatsText, NumberStyles.None, CultureInfo.InvariantCulture, out seats) || seats < 1 || seats > LicenseCodec.MaxSeats))
             throw new CliException($"--seats must be a whole number from 1 to {LicenseCodec.MaxSeats}.");
+        if (plan == LicensePlan.Basic && seats != PlanRules.BasicSeats)
+            throw new CliException("A Basic license covers exactly 1 PC. Use --plan pro for extra tills.");
 
         var today = DateOnly.FromDateTime(DateTime.Now);
         DateOnly until;
@@ -143,7 +155,7 @@ internal static class Program
             throw new CliException("The end date is in the past. (--allow-past exists for testing the expiry screens.)");
 
         var serial = BitConverter.ToUInt32(RandomNumberGenerator.GetBytes(4));
-        var payload = new LicensePayload(kind, machine, today, until, serial, customer, seats);
+        var payload = new LicensePayload(kind, machine, today, until, serial, customer, seats, plan);
 
         using var key = LoadPrivateKey(KeyPath(options));
         var keyText = LicenseCodec.Encode(payload, key);
@@ -161,6 +173,7 @@ internal static class Program
         Console.WriteLine($"Customer : {payload.Customer}");
         Console.WriteLine($"Machine  : {machine.Format()}");
         Console.WriteLine($"Type     : {kind}");
+        Console.WriteLine($"Plan     : {plan}{(plan == LicensePlan.Basic ? " (needs a build that knows plans)" : "")}");
         Console.WriteLine($"PCs      : {seats}{(seats == 1 ? "" : " (server + " + (seats - 1) + " till" + (seats == 2 ? "" : "s") + "; needs a build that knows multi-seat keys)")}");
         Console.WriteLine(kind == LicenseKind.Full
             ? $"Updates  : until {until:yyyy-MM-dd} (the till itself never expires)"
@@ -190,6 +203,7 @@ internal static class Program
         Console.WriteLine($"Customer  : {p.Customer}");
         Console.WriteLine($"Machine   : {p.Machine.Format()}");
         Console.WriteLine($"Type      : {p.Kind}");
+        Console.WriteLine($"Plan      : {p.Plan}");
         Console.WriteLine($"PCs       : {p.Seats}");
         Console.WriteLine($"Issued    : {p.IssuedOn:yyyy-MM-dd}");
         Console.WriteLine(p.IsTimeLimited ? $"Expires   : {p.ValidUntil:yyyy-MM-dd}" : $"Updates   : until {p.ValidUntil:yyyy-MM-dd}");
@@ -259,8 +273,8 @@ internal static class Program
         var logPath = Path.Combine(Path.GetDirectoryName(keyPath)!, "issued.csv");
         var isNew = !File.Exists(logPath);
         var sb = new StringBuilder();
-        // "seats" is the last column so rows written before it existed keep lining up with the older header.
-        if (isNew) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats");
+        // New columns go last so rows written before they existed keep lining up with the older header.
+        if (isNew) sb.AppendLine("issued_on,customer,kind,valid_until,machine_id,serial,seats,plan");
         sb.AppendLine(string.Join(',',
             p.IssuedOn.ToString("yyyy-MM-dd"),
             Csv(p.Customer),
@@ -268,7 +282,8 @@ internal static class Program
             p.ValidUntil.ToString("yyyy-MM-dd"),
             p.Machine.Format(),
             p.SerialText,
-            p.Seats.ToString(CultureInfo.InvariantCulture)));
+            p.Seats.ToString(CultureInfo.InvariantCulture),
+            p.Plan));
         File.AppendAllText(logPath, sb.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
     }
 

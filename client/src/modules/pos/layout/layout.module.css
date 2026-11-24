@@ -225,6 +225,29 @@
   }
 }
 
+/* Phones: the bar needed ~590px, pushing the drawer chip, language and user menu (sign-out) off-screen. Keep the controls,
+   drop the decoration: the logo and the keyboard-shortcuts button (no keyboard here). */
+@media (max-width: 575px) {
+  .topBar {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+
+  .brand,
+  .logo,
+  .topBar .iconBtn {
+    display: none;
+  }
+
+  .mgmtLink {
+    min-width: 0;
+    padding-inline: var(--space-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

@@ -1,5 +1,5 @@
 @* Whether the signed-in user's cash drawer is open - Boussi Cell's "till chip". Red "Drawer not opened" or green
-   "Drawer open - $100.00" (the opening cash), and it links to the Drawer page either way. Only shown to people who
+   "Drawer open - $165.00 in drawer" (opening cash + cash sales - drops; the opening cash is in the tooltip), and it links to the Drawer page either way. Only shown to people who
    can use the drawer (the same Sales.View permission that guards the CashDrawer pages and its sidebar link), because
    telling someone who can't open one that it isn't open is noise.
    Rendered on the server so there is no flash on page load; site.js keeps it fresh afterwards (every minute, and when
@@ -10,7 +10,7 @@
 @if (PermissionHelper.HasPermission(User, PermissionHelper.Permissions.Sales_View))
 {
     bool? isOpen = null;   // null = couldn't tell; the chip stays hidden until the script has an answer
-    decimal openingCash = 0;
+    decimal openingCash = 0, cashInDrawer = 0;
     if (int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
     {
         try
@@ -18,6 +18,7 @@
             var session = await CashDrawerService.GetOpenSessionByUserIdAsync(userId);
             isOpen = session != null;
             openingCash = session?.OpeningCash ?? 0;
+            cashInDrawer = session is null ? 0 : await CashDrawerService.CalculateExpectedCashAsync(session.Id);
         }
         catch
         {
@@ -25,18 +26,21 @@
         }
     }
 
-    var openTemplate = SharedLocalizer["DrawerOpenWithAmount"].Value;     // "Drawer open · {0}"
+    var openTemplate = SharedLocalizer["DrawerOpenWithAmount"].Value;     // "Drawer open · {0} in drawer"
+    var startedTemplate = SharedLocalizer["DrawerStartedWith"].Value;     // "started with {0}" - tooltip only
     var closedLabel = SharedLocalizer["DrawerNotOpened"].Value;
     var openParts = openTemplate.Split("{0}", 2);
-    var amountText = "$" + openingCash.ToString("N2", CultureInfo.InvariantCulture);
+    var amountText = "$" + cashInDrawer.ToString("N2", CultureInfo.InvariantCulture);
+    var openingText = "$" + openingCash.ToString("N2", CultureInfo.InvariantCulture);
 
     <a class="drawer-chip" data-drawer-status
        data-open="@(isOpen == true ? "true" : "false")"
        data-status-url="@Url.Action("GetOpenSession", "CashDrawer")"
        data-label-open="@openTemplate"
        data-label-closed="@closedLabel"
+       data-label-started="@startedTemplate"
        href="@Url.PageWithCurrentLanguage("CashDrawer")"
-       title="@(isOpen == true ? string.Format(CultureInfo.InvariantCulture, openTemplate, amountText) : closedLabel)"
+       title="@(isOpen == true ? string.Format(CultureInfo.InvariantCulture, openTemplate, amountText) + " · " + string.Format(CultureInfo.InvariantCulture, startedTemplate, openingText) : closedLabel)"
        @(isOpen == null ? "hidden" : "")>
         <span class="drawer-dot" aria-hidden="true"></span>
         @* the amount stays left-to-right inside Arabic text, so "$100.00" never turns into "100.00$" *@

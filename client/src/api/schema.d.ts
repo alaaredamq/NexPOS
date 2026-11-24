@@ -538,7 +538,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** One session with its figures and cash drops (any user's, as the Razor close and Z report pages allowed). */
+        /** One session with its figures and cash drops (any user's for Sales.View, as the Razor close and Z report pages allowed; otherwise only your own). */
         get: operations["getDrawerSession"];
         put?: never;
         post?: never;
@@ -966,7 +966,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month. */
+        /**
+         * The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month.
+         *     The Basic plan has only `week`: any other period answers 403 `plan_upgrade_required` (feature `Reports`).
+         */
         get: operations["getSalesTrend"];
         put?: never;
         post?: never;
@@ -1635,7 +1638,7 @@ export interface paths {
         put?: never;
         /**
          * Connects with the provider's link and starts syncing at once (no restart). A refused link answers 400 with a stable code:
-         *     `enroll_link_invalid`, `cloud_insecure_url`, `enroll_code_invalid`, `enroll_code_expired`, `enroll_code_used`,
+         *     `enroll_link_invalid`, `cloud_insecure_url`, `cloud_other_server`, `enroll_code_invalid`, `enroll_code_expired`, `enroll_code_used`,
          *     `site_disabled`, `rate_limited`; `cloud_unreachable` answers 502. Nothing changes on failure.
          */
         post: operations["connectOnline"];
@@ -1694,6 +1697,211 @@ export interface paths {
         put?: never;
         /** Asks the background sync to run now rather than at its next turn. Returns the state as it is; poll `GET` for the outcome. */
         post: operations["syncOnlineNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The sections in order with what they hold, the counts, and whether the menu is linked. */
+        get: operations["getOnlineMenu"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adds an empty section at the end. */
+        post: operations["addOnlineMenuSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["renameOnlineMenuSection"];
+        post?: never;
+        /** Removes the section and its picks. The products themselves are untouched. */
+        delete: operations["deleteOnlineMenuSection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** The sections listed first, in that order. */
+        put: operations["reorderOnlineMenuSections"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/sections/{id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One page of a section's picks, in order (take at most 50). The overview does not include them: a section can hold thousands. */
+        get: operations["listOnlineMenuEntries"];
+        put?: never;
+        /** Puts products and whole categories at the end of the section; ones already in another section move here. */
+        post: operations["placeInOnlineMenuSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/entries/{id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moves a pick one step up or down in its section. */
+        post: operations["moveOnlineMenuEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Takes a product or category out of its section (and so off the online menu). */
+        delete: operations["removeOnlineMenuEntry"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active products by name or barcode, `skip`/`take` paged (take at most 50), with where each is on the menu now. */
+        get: operations["listOnlineMenuProductOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every category with its active product count and the section it was picked into. */
+        get: operations["listOnlineMenuCategoryOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-menu/send-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Asks this till to check its online menu and send its products now, instead of within the minute. */
+        post: operations["sendOnlineMenuNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The open orders, oldest first. Not connected to Online, or the cloud out of reach: an empty list that says so. */
+        get: operations["getOnlineOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/online-orders/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Moves an order on: accepted (being made), ready, done, or rejected (the guest is told it could not be taken). */
+        put: operations["moveOnlineOrder"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2014,6 +2222,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/customers/by-phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The customers whose phone is this number, however either is written ("+961 70 123 456" finds "70123456"). For an online order:
+         *     the till suggests the matching customer and the cashier confirms. Too few digits to tell anyone apart: an empty list.
+         */
+        get: operations["findPosCustomersByPhone"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/drawer": {
         parameters: {
             query?: never;
@@ -2125,6 +2353,61 @@ export interface paths {
         get: operations["getPosSaleReceiptPdf"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/whish/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Asks Whish for a payment link the customer opens to pay. Retry with the <b>same</b>`idempotencyKey` after a lost answer: no second
+         *     request is sent. Refusals: 409 `whish_not_set_up`, 400 `whish_currency_not_accepted` (only USD and LBP), 502 `whish_error`
+         *     (Whish said no or could not be reached; `detail` says why), 409 `idempotency_key_reused`.
+         */
+        post: operations["createWhishPaymentRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/whish/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The request, after asking Whish for news while it is still waiting. Poll this every few seconds. */
+        get: operations["getWhishPaymentRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/whish/requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The cashier stops waiting. If the customer pays afterwards, the wallet page lists it as paid with no sale. */
+        post: operations["cancelWhishPaymentRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2432,7 +2715,7 @@ export interface paths {
          * Prints the labels on a label printer attached to this computer, as printer commands (TSPL).
          * @description For TSC-compatible label printers (Xprinter, TSC, Gprinter...). Windows drivers for these keep one fixed paper size and
          *     ignore the size a program asks for; the commands carry the label size themselves, so the size chosen in the dialog is
-         *     what comes out. A printer that does not speak TSPL prints rubbish, so the desktop app only offers this as a choice.
+         *     what comes out. A printer marked "receipt mode" on the Printers page (a 2-in-1 set to receipts) gets the stickers as ESC/POS pictures instead.
          */
         post: operations["printStickerLabels"];
         delete?: never;
@@ -2774,7 +3057,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days. */
+        /**
+         * The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days.
+         *                 403 `plan_upgrade_required` (feature `Reports`) on the Basic plan for a range over 7 days; the CSV and PDF follow the same rules.
+         */
         get: operations["getSalesReport"];
         put?: never;
         post?: never;
@@ -2928,6 +3214,26 @@ export interface paths {
         get: operations["getPrintingSettings"];
         /** Saves the receipt printer and sticker size. A sticker size outside 15-150 x 10-150 mm answers 400 `validation_failed`. */
         put: operations["savePrintingSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/printers/mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Records the mode a 2-in-1 printer (Xprinter XP-365B) is set to on the printer, so receipts and labels both go out in the language it
+         *     is listening for. Saved at once; answers the printing settings with the new modes.
+         */
+        put: operations["setPrinterMode"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3217,6 +3523,7 @@ export interface paths {
         /**
          * Creates a user with the PIN an admin chose; the user must change it at the first sign-in. A taken username or email,
          *     or an unknown role, answers 400 `validation_failed` with the field in `errors`.
+         *     409 `plan_user_limit`: Basic already has its most active users (also from the edit and enable endpoints).
          */
         post: operations["createUser"];
         delete?: never;
@@ -3289,6 +3596,118 @@ export interface paths {
         put?: never;
         /** Sets a new PIN for the user, who must replace it at the next sign-in. */
         post: operations["resetUserPin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The shop's wallets with their balances. Empty until Whish is set up. */
+        get: operations["getWallets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWallet"];
+        /** Renames it, changes the shop's Whish number, or turns it off (sales stop landing in it; the history stays). */
+        put: operations["updateWallet"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/whish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sets up the Whish wallet, and the "Whish" payment method with it (an existing method of that name is used), so checkout offers
+         *     Whish at once. 409 `wallet_exists` when it is already set up.
+         */
+        post: operations["createWhishWallet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The wallet's movements, newest first. `from` / `to` are local dates and include both days; `type` is one movement
+         *     type; `status` is `checked` or `unchecked`; `q` searches the reference, the notes and the receipt number.
+         */
+        get: operations["getWalletTransactions"];
+        put?: never;
+        /** Money moved by hand: a deposit, a withdrawal, a supplier paid, a fee, or a correction. Sales come from checkout only. */
+        post: operations["addWalletMovement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}/transactions/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ticks rows off against the Whish statement (`checked: false` puts them back). Answers how many changed. */
+        post: operations["checkWalletTransactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/wallets/{id}/online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The keys Whish gives with a merchant account (`channel`, `secret`, `websiteUrl`) and `mode` Off / Sandbox / Live.
+         *     An empty secret keeps the stored one; the secret is never sent back. Pro plan.
+         */
+        put: operations["setWalletOnline"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3944,6 +4363,28 @@ export interface components {
             displayOrder: number;
             metadata?: string | null;
         };
+        CreateWalletPaymentRequest: {
+            /**
+             * Format: int32
+             * @description The wallet (`walletId` of the payment method).
+             */
+            walletId?: number;
+            /**
+             * Format: double
+             * @description What the customer pays, in Web.Api.Pos.CreateWalletPaymentRequest.CurrencyId: the sale's total.
+             */
+            amount?: number;
+            /** Format: int32 */
+            currencyId?: number;
+            /** @description A fresh value per attempt; resend the same one to retry. */
+            idempotencyKey: string;
+        };
+        /** @description Sets up the shop's Whish wallet. The "Whish" payment method is made too (or the existing one is used). */
+        CreateWalletRequest: {
+            name?: string | null;
+            /** @description The shop's Whish number (phone), shown to the cashier at checkout. */
+            accountNumber?: string | null;
+        };
         /** @description The converted amount, rounded to 2 decimals with banker's rounding exactly like a till price (`PosPricingMath.ToCartCurrency`). */
         CurrencyConversionDto: {
             /** Format: double */
@@ -4482,6 +4923,11 @@ export interface components {
              * @description Opening cash of the open session; 0 when closed.
              */
             openingCash: number;
+            /**
+             * Format: double
+             * @description What the drawer should hold now: opening cash + cash sales - cash drops (the "expected cash"); 0 when closed.
+             */
+            cashInDrawer: number;
             /** Format: date-time */
             openedAt?: string | null;
         };
@@ -4714,6 +5160,13 @@ export interface components {
              * @description How many PCs the licence covers: the store server plus its tills. 1 until a licence is installed, and for keys issued before seats existed.
              */
             seats: number;
+            /** @description `Basic` or `Pro`. Basic until a licence is installed; keys issued before plans existed are Pro. */
+            plan: string;
+            /**
+             * Format: int32
+             * @description Most users that may be active at once; null = no limit (Pro).
+             */
+            maxActiveUsers?: number | null;
             /** @description `yyyy-MM-dd`. */
             issuedOn?: string | null;
             /** @description `yyyy-MM-dd`. A time-limited licence: the last valid day. A full one: the last day of its updates plan. */
@@ -4747,6 +5200,13 @@ export interface components {
             validUntil?: string | null;
             /** @description A Debug build: nothing is enforced. */
             enforcementDisabled: boolean;
+            /** @description `Basic` or `Pro`. */
+            plan: string;
+            /**
+             * Format: int32
+             * @description Most users that may be active at once; null = no limit (Pro).
+             */
+            maxActiveUsers?: number | null;
             /** @description Banner headline, localized for this response (same text as the Razor banner). */
             title: string;
             /** @description Banner body with the dates filled in, localized for this response. */
@@ -4850,6 +5310,10 @@ export interface components {
             migrated: boolean;
             /** @description Where a link should go right now: Web.Api.Session.Contracts.NavItemDto.SpaPath when migrated, otherwise Web.Api.Session.Contracts.NavItemDto.LegacyPath (full navigation, same cookie). */
             href: string;
+            /** @description The Pro feature this page belongs to (`Inventory`, `Suppliers`, `Purchases`, `AuditLog`); null for pages in every plan. */
+            feature?: string | null;
+            /** @description The shop's plan does not include this page: show it with a lock; the route shows the upgrade screen. */
+            locked: boolean;
         };
         NavSectionDto: {
             /** @description `Sales`, `Catalog`, `Insights` or `Admin`. */
@@ -4933,6 +5397,150 @@ export interface components {
         OnlineConnectRequest: {
             /** @description The connection link from the provider (`https://.../enroll/XXXX-XXXX-XXXX`). Pasting the whole WhatsApp message also works. */
             link: string;
+        };
+        OnlineMenuCategoryOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** Format: int32 */
+            activeProducts: number;
+            /**
+             * Format: int32
+             * @description The section it was picked into, if any.
+             */
+            sectionId?: number | null;
+            sectionName?: string | null;
+        };
+        /** @description The online-menu screen: its sections in order, and how the shop's online menu is doing. */
+        OnlineMenuDto: {
+            sections: components["schemas"]["OnlineMenuSectionDto"][];
+            /**
+             * Format: int32
+             * @description How many active products the online menu shows (each counted once). With no sections, every active product.
+             */
+            productsShown: number;
+            /**
+             * Format: int32
+             * @description Active products in no section, so not on the online menu. 0 while there are no sections (the menu then shows everything by category).
+             */
+            productsLeftOut: number;
+            status: components["schemas"]["OnlineMenuStatusDto"];
+        };
+        /** @description One page of a section's picks. */
+        OnlineMenuEntriesDto: {
+            items: components["schemas"]["OnlineMenuEntryDto"][];
+            hasMore: boolean;
+        };
+        /** @description One pick in a section: a product, or a whole category. */
+        OnlineMenuEntryDto: {
+            /**
+             * Format: int32
+             * @description Id of the pick (not of the product or category); used to remove or reorder it.
+             */
+            id: number;
+            /** @description `product` or `category`. */
+            kind: string;
+            /** Format: int32 */
+            productId?: number | null;
+            /** Format: int32 */
+            categoryId?: number | null;
+            name: string;
+            /**
+             * Format: double
+             * @description Product: its selling price. Category: null.
+             */
+            price?: number | null;
+            currencyNotation?: string | null;
+            image?: string | null;
+            /**
+             * Format: int32
+             * @description Category: how many active products it brings. Product: 1, or 0 when the product is switched off.
+             */
+            productCount: number;
+            /** @description Product: false when it is switched off or deleted, so the menu skips it for now. */
+            isActive: boolean;
+        };
+        /** @description Moves a pick one step within its section. */
+        OnlineMenuMoveRequest: {
+            /**
+             * Format: int32
+             * @description -1 = up, 1 = down.
+             */
+            direction: number;
+        };
+        OnlineMenuOrderRequest: {
+            ids: number[];
+        };
+        /** @description Products and whole categories to put at the end of a section. Ones already in another section move here. */
+        OnlineMenuPlaceRequest: {
+            productIds?: number[] | null;
+            categoryIds?: number[] | null;
+        };
+        /** @description A product to pick, and where it is on the menu now (if anywhere). */
+        OnlineMenuProductOptionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            categoryName?: string | null;
+            /** Format: double */
+            price: number;
+            currencyNotation: string;
+            image?: string | null;
+            /**
+             * Format: int32
+             * @description The section it was picked into on its own, if any.
+             */
+            sectionId?: number | null;
+            sectionName?: string | null;
+            /** @description The section it shows in through its category, if any (only when not picked on its own). */
+            viaCategorySectionName?: string | null;
+        };
+        OnlineMenuProductOptionsDto: {
+            items: components["schemas"]["OnlineMenuProductOptionDto"][];
+            hasMore: boolean;
+        };
+        OnlineMenuSectionDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /**
+             * Format: int32
+             * @description How many picks it holds (products and whole categories). The picks themselves load a page at a time.
+             */
+            entryCount: number;
+            /**
+             * Format: int32
+             * @description How many active products the section shows (whole categories counted by their products).
+             */
+            productCount: number;
+        };
+        OnlineMenuSectionRequest: {
+            name: string;
+        };
+        /** @description Whether this till can feed an online menu right now. */
+        OnlineMenuStatusDto: {
+            /** @description This till is connected to Coduo POS Online (Settings > Online). */
+            connected: boolean;
+            /** @description The cloud says an online menu follows this branch. Null until the till has asked since it started. */
+            linked?: boolean | null;
+            /** @description The menu's public address, when linked. */
+            menuUrl?: string | null;
+            /** @description Where the owner adds pictures and descriptions: the cloud's menu editor. */
+            editorUrl?: string | null;
+            /**
+             * Format: date-time
+             * @description When this till last sent its products to the menu (since it started).
+             */
+            lastSentUtc?: string | null;
+        };
+        OnlineOrderMoveRequest: {
+            status?: string;
+        };
+        /** @description What the till shows of the online orders: whether this PC can receive them, and the open ones for its branch. */
+        OnlineOrdersDto: {
+            connected?: boolean;
+            reachable?: boolean;
+            orders?: components["schemas"]["TillOrder"][];
         };
         /**
          * @description The Online screen: whether this till is connected to Coduo POS Online, to whom, and how the last synchronisation went.
@@ -5269,6 +5877,17 @@ export interface components {
             /** @description Put the sale on the customer's account instead of collecting payment. Needs a real customer. */
             addToDebt?: boolean;
             /**
+             * @description The provider's number for this payment, e.g. the Whish transfer number from the customer's phone. Asked for when the
+             *                 method has `asksReference`; optional, but it is what lets the owner match the sale in the Whish app later.
+             */
+            paymentReference?: string | null;
+            /**
+             * Format: int32
+             * @description A Whish payment request (`pos/whish/requests`) the customer paid online. Whish must have confirmed it, and its amount and
+             *                 currency must match this sale; it then pays for this sale only. Its Whish number goes on the receipt (`paymentReference` is ignored).
+             */
+            walletPaymentRequestId?: number | null;
+            /**
              * Format: double
              * @description What the customer pays, in the cart currency: the priced total, which the cashier may lower (a discount) or raise
              *                 (cash rounding). No limit is enforced.
@@ -5304,6 +5923,7 @@ export interface components {
             /** @description First and last name. */
             name: string;
             email?: string | null;
+            phoneNumber?: string | null;
             /**
              * Format: double
              * @description What the customer owes (positive) or has in credit (negative).
@@ -5387,6 +6007,19 @@ export interface components {
             isDefault: boolean;
             /** @description The checkout dialog asks for the amount handed over and shows change. */
             requiresChange: boolean;
+            /** @description The money goes into a wallet (Whish): the checkout dialog asks for the transfer number. */
+            asksReference?: boolean;
+            /** @description The shop's number on that wallet (the phone customers send Whish money to), to show the cashier. Null when not set. */
+            walletAccountNumber?: string | null;
+            /** @description The wallet's company (`Whish`), so the button can show its logo. Null for a method with no wallet. */
+            walletProvider?: string | null;
+            /**
+             * Format: int32
+             * @description The wallet, for `pos/whish/requests`. Null for a method with no wallet.
+             */
+            walletId?: number | null;
+            /** @description The till can send this wallet a payment request (online payments set up, and the plan includes them). */
+            onlinePayments?: boolean;
         };
         PosPriceOptionDto: {
             /**
@@ -5647,6 +6280,11 @@ export interface components {
             /** @description Another page of name matches exists: ask again with `skip` = number of items received so far. */
             hasMore: boolean;
         };
+        /** @description Body of "this printer is set to receipt / label mode". `Mode` null forgets it. */
+        PrinterModeRequest: {
+            printerName: string;
+            mode?: string | null;
+        };
         /** @description Body of "print a test slip". */
         PrinterTestRequest: {
             printerName: string;
@@ -5671,6 +6309,13 @@ export interface components {
              * @description Barcode sticker height in millimetres (10 - 150).
              */
             stickerHeightMm: number;
+            /**
+             * @description The mode each 2-in-1 printer is set to ("receipt" or "label"), by printer name. A printer that is not listed gets each job's default
+             *     language: receipts as receipt-printer commands, direct labels as label-printer commands.
+             */
+            printerModes: {
+                [key: string]: string;
+            };
         };
         /** @description Body of "save the printing settings". */
         PrintingSettingsRequest: {
@@ -7184,6 +7829,34 @@ export interface components {
             /** @description Active, but the licence now covers fewer PCs than are registered: this till is refused until a seat is freed or a bigger key is installed. */
             overflow: boolean;
         };
+        TillOrder: {
+            /** Format: int32 */
+            id?: number;
+            /** Format: int32 */
+            number?: number;
+            status?: string;
+            branch?: string | null;
+            orderType?: string | null;
+            name?: string;
+            phone?: string | null;
+            place?: string | null;
+            note?: string | null;
+            /** Format: date-time */
+            createdAtUtc?: string;
+            lines?: components["schemas"]["TillOrderLine"][];
+            total?: string;
+        };
+        TillOrderLine: {
+            name?: string;
+            /** Format: int32 */
+            quantity?: number;
+            /** Format: double */
+            unitPrice?: number;
+            currency?: string;
+            /** Format: int32 */
+            posProductId?: number | null;
+            total?: string;
+        };
         /** @description The package: how many PCs the licence covers and which tills use them. The store server itself is always the first seat. */
         TillSeatsDto: {
             /**
@@ -7204,6 +7877,23 @@ export interface components {
             /** @description False in a Debug build. */
             enforced: boolean;
             devices: components["schemas"]["TillDeviceDto"][];
+        };
+        UnusedWalletPaymentDto: {
+            /** Format: int32 */
+            id: number;
+            externalId: string;
+            /** Format: double */
+            amount: number;
+            currencyNotation: string;
+            payerPhone?: string | null;
+            /** Format: date-time */
+            paidAt?: string | null;
+        };
+        UpdateWalletRequest: {
+            name: string;
+            accountNumber?: string | null;
+            /** @description Off: sales with its payment method stop landing here. The history stays. */
+            isActive?: boolean;
         };
         /** @description Body of "enable / disable a user". */
         UserActiveRequest: {
@@ -7291,6 +7981,167 @@ export interface components {
             /** Format: int32 */
             roleId: number;
             isActive: boolean;
+        };
+        WalletBalanceDto: {
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /**
+             * Format: double
+             * @description Money in minus money out, over the whole history.
+             */
+            balance: number;
+            /**
+             * Format: int32
+             * @description Rows not yet ticked off against the provider's statement.
+             */
+            uncheckedCount: number;
+            /** Format: double */
+            uncheckedAmount: number;
+        };
+        WalletCheckRequest: {
+            ids: number[];
+            checked?: boolean;
+        };
+        WalletCheckResultDto: {
+            /** Format: int32 */
+            changed: number;
+        };
+        /** @description A wallet (today: the shop's Whish Money account) with the money it holds. */
+        WalletDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** @description `Whish`. */
+            provider: string;
+            /** @description The shop's number on the provider (the phone customers send Whish money to). */
+            accountNumber?: string | null;
+            /**
+             * Format: int32
+             * @description The payment method whose sales land here (the till offers it at checkout).
+             */
+            paymentMethodId: number;
+            paymentMethodName: string;
+            isActive: boolean;
+            /** @description One line per currency: the default currency first. */
+            balances: components["schemas"]["WalletBalanceDto"][];
+            online: components["schemas"]["WalletOnlineDto"];
+        };
+        /** @description Money moved by hand. Sales are never entered here: checkout records them. */
+        WalletMovementRequest: {
+            /** @description `Deposit`, `Withdrawal`, `SupplierPayment`, `Fee` or `Adjustment`. */
+            type: string;
+            /**
+             * Format: double
+             * @description Always positive; the type says the direction (and Web.Api.Wallets.Contracts.WalletMovementRequest.MoneyIn does for an adjustment).
+             */
+            amount?: number;
+            /** @description Only read for an `Adjustment`: true adds to the balance, false takes away. */
+            moneyIn?: boolean;
+            /** Format: int32 */
+            currencyId?: number;
+            reference?: string | null;
+            notes?: string | null;
+            /**
+             * Format: int32
+             * @description The supplier paid, for a `SupplierPayment` (optional: on Basic there is no supplier list, so the notes name them).
+             */
+            supplierId?: number | null;
+            /**
+             * Format: date
+             * @description A local date (`2026-11-21`) when the money moved on an earlier day; empty = now.
+             */
+            date?: string | null;
+        };
+        WalletOnlineDto: {
+            /** @description `Off`, `Sandbox` (Whish's test system) or `Live`. */
+            mode: string;
+            channel?: string | null;
+            websiteUrl?: string | null;
+            /** @description A secret is stored (it is never shown). */
+            hasSecret: boolean;
+            /** @description The mode is on and all three keys are there: the till offers "Send payment request". */
+            ready: boolean;
+            /** @description The shop's plan includes online payments (Pro). */
+            includedInPlan: boolean;
+            /** @description Paid by the customer but used by no sale (they paid after the cashier stopped waiting, or the sale then failed). */
+            paidWithoutSale: components["schemas"]["UnusedWalletPaymentDto"][];
+        };
+        /** @description The keys Whish gives with a merchant account. Leave Web.Api.Wallets.Contracts.WalletOnlineRequest.Secret empty to keep the stored one. */
+        WalletOnlineRequest: {
+            /** @description `Off`, `Sandbox` or `Live`. */
+            mode: string;
+            channel?: string | null;
+            secret?: string | null;
+            websiteUrl?: string | null;
+        };
+        /** @description A payment request sent to Whish. Web.Api.Pos.WalletPaymentRequestDto.Status: `Pending`, `Paid`, `Failed` or `Cancelled`. */
+        WalletPaymentRequestDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description Our number for it at Whish (a string: it is too long for some JSON readers). Printed on the receipt. */
+            externalId: string;
+            status: string;
+            /** Format: double */
+            amount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyCode: string;
+            currencyNotation: string;
+            /** @description The page the customer opens to pay (shown as a QR code). Null if Whish refused. */
+            collectUrl?: string | null;
+            payerPhone?: string | null;
+            failureMessage?: string | null;
+            /**
+             * Format: int32
+             * @description The sale it paid for, once used.
+             */
+            orderId?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+        };
+        /** @description One movement of money. Web.Api.Wallets.Contracts.WalletTransactionDto.Amount is signed: positive is money in. */
+        WalletTransactionDto: {
+            /** Format: int32 */
+            id: number;
+            /** @description `Sale`, `SaleReversal`, `Deposit`, `Withdrawal`, `SupplierPayment`, `Fee` or `Adjustment`. */
+            type: string;
+            /** Format: double */
+            amount: number;
+            /** Format: int32 */
+            currencyId: number;
+            currencyNotation: string;
+            reference?: string | null;
+            notes?: string | null;
+            /** Format: int32 */
+            orderId?: number | null;
+            /** @description The receipt of the sale (Sale / SaleReversal rows). */
+            receiptNumber?: string | null;
+            /** Format: int32 */
+            supplierId?: number | null;
+            supplierName?: string | null;
+            userName: string;
+            /** Format: date-time */
+            occurredAt: string;
+            isChecked: boolean;
+            /** Format: date-time */
+            checkedAt?: string | null;
+        };
+        /** @description What every list endpoint returns. */
+        WalletTransactionDtoPagedResult: {
+            items: components["schemas"]["WalletTransactionDto"][];
+            /**
+             * Format: int32
+             * @description Rows matching the filter across all pages.
+             */
+            total: number;
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
         };
         /** @description The end-of-day report of a closed session (what the Z report page prints). */
         ZReportDto: {
@@ -13306,6 +14157,657 @@ export interface operations {
             };
         };
     };
+    getOnlineMenu: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuSectionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    renameOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuSectionRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    deleteOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    reorderOnlineMenuSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuEntries: {
+        parameters: {
+            query?: {
+                skip?: number;
+                take?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuEntriesDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    placeInOnlineMenuSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuPlaceRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    moveOnlineMenuEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineMenuMoveRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    removeOnlineMenuEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuProductOptions: {
+        parameters: {
+            query?: {
+                q?: string;
+                skip?: number;
+                take?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuProductOptionsDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    listOnlineMenuCategoryOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineMenuCategoryOptionDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    sendOnlineMenuNow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getOnlineOrders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OnlineOrdersDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    moveOnlineOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OnlineOrderMoveRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     listOrders: {
         parameters: {
             query?: {
@@ -14355,6 +15857,46 @@ export interface operations {
             };
         };
     };
+    findPosCustomersByPhone: {
+        parameters: {
+            query?: {
+                phone?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PosCustomerDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     getPosDrawer: {
         parameters: {
             query?: never;
@@ -14650,6 +16192,173 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": components["schemas"]["ApiProblemDetails"];
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateWalletPaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Bad Gateway */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    cancelWhishPaymentRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletPaymentRequestDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
@@ -17223,6 +18932,57 @@ export interface operations {
             };
         };
     };
+    setPrinterMode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PrinterModeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintingSettingsDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
     listInstalledPrinters: {
         parameters: {
             query?: never;
@@ -18461,6 +20221,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
         };
     };
     getUserSummary: {
@@ -18610,6 +20379,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
         };
     };
     deleteUser: {
@@ -18719,6 +20497,15 @@ export interface operations {
                     "application/json": components["schemas"]["ApiProblemDetails"];
                 };
             };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
         };
     };
     resetUserPin: {
@@ -18742,6 +20529,456 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWallets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    updateWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateWalletRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    createWhishWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateWalletRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    getWalletTransactions: {
+        parameters: {
+            query?: {
+                /** @description 1-based page number. */
+                page?: number;
+                pageSize?: number;
+                sort?: string;
+                /** @description `asc` (default) or `desc`. */
+                dir?: string;
+                q?: string;
+                Descending?: boolean;
+                Skip?: number;
+                from?: string;
+                to?: string;
+                type?: string;
+                status?: string;
+                currencyId?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletTransactionDtoPagedResult"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    addWalletMovement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletMovementRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletTransactionDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    checkWalletTransactions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletCheckResultDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
+            };
+        };
+    };
+    setWalletOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WalletOnlineRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WalletDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiProblemDetails"];
+                };
             };
             /** @description Unauthorized */
             401: {

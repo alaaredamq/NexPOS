@@ -112,6 +112,7 @@
   "details.cancelledDone": "Order {{0}} cancelled: receipt voided and {{1}} item line(s) returned to stock.",
   "details.currency": "Currency",
   "details.downloadPdf": "Download PDF",
+  "details.keepOrder": "Keep order",
   "details.noReceipts": "No receipt was issued for this order.",
   "details.notFound": "That order was not found.",
   "details.receipts": "Receipts",

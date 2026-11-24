@@ -191,7 +191,13 @@ class _ChangeCard extends StatelessWidget {
             ],
             if (change.status == ChangeStatus.rejected && !change.hidden) ...[
               const SizedBox(height: 8),
-              if (errors.isEmpty && change.message != null)
+              if (errors.isEmpty && change.code == 'plan_upgrade_required')
+                Text(
+                  context.tr('The shop runs the Basic plan, which does not include this change. Upgrade to Pro to use it.',
+                      'يعمل المحل على الخطة الأساسية، وهي لا تتضمن هذا التغيير. قم بالترقية إلى Pro لاستخدامه.'),
+                  style: const TextStyle(fontSize: 13, color: Tokens.danger, height: 1.4),
+                )
+              else if (errors.isEmpty && change.message != null)
                 Text(change.message!, style: const TextStyle(fontSize: 13, color: Tokens.danger, height: 1.4)),
               for (final e in errors.entries)
                 for (final m in e.value)

@@ -19,7 +19,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     private HttpClient Browser() => _cloud.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
 
     private static Task<HttpResponseMessage> LoginAsync(HttpClient c, string user, string password)
-        => HtmlForms.PostAsync(c, "/Account/Login", "/Account/Login", ("Username", user), ("Password", password));
+        => HtmlForms.PostAsync(c, "/admin/Account/Login", "/admin/Account/Login", ("Username", user), ("Password", password));
 
     private async Task<HttpClient> SignedInAsync()
     {
@@ -30,15 +30,14 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     }
 
     [Theory]
-    [InlineData("/")]
-    [InlineData("/Clients/Create")]
-    [InlineData("/Clients/Details/1")]
-    [InlineData("/Sites/Details/3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
+    [InlineData("/admin/Clients/Create")]
+    [InlineData("/admin/Clients/Details/1")]
+    [InlineData("/admin/Sites/Details/3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
     public async Task Every_portal_page_requires_sign_in(string url)
     {
         var response = await Browser().GetAsync(url);
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Contains("/Account/Login", response.Headers.Location!.ToString());
+        Assert.Contains("/admin/Account/Login", response.Headers.Location!.ToString());
     }
 
     [Fact]
@@ -48,11 +47,11 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         var wrong = await LoginAsync(c, CloudFactory.AdminUser, "not-the-password");
         Assert.Equal(HttpStatusCode.OK, wrong.StatusCode);
         Assert.Contains("Wrong username or password", await wrong.Content.ReadAsStringAsync());
-        Assert.Equal(HttpStatusCode.Redirect, (await c.GetAsync("/")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await c.GetAsync("/admin/Clients/Create")).StatusCode);
 
         var ok = await LoginAsync(c, CloudFactory.AdminUser, CloudFactory.AdminPassword);
         Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/admin")).StatusCode);
     }
 
     [Fact]
@@ -72,21 +71,21 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     public async Task Open_redirects_through_returnUrl_are_not_followed()
     {
         var c = Browser();
-        var html = await c.GetStringAsync("/Account/Login?returnUrl=https%3A%2F%2Fevil.example%2F");
+        var html = await c.GetStringAsync("/admin/Account/Login?returnUrl=https%3A%2F%2Fevil.example%2F");
         var token = Regex.Match(html, "name=\"__RequestVerificationToken\"[^>]*value=\"([^\"]+)\"").Groups[1].Value;
-        var response = await c.PostAsync("/Account/Login?returnUrl=https%3A%2F%2Fevil.example%2F", new FormUrlEncodedContent(
+        var response = await c.PostAsync("/admin/Account/Login?returnUrl=https%3A%2F%2Fevil.example%2F", new FormUrlEncodedContent(
         [
             new("Username", CloudFactory.AdminUser), new("Password", CloudFactory.AdminPassword), new("__RequestVerificationToken", token),
         ]));
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-        Assert.Equal("/", response.Headers.Location!.OriginalString);
+        Assert.Equal("/admin", response.Headers.Location!.OriginalString);
     }
 
     [Fact]
     public async Task Posting_without_an_antiforgery_token_is_refused()
     {
         var c = await SignedInAsync();
-        var response = await c.PostAsync("/Clients/Create", new FormUrlEncodedContent([new("Name", "Sneaky"), new("Months", "1")]));
+        var response = await c.PostAsync("/admin/Clients/Create", new FormUrlEncodedContent([new("Name", "Sneaky"), new("Months", "1")]));
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -96,11 +95,11 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         var c = await SignedInAsync();
 
         // 1. One form: the client, 3 months of Online, and (automatically) the till and its link.
-        var created = await HtmlForms.PostAsync(c, "/Clients/Create", "/Clients/Create",
+        var created = await HtmlForms.PostAsync(c, "/admin/Clients/Create", "/admin/Clients/Create",
             ("Name", "Hassan Minimarket"), ("Phone", "03 000 000"), ("Months", "3"));
         Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
         var siteUrl = created.Headers.Location!.OriginalString;
-        Assert.Matches(@"^/Sites/Details/[0-9a-f-]{36}$", siteUrl);
+        Assert.Matches(@"^/admin/Sites/Details/[0-9a-f-]{36}$", siteUrl);
 
         // 2. The next screen already shows the link, with copy and WhatsApp.
         var page = await c.GetStringAsync(siteUrl);
@@ -138,7 +137,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
         Assert.Contains("Disconnected", await c.GetStringAsync(siteUrl));
 
         // 7. The dashboard lists the client with its plan.
-        Assert.Contains("Hassan Minimarket", await c.GetStringAsync("/"));
+        Assert.Contains("Hassan Minimarket", await c.GetStringAsync("/admin"));
     }
 
     [Fact]
@@ -146,7 +145,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     {
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(clientName: "Relink");
-        var siteUrl = $"/Sites/Details/{seeded.SiteId}";
+        var siteUrl = $"/admin/Sites/Details/{seeded.SiteId}";
 
         await HtmlForms.PostAsync(c, siteUrl, $"{siteUrl}?handler=NewLink");
         var first = Regex.Match(await c.GetStringAsync(siteUrl), @"/enroll/([A-Z0-9-]{14})").Groups[1].Value;
@@ -167,7 +166,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     {
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(clientName: "Manual");
-        var siteUrl = $"/Sites/Details/{seeded.SiteId}";
+        var siteUrl = $"/admin/Sites/Details/{seeded.SiteId}";
 
         await HtmlForms.PostAsync(c, siteUrl, $"{siteUrl}?handler=IssueToken");
         var page = await c.GetStringAsync(siteUrl);
@@ -184,7 +183,7 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     {
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(subscriptionMonths: 1, clientName: "Lifecycle");
-        var clientUrl = $"/Clients/Details/{seeded.ClientId}";
+        var clientUrl = $"/admin/Clients/Details/{seeded.ClientId}";
         var before = (await _cloud.WithControlDbAsync(db => db.Subscriptions.AsNoTracking().FirstAsync(s => s.ClientId == seeded.ClientId))).ExpiresAt;
 
         await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=Extend&months=12");
@@ -211,12 +210,12 @@ public class AdminPortalTests : IClassFixture<CloudFactory>
     {
         var c = await SignedInAsync();
         var seeded = await _cloud.SeedSiteAsync(subscriptionMonths: 1, clientName: "Phone sign-ins");
-        var clientUrl = $"/Clients/Details/{seeded.ClientId}";
+        var clientUrl = $"/admin/Clients/Details/{seeded.ClientId}";
         const string email = "portal-owner@shop.test";
 
-        // Too-short password and a missing "@" are refused; nothing is created.
+        // A too-short password and a sign-in name that is not an email, phone or username are refused; nothing is created.
         await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", email), ("Password", "short"));
-        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", "nobody"), ("Password", "long-enough-1"));
+        await HtmlForms.PostAsync(c, clientUrl, $"{clientUrl}?handler=AddOwner", ("DisplayName", "Nadine"), ("Email", "no body@"), ("Password", "long-enough-1"));
         Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.OwnerUsers.CountAsync(o => o.ClientId == seeded.ClientId)));
 
         // The email is stored lower-case, and the owner can sign in to the phone API with it.

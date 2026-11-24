@@ -8,6 +8,8 @@ public interface ICustomerService : IBaseService
     Task<List<Customer>> GetAllAsync();
     Task<List<Customer>> GetAllWithOrdersAsync();
     Task<(List<Customer> Items, bool HasMore)> SearchPagedAsync(string? search, int skip, int take);
+    /// <summary>Customers with this phone number however it is written (see <see cref="PhoneMatch"/>).</summary>
+    Task<List<Customer>> FindByPhoneAsync(string phone);
     /// <summary>Order count and total spent per customer id (cancelled / returned orders excluded); customers without orders are absent.</summary>
     Task<Dictionary<int, (int OrdersCount, decimal TotalSpent)>> GetPurchaseTotalsAsync();
     Task<Customer> GetByIdAsync(int id);

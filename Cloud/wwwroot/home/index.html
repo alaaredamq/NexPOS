@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coduo POS: point of sale for shops that can't stop selling</title>
+<meta name="description" content="Coduo POS is a point of sale for retail shops that runs on your own PC, keeps selling without internet, prints receipts, tracks customer debts and stock, and speaks English and Arabic.">
+<link rel="canonical" href="__ORIGIN__/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0B1633">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Coduo POS">
+<meta property="og:title" content="Coduo POS: the till that keeps selling when the internet doesn't">
+<meta property="og:description" content="Sell, print receipts, track debts and stock, close the shift, in English or Arabic. Runs on your shop's own PC.">
+<meta property="og:url" content="__ORIGIN__/">
+<meta property="og:image" content="__ORIGIN__/home/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Coduo POS logo beside a printed shop receipt">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ar_AR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Coduo POS: the till that keeps selling when the internet doesn't">
+<meta name="twitter:description" content="Point of sale for retail shops. Offline, bilingual, receipt printer ready.">
+<meta name="twitter:image" content="__ORIGIN__/home/og.png">
+
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@500;600&display=swap">
+<link rel="stylesheet" href="/home/home.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "__ORIGIN__/#org",
+      "name": "Coduo POS",
+      "url": "__ORIGIN__/",
+      "logo": "__ORIGIN__/icon-512.png"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Coduo POS",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Point of sale",
+      "operatingSystem": "Windows 10, Windows 11",
+      "inLanguage": ["en", "ar"],
+      "publisher": { "@id": "__ORIGIN__/#org" },
+      "url": "__ORIGIN__/",
+      "description": "Point of sale and back office for retail shops. Runs offline on the shop's own PC, prints receipts, tracks customer debts, stock, suppliers and cash drawer shifts, in English and Arabic.",
+      "featureList": "Offline selling, Receipt printer and cash drawer, Customer debts, Several currencies, Cash drawer shifts and Z report, Inventory and suppliers, Purchases, Audit log, Backups, Reports, Owner access from a phone",
+      "offers": [
+        { "@type": "Offer", "name": "Basic", "price": "180", "priceCurrency": "USD", "description": "One PC, up to 3 users, selling, debts, receipts, reports for the last 7 days." },
+        { "@type": "Offer", "name": "Pro", "price": "240", "priceCurrency": "USD", "description": "Everything in Basic plus the inventory page, suppliers, purchases, audit log, full reports and unlimited users." },
+        { "@type": "Offer", "name": "Online", "price": "60", "priceCurrency": "USD", "description": "Yearly add-on for Basic or Pro: owner phone app and website, online menu included." }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Do I need internet to sell?", "acceptedAnswer": { "@type": "Answer", "text": "No. Coduo POS runs on the shop's own PC and keeps its data there. Selling, printing and closing the shift all work without internet. Internet is only used if you add Online." } },
+        { "@type": "Question", "name": "What computer do I need?", "acceptedAnswer": { "@type": "Answer", "text": "A Windows 10 or 11 PC. A thermal receipt printer and cash drawer are optional but supported." } },
+        { "@type": "Question", "name": "Does it work in Arabic?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every screen and receipt is available in English and Arabic, with a full right-to-left layout." } },
+        { "@type": "Question", "name": "What happens to my data if I move from Pro to Basic?", "acceptedAnswer": { "@type": "Answer", "text": "Nothing is deleted. Pro pages lock until you upgrade again, and all your data is still there when they unlock." } },
+        { "@type": "Question", "name": "Can you read my shop's data when I use Online?", "acceptedAnswer": { "@type": "Answer", "text": "No. Your shop PC locks the data with a key that only you hold, printed on a recovery slip. Our server stores it but cannot open it." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2.5l2.2 10.5h10.6L20.5 7H6.4"/><circle cx="9.5" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/></symbol>
+  <symbol id="i-drawer" viewBox="0 0 24 24"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="M3 14h18M10 17h4M6 10V5h12v5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.6 9.1 4.75 4.75 0 0 0 7 18.5z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></symbol>
+</svg>
+
+<header class="top" data-top>
+  <div class="wrap top-in">
+    <a class="brand" href="/" aria-label="Coduo POS home">
+      <svg class="mark" viewBox="-36 -36 72 72" aria-hidden="true"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="var(--teal-hi)"/><circle cx="9" cy="-8" r="5.5" fill="var(--teal-hi)"/><rect x="-6" y="16" width="12" height="12" fill="currentColor"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="currentColor"/></svg>
+      <span>Coduo <b>POS</b></span>
+    </a>
+    <nav class="links" id="top-menu" aria-label="Sections" data-menu>
+      <a href="#day">What it does</a>
+      <a href="#how">How it works</a>
+      <a href="#plans">Plans</a>
+      <a href="#online">Online</a>
+      <a href="#faq">Questions</a>
+      <a class="menu-only" href="/owner">Owner sign-in</a>
+    </nav>
+    <div class="top-act">
+      <a class="ghost" href="/owner">Owner sign-in</a>
+      <a class="btn sm" href="#contact">Ask for a demo</a>
+      <button class="burger" type="button" aria-controls="top-menu" aria-expanded="false" aria-label="Menu" data-burger><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO: the receipt is the thesis. It prints on its own, line by line. -->
+<section class="hero" aria-labelledby="h-hero">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span>Point of sale for retail shops</p>
+      <h1 id="h-hero">The till that keeps selling when the internet doesn't.</h1>
+      <p class="lede">Coduo POS runs on your shop's own PC. Ring up a basket in seconds, print the receipt, write a regular's tab, close the drawer at night. In English or <span lang="ar" dir="rtl" class="ar">العربية</span>.</p>
+      <div class="cta-row">
+        <a class="btn" href="#contact">Ask for a demo <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn line" href="#plans">See the plans</a>
+      </div>
+      <ul class="facts" aria-label="At a glance">
+        <li>Works with no internet</li>
+        <li>Receipt printer and cash drawer</li>
+        <li>Dollars and lira on one bill</li>
+      </ul>
+    </div>
+
+    <div class="till" aria-hidden="true">
+      <div class="printer">
+        <span class="led"></span>
+        <span class="slot"></span>
+      </div>
+      <div class="paper-well">
+        <div class="paper" data-paper>
+          <div class="r-head">
+            <b>CODUO MINIMARKET</b>
+            <span class="ar" lang="ar" dir="rtl">ميني ماركت كوديو</span>
+            <span data-r-meta>Till 1 · Sara · 08:14</span>
+          </div>
+          <div class="r-rule"></div>
+          <ol class="r-lines" data-lines></ol>
+          <div class="r-total" data-total hidden>
+            <div class="r-rule"></div>
+            <p><span>TOTAL</span><b data-usd>$0.00</b></p>
+            <p class="sub"><span>in LBP</span><span data-lbp>0</span></p>
+            <p class="sub"><span>Paid</span><span data-paid>Cash</span></p>
+            <div class="r-rule"></div>
+            <p class="thanks"><span class="ar" lang="ar" dir="rtl">شكراً لزيارتكم</span><span>Saved on this PC</span></p>
+          </div>
+          <div class="tear"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A DAY AT THE SHOP: features in the order a shop meets them. Times are real structure. -->
+<section class="day" id="day" aria-labelledby="h-day">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">What it does</p>
+      <h2 id="h-day">One shop day, start to finish.</h2>
+      <p>Everything a counter needs, in the order you need it. Nothing to learn twice: cashiers sign in with a 4-digit PIN and see only what their role allows.</p>
+    </div>
+
+    <ol class="timeline">
+      <li>
+        <time>07:45</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-drawer"/></svg>
+          <h3>Open the drawer</h3>
+          <p>Count the float once. Coduo POS remembers what went in, so the evening count has something to match.</p>
+        </div>
+      </li>
+      <li>
+        <time>08:00</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-cart"/></svg>
+          <h3>Sell, fast</h3>
+          <p>Type a few letters or a code and the item is on the bill. Hold a basket while the customer fetches one more thing, add a discount, take cash or card, in more than one currency.</p>
+        </div>
+      </li>
+      <li>
+        <time>13:10</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-book"/></svg>
+          <h3>Put it on the tab</h3>
+          <p>A regular pays at the end of the month? Their debt is written down with every sale and payment, and the balance is always one tap away.</p>
+        </div>
+      </li>
+      <li>
+        <time>16:30</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-box"/></svg>
+          <h3>The delivery arrives <span class="tag">Pro</span></h3>
+          <p>Record the purchase, and stock goes up on its own. Each sale takes it down again. Low-stock items warn you before the shelf is empty.</p>
+        </div>
+      </li>
+      <li>
+        <time>21:00</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-sun"/></svg>
+          <h3>Close the shift</h3>
+          <p>Count the drawer, see the difference, print the end-of-day report on the receipt printer. The day is locked and backed up.</p>
+        </div>
+      </li>
+      <li>
+        <time>21:30</time>
+        <div class="t-card">
+          <svg class="ic lg" aria-hidden="true"><use href="#i-phone"/></svg>
+          <h3>Check from home <span class="tag teal">Online</span></h3>
+          <p>Today's sales, what's running low, which tills are connected. From your phone, wherever you are.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="also">
+      <p class="also-t">Also in the box</p>
+      <ul>
+        <li>Reports and a daily dashboard</li>
+        <li>Refunds that keep the original sale</li>
+        <li>Taxes and exchange rates you set</li>
+        <li>Automatic backups, one-click restore</li>
+        <li>Import your products from Excel</li>
+        <li>A log of who did what, and when <span class="tag">Pro</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS: a real sequence, so numbered. -->
+<section class="how" id="how" aria-labelledby="h-how">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">How it works</p>
+      <h2 id="h-how">From box to first sale in an afternoon.</h2>
+    </div>
+
+    <ol class="steps">
+      <li><span class="n">1</span><h3>Install on the shop PC</h3><p>One installer. No database server, no account to create. The app and your data live on that PC.</p></li>
+      <li><span class="n">2</span><h3>Activate with your key</h3><p>We send a licence key made for your PC. It works offline, so the till never stops because a server is down.</p></li>
+      <li><span class="n">3</span><h3>Add your products</h3><p>Type them in, or import the list you already have in Excel. Set prices, categories and taxes.</p></li>
+      <li><span class="n">4</span><h3>Start selling</h3><p>Plug in the receipt printer and cash drawer, give each cashier a PIN, and open the drawer.</p></li>
+    </ol>
+
+    <figure class="flow" aria-labelledby="flow-cap">
+      <div class="node">
+        <svg class="ic lg" aria-hidden="true"><use href="#i-pc"/></svg>
+        <b>Your shop PC</b>
+        <span>Sells, prints and stores everything. Backs itself up.</span>
+      </div>
+      <div class="link"><span>optional</span></div>
+      <div class="node dim">
+        <svg class="ic lg" aria-hidden="true"><use href="#i-cloud"/></svg>
+        <b>Coduo POS Online</b>
+        <span>Keeps a locked copy. We can't open it.</span>
+      </div>
+      <div class="link"><span>your key</span></div>
+      <div class="node dim">
+        <svg class="ic lg" aria-hidden="true"><use href="#i-phone"/></svg>
+        <b>Your phone</b>
+        <span>Unlocks the copy to show you the shop.</span>
+      </div>
+      <figcaption id="flow-cap">The shop works on its own. Online is an extra that sends a locked copy to your phone.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="plans" id="plans" aria-labelledby="h-plans">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Plans</p>
+      <h2 id="h-plans">Two plans. Add Online to either.</h2>
+      <p>Every plan is paid once a year. The first year includes setup at your shop and training. Move to Pro later, pay only the difference, and everything you've entered comes with you.</p>
+    </div>
+
+    <div class="plan-grid">
+      <article class="plan" aria-labelledby="p-basic">
+        <header>
+          <h3 id="p-basic">Basic</h3>
+          <p>For a single counter run by a small team.</p>
+        </header>
+        <p class="price"><b>$180</b><span>a year<small>That is $15 a month</small></span></p>
+        <ul class="ticks">
+          <li>Selling, receipts, refunds</li>
+          <li>Customers and their debts</li>
+          <li>Stock counts that move with every sale</li>
+          <li>Cash drawer and end-of-day report</li>
+          <li>Currencies, exchange rates, taxes</li>
+          <li>Backups and restore</li>
+          <li>Reports for the last 7 days</li>
+        </ul>
+        <dl class="limits">
+          <div><dt>PCs</dt><dd>1</dd></div>
+          <div><dt>Users</dt><dd>3</dd></div>
+        </dl>
+        <a class="btn line wide" href="#contact" data-plan="Basic">Ask about Basic</a>
+      </article>
+
+      <article class="plan pro" aria-labelledby="p-pro">
+        <header>
+          <h3 id="p-pro">Pro</h3>
+          <p>For shops that buy, stock and count.</p>
+        </header>
+        <p class="price"><b>$240</b><span>a year<small>That is $20 a month</small></span></p>
+        <p class="inherit">Everything in Basic, and:</p>
+        <ul class="ticks">
+          <li>Inventory page: stock adjustments and stock value</li>
+          <li>Suppliers and what you owe them</li>
+          <li>Purchases and deliveries</li>
+          <li>Full reports, any date range</li>
+          <li>Who did what: the audit log</li>
+          <li>More than one till in the shop</li>
+        </ul>
+        <dl class="limits">
+          <div><dt>PCs</dt><dd>As many as you need</dd></div>
+          <div><dt>Users</dt><dd>No limit</dd></div>
+        </dl>
+        <a class="btn wide" href="#contact" data-plan="Pro">Ask about Pro</a>
+      </article>
+
+      <article class="plan addon" aria-labelledby="p-online">
+        <header>
+          <p class="addon-t"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add-on</p>
+          <h3 id="p-online">Online</h3>
+          <p>Your shop on your phone. Add it to Basic or Pro.</p>
+        </header>
+        <p class="price"><b>$60</b><span>a year, for each shop<small>That is $5 a month</small></span></p>
+        <ul class="ticks">
+          <li>Today's sales, live</li>
+          <li>Stock and low-stock list</li>
+          <li>Add a product or change a price from away</li>
+          <li>Every branch in one place</li>
+          <li>Locked with your own key</li>
+          <li>Online menu included</li>
+        </ul>
+        <a class="btn line wide" href="#contact" data-plan="Online">Ask about Online</a>
+      </article>
+    </div>
+    <ul class="extras">
+      <li><span>Online menu alone<small>For cafés and restaurants without Coduo POS</small></span><b>$35 a year</b></li>
+    </ul>
+    <p class="fine">Prices are in US dollars, without VAT. Printers, cash drawers and PCs are priced on their own.</p>
+  </div>
+</section>
+
+<!-- ONLINE -->
+<section class="online" id="online" aria-labelledby="h-online">
+  <div class="wrap online-in">
+    <div class="phone" aria-hidden="true">
+      <div class="ph-screen">
+        <p class="ph-shop">Coduo Minimarket</p>
+        <p class="ph-l">Sales today</p>
+        <p class="ph-big">$1,284<span>.50</span></p>
+        <p class="ph-s">146 receipts · updated 2 min ago</p>
+        <div class="ph-bars"><i style="--h:22%"></i><i style="--h:48%"></i><i style="--h:64%"></i><i style="--h:40%"></i><i style="--h:30%"></i><i style="--h:55%"></i><i style="--h:82%"></i><i style="--h:70%"></i><i class="now" style="--h:46%"></i></div>
+        <p class="ph-l">Running low</p>
+        <ul class="ph-list">
+          <li><span>Milk 1L</span><b>4 left</b></li>
+          <li><span>Arabic bread</span><b>6 left</b></li>
+          <li><span>Eggs, tray of 30</span><b>2 left</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="online-copy">
+      <p class="kicker on-dark">Online</p>
+      <h2 id="h-online">Away from the shop, not out of touch.</h2>
+      <p>Your shop PC sends a copy of the day to Coduo POS Online every few minutes. Open it on your phone to see sales, stock and every branch you own.</p>
+      <div class="seal">
+        <svg class="ic lg" aria-hidden="true"><use href="#i-lock"/></svg>
+        <div>
+          <h3>We can't read your numbers.</h3>
+          <p>The shop PC locks the copy with a key only you hold, printed on a recovery slip. Our server stores it. Your phone opens it. Cost prices, staff and cash counts never leave unlocked.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq" aria-labelledby="h-faq">
+  <div class="wrap faq-in">
+    <div class="sec-head">
+      <p class="kicker">Questions</p>
+      <h2 id="h-faq">Asked at the counter.</h2>
+    </div>
+    <div class="qa">
+      <details>
+        <summary>Do I need internet to sell?</summary>
+        <p>No. Coduo POS runs on the shop's own PC and keeps its data there. Selling, printing and closing the shift all work without internet. Internet is only used if you add Online.</p>
+      </details>
+      <details>
+        <summary>What computer and printer do I need?</summary>
+        <p>A Windows 10 or 11 PC. Any thermal receipt printer that speaks ESC/POS works, and a cash drawer that plugs into it opens on each cash sale. No printer? Receipts and reports save as PDF.</p>
+      </details>
+      <details>
+        <summary>Does it work in Arabic?</summary>
+        <p>Yes. Every screen, receipt and report is in English and Arabic, with a proper right-to-left layout. Each user picks their own language.</p>
+      </details>
+      <details>
+        <summary>Can I take payment in dollars and lira at the same time?</summary>
+        <p>Yes. Set your currencies and today's rate, and the bill shows the total in each. Change the rate whenever it moves.</p>
+      </details>
+      <details>
+        <summary>What if the PC breaks?</summary>
+        <p>Coduo POS backs itself up on a schedule. Restore the latest backup on a new PC, ask us for a key for that PC, and carry on where you stopped.</p>
+      </details>
+      <details>
+        <summary>What happens to my data if I move from Pro to Basic?</summary>
+        <p>Nothing is deleted. Pro pages lock until you upgrade again, and everything is still there when they unlock.</p>
+      </details>
+      <details>
+        <summary>Can my cashiers see costs and profits?</summary>
+        <p>Only if you let them. Each role sees its own pages, and every action is signed with the cashier's PIN.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact" aria-labelledby="h-contact">
+  <div class="wrap contact-in">
+    <div>
+      <h2 id="h-contact">See it ring up your own products.</h2>
+      <p>Tell us what you sell and how many counters you have. We'll show you Coduo POS with your items and give you a price for your shop.</p>
+    </div>
+    <div class="reach" data-reach>
+      <!-- Filled from CONTACT in home.js. -->
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <a class="brand" href="/" aria-label="Coduo POS home">
+      <svg class="mark" viewBox="-36 -36 72 72" aria-hidden="true"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="currentColor" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="var(--teal-hi)"/><circle cx="9" cy="-8" r="5.5" fill="var(--teal-hi)"/><rect x="-6" y="16" width="12" height="12" fill="currentColor"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="currentColor"/></svg>
+      <span>Coduo <b>POS</b></span>
+    </a>
+    <nav aria-label="Footer">
+      <a href="#day">What it does</a>
+      <a href="#plans">Plans</a>
+      <a href="#faq">Questions</a>
+      <a href="/owner">Owner sign-in</a>
+    </nav>
+    <p class="copy">© <span data-year>2026</span> Coduo POS</p>
+  </div>
+</footer>
+
+<script src="/home/home.js" defer></script>
+</body>
+</html>

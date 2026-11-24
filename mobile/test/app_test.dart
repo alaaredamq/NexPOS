@@ -43,12 +43,12 @@ class App {
 /// Starts the app on a phone-sized screen. By default the owner is signed in and the shop's data is unlocked, with the shop's
 /// categories, suppliers and currencies already on the phone.
 Future<App> startApp(WidgetTester tester,
-    {bool signedIn = true, bool unlocked = true, void Function(ShopData shop)? seed, String language = 'en', Size size = const Size(800, 2200), bool appLock = false, bool fingerprintWorks = true, int permissions = 63, String role = 'owner'}) async {
+    {bool signedIn = true, bool unlocked = true, void Function(ShopData shop)? seed, String language = 'en', Size size = const Size(800, 2200), bool appLock = false, bool fingerprintWorks = true, int permissions = 63, String role = 'owner', bool opening = false}) async {
   // A tall phone by default, so every field of the longest form is on screen and a tap on it lands.
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test', 'language': language, if (appLock) 'app_lock': true, 'permissions': permissions, 'role': role});
+  SharedPreferences.setMockInitialValues({'language': language, if (appLock) 'app_lock': true, 'permissions': permissions, 'role': role});
   final api = FakeApi();
   final tokens = MemoryTokenStore();
   if (signedIn) tokens.value = 'nxo_test';
@@ -72,8 +72,13 @@ Future<App> startApp(WidgetTester tester,
   }
   final extra = services(await SharedPreferences.getInstance(), session);
   extra.bio.accept = fingerprintWorks;
-  await tester.pumpWidget(OwnerApp(session: session, shop: shop, lock: extra.lock, notify: extra.notify));
-  await tester.pumpAndSettle();
+  await tester.pumpWidget(OwnerApp(session: session, shop: shop, lock: extra.lock, notify: extra.notify, opening: opening));
+  // With the opening logo on, the test drives the clock itself.
+  if (opening) {
+    await tester.pump();
+  } else {
+    await tester.pumpAndSettle();
+  }
   return App(session, api, shop, keys, lock: extra.lock, bio: extra.bio, notify: extra.notify, watch: extra.watch);
 }
 
@@ -89,7 +94,7 @@ void main() {
     await startApp(tester, signedIn: false, unlocked: false);
     expect(find.text('Sign in'), findsWidgets);
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'secret');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
@@ -102,19 +107,19 @@ void main() {
     tester.view.physicalSize = const Size(800, 2200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test'});
+    SharedPreferences.setMockInitialValues({});
     final api = FakeApi()..signInFails = true;
     final session = Session(prefs: await SharedPreferences.getInstance(), tokens: MemoryTokenStore(), apiFactory: (_, _) => api);
     final extra = services(await SharedPreferences.getInstance(), session);
     await tester.pumpWidget(OwnerApp(session: session, shop: ShopData(session, MemoryKeyStore()), lock: extra.lock, notify: extra.notify));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
     await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'wrong');
     await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('The email or password is not right.'), findsOneWidget);
+    expect(find.text('The sign-in name or password is not right.'), findsOneWidget);
     expect(session.signedIn, isFalse);
   });
 
@@ -515,13 +520,13 @@ void main() {
       tester.view.physicalSize = const Size(800, 2200);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      SharedPreferences.setMockInitialValues({'cloud_url': 'https://cloud.test'});
+      SharedPreferences.setMockInitialValues({});
       final api = FakeApi()..signInFails = true;
       final session = Session(prefs: await SharedPreferences.getInstance(), tokens: MemoryTokenStore(), apiFactory: (_, _) => api);
       final extra = services(await SharedPreferences.getInstance(), session);
     await tester.pumpWidget(OwnerApp(session: session, shop: ShopData(session, MemoryKeyStore()), lock: extra.lock, notify: extra.notify));
       await tester.pumpAndSettle();
-      await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'layla@shop.test');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'layla@shop.test');
       await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'wrong');
 
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
@@ -530,7 +535,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
-      expect(find.text('The email or password is not right.'), findsOneWidget);
+      expect(find.text('The sign-in name or password is not right.'), findsOneWidget);
     });
 
     testWidgets('a figure counts up, unless the phone asks for no animation', (tester) async {

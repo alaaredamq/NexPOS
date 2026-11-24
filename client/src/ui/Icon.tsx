@@ -36,6 +36,7 @@ export const ICON_PATHS = {
   download: 'M12 4v11 M7 10.5l5 5 5-5 M5 19.5h14',
   play: 'M8 5.5v13l10-6.5z',
   history: 'M3.5 12a8.5 8.5 0 108.5-8.5A8.5 8.5 0 005.8 6.2 M3.5 4v4.2h4.2 M12 7.5V12l3 1.8',
+  bell: 'M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z M10 20.5a2.2 2.2 0 004 0',
 } as const
 
 export type IconName = keyof typeof ICON_PATHS

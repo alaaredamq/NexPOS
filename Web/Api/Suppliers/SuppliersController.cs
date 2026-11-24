@@ -1,3 +1,4 @@
+using Common.Licensing;
 using System.Globalization;
 using Application.IServices.Reports;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ namespace Web.Api.Suppliers;
 /// <summary>Suppliers: list, details, create, edit, delete, the debt ledger and CSV export. Mirrors the Razor <c>SuppliersController</c>.</summary>
 [Route("api/v1/suppliers")]
 [SwaggerTag("Suppliers")]
+[RequirePlan(ProFeature.Suppliers)]
 public sealed class SuppliersController : ApiControllerBase
 {
     private readonly ISupplierApiService _suppliers;

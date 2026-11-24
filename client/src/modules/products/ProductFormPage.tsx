@@ -3,6 +3,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useHref, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { isApiError } from '@/api/http'
+import { useIsPro } from '@/core/license/license'
 import { Button } from '@/ui/Button'
 import { Loader } from '@/ui/Loader'
 import { PageHeader } from '@/ui/PageHeader'
@@ -49,6 +50,8 @@ export default function ProductFormPage() {
 
 function ProductForm({ lookups, product }: { lookups: ProductLookups; product: ProductDetail | undefined }) {
   const { t } = useTranslation('products')
+  // Basic has no suppliers: the supplier stays the default one (a product must have one) and its field is left out.
+  const pro = useIsPro()
   const navigate = useNavigate()
   const editing = product !== undefined
   const save = useSaveProduct(product?.id ?? null)
@@ -176,7 +179,7 @@ function ProductForm({ lookups, product }: { lookups: ProductLookups; product: P
 
             <div className={styles.row}>
               <SelectField<ProductFormValues, number> name="categoryId" label={t('Category', { ns: 'common' })} options={categoryOptions} placeholder={t('Prod_PhCategory', { ns: 'common' })} required />
-              <SelectField<ProductFormValues, number> name="supplierId" label={t('Supplier', { ns: 'common' })} options={supplierOptions} placeholder={t('Prod_PhSupplier', { ns: 'common' })} required />
+              {pro && <SelectField<ProductFormValues, number> name="supplierId" label={t('Supplier', { ns: 'common' })} options={supplierOptions} placeholder={t('Prod_PhSupplier', { ns: 'common' })} required />}
             </div>
 
             <div className={styles.row4}>

@@ -3,7 +3,7 @@ import { RequireAuth } from '@/core/auth/RequireAuth'
 import { useSession } from '@/core/auth/useSession'
 import { AppShell } from '@/shell/AppShell'
 import { landingPath } from '@/shell/nav'
-import { ForbiddenPage, LicenseStoppedPage, ModulePlaceholder, NoPagesPage } from '@/shell/pages/pages'
+import { ForbiddenPage, LicenseStoppedPage, ModulePlaceholder, NoPagesPage, UpgradePage } from '@/shell/pages/pages'
 
 /**
  * Every `modules/<name>/routes.tsx` default-exports a `RouteObject[]`; they are discovered here so
@@ -45,6 +45,8 @@ export function buildRoutes(modules: RouteObject[] = moduleRoutes): RouteObject[
             { index: true, element: <IndexRedirect /> },
             { path: 'forbidden', element: <ForbiddenPage /> },
             { path: 'license-stopped', element: <LicenseStoppedPage /> },
+            // Where [RequirePlan] sends an old Razor page request for a Pro page on a Basic plan.
+            { path: 'upgrade', element: <UpgradePage /> },
             ...modules.filter((route) => !isBare(route)),
             { path: '*', element: <ModulePlaceholder /> },
           ],

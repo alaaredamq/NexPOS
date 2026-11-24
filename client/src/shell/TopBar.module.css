@@ -298,6 +298,25 @@
   }
 }
 
+/* Phones: every control is a fixed-width icon, so without this the title was squeezed to one letter. The palette is a keyboard tool
+   (the menu covers navigation here), so its button goes and the title takes the free width. */
+@media (max-width: 575px) {
+  .searchBtn,
+  .spacer {
+    display: none;
+  }
+
+  .titleBlock {
+    flex: 1 1 auto;
+  }
+
+  .eyebrow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 @media (max-width: 1280px) {
   .header {
     height: 66px;

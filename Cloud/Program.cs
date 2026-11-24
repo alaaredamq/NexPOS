@@ -40,11 +40,14 @@ builder.Services.AddSingleton(_ => MirrorStore.BuildSchema());
 builder.Services.AddSingleton<MirrorApplier>();
 builder.Services.AddSingleton<MirrorStore>();
 builder.Services.AddSingleton<LoginThrottle>();
+builder.Services.AddSingleton<Cloud.Api.MenuOrderThrottle>();
 builder.Services.AddSingleton<CommandBroker>();
 builder.Services.AddSingleton<MirrorReader>();
 builder.Services.AddSingleton<PortalFormat>();
 builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddScoped<SiteRemoval>();
+builder.Services.AddSingleton<MenuImages>();
+builder.Services.AddScoped<MenuCatalogMerge>();
 
 // Keep the cookie/TempData encryption keys on the data volume, or every redeploy would sign the admin out.
 builder.Services.AddDataProtection().SetApplicationName("NexPOS.Cloud");
@@ -61,8 +64,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "nexpos.cloud.admin";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/Login";
+        options.LoginPath = PublicSite.AdminLogin;
+        options.AccessDeniedPath = PublicSite.AdminLogin;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
@@ -82,6 +85,10 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddRazorPages(options => {
     options.Conventions.AllowAnonymousToPage("/Account/Login");
     options.Conventions.AllowAnonymousToPage("/Enroll");
+    // Public pages (a shop's online menu at /m/{slug}) need no sign-in and stay out of /admin.
+    options.Conventions.AllowAnonymousToFolder("/Public");
+    // The provider portal lives under /admin; "/" is the public landing page (see PublicSite).
+    options.Conventions.Add(new PublicSite.AdminPrefixConvention());
 });
 
 // Behind Caddy/nginx: trust the proxy's X-Forwarded-* so the login throttle sees real client addresses and cookies see https.
@@ -106,7 +113,22 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseForwardedHeaders();
-app.UseStaticFiles();
+app.UseCanonicalAddress();
+app.UseLandingTemplateGuard();
+app.UseOldPortalRedirects();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // Pages, scripts and styles are not versioned in their URLs, so without this a browser keeps running the copy it saved
+    // for hours or days after a publish. "no-cache" still lets it keep the file; it just asks first and gets a cheap 304 if unchanged.
+    OnPrepareResponse = ctx =>
+    {
+        var ext = Path.GetExtension(ctx.File.Name);
+        if (ext is ".html" or ".js" or ".css" or ".json" or ".webmanifest")
+            ctx.Context.Response.Headers.CacheControl = "no-cache";
+    },
+});
+// "/" is the public Coduo POS landing page for everyone; the portal is at /admin (see PublicSite).
+app.UseLandingPage();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -116,9 +138,13 @@ var controlDb = string.IsNullOrWhiteSpace(controlConnection) ? "sqlite" : "sqlse
 app.Logger.LogInformation("Control database: {Provider}", controlDb);
 var settingsFileFound = File.Exists(Path.Combine(app.Environment.ContentRootPath, "cloud.settings.json"));
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok", controlDb, settingsFileFound })).AllowAnonymous();
+// The owner's website (static files in wwwroot/owner): public pages that sign in through /owner/v1 and decrypt in the browser.
+app.MapGet("/owner", () => Results.Redirect("/owner/index.html")).AllowAnonymous();
 app.MapSyncApi();
 app.MapOwnerApi();
 app.MapEnrollApi();
+app.MapMenuApi();
+app.MapPublicSite();
 app.MapRazorPages();
 
 app.Run();

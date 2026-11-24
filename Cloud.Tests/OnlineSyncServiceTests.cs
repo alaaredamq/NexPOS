@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Cloud.Tests.Support;
+using Common.Licensing;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,11 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
                 : throw new HttpRequestException("No such host is known.");
     }
 
+    private sealed class FixedLicense(string? key) : IShopLicenseSource
+    {
+        public string? LicenseKey => key;
+    }
+
     /// <summary>A till with its own database and settings file, running the background service.</summary>
     private sealed class TillRig : IAsyncDisposable
     {
@@ -42,7 +48,7 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
         private readonly string? _previousDbPath = Environment.GetEnvironmentVariable(AppDataPathProvider.DatabasePathEnvVar);
 
         public static async Task<TillRig> StartAsync(CloudFactory cloud, TillDb? till = null, string? settingsPath = null,
-            Action<OnlineSettingsStore>? preset = null, int intervalSeconds = 5)
+            Action<OnlineSettingsStore>? preset = null, int intervalSeconds = 5, string? licenseKey = null, string? server = null)
         {
             till ??= new TillDb();
             settingsPath ??= Path.Combine(Path.GetTempPath(), "nexpos-rig-" + Guid.NewGuid().ToString("N"), "online.json");
@@ -53,8 +59,13 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddDbContext<ErpDbContext>(o => o.UseSqlite(till.ConnectionString));
+            if (licenseKey is not null) services.AddSingleton<IShopLicenseSource>(new FixedLicense(licenseKey));
             services.AddOnlineSync(new Microsoft.Extensions.Configuration.ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?> { ["Online:IntervalSeconds"] = intervalSeconds.ToString() }).Build(), settingsPath);
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["Online:IntervalSeconds"] = intervalSeconds.ToString(),
+                    ["Online:Server"] = server,
+                }).Build(), settingsPath);
             services.AddHttpClient(OnlineSyncService.HttpClientName)
                 .ConfigurePrimaryHttpMessageHandler(() => new RoutingHandler(cloud.Server.CreateHandler()));
             var provider = services.BuildServiceProvider();
@@ -114,6 +125,23 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
             if (row["FirstName"] is JsonElement { ValueKind: JsonValueKind.String } v && v.GetString() == firstName) return true;
         }
         return false;
+    }
+
+    [Fact]
+    public async Task On_connecting_the_shop_PC_hands_over_its_licence_key_and_the_cloud_learns_the_plan_from_it()
+    {
+        var site = await _cloud.SeedSiteAsync(clientName: "Basic Shop");
+        await using var rig = await TillRig.StartAsync(_cloud, licenseKey: _cloud.IssueLicense(LicensePlan.Basic));
+
+        await rig.Connection.ConnectAsync(await _cloud.IssueLinkAsync(site.SiteId), default);
+
+        string? plan = null;
+        Assert.True(await WaitForAsync(() =>
+        {
+            plan = _cloud.WithControlDbAsync(db => db.Sites.Where(s => s.Id == site.SiteId).Select(s => s.ShopPlan).SingleAsync()).GetAwaiter().GetResult();
+            return plan is not null;
+        }), "the first check-in after connecting should carry the key");
+        Assert.Equal("Basic", plan);
     }
 
     [Fact]
@@ -310,11 +338,13 @@ public class OnlineSyncServiceTests : IClassFixture<CloudFactory>
     [InlineData("not a link at all", "enroll_link_invalid")]
     [InlineData("http://cloud.example.com/enroll/AAAA-AAAA-AAAA", "cloud_insecure_url")]
     [InlineData("http://localhost/enroll/AAAA-AAAA-AAAA", "enroll_code_invalid")]          // reaches the cloud, code unknown
-    [InlineData("https://cloud.example.com/enroll/AAAA-AAAA-AAAA", "cloud_unreachable")]   // host that does not answer
-    public async Task A_refused_link_says_why_and_changes_nothing(string link, string expectedCode)
+    [InlineData("https://cloud.example.com/enroll/AAAA-AAAA-AAAA", "cloud_unreachable", "https://cloud.example.com")] // host that does not answer
+    [InlineData("https://nexpos.tryasp.net/enroll/AAAA-AAAA-AAAA", "cloud_other_server")]                          // a test link on a live till
+    [InlineData("https://www.coduos.com/enroll/AAAA-AAAA-AAAA", "cloud_other_server", "https://nexpos.tryasp.net")] // and the other way round
+    public async Task A_refused_link_says_why_and_changes_nothing(string link, string expectedCode, string? server = null)
     {
         using var factory = new CloudFactory(); // its own throttle, so repeated bad codes here cannot affect other tests
-        await using var rig = await TillRig.StartAsync(factory);
+        await using var rig = await TillRig.StartAsync(factory, server: server);
 
         var failure = await Assert.ThrowsAsync<OnlineConnectException>(() => rig.Connection.ConnectAsync(link, default));
 

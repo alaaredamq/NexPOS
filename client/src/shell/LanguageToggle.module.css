@@ -46,3 +46,14 @@
     font-size: 13.5px;
   }
 }
+
+/* Phones: show only the language you can switch to (one tap still switches), so the top bar keeps room for the page title. */
+@media (max-width: 575px) {
+  .switcher {
+    padding: 2px;
+  }
+
+  .option[data-active='true'] {
+    display: none;
+  }
+}

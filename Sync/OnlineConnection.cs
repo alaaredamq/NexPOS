@@ -30,6 +30,8 @@ public static class OnlineConnectCodes
 {
     public const string LinkInvalid = "enroll_link_invalid";
     public const string Insecure = "cloud_insecure_url";
+    /// <summary>The link is for a different Coduo server than this installation uses (e.g. a test link on a live till).</summary>
+    public const string OtherServer = "cloud_other_server";
     public const string Unreachable = "cloud_unreachable";
     public const string CloudError = "cloud_error";
 }
@@ -75,6 +77,7 @@ public sealed class OnlineConnection(
     IHttpClientFactory httpFactory,
     OnlineSignal signal,
     TimeProvider time,
+    OnlineServer server,
     IMachineIdProvider? machineIdProvider = null) : IOnlineConnection
 {
     public OnlineStatusInfo GetStatus()
@@ -110,6 +113,9 @@ public sealed class OnlineConnection(
             throw new OnlineConnectException(OnlineConnectCodes.Insecure, "The link must start with https://.");
         if (problem != EnrollmentLink.Problem.None || parsed is null)
             throw new OnlineConnectException(OnlineConnectCodes.LinkInvalid, "That does not look like a Coduo POS Online link.");
+        if (!server.Accepts(parsed.BaseUri))
+            throw new OnlineConnectException(OnlineConnectCodes.OtherServer,
+                $"The link is for {parsed.BaseUri.Host}, but this Coduo POS connects to {server.Host}.");
 
         var request = new EnrollRequest(parsed.Code, ReadMachineId(), Environment.MachineName);
         EnrollResponse response;

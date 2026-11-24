@@ -13,6 +13,7 @@ import 'state/notify_settings.dart';
 import 'state/session.dart';
 import 'theme.dart';
 import 'widgets/common.dart' show isolateAmounts;
+import 'widgets/opening_splash.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,16 +24,26 @@ Future<void> main() async {
   await shop.restore();
   final lock = AppLock(prefs: prefs, biometrics: const DeviceBiometrics())..attach();
   final notify = NotifySettings(prefs: prefs, control: const DeviceWatchControl(), session: session);
-  runApp(OwnerApp(session: session, shop: shop, lock: lock, notify: notify));
+  runApp(OwnerApp(session: session, shop: shop, lock: lock, notify: notify, opening: true));
 }
 
 class OwnerApp extends StatelessWidget {
-  const OwnerApp({super.key, required this.session, required this.shop, required this.lock, required this.notify});
+  const OwnerApp({
+    super.key,
+    required this.session,
+    required this.shop,
+    required this.lock,
+    required this.notify,
+    this.opening = false,
+  });
 
   final Session session;
   final ShopData shop;
   final AppLock lock;
   final NotifySettings notify;
+
+  /// Plays the logo animation when the app starts. Off by default so tests start on the real screen.
+  final bool opening;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +72,8 @@ class OwnerApp extends StatelessWidget {
           // Over every page, so the lock covers dialogs and pushed screens too.
           builder: (context, child) {
             isolateAmounts(Localizations.localeOf(context).languageCode == 'ar'); // amounts keep their order inside Arabic text
-            return LockGate(child: child ?? const SizedBox.shrink());
+            // The opening logo sits over everything; the lock screen waits for it to finish.
+            return OpeningSplash(enabled: opening, child: LockGate(child: child ?? const SizedBox.shrink()));
           },
           home: session.signedIn ? const HomeScreen() : const SignInScreen(),
         ),

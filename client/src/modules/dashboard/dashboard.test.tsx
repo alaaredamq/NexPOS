@@ -149,3 +149,21 @@ describe('dashboard', () => {
     expect(screen.getAllByRole('button', { name: /try again/i }).length).toBeGreaterThan(0)
   })
 })
+
+describe('dashboard on the Basic plan', () => {
+  it('shows today and the last 7 days; the month tiles, longer periods and categories are Pro', async () => {
+    const session = sessionWith(Permissions.Dashboard_View, Permissions.Orders_View)
+    session.nav = [section('Sales', [navItem('Dashboard', { migrated: true, href: '/app/dashboard' })])]
+    api = fakeApi({ ...session, license: { ...session.license, plan: 'Basic' } })
+    api.routes['GET /api/v1/dashboard'] = () => json(overview)
+    api.routes['GET /api/v1/dashboard/sales-trend'] = (_init, url) => json(trend(new URL(url, 'http://x').searchParams.get('period') ?? 'month'))
+    mountModule('/dashboard', routes)
+
+    expect(await screen.findByText('4 orders today')).toBeInTheDocument()
+    expect(screen.queryByText('Revenue this month')).not.toBeInTheDocument()
+    expect(screen.queryByText('Total revenue')).not.toBeInTheDocument()
+    expect(screen.getByText(/available in Pro/)).toBeInTheDocument()
+    await waitFor(() => expect(api.calls.some((c) => c.url.includes('sales-trend?period=week'))).toBe(true))
+    expect(api.calls.some((c) => c.url.includes('period=month'))).toBe(false)
+  })
+})

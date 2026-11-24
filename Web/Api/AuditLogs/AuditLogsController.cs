@@ -1,3 +1,4 @@
+using Common.Licensing;
 using System.ComponentModel.DataAnnotations;
 using Core.Auditing;
 using Core.Entities.Logging;
@@ -16,6 +17,7 @@ namespace Web.Api.AuditLogs;
 /// way to add, edit or delete an entry from here (or from anywhere else). Mirrors the Razor <c>AuditLogsController</c>.
 /// </summary>
 [Route("api/v1/audit-logs")]
+[RequirePlan(ProFeature.AuditLog)]
 public sealed class AuditLogsController : ApiControllerBase
 {
     private readonly IAuditLogApiService _logs;

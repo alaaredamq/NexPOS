@@ -57,6 +57,7 @@ public sealed class TillDevicesApiTests : CatalogApiTestBase, IAsyncLifetime
             MachineId = "TEST-TEST-TEST-TEST",
             BuildDate = DateOnly.FromDateTime(DateTime.Today),
             Seats = 3,
+            Plan = Common.Licensing.LicensePlan.Pro,
         };
 
         public LicenseActivationResult Activate(string licenseKeyText) => throw new NotSupportedException();

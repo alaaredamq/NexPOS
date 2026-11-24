@@ -144,7 +144,8 @@ class _ManageTab extends StatelessWidget {
         subtitle: context.tr('Name, phone and address', 'الاسم والهاتف والعنوان'),
         page: () => const CustomerFormScreen(),
       ),
-      if (canAdd)
+      // Suppliers are part of the Pro plan.
+      if (canAdd && !shop.isBasic)
       (
         icon: Icons.local_shipping_outlined,
         title: context.tr('Add a supplier', 'إضافة مورّد'),

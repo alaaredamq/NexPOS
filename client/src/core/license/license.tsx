@@ -7,6 +7,14 @@ export function useLicense(): LicenseSummary {
   return useSession().license
 }
 
+/** The shop runs the Pro plan (everything). Basic keeps product stock counts but leaves out the Inventory page, suppliers, purchases, the audit log and reports beyond a week. */
+export function useIsPro(): boolean {
+  return useLicense().plan === 'Pro'
+}
+
+/** Basic's reports and dashboard chart cover at most this many days (`PlanRules.BasicReportDays` on the server). */
+export const BASIC_REPORT_DAYS = 7
+
 /** Mirrors the Razor banner: only when the licence needs attention (renewal due, or selling stopped). */
 export function needsAttention(license: LicenseSummary): boolean {
   return license.showsWarning || !license.allowsSales

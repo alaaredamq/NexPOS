@@ -1,0 +1,606 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Cloud.Data;
+using Cloud.Services;
+using Cloud.Tests.Support;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SkiaSharp;
+using Sync;
+using Xunit;
+
+namespace Cloud.Tests;
+
+/// <summary>
+/// The online menu: a public page at /m/{slug} the owner fills by hand, or links to a branch so the shop PC keeps it in step with the POS.
+/// </summary>
+public class OnlineMenuTests : IClassFixture<CloudFactory>
+{
+    private const string Password = "pass-1234-ok";
+    private readonly CloudFactory _cloud;
+
+    public OnlineMenuTests(CloudFactory cloud) => _cloud = cloud;
+
+    /// <summary>A tiny real PNG (1x1).</summary>
+    private static readonly byte[] Png = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==");
+
+    private async Task<(SeededSite Site, HttpClient Owner)> ShopAsync(string stem, string role = "owner")
+    {
+        var site = await _cloud.SeedSiteAsync(1, stem);
+        await _cloud.WithControlDbAsync(async db =>
+        {
+            db.OwnerUsers.Add(new OwnerUser
+            {
+                ClientId = site.ClientId, Email = $"{role}@{stem}.test", DisplayName = role, PasswordHash = PasswordHasher.Hash(Password),
+                CreatedAt = _cloud.Clock.GetUtcNow().UtcDateTime, Permissions = (int)OwnerRoles.For(role),
+            });
+            return await db.SaveChangesAsync();
+        });
+        var http = _cloud.CreateClient(new() { AllowAutoRedirect = false });
+        var login = await http.PostAsJsonAsync("/owner/v1/auth/login", new { email = $"{role}@{stem}.test", password = Password });
+        login.EnsureSuccessStatusCode();
+        var token = (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString()!;
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return (site, http);
+    }
+
+    private static async Task<JsonElement> Ok(Task<HttpResponseMessage> call)
+    {
+        var response = await call;
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, $"{(int)response.StatusCode}: {body}");
+        return JsonDocument.Parse(body).RootElement.Clone();
+    }
+
+    /// <summary>Every item, section by section, the way the editor loads them: the editor state carries counts only.</summary>
+    private static async Task<JsonElement[]> ItemsOf(HttpClient c)
+    {
+        var state = await Ok(c.GetAsync("/menu/v1/editor"));
+        var keys = state.GetProperty("sections").EnumerateArray().Select(s => s.GetProperty("id").GetInt32()).ToList();
+        if (state.GetProperty("looseCount").GetInt32() > 0) keys.Add(0);
+        var all = new List<JsonElement>();
+        foreach (var key in keys)
+            for (var skip = 0; ; )
+            {
+                var page = await Ok(c.GetAsync($"/menu/v1/items?section={key}&skip={skip}&take=100"));
+                var items = page.GetProperty("items").EnumerateArray().ToArray();
+                all.AddRange(items);
+                skip += items.Length;
+                if (!page.GetProperty("hasMore").GetBoolean()) break;
+            }
+        return all.ToArray();
+    }
+    private static JsonElement[] Sections(JsonElement state) => state.GetProperty("sections").EnumerateArray().ToArray();
+    private static string Slug(JsonElement state) => state.GetProperty("menu").GetProperty("slug").GetString()!;
+
+    [Fact]
+    public async Task An_owner_builds_a_menu_by_hand_and_it_is_public_only_once_published()
+    {
+        var (_, owner) = await ShopAsync("burgerhut");
+
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Burger Hut" }));
+        Assert.Equal("burger-hut", Slug(state));
+
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Burgers" }));
+        var section = Sections(state).Single().GetProperty("id").GetInt32();
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Classic burger", description = "Beef, cheddar, pickles", price = 8.5m, sectionId = section }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Secret burger", price = 12m, sectionId = section, isHidden = true }));
+
+        // Not published yet: nobody finds it, but the preview link works.
+        var anonymous = _cloud.CreateClient();
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync("/m/burger-hut")).StatusCode);
+        var previewUrl = new Uri(state.GetProperty("menu").GetProperty("previewUrl").GetString()!).PathAndQuery;
+        var preview = await anonymous.GetAsync(previewUrl);
+        Assert.Equal(HttpStatusCode.OK, preview.StatusCode);
+        Assert.Contains("noindex", await preview.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync("/m/burger-hut?preview=wrong")).StatusCode);
+
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true, tagline = "Since 2009" }));
+        var html = await anonymous.GetStringAsync("/m/burger-hut");
+        Assert.Contains("Classic burger", html);
+        Assert.Contains("Beef, cheddar, pickles", html);
+        Assert.Contains("$8.50", html);
+        Assert.Contains("Since 2009", html);
+        Assert.DoesNotContain("Secret burger", html);
+
+        // Published menus are offered to search engines.
+        Assert.Contains("/m/burger-hut</loc>", await anonymous.GetStringAsync("/sitemap.xml"));
+    }
+
+    [Fact]
+    public async Task A_long_menu_arrives_in_pages_and_search_finds_what_is_not_loaded_yet()
+    {
+        var (_, owner) = await ShopAsync("bigmenu");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Big Menu" }));
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Everything" }));
+        var section = Sections(state).Single().GetProperty("id").GetInt32();
+        await _cloud.WithControlDbAsync(async db =>
+        {
+            var menuId = (await db.Menus.SingleAsync(m => m.Slug == "big-menu")).Id;
+            for (var n = 1; n <= 150; n++)
+                db.MenuItems.Add(new MenuItem { MenuId = menuId, SectionId = section, Name = $"Dish {n:000}", Price = n, SortOrder = n, IsHidden = n == 149 });
+            return await db.SaveChangesAsync();
+        });
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var anonymous = _cloud.CreateClient();
+
+        // The page itself carries the first 60, and a placeholder for the rest.
+        var html = await anonymous.GetStringAsync("/m/big-menu");
+        Assert.Contains("Dish 060", html);
+        Assert.DoesNotContain("Dish 061", html);
+        Assert.Contains("data-skip=\"60\"", html);
+
+        // The rest, a page at a time. The hidden one never shows.
+        var page = await Ok(anonymous.GetAsync($"/m/big-menu/items?section={section}&skip=60&take=40"));
+        Assert.Equal("Dish 061", page.GetProperty("items")[0].GetProperty("name").GetString());
+        Assert.True(page.GetProperty("hasMore").GetBoolean());
+        // What the guest's order needs to add a dish and total it, on the page and in each page of items.
+        var dish61 = page.GetProperty("items")[0];
+        Assert.True(dish61.GetProperty("id").GetInt32() > 0);
+        Assert.Equal(61m, dish61.GetProperty("price").GetDecimal());
+        Assert.Equal("$", dish61.GetProperty("currency").GetString());
+        Assert.Matches("data-price=\"60(\\.0+)?\" data-cur=\"\\$\"", html);
+        var last = await Ok(anonymous.GetAsync($"/m/big-menu/items?section={section}&skip=140&take=40"));
+        Assert.False(last.GetProperty("hasMore").GetBoolean());
+        Assert.DoesNotContain(last.GetProperty("items").EnumerateArray(), i => i.GetProperty("name").GetString() == "Dish 149");
+
+        // Search reaches items the page has not loaded.
+        var found = await Ok(anonymous.GetAsync("/m/big-menu/items?q=dish%2014"));
+        Assert.Equal(9, found.GetProperty("items").GetArrayLength()); // 140-148, without the hidden 149
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync("/m/no-such-menu/items?section=1")).StatusCode);
+
+        // The editor pages too, and moves an item without needing the whole list.
+        var first = await Ok(owner.GetAsync($"/menu/v1/items?section={section}&take=2"));
+        Assert.Equal(2, first.GetProperty("items").GetArrayLength());
+        var second = first.GetProperty("items")[1].GetProperty("id").GetInt32();
+        await Ok(owner.PostAsJsonAsync($"/menu/v1/items/{second}/move", new { direction = -1 }));
+        first = await Ok(owner.GetAsync($"/menu/v1/items?section={section}&take=2"));
+        Assert.Equal("Dish 002", first.GetProperty("items")[0].GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task Unpublished_items_need_the_preview_key_too()
+    {
+        var (_, owner) = await ShopAsync("secretmenu");
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Secret Menu" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Hidden dish", price = 1 }));
+        var key = new Uri(state.GetProperty("menu").GetProperty("previewUrl").GetString()!).Query.Split('=')[1];
+        var anonymous = _cloud.CreateClient();
+
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync("/m/secret-menu/items?section=0")).StatusCode);
+        var page = await Ok(anonymous.GetAsync($"/m/secret-menu/items?section=0&preview={key}"));
+        Assert.Equal("Hidden dish", page.GetProperty("items")[0].GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task The_shops_colours_stay_light_on_a_dark_mode_phone()
+    {
+        var (_, owner) = await ShopAsync("lightshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Light Shop" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var anonymous = _cloud.CreateClient();
+
+        // The page asks browsers not to darken it, and the stylesheet has no dark version of any theme.
+        Assert.Contains("<meta name=\"color-scheme\" content=\"only light\">", await anonymous.GetStringAsync("/m/light-shop"));
+        var css = await anonymous.GetStringAsync("/menu/menu.css");
+        Assert.DoesNotContain("prefers-color-scheme", css);
+        Assert.Contains("color-scheme:only light", css);
+    }
+
+    [Fact]
+    public async Task Each_shop_picks_how_its_dishes_are_listed()
+    {
+        var (_, owner) = await ShopAsync("styleshop");
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Style Shop" }));
+        Assert.Equal(MenuListingStyles.Default, state.GetProperty("menu").GetProperty("listingStyle").GetString());
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var anonymous = _cloud.CreateClient();
+        Assert.Contains("class=\"style-compact\"", await anonymous.GetStringAsync("/m/style-shop"));
+
+        foreach (var style in MenuListingStyles.All)
+        {
+            state = await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = style }));
+            Assert.Equal(style, state.GetProperty("menu").GetProperty("listingStyle").GetString());
+            Assert.Contains($"class=\"style-{style}\"", await anonymous.GetStringAsync("/m/style-shop"));
+        }
+
+        // Only the known looks; anything else is refused and changes nothing.
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = "neon" })).StatusCode);
+        Assert.Contains("class=\"style-rails\"", await anonymous.GetStringAsync("/m/style-shop"));
+        // A dish without a picture still gets its letter, so picture styles keep their shape.
+        Assert.Contains("<span class=\"pic blank\" aria-hidden=\"true\">T</span>", await anonymous.GetStringAsync("/m/style-shop"));
+    }
+
+    [Fact]
+    public async Task A_login_that_cannot_edit_products_cannot_touch_the_menu()
+    {
+        var (_, staff) = await ShopAsync("staffshop", "staff");
+        Assert.Equal(HttpStatusCode.Forbidden, (await staff.PostAsJsonAsync("/menu/v1/editor", new { title = "x" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _cloud.CreateClient().GetAsync("/menu/v1/editor")).StatusCode);
+    }
+
+    [Fact]
+    public async Task The_provider_edits_a_clients_menu_from_the_admin_portal_and_needs_the_editor_header_to_change_it()
+    {
+        var site = await _cloud.SeedSiteAsync(0, "Hand Cafe");
+        var admin = _cloud.CreateClient(new() { AllowAutoRedirect = false, HandleCookies = true });
+        await HtmlForms.PostAsync(admin, "/admin/Account/Login", "/admin/Account/Login", ("Username", CloudFactory.AdminUser), ("Password", CloudFactory.AdminPassword));
+
+        // A form on another site could ride on the cookie; it cannot add a custom header.
+        var noHeader = await admin.PostAsJsonAsync($"/menu/v1/editor?client={site.ClientId}", new { title = "Hand Cafe" });
+        Assert.Equal(HttpStatusCode.BadRequest, noHeader.StatusCode);
+
+        admin.DefaultRequestHeaders.Add(Cloud.Api.MenuEndpoints.AdminHeader, "1");
+        var state = await Ok(admin.PostAsJsonAsync($"/menu/v1/editor?client={site.ClientId}", new { title = "Hand Cafe" }));
+        Assert.True(state.GetProperty("admin").GetBoolean());
+        Assert.Equal("hand-cafe", Slug(state));
+        Assert.Contains("/owner/menu.html?client=" + site.ClientId, await admin.GetStringAsync($"/admin/Clients/Details/{site.ClientId}"));
+    }
+
+    [Fact]
+    public async Task Pictures_must_be_real_images_and_are_served_for_good()
+    {
+        var (_, owner) = await ShopAsync("picshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Pic Shop" }));
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        var id = (await ItemsOf(owner)).Single().GetProperty("id").GetInt32();
+
+        var fake = new ByteArrayContent("<script>alert(1)</script>"u8.ToArray());
+        fake.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsync($"/menu/v1/items/{id}/image", fake)).StatusCode);
+
+        var huge = new ByteArrayContent(Png.Concat(new byte[MenuImages.MaxBytes]).ToArray());
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, (await owner.PutAsync($"/menu/v1/items/{id}/image", huge)).StatusCode);
+
+        state = await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(Png)));
+        var url = (await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!;
+        Assert.Matches("^/m/img/[0-9a-f]{32}\\.webp$", url);
+        var image = await _cloud.CreateClient().GetAsync(url);
+        Assert.Equal(HttpStatusCode.OK, image.StatusCode);
+        Assert.Equal("image/webp", image.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("immutable", image.Headers.CacheControl?.ToString());
+        var thumb = MenuImages.ThumbOf(url);
+        Assert.Equal(HttpStatusCode.OK, (await _cloud.CreateClient().GetAsync(thumb)).StatusCode);
+
+        // Replacing or removing a picture deletes the old file and its small copy.
+        await Ok(owner.DeleteAsync($"/menu/v1/items/{id}/image"));
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync(url)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync(thumb)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync("/m/img/..%2Fcontrol.db")).StatusCode);
+    }
+
+    [Fact]
+    public async Task The_editor_searches_every_section_and_counts_the_dishes_customers_see_without_a_picture()
+    {
+        var (_, owner) = await ShopAsync("findshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Find Shop" }));
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Hot" }));
+        var hot = Sections(state).Single().GetProperty("id").GetInt32();
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/sections", new { name = "Cold" }));
+        var cold = Sections(state).Single(s => s.GetProperty("name").GetString() == "Cold").GetProperty("id").GetInt32();
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Mint tea", price = 1, sectionId = hot }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Iced tea", price = 2, sectionId = cold, isHidden = true }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Lemonade", description = "Fresh, with mint", price = 2, sectionId = cold }));
+        state = await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Water", price = 0.5m }));
+
+        // Hidden dishes are found too (the editor is where they are shown again); a description counts.
+        var found = (await Ok(owner.GetAsync("/menu/v1/items?q=tea"))).GetProperty("items").EnumerateArray().Select(i => i.GetProperty("name").GetString()).ToArray();
+        Assert.Equal(new[] { "Iced tea", "Mint tea" }, found.Order().ToArray());
+        found = (await Ok(owner.GetAsync("/menu/v1/items?q=MINT"))).GetProperty("items").EnumerateArray().Select(i => i.GetProperty("name").GetString()).ToArray();
+        Assert.Equal(new[] { "Lemonade", "Mint tea" }, found.Order().ToArray());
+
+        // Hidden ones do not need a picture.
+        Assert.Equal(3, state.GetProperty("noPictureCount").GetInt32());
+        var water = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Water").GetProperty("id").GetInt32();
+        state = await Ok(owner.PutAsync($"/menu/v1/items/{water}/image", new ByteArrayContent(Png)));
+        Assert.Equal(2, state.GetProperty("noPictureCount").GetInt32());
+    }
+
+    /// <summary>A real photo-sized JPEG, as a phone would send it if the editor's own shrinking were skipped.</summary>
+    private static byte[] Photo(int width, int height)
+    {
+        using var bitmap = new SKBitmap(width, height);
+        using (var canvas = new SKCanvas(bitmap))
+        using (var paint = new SKPaint { Shader = SKShader.CreateLinearGradient(new(0, 0), new(width, height), [SKColors.OrangeRed, SKColors.SeaGreen], SKShaderTileMode.Clamp) })
+            canvas.DrawRect(0, 0, width, height, paint);
+        using var image = SKImage.FromBitmap(bitmap);
+        return image.Encode(SKEncodedImageFormat.Jpeg, 95).ToArray();
+    }
+
+    private async Task<(byte[] Bytes, SKSizeI Size)> Fetch(string url)
+    {
+        var response = await _cloud.CreateClient().GetAsync(url);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        using var codec = SKCodec.Create(new MemoryStream(bytes));
+        return (bytes, codec.Info.Size);
+    }
+
+    [Fact]
+    public async Task The_server_shrinks_uploads_and_keeps_a_small_copy_for_the_list()
+    {
+        var (_, owner) = await ShopAsync("bigpics");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Big Pics" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Burger", price = 9 }));
+        var id = (await ItemsOf(owner)).Single().GetProperty("id").GetInt32();
+
+        var upload = Photo(2400, 1600);
+        await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(upload)));
+        var url = (await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!;
+
+        var full = await Fetch(url);
+        Assert.Equal(new SKSizeI(MenuImages.ItemSide, 667), full.Size);
+        var small = await Fetch(MenuImages.ThumbOf(url));
+        Assert.Equal(new SKSizeI(540, MenuImages.ThumbShortSide), small.Size);
+        Assert.True(small.Bytes.Length < full.Bytes.Length && full.Bytes.Length < upload.Length);
+
+        // A logo is kept smaller still.
+        await Ok(owner.PutAsync("/menu/v1/logo", new ByteArrayContent(Photo(1200, 1200))));
+        var logo = (await Ok(owner.GetAsync("/menu/v1/editor"))).GetProperty("menu").GetProperty("logoUrl").GetString()!;
+        Assert.Equal(new SKSizeI(MenuImages.LogoSide, MenuImages.LogoSide), (await Fetch(logo)).Size);
+
+        // The menu lists the small copy, except in the cards style, where pictures run the full width.
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { isPublished = true }));
+        var page = await _cloud.CreateClient().GetStringAsync("/m/big-pics");
+        Assert.Contains(MenuImages.ThumbOf(url), page);
+        Assert.Contains(MenuImages.ThumbOf(logo), page);
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { listingStyle = "cards" }));
+
+        var items = await _cloud.CreateClient().GetFromJsonAsync<JsonElement>("/m/big-pics/items?section=0&skip=0");
+        Assert.Equal(url, items.GetProperty("items")[0].GetProperty("imageUrl").GetString());
+    }
+
+    [Fact]
+    public async Task A_sideways_phone_photo_is_stored_upright()
+    {
+        // 400x200: left half red, right half blue, with an EXIF note "turn a quarter clockwise to view" (orientation 6).
+        using var bitmap = new SKBitmap(400, 200);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.DrawRect(0, 0, 200, 200, new SKPaint { Color = SKColors.Red });
+            canvas.DrawRect(200, 0, 200, 200, new SKPaint { Color = SKColors.Blue });
+        }
+        using var encoded = SKImage.FromBitmap(bitmap).Encode(SKEncodedImageFormat.Jpeg, 95);
+        var jpeg = encoded.ToArray();
+        byte[] exif = [0xFF, 0xE1, 0x00, 0x22, (byte)'E', (byte)'x', (byte)'i', (byte)'f', 0, 0,
+            (byte)'M', (byte)'M', 0x00, 0x2A, 0, 0, 0, 8, 0x00, 0x01, 0x01, 0x12, 0x00, 0x03, 0, 0, 0, 1, 0x00, 0x06, 0, 0, 0, 0, 0, 0];
+        var sideways = jpeg[..2].Concat(exif).Concat(jpeg[2..]).ToArray();
+
+        var (_, owner) = await ShopAsync("sideways");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Sideways" }));
+        await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Cake", price = 4 }));
+        var id = (await ItemsOf(owner)).Single().GetProperty("id").GetInt32();
+        await Ok(owner.PutAsync($"/menu/v1/items/{id}/image", new ByteArrayContent(sideways)));
+
+        var (bytes, size) = await Fetch((await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!);
+        Assert.Equal(new SKSizeI(200, 400), size);
+        using var stored = SKBitmap.Decode(bytes);
+        Assert.True(stored.GetPixel(100, 20).Red > 200 && stored.GetPixel(100, 20).Blue < 60, "the left (red) half is now on top");
+        Assert.True(stored.GetPixel(100, 380).Blue > 200 && stored.GetPixel(100, 380).Red < 60, "the right (blue) half is now at the bottom");
+    }
+
+    [Fact]
+    public async Task Pictures_saved_before_small_copies_get_one_when_first_asked()
+    {
+        var root = Path.Combine(Path.GetFullPath(_cloud.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<CloudOptions>>().Value.DataRoot), "menu-images");
+        Directory.CreateDirectory(root);
+        var id = Guid.NewGuid().ToString("N");
+        await File.WriteAllBytesAsync(Path.Combine(root, id + ".jpg"), Photo(1000, 750));
+
+        var small = await Fetch($"/m/img/{id}.t.webp");
+        Assert.Equal(new SKSizeI(480, MenuImages.ThumbShortSide), small.Size);
+        Assert.True(File.Exists(Path.Combine(root, id + ".t.webp")));
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync($"/m/img/{Guid.NewGuid():N}.t.webp")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Addresses_are_unique_and_checked()
+    {
+        var (_, a) = await ShopAsync("slug-a");
+        var (_, b) = await ShopAsync("slug-b");
+        await Ok(a.PostAsJsonAsync("/menu/v1/editor", new { title = "Same Name" }));
+        var second = await Ok(b.PostAsJsonAsync("/menu/v1/editor", new { title = "Same Name" }));
+        Assert.Equal("same-name-2", Slug(second));
+
+        Assert.Equal(HttpStatusCode.Conflict, (await b.PutAsJsonAsync("/menu/v1/settings", new { slug = "same-name" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await b.PutAsJsonAsync("/menu/v1/settings", new { slug = "Bad Slug!" })).StatusCode);
+        Assert.Equal("my-place", Slug(await Ok(b.PutAsJsonAsync("/menu/v1/settings", new { slug = "my-place" }))));
+    }
+
+    [Fact]
+    public async Task A_linked_menu_follows_the_POS_and_keeps_the_owners_pictures_and_choices()
+    {
+        var (site, owner) = await ShopAsync("linkshop");
+        using var till = new TillDb();
+        var burger = await till.AddProductAsync("Zinger burger", "111", costPrice: 3.10m);
+        var fries = await till.AddProductAsync("Fries", "222", costPrice: 0.40m);
+        var retired = await till.AddProductAsync("Old item", "333");
+        var hidden = await till.AddProductAsync("Napkins", "444");
+        SqlHelper.Exec(till.Path, $"UPDATE Products SET IsActive = 1, SellingPrice = '6.5' WHERE Id = {burger}");
+        SqlHelper.Exec(till.Path, $"UPDATE Products SET IsActive = 1, SellingPrice = '2' WHERE Id IN ({fries}, {retired}, {hidden})");
+
+        var device = _cloud.DeviceClient(site.Token);
+
+        // Not linked: the shop PC is told so, and a list it sends anyway is refused.
+        var ping = await device.GetFromJsonAsync<SyncPing>("/api/sync/ping", SyncWire.Json);
+        Assert.False(ping!.MenuLinked);
+        Assert.Null(await MenuCatalog.PublishIfChangedAsync(device, till.ConnectionString, null, default));
+
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Link Shop" }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { linkedSiteId = site.SiteId.ToString(), isPublished = true }));
+        ping = await device.GetFromJsonAsync<SyncPing>("/api/sync/ping", SyncWire.Json);
+        Assert.True(ping!.MenuLinked);
+        Assert.Null(ping.MenuCatalogHash);
+
+        // What travels: names, prices, currency, category. Never the cost.
+        var catalog = MenuCatalog.Build(till.ConnectionString);
+        Assert.DoesNotContain("3.1", JsonSerializer.Serialize(catalog, SyncWire.Json));
+        var hash = await MenuCatalog.PublishIfChangedAsync(device, till.ConnectionString, null, default);
+        Assert.Equal(catalog.Hash, hash);
+        ping = await device.GetFromJsonAsync<SyncPing>("/api/sync/ping", SyncWire.Json);
+        Assert.Equal(hash, ping!.MenuCatalogHash);
+
+        var state = await Ok(owner.GetAsync("/menu/v1/editor"));
+        Assert.Equal(4, (await ItemsOf(owner)).Length);
+        Assert.All((await ItemsOf(owner)), i => Assert.True(i.GetProperty("linked").GetBoolean()));
+        Assert.True(Sections(state).Single().GetProperty("linked").GetBoolean());
+        var burgerItem = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Zinger burger").GetProperty("id").GetInt32();
+        var napkins = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Napkins").GetProperty("id").GetInt32();
+
+        // The POS owns the price; the owner owns the picture, words and visibility.
+        Assert.Equal(HttpStatusCode.Conflict, (await owner.PutAsJsonAsync($"/menu/v1/items/{burgerItem}", new { price = 1 })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await owner.DeleteAsync($"/menu/v1/items/{burgerItem}")).StatusCode);
+        await Ok(owner.PutAsJsonAsync($"/menu/v1/items/{burgerItem}", new { description = "Crispy and hot" }));
+        await Ok(owner.PutAsync($"/menu/v1/items/{burgerItem}/image", new ByteArrayContent(Png)));
+        await Ok(owner.PutAsJsonAsync($"/menu/v1/items/{napkins}", new { isHidden = true }));
+
+        // At the shop: a price changes, a product is switched off. Nothing else is sent when nothing changed.
+        Assert.Equal(hash, await MenuCatalog.PublishIfChangedAsync(device, till.ConnectionString, hash, default));
+        SqlHelper.Exec(till.Path, $"UPDATE Products SET SellingPrice = '7.25' WHERE Id = {burger}");
+        SqlHelper.Exec(till.Path, $"UPDATE Products SET IsActive = 0 WHERE Id = {retired}");
+        var newHash = await MenuCatalog.PublishIfChangedAsync(device, till.ConnectionString, hash, default);
+        Assert.NotEqual(hash, newHash);
+
+        state = await Ok(owner.GetAsync("/menu/v1/editor"));
+        Assert.Equal(3, (await ItemsOf(owner)).Length);
+        var item = (await ItemsOf(owner)).Single(i => i.GetProperty("id").GetInt32() == burgerItem);
+        Assert.Equal(7.25m, item.GetProperty("price").GetDecimal());
+        Assert.Equal("Crispy and hot", item.GetProperty("description").GetString());
+        Assert.False(item.GetProperty("imageUrl").ValueKind == JsonValueKind.Null);
+
+        var html = await _cloud.CreateClient().GetStringAsync("/m/" + Slug(state));
+        Assert.Contains("Zinger burger", html);
+        Assert.Contains("7.25", html);
+        Assert.DoesNotContain("Napkins", html);
+        Assert.DoesNotContain("Old item", html);
+
+        // Unlinking keeps everything, as ordinary items the owner can now edit.
+        state = await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { linkedSiteId = "" }));
+        Assert.All((await ItemsOf(owner)), i => Assert.False(i.GetProperty("linked").GetBoolean()));
+        await Ok(owner.PutAsJsonAsync($"/menu/v1/items/{burgerItem}", new { price = 8 }));
+        Assert.False((await device.GetFromJsonAsync<SyncPing>("/api/sync/ping", SyncWire.Json))!.MenuLinked);
+    }
+
+    [Fact]
+    public async Task Sections_and_items_never_show_twice_after_relinking_or_crossed_pushes()
+    {
+        var (site, owner) = await ShopAsync("twiceshop");
+        var device = _cloud.DeviceClient(site.Token);
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Twice Shop" }));
+        var link = new { linkedSiteId = site.SiteId.ToString() };
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", link));
+
+        MenuCatalogPush Catalog(string hash, params (int Id, string Name, string Key, string Section)[] products) =>
+            new(hash, products.Select((p, n) => new MenuCatalogItem(p.Id, p.Name, null, 2, "$", p.Key, p.Section, p.Key == "c1" ? 0 : 1, n)).ToList());
+        async Task Push(MenuCatalogPush c) => Assert.Equal(HttpStatusCode.NoContent, (await device.PostAsJsonAsync("/" + MenuCatalog.Route, c, SyncWire.Json)).StatusCode);
+        async Task Expect(string[] sections, string[] items)
+        {
+            var state = await Ok(owner.GetAsync("/menu/v1/editor"));
+            Assert.Equal(sections, Sections(state).Select(s => s.GetProperty("name").GetString()!).OrderBy(n => n, StringComparer.Ordinal).ToArray());
+            Assert.Equal(items, (await ItemsOf(owner)).Select(i => i.GetProperty("name").GetString()!).OrderBy(n => n, StringComparer.Ordinal).ToArray());
+        }
+        var labneh = (1, "Labneh 500g", "c1", "test 1");
+        var butter = (2, "Salted Butter 200g", "c2", "test 2");
+        await Push(Catalog("h1", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+
+        // The owner's picture survives unlinking and linking the branch again, and nothing appears twice.
+        var labnehId = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Labneh 500g").GetProperty("id").GetInt32();
+        await Ok(owner.PutAsync($"/menu/v1/items/{labnehId}/image", new ByteArrayContent(Png)));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", new { linkedSiteId = "" }));
+        await Ok(owner.PutAsJsonAsync("/menu/v1/settings", link));
+        await Push(Catalog("h2", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+        var again = (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Labneh 500g");
+        Assert.Equal(labnehId, again.GetProperty("id").GetInt32());
+        Assert.True(again.GetProperty("linked").GetBoolean());
+        Assert.False(again.GetProperty("imageUrl").ValueKind == JsonValueKind.Null);
+
+        // Doubles already saved (by crossed pushes before, or older versions) are folded together on the next push.
+        await _cloud.WithControlDbAsync(async db =>
+        {
+            var menu = await db.Menus.SingleAsync(m => m.Slug == "twice-shop");
+            var twin = new MenuSection { MenuId = menu.Id, Name = "test 1", PosKey = "c1", SortOrder = 9 };
+            db.MenuSections.Add(twin);
+            await db.SaveChangesAsync();
+            var copy = new MenuItem { MenuId = menu.Id, SectionId = twin.Id, Name = "Labneh 500g", Price = 2 };
+            copy.Branches.Add(new MenuItemBranch { SiteId = site.SiteId, PosProductId = 1, Price = 2 });
+            db.MenuItems.Add(copy);
+            db.MenuSections.Add(new MenuSection { MenuId = menu.Id, Name = "test 2", SortOrder = 10 });
+            db.MenuItems.Add(new MenuItem { MenuId = menu.Id, Name = "Salted Butter 200g", Price = 2, Description = "From the old copy" });
+            return await db.SaveChangesAsync();
+        });
+        await Push(Catalog("h3", labneh, butter));
+        await Expect(new[] { "test 1", "test 2" }, new[] { "Labneh 500g", "Salted Butter 200g" });
+        Assert.Equal("From the old copy", (await ItemsOf(owner)).Single(i => i.GetProperty("name").GetString() == "Salted Butter 200g").GetProperty("description").GetString());
+
+        // Two pushes at once with something new: it arrives once.
+        var akkawi = (3, "Akkawi Cheese (per kg)", "c3", "test 3");
+        await Task.WhenAll(Push(Catalog("h4", labneh, butter, akkawi)), Push(Catalog("h4", labneh, butter, akkawi)));
+        await Expect(new[] { "test 1", "test 2", "test 3" }, new[] { "Akkawi Cheese (per kg)", "Labneh 500g", "Salted Butter 200g" });
+    }
+
+    [Fact]
+    public async Task Sign_in_says_whether_the_shop_has_a_POS_so_a_menu_only_shop_goes_to_its_menu()
+    {
+        var (site, owner) = await ShopAsync("menuonly");
+        var anon = _cloud.CreateClient();
+        async Task<bool> SignInHasTill() => (await Ok(anon.PostAsJsonAsync("/owner/v1/auth/login", new { email = "owner@menuonly.test", password = Password })))
+            .GetProperty("hasTill").GetBoolean();
+
+        // No till has ever checked in: the owner website opens the menu editor, not the recovery code.
+        Assert.False(await SignInHasTill());
+        Assert.False((await Ok(owner.GetAsync("/owner/v1/me"))).GetProperty("hasTill").GetBoolean());
+
+        // Once the shop PC checks in, it is a POS shop.
+        await _cloud.DeviceClient(site.Token).GetAsync("/api/sync/ping");
+        Assert.True(await SignInHasTill());
+        Assert.True((await Ok(owner.GetAsync("/owner/v1/me"))).GetProperty("hasTill").GetBoolean());
+    }
+
+    [Fact]
+    public async Task A_menu_cannot_be_linked_to_another_clients_branch()
+    {
+        var (_, owner) = await ShopAsync("mine");
+        var other = await _cloud.SeedSiteAsync(1, "Someone Else");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Mine" }));
+        Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/menu/v1/settings", new { linkedSiteId = other.SiteId.ToString() })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Removing_a_client_removes_its_menu_and_pictures()
+    {
+        var (site, owner) = await ShopAsync("goneshop");
+        await Ok(owner.PostAsJsonAsync("/menu/v1/editor", new { title = "Gone Shop" }));
+        var state = await Ok(owner.PostAsJsonAsync("/menu/v1/items", new { name = "Tea", price = 1 }));
+        state = await Ok(owner.PutAsync($"/menu/v1/items/{(await ItemsOf(owner)).Single().GetProperty("id").GetInt32()}/image", new ByteArrayContent(Png)));
+        var url = (await ItemsOf(owner)).Single().GetProperty("imageUrl").GetString()!;
+
+        using (var scope = _cloud.Services.CreateScope())
+            await scope.ServiceProvider.GetRequiredService<SiteRemoval>().RemoveClientAsync(site.ClientId);
+
+        Assert.Equal(0, await _cloud.WithControlDbAsync(db => db.Menus.CountAsync(m => m.ClientId == site.ClientId)));
+        Assert.Equal(HttpStatusCode.NotFound, (await _cloud.CreateClient().GetAsync(url)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData(8.5, "$", "$8.50")]
+    [InlineData(8, "$", "$8")]
+    [InlineData(450000, "LBP", "450,000 LBP")]
+    [InlineData(3.75, null, "3.75")]
+    public void Prices_read_naturally(decimal price, string? currency, string expected)
+        => Assert.Equal(expected, MenuRules.Price(price, currency));
+
+    [Theory]
+    [InlineData("Abu Ali's Grill", "abu-alis-grill")]
+    [InlineData("Café & Co.", "cafe-co")]
+    public void Addresses_come_from_the_name(string name, string expected) => Assert.Equal(expected, MenuRules.SlugFrom(name));
+
+    [Fact]
+    public void A_name_without_latin_letters_gets_a_random_address() => Assert.StartsWith("menu-", MenuRules.SlugFrom("مطعم الشام"));
+}

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coduo POS Instagram posts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1633; --navy:#1E3A8A; --teal:#12B5A5; --bteal:#3DDBCB; --peri:#6D8DF0;
+    --paper:#F3F5FB; --line:#DDE3F0; --muted:#5B6783;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#888;font-family:Inter,"Segoe UI",sans-serif;display:flex;flex-wrap:wrap;gap:40px;padding:40px}
+  .post{width:1080px;height:1350px;position:relative;overflow:hidden;padding:88px;display:flex;flex-direction:column}
+  .dark{background:var(--ink);color:#fff}
+  .navy{background:var(--navy);color:#fff}
+  .light{background:var(--paper);color:var(--ink)}
+  svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* shared chrome */
+  .brand{display:flex;align-items:center;gap:16px;font-weight:700;font-size:26px;letter-spacing:.22em}
+  .brand svg{width:54px;height:54px}
+  .brand b{font-weight:700}
+  .brand span{color:var(--teal);font-weight:600}
+  .dark .brand span,.navy .brand span{color:var(--bteal)}
+  .foot{position:absolute;left:88px;right:88px;bottom:64px;display:flex;justify-content:space-between;align-items:center;font-size:26px;font-weight:600;opacity:.85}
+  .kicker{font-size:24px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-top:64px}
+  .dark .kicker,.navy .kicker{color:var(--bteal)}
+  h1{font-size:96px;line-height:1.02;font-weight:800;letter-spacing:-.035em;margin-top:20px}
+  h1 em{font-style:normal;color:var(--teal)}
+  .dark h1 em,.navy h1 em{color:var(--bteal)}
+  .lead{font-size:32px;line-height:1.4;margin-top:28px;max-width:860px;color:var(--muted)}
+  .dark .lead,.navy .lead{color:#B9C4E4}
+  .pill{display:inline-flex;align-items:center;gap:12px;border-radius:999px;padding:16px 28px;font-weight:700;font-size:26px}
+
+  /* ---------- 1 hero ---------- */
+  .glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.55}
+  .till{position:absolute;left:88px;right:88px;bottom:-40px;height:700px;background:#fff;border-radius:28px;box-shadow:0 40px 120px rgba(0,0,0,.55);display:flex;overflow:hidden;color:var(--ink)}
+  .till .side{width:76px;background:var(--ink);display:flex;flex-direction:column;align-items:center;padding-top:22px;gap:26px}
+  .till .side i{display:block;width:30px;height:30px;border-radius:8px;background:#22305a}
+  .till .side i.on{background:var(--peri)}
+  .till .main{flex:1;padding:26px;background:#F6F8FC}
+  .search{height:58px;border-radius:14px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 18px;font-size:22px;color:#8A94AD}
+  .search svg{font-size:24px;color:var(--navy)}
+  .chips{display:flex;gap:10px;margin:18px 0}
+  .chips b{font-size:19px;font-weight:600;padding:9px 18px;border-radius:999px;background:#fff;border:2px solid var(--line)}
+  .chips b.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .tile{background:#fff;border-radius:14px;border:2px solid var(--line);overflow:hidden}
+  .tile i{display:block;height:10px}
+  .tile div{padding:12px 14px}
+  .tile p{font-size:19px;font-weight:600}
+  .tile s{text-decoration:none;font-size:20px;font-weight:800;color:var(--navy)}
+  .cart{width:290px;background:#fff;border-left:2px solid var(--line);padding:26px;display:flex;flex-direction:column}
+  .cart h4{font-size:22px;margin-bottom:14px}
+  .line{display:flex;justify-content:space-between;font-size:19px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .line u{text-decoration:none;color:var(--muted)}
+  .total{margin-top:18px;display:flex;justify-content:space-between;align-items:baseline}
+  .total small{font-size:20px;color:var(--muted);font-weight:600}
+  .total strong{font-size:40px;font-weight:800;letter-spacing:-.02em}
+  .pay{margin-top:18px;height:64px;border-radius:14px;background:var(--navy);color:#fff;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+  /* ---------- 2 features ---------- */
+  .feats{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:56px}
+  .feat{background:#fff;border:2px solid var(--line);border-radius:24px;padding:28px 28px 26px;display:flex;gap:20px;align-items:flex-start}
+  .feat .ic{flex:none;width:64px;height:64px;border-radius:18px;background:#E6ECFA;color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:32px}
+  .feat h3{font-size:28px;font-weight:700;letter-spacing:-.01em}
+  .feat p{font-size:21px;color:var(--muted);margin-top:6px;line-height:1.35}
+
+  /* ---------- 3 plans ---------- */
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:56px}
+  .plan{border-radius:30px;padding:40px 36px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18)}
+  .plan.pro{background:#fff;color:var(--ink);border-color:#fff;position:relative}
+  .plan .tag{font-size:22px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--bteal)}
+  .plan.pro .tag{color:var(--teal)}
+  .plan h2{font-size:64px;font-weight:800;letter-spacing:-.03em;margin:8px 0 6px}
+  .plan .for{font-size:22px;color:#B9C4E4;margin-bottom:24px}
+  .plan.pro .for{color:var(--muted)}
+  .plan ul{list-style:none;display:flex;flex-direction:column;gap:15px}
+  .plan li{display:flex;gap:14px;font-size:24px;line-height:1.3;align-items:flex-start}
+  .plan li svg{flex:none;font-size:26px;margin-top:2px;color:var(--bteal);stroke-width:3}
+  .plan.pro li svg{color:var(--teal)}
+  .plan li.plus{font-weight:700}
+  .addon{margin-top:26px;border-radius:24px;border:2px dashed rgba(255,255,255,.35);padding:24px 30px;display:flex;align-items:center;gap:20px;font-size:25px}
+  .addon svg{font-size:40px;color:var(--bteal);flex:none}
+  .addon b{color:#fff}
+
+  /* ---------- 4 offline ---------- */
+  .bigicon{width:220px;height:220px;border-radius:56px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:120px;margin-top:70px;box-shadow:0 30px 60px rgba(30,58,138,.28)}
+  .rows{margin-top:56px;display:flex;flex-direction:column;gap:20px}
+  .row{display:flex;align-items:center;gap:24px;background:#fff;border:2px solid var(--line);border-radius:24px;padding:26px 30px}
+  .row .ic{flex:none;width:60px;height:60px;border-radius:16px;background:#DDF6F3;color:#0B7F74;display:flex;align-items:center;justify-content:center;font-size:30px}
+  .row h3{font-size:29px;font-weight:700}
+  .row p{font-size:22px;color:var(--muted);margin-top:4px}
+  .status{position:absolute;right:88px;top:330px;background:#fff;border:2px solid var(--line);border-radius:22px;padding:22px 26px;box-shadow:0 20px 50px rgba(11,22,51,.12);font-size:22px;width:360px}
+  .status .dot{display:inline-block;width:14px;height:14px;border-radius:50%;background:#F59E0B;margin-right:10px}
+  .status b{font-size:24px}
+  .status p{margin-top:12px;color:var(--muted)}
+  .status .ok{margin-top:14px;color:#0B7F74;font-weight:700;display:flex;gap:10px;align-items:center}
+
+  /* ---------- 5 bilingual ---------- */
+  .duo{position:relative;flex:none;height:480px;margin-top:auto;margin-bottom:96px}
+  .rcpt{position:absolute;width:430px;background:#fff;color:var(--ink);border-radius:20px;padding:34px 34px 30px;box-shadow:0 40px 100px rgba(0,0,0,.5);font-size:22px}
+  .rcpt.en{left:0;top:40px;transform:rotate(-4deg)}
+  .rcpt.ar{right:0;top:0;transform:rotate(3deg);direction:rtl;font-family:"Noto Sans Arabic",Inter,sans-serif}
+  .rcpt .shop{text-align:center;font-weight:800;font-size:28px}
+  .rcpt .meta{text-align:center;color:var(--muted);font-size:18px;margin:6px 0 18px}
+  .rcpt .l{display:flex;align-items:center;line-height:1.4;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .rcpt .l bdi{font-family:Inter,sans-serif;font-weight:600}
+  .rcpt .t{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;font-weight:800;font-size:30px}
+  .rcpt .t bdi{font-family:Inter,sans-serif}
+  .rcpt .thx{text-align:center;color:var(--muted);margin-top:18px;font-size:19px}
+  .rcpt .cur{display:flex;justify-content:space-between;color:var(--muted);font-size:18px;margin-top:6px}
+  .langs{display:flex;gap:16px;margin-top:24px}
+  .langs .pill{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);color:#fff}
+  .langs .pill.ar{font-family:"Noto Sans Arabic",sans-serif}
+  .h1ar{font-family:"Noto Sans Arabic",sans-serif;font-size:60px;margin-top:10px;font-weight:800;color:var(--bteal);line-height:1.3;letter-spacing:0}
+
+  /* ---------- 6 phone ---------- */
+  .phone{position:absolute;right:88px;bottom:-40px;width:430px;height:800px;border-radius:64px;background:var(--ink);padding:18px;box-shadow:0 40px 100px rgba(11,22,51,.35)}
+  .screen{width:100%;height:100%;border-radius:48px;background:#F6F8FC;overflow:hidden;padding:56px 28px 28px;color:var(--ink)}
+  .screen .hello{font-size:19px;color:var(--muted)}
+  .screen h5{font-size:26px;font-weight:800;margin-top:2px}
+  .kpi{margin-top:22px;background:var(--navy);color:#fff;border-radius:24px;padding:24px}
+  .kpi small{font-size:17px;color:#B9C4E4;font-weight:600}
+  .kpi strong{display:block;font-size:46px;font-weight:800;letter-spacing:-.02em;margin-top:2px}
+  .kpi .up{font-size:17px;color:var(--bteal);font-weight:700}
+  .bars{display:flex;align-items:flex-end;gap:12px;height:120px;margin-top:20px}
+  .bars i{flex:1;border-radius:7px 7px 3px 3px;background:rgba(255,255,255,.22)}
+  .bars i.on{background:var(--bteal)}
+  .mini{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .mini div{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px}
+  .mini small{font-size:15px;color:var(--muted);font-weight:600}
+  .mini b{display:block;font-size:28px;font-weight:800;margin-top:2px}
+  .seal{margin-top:16px;display:flex;gap:10px;align-items:center;font-size:16px;font-weight:600;color:#0B7F74;background:#DDF6F3;border-radius:14px;padding:12px 14px}
+  .points{margin-top:60px;display:flex;flex-direction:column;gap:30px;width:420px}
+  .points>div{display:flex;gap:18px;align-items:flex-start}
+  .points .ic{flex:none;width:58px;height:58px;border-radius:16px;background:#E6ECFA;color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:28px}
+  .points h3{font-size:27px;font-weight:700}
+  .points p{font-size:21px;color:var(--muted);margin-top:4px;line-height:1.35}
+</style>
+</head>
+<body>
+
+<!-- icon sprite -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="mark-dark" viewBox="-36 -36 72 76"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="#6D8DF0" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="#3DDBCB"/><circle cx="9" cy="-8" r="5.5" fill="#3DDBCB"/><rect x="-6" y="16" width="12" height="12" fill="#6D8DF0"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="#6D8DF0"/></symbol>
+  <symbol id="mark-navy" viewBox="-36 -36 72 76"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="#FFFFFF" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="#3DDBCB"/><circle cx="9" cy="-8" r="5.5" fill="#3DDBCB"/><rect x="-6" y="16" width="12" height="12" fill="#FFFFFF"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="#FFFFFF"/></symbol>
+  <symbol id="mark-light" viewBox="-36 -36 72 76"><rect x="-31" y="-30" width="62" height="46" rx="10" fill="none" stroke="#1E3A8A" stroke-width="8"/><circle cx="-9" cy="-8" r="5.5" fill="#12B5A5"/><circle cx="9" cy="-8" r="5.5" fill="#12B5A5"/><rect x="-6" y="16" width="12" height="12" fill="#1E3A8A"/><rect x="-21" y="27" width="42" height="8" rx="4" fill="#1E3A8A"/></symbol>
+  <symbol id="zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="printer" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="16" y2="7"/><line x1="9" y1="11" x2="14" y2="11"/></symbol>
+  <symbol id="coins" viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="M16.71 13.88l.7.71-2.82 2.82"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="chart" viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></symbol>
+  <symbol id="box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+  <symbol id="wifioff" viewBox="0 0 24 24"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><line x1="12" y1="20" x2="12.01" y2="20"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="pc" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol>
+  <symbol id="cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v8h14v-8"/></symbol>
+</svg>
+
+<!-- ========== 1 · HERO (dark) ========== -->
+<section class="post dark" id="p1">
+  <div class="glow" style="width:620px;height:620px;background:#1E3A8A;right:-160px;top:-140px"></div>
+  <div class="glow" style="width:420px;height:420px;background:#12B5A5;left:-180px;top:520px;opacity:.25"></div>
+  <div class="brand" style="position:relative"><svg><use href="#mark-dark"/></svg><b>CODUO</b><span>POS</span></div>
+  <div class="kicker" style="position:relative">Ready-made point of sale</div>
+  <h1 style="position:relative">Install today.<br><em>Sell today.</em></h1>
+  <p class="lead" style="position:relative">A complete till for your shop on Windows. No custom project, no waiting. Add your products and start selling.</p>
+
+  <div class="till">
+    <div class="side"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="main">
+      <div class="search"><svg class="i"><use href="#search"/></svg>Search or scan a barcode…</div>
+      <div class="chips"><b class="on">All</b><b>Drinks</b><b>Grocery</b><b>Snacks</b><b>Home</b></div>
+      <div class="tiles">
+        <div class="tile"><i style="background:#1E3A8A"></i><div><p>Coffee 250g</p><s>$6.50</s></div></div>
+        <div class="tile"><i style="background:#12B5A5"></i><div><p>Mineral water</p><s>$0.75</s></div></div>
+        <div class="tile"><i style="background:#F59E0B"></i><div><p>Olive oil 1L</p><s>$9.00</s></div></div>
+        <div class="tile"><i style="background:#6D8DF0"></i><div><p>Fresh bread</p><s>$1.25</s></div></div>
+        <div class="tile"><i style="background:#E5484D"></i><div><p>Chocolate bar</p><s>$1.50</s></div></div>
+        <div class="tile"><i style="background:#12B5A5"></i><div><p>Orange juice</p><s>$2.40</s></div></div>
+        <div class="tile"><i style="background:#F59E0B"></i><div><p>Rice 5kg</p><s>$7.80</s></div></div>
+        <div class="tile"><i style="background:#1E3A8A"></i><div><p>Tea box</p><s>$3.20</s></div></div>
+        <div class="tile"><i style="background:#6D8DF0"></i><div><p>Milk 1L</p><s>$1.10</s></div></div>
+      </div>
+    </div>
+    <div class="cart">
+      <h4>Current sale</h4>
+      <div class="line"><span>2 × Coffee 250g</span><u>$13.00</u></div>
+      <div class="line"><span>6 × Water</span><u>$4.50</u></div>
+      <div class="line"><span>1 × Olive oil 1L</span><u>$9.00</u></div>
+      <div class="total"><small>Total</small><strong>$26.50</strong></div>
+      <div class="pay">Pay</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 2 · FEATURES (light) ========== -->
+<section class="post light" id="p2">
+  <div class="brand"><svg><use href="#mark-light"/></svg><b>CODUO</b><span>POS</span></div>
+  <div class="kicker">All in one box</div>
+  <h1 style="font-size:84px">Everything the<br>counter <em>needs.</em></h1>
+  <div class="feats">
+    <div class="feat"><div class="ic"><svg class="i"><use href="#zap"/></svg></div><div><h3>Fast checkout</h3><p>Search as you type, barcode, hold &amp; resume sales</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#printer"/></svg></div><div><h3>Receipt printer</h3><p>Thermal receipts and cash drawer support</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#book"/></svg></div><div><h3>Customer debts</h3><p>Who owes what, payments and full history</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#coins"/></svg></div><div><h3>Multi-currency</h3><p>Sell in more than one currency with your own rates</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#clock"/></svg></div><div><h3>Cash shifts</h3><p>Open, close and count the drawer every shift</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#chart"/></svg></div><div><h3>Reports</h3><p>Daily dashboard and sales reports you can export</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#box"/></svg></div><div><h3>Stock &amp; suppliers</h3><p>Live stock, low-stock alerts, purchases</p></div></div>
+    <div class="feat"><div class="ic"><svg class="i"><use href="#shield"/></svg></div><div><h3>Safe by default</h3><p>Cashier PINs, roles and automatic backups</p></div></div>
+  </div>
+  <div class="foot"><span>Ready to install. Nothing to build.</span><span>@coduo.am</span></div>
+</section>
+
+<!-- ========== 3 · PLANS (navy) ========== -->
+<section class="post navy" id="p3">
+  <div class="glow" style="width:560px;height:560px;background:#3DDBCB;right:-260px;bottom:-200px;opacity:.22"></div>
+  <div class="brand" style="position:relative"><svg><use href="#mark-navy"/></svg><b>CODUO</b><span>POS</span></div>
+  <div class="kicker" style="position:relative">Simple plans</div>
+  <h1 style="position:relative;font-size:88px">Start small.<br><em>Grow into Pro.</em></h1>
+  <div class="plans" style="position:relative">
+    <div class="plan">
+      <div class="tag">Basic</div>
+      <h2>Basic</h2>
+      <div class="for">For a single counter</div>
+      <ul>
+        <li><svg class="i"><use href="#check"/></svg>Full POS &amp; receipts</li>
+        <li><svg class="i"><use href="#check"/></svg>Products &amp; categories</li>
+        <li><svg class="i"><use href="#check"/></svg>Customers &amp; debts</li>
+        <li><svg class="i"><use href="#check"/></svg>Currencies &amp; taxes</li>
+        <li><svg class="i"><use href="#check"/></svg>Cash shifts &amp; reports</li>
+        <li><svg class="i"><use href="#check"/></svg>1 PC · up to 3 users</li>
+      </ul>
+    </div>
+    <div class="plan pro">
+      <div class="tag">Pro</div>
+      <h2>Pro</h2>
+      <div class="for">Everything in Basic, plus</div>
+      <ul>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Stock &amp; inventory</li>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Suppliers &amp; purchases</li>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Full audit log</li>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Full report history</li>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Extra tills</li>
+        <li class="plus"><svg class="i"><use href="#check"/></svg>Unlimited users</li>
+      </ul>
+    </div>
+  </div>
+  <div class="addon" style="position:relative"><svg class="i"><use href="#cloud"/></svg><span><b>Online add-on</b> for either plan: follow your shop from your phone.</span></div>
+  <div class="foot"><span>Ask for a demo</span><span>@coduo.am</span></div>
+</section>
+
+<!-- ========== 4 · OFFLINE (light) ========== -->
+<section class="post light" id="p4">
+  <div class="brand"><svg><use href="#mark-light"/></svg><b>CODUO</b><span>POS</span></div>
+  <div class="bigicon"><svg class="i"><use href="#wifioff"/></svg></div>
+  <div class="status"><span class="dot"></span><b>Internet: offline</b><p>Sale #1042 · $18.75</p><div class="ok"><svg class="i" style="font-size:26px;stroke-width:3"><use href="#check"/></svg>Saved on this PC</div></div>
+  <h1 style="margin-top:56px">No internet?<br><em>Keep selling.</em></h1>
+  <div class="rows">
+    <div class="row"><div class="ic"><svg class="i"><use href="#pc"/></svg></div><div><h3>Runs on your own PC</h3><p>Fast at the counter, no monthly server to wait on</p></div></div>
+    <div class="row"><div class="ic"><svg class="i"><use href="#lock"/></svg></div><div><h3>Your data stays in your shop</h3><p>Sales, customers and prices live on your machine</p></div></div>
+    <div class="row"><div class="ic"><svg class="i"><use href="#shield"/></svg></div><div><h3>Automatic backups</h3><p>Restore everything in a few clicks</p></div></div>
+  </div>
+  <div class="foot"><span>Coduo POS</span><span>@coduo.am</span></div>
+</section>
+
+<!-- ========== 5 · BILINGUAL (dark) ========== -->
+<section class="post dark" id="p5">
+  <div class="glow" style="width:640px;height:640px;background:#1E3A8A;left:-200px;bottom:-200px"></div>
+  <div class="brand" style="position:relative"><svg><use href="#mark-dark"/></svg><b>CODUO</b><span>POS</span></div>
+  <h1 style="position:relative;margin-top:64px;font-size:80px">Speaks your<br>customers&#8217; language.</h1>
+  <div class="h1ar" style="position:relative" dir="rtl">بالعربي والإنجليزي</div>
+  <div class="langs" style="position:relative"><span class="pill">English</span><span class="pill ar">العربية</span><span class="pill">Right-to-left layout</span></div>
+  <div class="duo">
+    <div class="rcpt en">
+      <div class="shop">Your Shop</div>
+      <div class="meta">Receipt #1042 · Cashier: Sara</div>
+      <div class="l"><span>2 × Coffee 250g</span><bdi>$13.00</bdi></div>
+      <div class="l"><span>6 × Water</span><bdi>$4.50</bdi></div>
+      <div class="l"><span>1 × Olive oil 1L</span><bdi>$9.00</bdi></div>
+      <div class="t"><span>Total</span><bdi>$26.50</bdi></div>
+      <div class="thx">Thank you for shopping with us!</div>
+    </div>
+    <div class="rcpt ar">
+      <div class="shop">متجرك</div>
+      <div class="meta">إيصال رقم <bdi>1042</bdi> · الكاشير: سارة</div>
+      <div class="l"><span>٢ × قهوة ٢٥٠غ</span><bdi>$13.00</bdi></div>
+      <div class="l"><span>٦ × مياه</span><bdi>$4.50</bdi></div>
+      <div class="l"><span>١ × زيت زيتون ١ل</span><bdi>$9.00</bdi></div>
+      <div class="t"><span>المجموع</span><bdi>$26.50</bdi></div>
+      <div class="thx">شكراً لزيارتكم!</div>
+    </div>
+  </div>
+  <div class="foot"><span>Coduo POS</span><span>@coduo.am</span></div>
+</section>
+
+<!-- ========== 6 · OWNER APP (light) ========== -->
+<section class="post light" id="p6">
+  <div class="brand"><svg><use href="#mark-light"/></svg><b>CODUO</b><span>POS</span></div>
+  <div class="kicker">Online add-on</div>
+  <h1 style="font-size:88px">Your shop,<br><em>in your pocket.</em></h1>
+  <div class="points">
+    <div><div class="ic"><svg class="i"><use href="#chart"/></svg></div><div><h3>Live sales</h3><p>See today's numbers from anywhere</p></div></div>
+    <div><div class="ic"><svg class="i"><use href="#store"/></svg></div><div><h3>Every branch</h3><p>One app for all your shops</p></div></div>
+    <div><div class="ic"><svg class="i"><use href="#lock"/></svg></div><div><h3>Private by design</h3><p>Your data is sealed. Only you hold the key.</p></div></div>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="hello">Good evening</div>
+    <h5>Your Shop · Today</h5>
+    <div class="kpi">
+      <small>Sales today</small>
+      <strong>$1,284.50</strong>
+      <span class="up">▲ 12% vs last week</span>
+      <div class="bars"><i style="height:45%"></i><i style="height:62%"></i><i style="height:38%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:80%"></i><i class="on" style="height:96%"></i></div>
+    </div>
+    <div class="mini"><div><small>Receipts</small><b>86</b></div><div><small>Avg. basket</small><b>$14.94</b></div></div>
+    <div class="mini"><div><small>Cash in drawer</small><b>$642</b></div><div><small>Debts paid</small><b>$120</b></div></div>
+    <div class="seal"><svg class="i" style="font-size:20px"><use href="#lock"/></svg>End-to-end sealed</div>
+  </div></div>
+  <div class="foot" style="right:auto;flex-direction:column;align-items:flex-start;gap:22px"><span class="pill" style="background:var(--navy);color:#fff">DM us for a demo</span><span>@coduo.am</span></div>
+</section>
+
+</body>
+</html>

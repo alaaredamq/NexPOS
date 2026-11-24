@@ -75,6 +75,13 @@ public class EscPosBuilder : IEscPosBuilder
             : EncodeLinesAsImage(lines);
     }
 
+    /// <summary>The document for a 2-in-1 printer in label mode: the same picture the slip would be, sent as TSPL on continuous paper.</summary>
+    public byte[] BuildLabelModeJob(PrintDocument document)
+    {
+        using var bitmap = RenderBitmap(document.Lines);
+        return TsplLabelBuilder.ContinuousJob(bitmap);
+    }
+
     public byte[] BuildPdf(PrintDocument document, PdfPaper paper = PdfPaper.Receipt)
     {
         var scale = paper == PdfPaper.A4 ? A4Scale : ReceiptPdfScale;
@@ -252,6 +259,12 @@ public class EscPosBuilder : IEscPosBuilder
         Separator();
         if (!string.IsNullOrEmpty(receipt.PaymentMethod?.Name))
             Row("Payment:", receipt.PaymentMethod.Name);
+        // The provider's own number (a Whish transfer) when the cashier typed one. "TXN-..." is the till's internal id, not worth printing.
+        var reference = receipt.ReceiptPayments?
+            .Select(p => p.ReferenceNumber)
+            .FirstOrDefault(r => !string.IsNullOrWhiteSpace(r) && !r.StartsWith("TXN-", StringComparison.Ordinal));
+        if (reference != null)
+            Row("Ref:", reference);
         if (receipt.AmountPaid > 0)
             Row("Paid:", Money(receipt.AmountPaid));
         if (receipt.ChangeAmount > 0)
@@ -486,10 +499,19 @@ public class EscPosBuilder : IEscPosBuilder
     /// </summary>
     private static byte[] EncodeRaster(SKBitmap bitmap)
     {
-        var widthBytes = (bitmap.Width + 7) / 8;
-
-        var result = new List<byte>(widthBytes * bitmap.Height + 64);
+        var result = new List<byte>();
         result.AddRange(new byte[] { 0x1B, 0x40 }); // Initialize printer
+        result.AddRange(RasterBands(bitmap));
+        result.AddRange(new byte[] { 0x1B, (byte)'d', FeedLinesBeforeCut }); // Feed past the cutter
+        result.AddRange(new byte[] { 0x1D, (byte)'V', 0x01 }); // Cut paper
+        return result.ToArray();
+    }
+
+    /// <summary>The picture as <c>GS v 0</c> raster bands, nothing before or after (no initialise, no cut).</summary>
+    internal static byte[] RasterBands(SKBitmap bitmap)
+    {
+        var widthBytes = (bitmap.Width + 7) / 8;
+        var result = new List<byte>(widthBytes * bitmap.Height + 64);
 
         for (var top = 0; top < bitmap.Height; top += RasterBandRows)
         {
@@ -517,9 +539,6 @@ public class EscPosBuilder : IEscPosBuilder
             });
             result.AddRange(data);
         }
-
-        result.AddRange(new byte[] { 0x1B, (byte)'d', FeedLinesBeforeCut }); // Feed past the cutter
-        result.AddRange(new byte[] { 0x1D, (byte)'V', 0x01 }); // Cut paper
 
         return result.ToArray();
     }

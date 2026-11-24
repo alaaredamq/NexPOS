@@ -1,3 +1,4 @@
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Localization;
@@ -58,6 +59,8 @@ public class DashboardController : BaseController
         return View();
     }
 
+    // The old dashboard's chart and lists have no plan limit; the React dashboard uses api/v1/dashboard.
+    [RequirePlan(ProFeature.Reports)]
     [HttpGet]
     public async Task<IActionResult> GetSalesAnalytics(string period = "month")
     {
@@ -75,6 +78,8 @@ public class DashboardController : BaseController
         }
     }
 
+    // The old dashboard's chart and lists have no plan limit; the React dashboard uses api/v1/dashboard.
+    [RequirePlan(ProFeature.Reports)]
     [HttpGet]
     public async Task<IActionResult> GetCategoryAnalytics()
     {
@@ -92,6 +97,8 @@ public class DashboardController : BaseController
         }
     }
 
+    // The old dashboard's chart and lists have no plan limit; the React dashboard uses api/v1/dashboard.
+    [RequirePlan(ProFeature.Reports)]
     [HttpGet]
     public async Task<IActionResult> GetTopProducts(int limit = 10)
     {
@@ -106,6 +113,8 @@ public class DashboardController : BaseController
         }
     }
 
+    // The old dashboard's chart and lists have no plan limit; the React dashboard uses api/v1/dashboard.
+    [RequirePlan(ProFeature.Reports)]
     [HttpGet]
     public async Task<IActionResult> GetTopCustomers(int limit = 10)
     {

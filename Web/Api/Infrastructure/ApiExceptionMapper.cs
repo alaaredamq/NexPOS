@@ -14,6 +14,8 @@ public static class ApiExceptionMapper
     public static Mapped Map(Exception exception, bool includeDetail) => exception switch
     {
         LicenseRequiredException => new(StatusCodes.Status403Forbidden, ApiCodes.LicenseSalesStopped, null, false),
+        // The title (Plan_UserLimit) already says what happened and what to do; the limit itself is in the session.
+        PlanLimitException => new(StatusCodes.Status409Conflict, ApiCodes.PlanUserLimit, null, false),
         BadHttpRequestException bad => new(bad.StatusCode, ApiCodes.ForStatus(bad.StatusCode), includeDetail ? bad.Message : null, false),
         _ => new(StatusCodes.Status500InternalServerError, ApiCodes.InternalError, includeDetail ? exception.Message : null, true),
     };

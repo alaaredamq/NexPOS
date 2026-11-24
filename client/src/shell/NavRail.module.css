@@ -203,6 +203,30 @@
   transition: opacity 0.12s ease;
 }
 
+/* A Pro page on a Basic plan: a small lock at the end of the row, shown with the label. */
+.lock {
+  margin-inline-start: auto;
+  padding-inline-end: 14px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.rail[data-open='true'] .lock {
+  opacity: 0.6;
+  transition-delay: 0.1s;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* Held back until the rail has most of its width, so labels arrive into space that already exists
    instead of being wiped in by the overflow edge. Collapsing drops them immediately (no delay), so
    they are gone before the rail narrows over them. */

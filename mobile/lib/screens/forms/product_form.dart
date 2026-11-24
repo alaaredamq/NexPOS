@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../api/owner_api.dart';
+import '../../data/shop_data.dart';
 import '../../l10n.dart';
 import '../../theme.dart';
 import 'form_support.dart';
@@ -38,12 +40,20 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
   int? _categoryId;
   int? _supplierId;
 
+  /// The Basic plan has no suppliers: the form leaves the supplier out and files the product under the shop's
+  /// default supplier (every shop has one, id 1, because a product must have a supplier).
+  late final bool _basic;
+
   @override
   void initState() {
     super.initState();
+    _basic = context.read<ShopData>().isBasic;
     final l = widget.lookups;
     if (l.categories.length == 1) _categoryId = l.categories.first.id;
     if (l.suppliers.length == 1) _supplierId = l.suppliers.first.id;
+    if (_basic && l.suppliers.isNotEmpty) {
+      _supplierId = l.suppliers.firstWhere((s) => s.id == 1, orElse: () => l.suppliers.first).id;
+    }
     _price.addListener(() => setState(() {}));
     _cost.addListener(() => setState(() {}));
   }
@@ -131,7 +141,8 @@ class _ProductFormState extends State<_ProductForm> with SubmitsChange<_ProductF
                 validator: (v) => v == null ? context.tr('Choose one.', 'اختر واحدًا.') : null,
               ),
             ),
-            const SizedBox(width: 12),
+            if (!_basic) const SizedBox(width: 12),
+            if (!_basic)
             Expanded(
               child: DropdownButtonFormField<int>(
                 initialValue: _supplierId,

@@ -21,6 +21,7 @@ public class SaleReversalService : ISaleReversalService
     private readonly ICacheService _cache;
     private readonly IAuditTrail _auditTrail;
     private readonly ILogger<SaleReversalService> _logger;
+    private readonly IWalletService? _wallets;
 
     public SaleReversalService(
         ErpDbContext dbContext,
@@ -29,7 +30,8 @@ public class SaleReversalService : ISaleReversalService
         ICustomerDebtService customerDebtService,
         ICacheService cache,
         IAuditTrail auditTrail,
-        ILogger<SaleReversalService> logger)
+        ILogger<SaleReversalService> logger,
+        IWalletService? wallets = null)
     {
         _dbContext = dbContext;
         _productRepository = productRepository;
@@ -38,6 +40,7 @@ public class SaleReversalService : ISaleReversalService
         _cache = cache;
         _auditTrail = auditTrail;
         _logger = logger;
+        _wallets = wallets;
     }
 
     public async Task<SaleReversalResult> VoidReceiptAsync(int receiptId, int userId, string? reason)
@@ -131,6 +134,10 @@ public class SaleReversalService : ISaleReversalService
 
                 debtReversed = await _customerDebtService.ReverseSaleAsync(
                     order.Id, userId, $"Reversal of {orderNumber}: {reason}");
+
+                // A Whish (wallet) sale gives its money back out of the wallet, in the same transaction.
+                if (_wallets != null)
+                    await _wallets.ReverseSaleAsync(order.Id, userId, $"Reversal of {orderNumber}: {reason}");
 
                 // The open drawer's expected cash is computed from the orders that count as sales,
                 // so this status change is what takes the money out of it.

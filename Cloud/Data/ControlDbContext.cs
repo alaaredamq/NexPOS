@@ -26,6 +26,15 @@ public class ControlDbContext : DbContext
     public DbSet<OwnerUser> OwnerUsers => Set<OwnerUser>();
     public DbSet<OwnerSession> OwnerSessions => Set<OwnerSession>();
     public DbSet<SiteCommand> SiteCommands => Set<SiteCommand>();
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<MenuSection> MenuSections => Set<MenuSection>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<MenuBranch> MenuBranches => Set<MenuBranch>();
+    public DbSet<MenuItemBranch> MenuItemBranches => Set<MenuItemBranch>();
+    public DbSet<MenuOrderType> MenuOrderTypes => Set<MenuOrderType>();
+    public DbSet<MenuItemTypePrice> MenuItemTypePrices => Set<MenuItemTypePrice>();
+    public DbSet<MenuOrder> MenuOrders => Set<MenuOrder>();
+    public DbSet<MenuOrderLine> MenuOrderLines => Set<MenuOrderLine>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -48,6 +57,8 @@ public class ControlDbContext : DbContext
         {
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.ShopPlan).HasMaxLength(8);
+            e.Property(x => x.ShopLicenseKind).HasMaxLength(12);
             e.HasMany(x => x.Tokens).WithOne(x => x.Site).HasForeignKey(x => x.SiteId);
         });
 
@@ -93,6 +104,133 @@ public class ControlDbContext : DbContext
             e.HasIndex(x => new { x.SiteId, x.IdempotencyKey }).IsUnique();
             e.HasIndex(x => new { x.SiteId, x.Status, x.CreatedAt });
             e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId);
+        });
+
+        b.Entity<Menu>(e =>
+        {
+            e.HasIndex(x => x.ClientId).IsUnique();
+            e.HasIndex(x => x.Slug).IsUnique();
+            e.Property(x => x.Slug).HasMaxLength(60);
+            e.Property(x => x.Title).HasMaxLength(120);
+            e.Property(x => x.Tagline).HasMaxLength(200);
+            e.Property(x => x.Note).HasMaxLength(1000);
+            e.Property(x => x.Language).HasMaxLength(2);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.LogoFile).HasMaxLength(60);
+            e.Property(x => x.CoverFile).HasMaxLength(60);
+            e.Property(x => x.Theme).HasMaxLength(12).HasDefaultValue(MenuThemes.Default);
+            e.Property(x => x.Address).HasMaxLength(300);
+            e.Property(x => x.MapUrl).HasMaxLength(500);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.WhatsApp).HasMaxLength(30);
+            e.Property(x => x.Instagram).HasMaxLength(200);
+            e.Property(x => x.Facebook).HasMaxLength(200);
+            e.Property(x => x.TikTok).HasMaxLength(200);
+            e.Property(x => x.Website).HasMaxLength(200);
+            e.Property(x => x.Hours).HasMaxLength(400);
+            e.Property(x => x.Clock).HasMaxLength(4).HasDefaultValue(MenuClocks.Default);
+            e.Property(x => x.OrderMode).HasMaxLength(10).HasDefaultValue(MenuOrderModes.Default);
+            // Sentinel true: EF leaves "true" to the column default and always writes "false" (a default of true otherwise eats false).
+            e.Property(x => x.ShowWhatsApp).HasDefaultValue(true).HasSentinel(true);
+            e.Property(x => x.PreviewKey).HasMaxLength(32);
+            // Menus made before the choice existed get the default.
+            e.Property(x => x.ListingStyle).HasMaxLength(12).HasDefaultValue(MenuListingStyles.Default);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Sections).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Items).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Branches).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.OrderTypes).WithOne(x => x.Menu).HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuBranch>(e =>
+        {
+            // A branch fills one menu (a client has one), and each branch's address word is its own within the menu.
+            e.HasIndex(x => x.SiteId).IsUnique();
+            e.HasIndex(x => new { x.MenuId, x.Slug }).IsUnique();
+            e.Property(x => x.Slug).HasMaxLength(40);
+            e.Property(x => x.CatalogHash).HasMaxLength(64);
+            e.Property(x => x.Address).HasMaxLength(300);
+            e.Property(x => x.MapUrl).HasMaxLength(500);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.Hours).HasMaxLength(400);
+            // Restrict: a branch is removed through SiteRemoval, which takes it off the menu first.
+            e.HasOne(x => x.Site).WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<MenuItemBranch>(e =>
+        {
+            e.HasIndex(x => new { x.MenuItemId, x.SiteId }).IsUnique();
+            e.HasIndex(x => new { x.SiteId, x.PosProductId });
+            e.Property(x => x.Price).HasPrecision(18, 4);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.HasOne(x => x.MenuItem).WithMany(x => x.Branches).HasForeignKey(x => x.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuOrderType>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(60);
+            e.Property(x => x.Adjust).HasMaxLength(10).HasDefaultValue(MenuPriceAdjust.None);
+            e.Property(x => x.AdjustValue).HasPrecision(18, 4);
+            e.HasIndex(x => new { x.MenuId, x.SortOrder });
+        });
+
+        b.Entity<MenuOrder>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.MenuId, x.Number }).IsUnique();
+            e.HasIndex(x => x.Token).IsUnique();
+            e.HasIndex(x => new { x.MenuId, x.Status, x.CreatedAt });
+            e.HasIndex(x => new { x.SiteId, x.Status });
+            e.Property(x => x.Token).HasMaxLength(32);
+            e.Property(x => x.Route).HasMaxLength(10);
+            e.Property(x => x.BranchName).HasMaxLength(200);
+            e.Property(x => x.OrderType).HasMaxLength(60);
+            e.Property(x => x.GuestName).HasMaxLength(80);
+            e.Property(x => x.Phone).HasMaxLength(30);
+            e.Property(x => x.Place).HasMaxLength(300);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.Property(x => x.Status).HasMaxLength(10);
+            e.HasOne(x => x.Menu).WithMany().HasForeignKey(x => x.MenuId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuOrderLine>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            e.HasOne(x => x.Order).WithMany(x => x.Lines).HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MenuItemTypePrice>(e =>
+        {
+            e.HasIndex(x => new { x.MenuItemId, x.OrderTypeId }).IsUnique();
+            e.Property(x => x.Price).HasPrecision(18, 4);
+            e.HasOne(x => x.MenuItem).WithMany(x => x.TypePrices).HasForeignKey(x => x.MenuItemId).OnDelete(DeleteBehavior.Cascade);
+            // No cascade: a menu already reaches these through its items, and SQL Server refuses two cascade paths. Deleting a type
+            // removes its prices first (MenuEndpoints.DeleteOrderType).
+            e.HasOne(x => x.OrderType).WithMany().HasForeignKey(x => x.OrderTypeId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        b.Entity<MenuSection>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.PosKey).HasMaxLength(20);
+            e.Property(x => x.Description).HasMaxLength(200);
+            e.Property(x => x.ImageFile).HasMaxLength(60);
+            e.Property(x => x.PictureAs).HasMaxLength(8).HasDefaultValue(MenuSectionPicture.Banner);
+            e.HasIndex(x => new { x.MenuId, x.SortOrder });
+        });
+
+        b.Entity<MenuItem>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Description).HasMaxLength(500);
+            e.Property(x => x.PosDescription).HasMaxLength(500);
+            e.Property(x => x.Currency).HasMaxLength(10);
+            e.Property(x => x.ImageFile).HasMaxLength(60);
+            e.Property(x => x.Price).HasPrecision(18, 4);
+            e.HasIndex(x => new { x.MenuId, x.SortOrder });
         });
     }
 }

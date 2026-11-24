@@ -38,6 +38,11 @@ public static class AuditActions
     public const string StockAdjusted = "StockAdjusted";
     public const string PurchaseReceived = "PurchaseReceived";
     public const string PurchaseCancelled = "PurchaseCancelled";
+    public const string WalletCreated = "WalletCreated";
+    public const string WalletMovement = "WalletMovement";
+    public const string WalletChecked = "WalletChecked";
+    public const string WalletPaymentRequested = "WalletPaymentRequested";
+    public const string WalletPaymentPaid = "WalletPaymentPaid";
     public const string Print = "Print";
     public const string PrintFailed = "PrintFailed";
     public const string PdfGenerated = "PdfGenerated";

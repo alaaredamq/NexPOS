@@ -28,5 +28,10 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],
     css: false,
+    // Node 25+ ships its own global localStorage, which is undefined without --localstorage-file and hides jsdom's
+    // working one, so every test touching storage crashed in beforeEach. Turn Node's off in the test workers.
+    execArgv: ['--no-experimental-webstorage'],
+    // Room for findBy*'s 5 s (see test-setup.ts) inside a test that also loads its page chunk.
+    testTimeout: 15000,
   },
 })

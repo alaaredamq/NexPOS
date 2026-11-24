@@ -120,7 +120,7 @@ void main() {
         ..permissions = manager
         ..role = 'manager';
 
-      await tester.enterText(find.widgetWithText(TextFormField, 'Email'), 'sam@shop.test');
+      await tester.enterText(find.widgetWithText(TextFormField, 'Email, phone or username'), 'sam@shop.test');
       await tester.enterText(find.widgetWithText(TextFormField, 'Password'), 'secret');
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
       await tester.pumpAndSettle();
@@ -212,6 +212,50 @@ void main() {
       expect(Perm.mayRead(manager, 'CustomerDebtTransactions'), isTrue);
       expect(Perm.mayRead(manager, 'CashDrop'), isFalse);
       expect(Perm.mayRead(manager, 'SomethingNew'), isFalse);
+    });
+  });
+
+  group('Basic plan', () {
+    void basicShop(ShopData shop) {
+      seedShop(shop);
+      shop.seedPlan('Basic');
+    }
+
+    testWidgets('a Basic shop keeps its stock (figures and Adjust stock) but gets nothing about suppliers', (tester) async {
+      await startApp(tester, seed: basicShop);
+
+      expect(tab('Stock'), findsOneWidget);
+      expect(tab('Products'), findsNothing);
+
+      await tester.tap(tab('Stock'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Needs restocking'), findsOneWidget);
+      await tester.tap(find.textContaining('All products'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fresh milk 1L'));
+      await tester.pumpAndSettle();
+      expect(find.text('Adjust stock'), findsOneWidget);
+      expect(find.text('In stock'), findsWidgets);
+      expect(find.widgetWithText(OutlinedButton, 'Edit'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(tab('Debts'));
+      await tester.pumpAndSettle();
+      expect(find.text('The shop owes suppliers'), findsNothing);
+
+      await openManage(tester);
+      expect(find.text('Add a supplier'), findsNothing);
+      expect(find.text('Add a product'), findsOneWidget);
+      expect(find.text('Name, barcode, prices and stock'), findsOneWidget);
+    });
+
+    testWidgets('a Pro shop (or one that has not reported a plan) keeps everything', (tester) async {
+      await startApp(tester, seed: seedShop);
+
+      expect(tab('Stock'), findsOneWidget);
+      await openManage(tester);
+      expect(find.text('Add a supplier'), findsOneWidget);
     });
   });
 

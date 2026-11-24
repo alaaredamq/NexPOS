@@ -76,7 +76,13 @@ namespace Application.Services.Licensing
 
             if (!_options.EnforcementEnabled)
             {
-                return Build(LicenseStatus.Active, loaded.Payload) with { EnforcementDisabled = true };
+                var plan = loaded.Payload?.Plan ?? LicensePlan.Pro;
+                return Build(LicenseStatus.Active, loaded.Payload) with
+                {
+                    EnforcementDisabled = true,
+                    Plan = plan,
+                    Seats = PlanRules.EffectiveSeats(plan, loaded.Payload?.Seats ?? 1)
+                };
             }
 
             if (loaded.Problem is { } problem)
@@ -167,8 +173,8 @@ namespace Application.Services.Licensing
                 }
 
                 Volatile.Write(ref _loaded, new Loaded(payload, null));
-                _logger.LogInformation("License activated: {Kind} for {Customer}, serial {Serial}, valid until {ValidUntil}",
-                    payload.Kind, payload.Customer, payload.SerialText, payload.ValidUntil);
+                _logger.LogInformation("License activated: {Kind} {Plan} for {Customer}, serial {Serial}, valid until {ValidUntil}",
+                    payload.Kind, payload.Plan, payload.Customer, payload.SerialText, payload.ValidUntil);
 
                 return new LicenseActivationResult(true, LicenseActivationError.None, GetState());
             }
@@ -237,7 +243,8 @@ namespace Application.Services.Licensing
             Customer = payload?.Customer,
             Kind = payload?.Kind,
             Serial = payload?.SerialText,
-            Seats = payload?.Seats ?? 1,
+            Seats = PlanRules.EffectiveSeats(payload?.Plan ?? LicensePlan.Basic, payload?.Seats ?? 1),
+            Plan = payload?.Plan ?? LicensePlan.Basic,
             IssuedOn = payload?.IssuedOn,
             ValidUntil = payload?.ValidUntil
         };

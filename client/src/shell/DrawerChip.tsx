@@ -6,7 +6,7 @@ import { flattenNav } from './nav'
 import styles from './TopBar.module.css'
 
 /**
- * Whether the user's cash drawer is open, with the opening cash. `session.drawer` is null for people who cannot use a drawer,
+ * Whether the user's cash drawer is open, with the cash it holds now. `session.drawer` is null for people who cannot use a drawer,
  * so the chip simply is not there for them (telling them it is closed would be noise). Kept fresh by the 60 s session refresh
  * and the refetch on window focus; S2 swaps in a dedicated endpoint with the same shape.
  */
@@ -16,8 +16,10 @@ export function DrawerChip() {
   if (!drawer) return null
 
   const page = flattenNav(nav).find((item) => item.key === 'CashDrawer')
-  const label = drawer.isOpen ? t('DrawerOpenWithAmount', { 0: formatMoney(drawer.openingCash, '$') }) : t('DrawerNotOpened')
-  const props = { className: styles.tillChip, 'data-open': drawer.isOpen, title: label }
+  // The chip shows what is in the drawer now; the opening float stays one hover away.
+  const label = drawer.isOpen ? t('DrawerOpenWithAmount', { 0: formatMoney(drawer.cashInDrawer, '$') }) : t('DrawerNotOpened')
+  const title = drawer.isOpen ? `${label} · ${t('DrawerStartedWith', { 0: formatMoney(drawer.openingCash, '$') })}` : label
+  const props = { className: styles.tillChip, 'data-open': drawer.isOpen, title }
   const content = (
     <>
       <span className={styles.tillDot} aria-hidden="true" />

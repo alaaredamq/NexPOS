@@ -111,6 +111,8 @@ export default function LicensePage() {
             </dd>
             <dt>{t('License_Type')}</dt>
             <dd>{t(`License_Kind_${info.kind}`)}</dd>
+            <dt>{t('Plan_Label')}</dt>
+            <dd>{info.plan === 'Pro' ? t('Plan_Pro') : t('Plan_Basic')}</dd>
             <dt>{t('License_Seats')}</dt>
             <dd>{info.seats}</dd>
             <dt>{t('License_Serial')}</dt>

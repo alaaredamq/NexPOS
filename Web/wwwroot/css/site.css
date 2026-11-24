@@ -291,6 +291,14 @@ body.no-sidebar main {
     font-size: 16px;
 }
 
+/* A Pro page on a Basic plan: still listed, with a lock (it opens the upgrade screen). */
+.sidebar .nav-link .nav-lock {
+    flex: none;
+    width: auto;
+    font-size: 11px;
+    opacity: 0.6;
+}
+
 .sidebar .nav-text {
     flex: 1;
     min-width: 0;
@@ -789,8 +797,13 @@ main.app-main {
    ===================================================== */
 
 .erp-alert {
+    --alert-stripe: transparent;
     border: none;
+    border-inline-start: 4px solid var(--alert-stripe);
+    /* The colour stripe runs the full height, so the stripe side has square corners: a stripe never bends round a curve. */
     border-radius: var(--radius-control);
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
     padding: 14px 16px;
     margin-bottom: 20px;
 }
@@ -798,25 +811,25 @@ main.app-main {
 .erp-alert-success {
     background-color: var(--color-success-bg);
     color: var(--color-success);
-    border-inline-start: 4px solid var(--color-success);
+    --alert-stripe: var(--color-success);
 }
 
 .erp-alert-danger {
     background-color: var(--color-danger-bg);
     color: var(--color-danger);
-    border-inline-start: 4px solid var(--color-danger);
+    --alert-stripe: var(--color-danger);
 }
 
 .erp-alert-warning {
     background-color: var(--color-warning-bg);
     color: var(--color-warning);
-    border-inline-start: 4px solid var(--color-warning);
+    --alert-stripe: var(--color-warning);
 }
 
 .erp-alert-info {
     background-color: var(--color-info-bg);
     color: var(--color-info);
-    border-inline-start: 4px solid var(--color-info);
+    --alert-stripe: var(--color-info);
 }
 
 /* =====================================================
@@ -1328,7 +1341,7 @@ main.app-main {
 .btn-teal:hover {
     background: var(--color-primary-hover);
     color: white;
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.3);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
 }
 
 .btn-outline-teal {
@@ -1350,7 +1363,7 @@ main.app-main {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
 }
 
 /* POS Header */
@@ -1461,7 +1474,7 @@ main.app-main {
 
 .pos-card-header {
     background: var(--teal-lighter);
-    border-bottom: 1px solid rgba(10, 123, 133, 0.2);
+    border-bottom: 1px solid rgba(30, 58, 138, 0.2);
     border-radius: var(--radius-card) var(--radius-card) 0 0;
     padding: 20px 24px;
 }
@@ -1493,7 +1506,7 @@ main.app-main {
 
 .barcode-section .form-control:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
 }
 
 /* Product Search */
@@ -1511,7 +1524,7 @@ main.app-main {
 
 .product-search .form-control:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
 }
 
 /* Quick Products */
@@ -1533,7 +1546,7 @@ main.app-main {
 
 .product-quick-item:hover {
     border-color: var(--teal-primary);
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.15);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .product-quick-item .product-image {
@@ -1605,13 +1618,13 @@ main.app-main {
     color: inherit;
     text-decoration: none;
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.15);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .management-action-btn.hovered {
     border-color: var(--teal-primary);
     transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(10, 123, 133, 0.15);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .management-action-btn .action-icon {
@@ -1882,7 +1895,7 @@ main.app-main {
 .dataTables_wrapper .dataTables_length select:focus {
     border-color: var(--teal-primary);
     outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.15);
 }
 
 .dataTables_wrapper .dataTables_filter input {
@@ -1898,7 +1911,7 @@ main.app-main {
 
 .dataTables_wrapper .dataTables_filter input:focus {
     border-color: var(--teal-primary);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
     outline: none;
 }
 
@@ -2140,7 +2153,7 @@ table.dataTable .btn-outline-danger:hover {
     background-color: var(--teal-primary);
     border-color: var(--teal-primary);
     color: white;
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
 }
 
 .btn-outline-danger {
@@ -2788,7 +2801,7 @@ table.dataTable .btn-outline-danger:hover {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid rgba(10, 123, 133, 0.3);
+    border: 3px solid rgba(30, 58, 138, 0.3);
     border-radius: 50%;
     border-top-color: var(--primary-color);
     animation: spin 1s ease-in-out infinite;
@@ -2826,8 +2839,8 @@ table.dataTable .btn-outline-danger:hover {
 
 .select2-container--default .select2-selection--single:focus,
 .select2-container--default.select2-container--open .select2-selection--single {
-    border-color: var(--teal-primary, #0a7b85);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    border-color: var(--teal-primary, #1e3a8a);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
     outline: 0;
 }
 
@@ -2890,8 +2903,8 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 .select2-container--default .select2-search--dropdown .select2-search__field:focus {
-    border-color: var(--teal-primary, #0a7b85);
-    box-shadow: 0 0 0 0.2rem rgba(10, 123, 133, 0.25);
+    border-color: var(--teal-primary, #1e3a8a);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
     outline: 0;
 }
 
@@ -2902,17 +2915,17 @@ table.dataTable .btn-outline-danger:hover {
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: var(--teal-primary, #0a7b85);
+    background-color: var(--teal-primary, #1e3a8a);
     color: #fff;
 }
 
 .select2-container--default .select2-results__option[aria-selected=true] {
-    background-color: rgba(10, 123, 133, 0.1);
-    color: var(--teal-primary, #0a7b85);
+    background-color: rgba(30, 58, 138, 0.1);
+    color: var(--teal-primary, #1e3a8a);
 }
 
 .select2-container--default .select2-results__option[aria-selected=true]:hover {
-    background-color: var(--teal-primary, #0a7b85);
+    background-color: var(--teal-primary, #1e3a8a);
     color: #fff;
 }
 
@@ -3438,4 +3451,42 @@ body.cmdk-open { overflow: hidden; }
     padding: var(--space-6) var(--space-4);
     text-align: center;
     color: var(--color-muted);
+}
+
+/* =====================================================
+   Scrollbars: a slim rounded thumb on a clear track, no arrow buttons.
+   Chromium uses the ::-webkit-scrollbar rules; Firefox gets the standard properties.
+   ===================================================== */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: rgba(92, 100, 114, .38) padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(92, 100, 114, .6) padding-box;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(92, 100, 114, .38) transparent;
+    }
 }

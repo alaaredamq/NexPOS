@@ -58,12 +58,16 @@ public sealed class CashDrawerApiService : ICashDrawerApiService
     {
         var open = await _drawer.GetOpenSessionByUserIdAsync(userId);
         if (open is null)
-            return new CurrentDrawerDto { Status = new DrawerStatusDto { IsOpen = false, OpeningCash = 0m } };
+            return new CurrentDrawerDto { Status = new DrawerStatusDto { IsOpen = false, OpeningCash = 0m, CashInDrawer = 0m } };
 
+        var summary = await _drawer.GetSessionSummaryAsync(open.Id);
         return new CurrentDrawerDto
         {
-            Status = new DrawerStatusDto { IsOpen = true, SessionId = open.Id, OpeningCash = open.OpeningCash, OpenedAt = open.OpenedAt },
-            Session = ToDto(open, await _drawer.GetSessionSummaryAsync(open.Id)),
+            Status = new DrawerStatusDto
+            {
+                IsOpen = true, SessionId = open.Id, OpeningCash = open.OpeningCash, CashInDrawer = summary.ExpectedCash, OpenedAt = open.OpenedAt,
+            },
+            Session = ToDto(open, summary),
         };
     }
 

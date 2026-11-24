@@ -1,3 +1,4 @@
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Swashbuckle.AspNetCore.Annotations;
@@ -12,6 +13,7 @@ namespace Web.Api.Inventory;
 /// <remarks>Port of the old <c>InventoryController</c>: the whole controller needed Inventory.View, adjusting needed Inventory.Edit.</remarks>
 [Route("api/v1/inventory")]
 [SwaggerTag("Inventory")]
+[RequirePlan(ProFeature.Inventory)]
 public sealed class InventoryController : ApiControllerBase
 {
     private readonly IInventoryApiService _inventory;

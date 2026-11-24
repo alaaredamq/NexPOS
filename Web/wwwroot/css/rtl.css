@@ -165,26 +165,6 @@ html[dir="rtl"] .erp-alert.alert-dismissible .btn-close {
     right: auto;
 }
 
-html[dir="rtl"] .erp-alert-success {
-    border-left: none;
-    border-right: 4px solid var(--success-color);
-}
-
-html[dir="rtl"] .erp-alert-danger {
-    border-left: none;
-    border-right: 4px solid var(--danger-color);
-}
-
-html[dir="rtl"] .erp-alert-warning {
-    border-left: none;
-    border-right: 4px solid var(--warning-color);
-}
-
-html[dir="rtl"] .erp-alert-info {
-    border-left: none;
-    border-right: 4px solid var(--info-color);
-}
-
 /* =====================================================
    Forms RTL
    ===================================================== */

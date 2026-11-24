@@ -16,7 +16,7 @@ public static class TestContentSeeder
 
     private const string PieceEn = "Piece Items", VolumeEn = "Liquids (Volume)", MassEn = "Loose Goods (Mass)";
     private const string PieceAr = "منتجات بالقطعة", VolumeAr = "سوائل (بالحجم)", MassAr = "بضائع سائبة (بالوزن)";
-    private const string SupplierEn = "Test Supplier Co.", SupplierAr = "شركة النور للتوريد";
+    private const string SupplierEn = "Test Supplier Co.", SupplierAr = "شركة كوديو للتوريد";
 
     private sealed record Seed(string Name, string Category, string Supplier, decimal Cost, decimal Price,
         decimal Stock, decimal MinStock, string Unit);

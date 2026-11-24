@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSession } from '@/core/auth/useSession'
 import { NavIcon } from './NavIcon'
-import { MENU_ICON, navIconPath } from './navIcons'
+import { LOCK_ICON, MENU_ICON, navIconPath } from './navIcons'
 import { flattenNav, isActivePath } from './nav'
 import { useShellStore } from './shellStore'
 import { DRAWER_QUERY, useMediaQuery } from './useMediaQuery'
@@ -11,6 +11,7 @@ import styles from './NavRail.module.css'
 /**
  * The rail, built from `session.nav`: already filtered to what the user may open, grouped, labelled in their language.
  * Migrated pages are router links; the rest are plain anchors to the Razor page (full navigation, same cookie).
+ * A page the shop's plan does not include (`locked`) keeps its place with a lock; its route shows the upgrade screen.
  */
 export function NavRail() {
   const { t } = useTranslation()
@@ -57,6 +58,12 @@ export function NavRail() {
                     <NavIcon d={navIconPath(item.icon)} />
                   </span>
                   <span className={styles.label}>{item.label}</span>
+                  {item.locked && (
+                    <span className={styles.lock} title={t('Plan_ProOnly')}>
+                      <NavIcon d={LOCK_ICON} size={14} />
+                      <span className={styles.srOnly}>{t('Plan_ProOnly')}</span>
+                    </span>
+                  )}
                 </>
               )
               return item.migrated ? (

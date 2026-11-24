@@ -50,9 +50,10 @@ public class SyncApiTests : IClassFixture<CloudFactory>
         var noRedirect = _cloud.CreateClient(new() { AllowAutoRedirect = false });
         noRedirect.DefaultRequestHeaders.Authorization = new("Bearer", site.Token);
 
-        var portal = await noRedirect.GetAsync("/");
+        // A device token must not open any portal page.
+        var portal = await noRedirect.GetAsync("/admin/Clients/Create");
         Assert.Equal(HttpStatusCode.Redirect, portal.StatusCode);
-        Assert.Contains("/Account/Login", portal.Headers.Location!.ToString());
+        Assert.Contains("/admin/Account/Login", portal.Headers.Location!.ToString());
     }
 
     [Fact]

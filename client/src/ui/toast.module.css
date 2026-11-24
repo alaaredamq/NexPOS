@@ -17,14 +17,26 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  padding-inline-start: var(--space-4);
+  padding-inline-start: calc(var(--space-4) + 4px);
+  position: relative;
+  overflow: hidden;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-inline-start: 4px solid var(--tone);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
   pointer-events: auto;
   animation: toast-in 0.18s ease-out;
+}
+
+/* The colour stripe sits inside the card's border (not as the border itself), so the grey outline wraps round it
+   and the card's rounded corners clip it, rather than it hanging off the outside edge. */
+.toast::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 4px;
+  background: var(--tone);
 }
 
 .toast[data-tone='success'] { --tone: var(--color-success); --tone-bg: var(--color-success-bg); }
@@ -51,6 +63,29 @@
   line-height: 1.4;
   color: var(--color-ink);
   overflow-wrap: anywhere;
+}
+
+/* A clickable message ("New online order" → the orders): a plain-looking button that says it can be pressed. */
+.action {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--tone) 50%, transparent);
+  text-underline-offset: 3px;
+}
+
+.action:hover {
+  color: var(--tone);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--tone);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 @keyframes toast-in {

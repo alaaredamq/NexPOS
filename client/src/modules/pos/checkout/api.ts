@@ -57,6 +57,31 @@ export function useRecentSales(enabled = true) {
   })
 }
 
+export type WhishRequest = Schemas['WalletPaymentRequestDto']
+
+/** How often the dialog asks for news while the customer is paying (the server asks Whish at most every 2 s). */
+export const WHISH_POLL_MS = 3000
+
+/** Sends the customer a Whish payment request for the sale's total. Retry with the same key after a lost answer. */
+export function createWhishRequest(input: { walletId: number; amount: number; currencyId: number; idempotencyKey: string }): Promise<WhishRequest> {
+  return http.post<WhishRequest>('/pos/whish/requests', input)
+}
+
+export function cancelWhishRequest(id: number): Promise<WhishRequest> {
+  return http.post<WhishRequest>(`/pos/whish/requests/${id}/cancel`)
+}
+
+/** The request, refreshed every few seconds until Whish answers (paid or failed). */
+export function useWhishRequest(id: number | null) {
+  return useQuery({
+    queryKey: ['pos', 'whishRequest', id],
+    enabled: id !== null,
+    queryFn: ({ signal }) => http.get<WhishRequest>(`/pos/whish/requests/${id}`, { signal }),
+    refetchInterval: (query) => (query.state.data?.status === 'Pending' ? WHISH_POLL_MS : false),
+    gcTime: 0,
+  })
+}
+
 /** Everything a finished sale changes on screen: stock on the tiles, the drawer chip, the customer's balance, the sales lists. */
 export function useAfterSale() {
   const client = useQueryClient()
@@ -69,6 +94,7 @@ export function useAfterSale() {
     void client.invalidateQueries({ queryKey: ['receipts'] })
     void client.invalidateQueries({ queryKey: ['products'] })
     void client.invalidateQueries({ queryKey: ['cash-drawer'] })
+    void client.invalidateQueries({ queryKey: ['wallets'] })
     void refreshSession()
   }
 }

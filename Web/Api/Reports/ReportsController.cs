@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using Application.IServices.Licensing;
+using Common.Licensing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Swashbuckle.AspNetCore.Annotations;
@@ -23,11 +25,13 @@ public sealed class ReportsController : ApiControllerBase
 
     private readonly IReportsApiService _reports;
     private readonly IStringLocalizer<SharedResource> _text;
+    private readonly ILicenseService _license;
 
-    public ReportsController(IReportsApiService reports, IStringLocalizer<SharedResource> text)
+    public ReportsController(IReportsApiService reports, IStringLocalizer<SharedResource> text, ILicenseService license)
     {
         _reports = reports;
         _text = text;
+        _license = license;
     }
 
     /// <summary>Sales and orders of today, this month and this year, and the month's average order.</summary>
@@ -37,7 +41,8 @@ public sealed class ReportsController : ApiControllerBase
     [SwaggerOperation(OperationId = "getReportsSummary")]
     public async Task<ReportsSummaryDto> Summary() => await _reports.SummaryAsync();
 
-    /// <summary>The sales report for the local days <c>from</c> to <c>to</c> (both inclusive, <c>yyyy-MM-dd</c>). 400 when <c>to</c> is before <c>from</c> or the range is over 3660 days.</summary>
+    /// <summary>The sales report for the local days <c>from</c> to <c>to</c> (both inclusive, <c>yyyy-MM-dd</c>). 400 when <c>to</c> is before <c>from</c> or the range is over 3660 days.
+    /// 403 <c>plan_upgrade_required</c> (feature <c>Reports</c>) on the Basic plan for a range over 7 days; the CSV and PDF follow the same rules.</summary>
     [HttpGet("sales")]
     [RequirePermission(PermissionHelper.Permissions.Reports_View)]
     [ProducesResponseType<SalesReportDto>(StatusCodes.Status200OK)]
@@ -74,6 +79,9 @@ public sealed class ReportsController : ApiControllerBase
     {
         if (to < from) return ValidationFailure("to", _text["Rep_RangeBackwards"].Value);
         if (to.DayNumber - from.DayNumber >= MaxRangeDays) return ValidationFailure("to", _text["Rep_RangeTooLong", MaxRangeDays].Value);
+        // Basic covers a week: any 7 days, in the past or this week.
+        if (to.DayNumber - from.DayNumber >= PlanRules.BasicReportDays && !_license.GetState().Includes(ProFeature.Reports))
+            return PlanUpgradeRequired(ProFeature.Reports);
         return null;
     }
 }

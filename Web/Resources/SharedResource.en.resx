@@ -727,6 +727,12 @@
   <data name="ProductDisplayOrder" xml:space="preserve">
     <value>Product Display Order</value>
   </data>
+  <data name="WhishWallet" xml:space="preserve">
+    <value>Whish Wallet</value>
+  </data>
+  <data name="OnlineMenu" xml:space="preserve">
+    <value>Online Menu</value>
+  </data>
   <data name="LowStockReport" xml:space="preserve">
     <value>Low Stock Report</value>
   </data>
@@ -2389,7 +2395,8 @@
   <data name="JumpToNoResults" xml:space="preserve"><value>No matching pages</value></data>
   <data name="CollapseMenu" xml:space="preserve"><value>Collapse menu</value></data>
   <data name="ExpandMenu" xml:space="preserve"><value>Expand menu</value></data>
-  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>Drawer open · {0}</value></data>
+  <data name="DrawerOpenWithAmount" xml:space="preserve"><value>Drawer open · {0} in drawer</value></data>
+  <data name="DrawerStartedWith" xml:space="preserve"><value>started with {0}</value></data>
   <data name="DrawerNotOpened" xml:space="preserve"><value>Drawer not opened</value></data>
   <!-- api/v1 error messages (Web/Api/Infrastructure/ApiCodes.cs) -->
   <data name="Api_Unauthenticated" xml:space="preserve"><value>Your session has ended. Please sign in again.</value></data>
@@ -2508,4 +2515,17 @@
   <data name="Mny_CodeListValueTaken" xml:space="preserve"><value>This list already has that value.</value></data>
   <data name="Backup_Err_DayOfWeekRequired" xml:space="preserve"><value>Choose the day of the week for a weekly schedule.</value></data>
   <data name="Backup_Err_DayOfMonthRequired" xml:space="preserve"><value>Choose the day of the month for a monthly schedule.</value></data>
+  <data name="Plan_Label" xml:space="preserve"><value>Plan</value></data>
+  <data name="Plan_Basic" xml:space="preserve"><value>Basic</value></data>
+  <data name="Plan_Pro" xml:space="preserve"><value>Pro</value></data>
+  <data name="Plan_ProOnly" xml:space="preserve"><value>Available in Pro</value></data>
+  <data name="Plan_UpgradeRequired" xml:space="preserve"><value>This is part of the Pro plan. Upgrade your licence to use it.</value></data>
+  <data name="Plan_UserLimit" xml:space="preserve"><value>The Basic plan includes up to 3 active users: the owner and 2 cashiers. Deactivate a user first, or upgrade to Pro.</value></data>
+  <data name="Plan_UpgradeTitle" xml:space="preserve"><value>Available in Pro</value></data>
+  <data name="Plan_UpgradeBody" xml:space="preserve"><value>Your shop runs the Basic plan. Pro adds stock tracking, suppliers and purchases, the audit log, extra tills and unlimited users.</value></data>
+  <data name="Plan_UpgradeKeepsData" xml:space="preserve"><value>Nothing you entered is lost: it is all there again as soon as Pro is activated.</value></data>
+  <data name="Plan_UpgradeHow" xml:space="preserve"><value>To upgrade, send the Machine ID from the License page to your provider, then activate the new key there.</value></data>
+  <data name="Plan_UsersUsed" xml:space="preserve"><value>Active users: {0} of {1} (Basic plan)</value></data>
+  <data name="Plan_ReportsWeek" xml:space="preserve"><value>The Basic plan shows reports for up to 7 days. Choose a shorter range, or upgrade to Pro for any period.</value></data>
+  <data name="Plan_LongerPeriods" xml:space="preserve"><value>Last 7 days. Month, quarter, year and all-time: available in Pro.</value></data>
 </root>
