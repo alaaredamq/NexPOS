@@ -132,6 +132,8 @@ void main() {
     await tester.tap(find.widgetWithText(FilterChip, 'POS licence'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Record payment'), 200, scrollable: page);
+    await tester.ensureVisible(find.text('Record payment'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Record payment'));
     await tester.pumpAndSettle();
 
@@ -140,6 +142,53 @@ void main() {
     expect(body['payer'], 'Owner capital');
     // In the form's order, whatever order they were ticked in.
     expect(body['purposes'], ['Online subscription', 'POS licence', 'Set-up / installation']);
+  });
+
+  testWidgets('a payment recorded on a client page is in Finance without pulling to refresh', (tester) async {
+    await start(tester);
+    await signIn(tester);
+    await tester.tap(find.text('Finance').last);
+    await tester.pumpAndSettle();
+    final summaries = cloud.sent('GET', '/finance/summary').length;
+    final overviews = cloud.sent('GET', '/overview').length;
+
+    await tester.tap(find.text('Clients').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cedar Bakery'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Record'), 200, scrollable: page);
+    await tester.ensureVisible(find.text('Record'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Record'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, r'Amount ($)'), '120');
+    // Done typing: the keyboard closes (a focused field would pull the list back to itself).
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Record payment'), 200, scrollable: page);
+    await tester.ensureVisible(find.text('Record payment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Record payment'));
+    await tester.pumpAndSettle();
+    expect(cloud.sent('POST', '/finance/payments'), hasLength(1));
+
+    // Every tab already asked the cloud again: Finance and the Overview show the payment when opened.
+    expect(cloud.sent('GET', '/finance/summary').length, greaterThan(summaries));
+    expect(cloud.sent('GET', '/overview').length, greaterThan(overviews));
+    // ...and the client page it was recorded on reloaded its payments.
+    expect(cloud.sent('GET', '/clients/1/payments').length, greaterThan(1));
+  });
+
+  testWidgets('coming back to the app loads every screen again', (tester) async {
+    await start(tester);
+    await signIn(tester);
+    final before = cloud.sent('GET', '/overview').length;
+    // The way a phone goes to the background and back.
+    for (final state in [AppLifecycleState.inactive, AppLifecycleState.hidden, AppLifecycleState.paused, AppLifecycleState.hidden, AppLifecycleState.inactive, AppLifecycleState.resumed]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pumpAndSettle();
+    expect(cloud.sent('GET', '/overview').length, greaterThan(before));
   });
 
   testWidgets('when the cloud stops accepting the token the app goes back to sign-in', (tester) async {

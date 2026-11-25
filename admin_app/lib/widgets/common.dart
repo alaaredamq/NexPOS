@@ -174,14 +174,48 @@ class LoaderState<T> extends State<Loader<T>> {
   T? _data;
   Object? _error;
   bool _loading = true;
+  late final ValueNotifier<int> _version;
+
+  /// A load is on its way; [_again] asks for one more after it, so a change made meanwhile is not missed.
+  Future<void>? _running;
+  bool _again = false;
 
   @override
   void initState() {
     super.initState();
+    // Any change made from the app (here or on another page or tab) reloads what this screen shows, without a spinner.
+    _version = context.read<Session>().dataVersion..addListener(_changed);
     reload();
   }
 
+  @override
+  void dispose() {
+    _version.removeListener(_changed);
+    super.dispose();
+  }
+
+  void _changed() {
+    if (mounted) reload();
+  }
+
   Future<void> reload() async {
+    if (_running != null) {
+      _again = true;
+      return _running;
+    }
+    _running = _load();
+    try {
+      await _running;
+    } finally {
+      _running = null;
+    }
+    if (_again && mounted) {
+      _again = false;
+      await reload();
+    }
+  }
+
+  Future<void> _load() async {
     final session = context.read<Session>();
     if (!session.signedIn) return;
     setState(() => _loading = _data == null);

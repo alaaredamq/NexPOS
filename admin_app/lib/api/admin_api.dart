@@ -30,7 +30,7 @@ class OfflineException implements Exception {
 
 /// Every call of the admin API (`/api/admin/v1`, docs/online/admin-api.md). Stateless apart from the token; one instance per sign-in.
 class AdminApi {
-  AdminApi(this.baseUrl, {http.Client? client, this.token, this.onUnauthorized}) : _http = client ?? http.Client();
+  AdminApi(this.baseUrl, {http.Client? client, this.token, this.onUnauthorized, this.onChanged}) : _http = client ?? http.Client();
 
   final String baseUrl;
   final http.Client _http;
@@ -38,6 +38,9 @@ class AdminApi {
 
   /// Called when the cloud no longer accepts the token (expired, or signed out from another device).
   void Function()? onUnauthorized;
+
+  /// Called after every change the cloud accepted (anything but a read or a sign-in), so every screen can show it.
+  void Function()? onChanged;
 
   static const _timeout = Duration(seconds: 25);
 
@@ -63,7 +66,10 @@ class AdminApi {
       throw OfflineException(e.message);
     }
     final text = utf8.decode(response.bodyBytes);
-    if (response.statusCode >= 200 && response.statusCode < 300) return text.isEmpty ? null : jsonDecode(text);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (method != 'GET' && !path.startsWith('/auth/')) onChanged?.call();
+      return text.isEmpty ? null : jsonDecode(text);
+    }
 
     var code = 'error';
     var message = 'The cloud answered ${response.statusCode}.';

@@ -25,7 +25,10 @@ Links, keys and passwords the cloud shows only once open in a sheet with **Copy*
 - Sign in with the **same username and password as the portal**. The app gets a token (30 days) and keeps it in the phone's secure
   storage (Keychain / Android Keystore). When the cloud stops accepting it (expired, or that device was signed out under More), the
   app goes back to the sign-in screen.
-- Nothing is cached: every screen asks the cloud when it opens, and pull down to refresh. Offline, a screen says so and offers a retry.
+- Nothing is cached: every screen asks the cloud when it opens. After **any change you make in the app** (a payment, months, a key...),
+  every screen loads again in the background, so Finance, the Overview and the lists already show it; the same happens when you
+  come back to the app. Changes made elsewhere (the portal, another phone) show then too, or pull down to refresh. Offline, a screen
+  says so and offers a retry.
 - The key passphrase for **Issue a key** is sent for that one key and never kept, exactly as in the portal.
 - The online **menu editor** opens in the browser (it needs the portal's sign-in there).
 

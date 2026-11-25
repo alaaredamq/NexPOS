@@ -62,7 +62,14 @@ class Session extends ChangeNotifier {
 
   String get currency => me?.currency ?? r'$';
 
-  AdminApi _newApi(String? token) => AdminApi(cloudUrl, client: client, token: token, onUnauthorized: _expired);
+  /// Goes up by one after every change made from this app (and when it comes back to the front). Every screen that shows cloud
+  /// data listens and loads again, so a payment recorded on a client's page is already in Finance when you open it.
+  /// Separate from [notifyListeners], which would rebuild the whole app.
+  final ValueNotifier<int> dataVersion = ValueNotifier(0);
+
+  void dataChanged() => dataVersion.value++;
+
+  AdminApi _newApi(String? token) => AdminApi(cloudUrl, client: client, token: token, onUnauthorized: _expired, onChanged: dataChanged);
 
   /// Picks up the sign-in from the last launch. Offline is fine: the screens say so and retry.
   Future<void> restore() async {
