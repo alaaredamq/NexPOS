@@ -10,7 +10,6 @@ import { PageHeader } from '@/ui/PageHeader'
 import { Skeleton } from '@/ui/Skeleton'
 import { StatTile } from '@/ui/StatTile'
 import { toast } from '@/ui/toast'
-import { BASIC_REPORT_DAYS, useIsPro } from '@/core/license/license'
 import { CATEGORY_COLORS, categoryColor } from '../_shared/categoryPalette'
 import { DonutChart } from '../_shared/charts/DonutChart'
 import { TrendPanel } from '../_shared/charts/TrendPanel'
@@ -43,15 +42,10 @@ function useRange(defaultDays: number) {
   return [range, setRange] as const
 }
 
-/** Days in a range, both ends included. */
-const daysIn = (r: Range) => Math.round((Date.parse(r.to) - Date.parse(r.from)) / 86_400_000) + 1
-
 const profitTone = (profit: number) => (profit < 0 ? 'danger' : profit > 0 ? 'success' : 'default')
 
 function SummaryTiles() {
   const { t } = useTranslation('reports')
-  // Basic looks back a week: the month and year tiles are Pro.
-  const pro = useIsPro()
   const query = useReportsSummary()
   const data = query.data
   const money = (v: number) => (data ? formatMoney(v, data.currencyNotation) : '-')
@@ -60,14 +54,10 @@ function SummaryTiles() {
   return (
     <div className={styles.tiles} aria-busy={query.isPending}>
       <StatTile label={t('TodaysSales')} value={money(data?.today.sales ?? 0)} sub={orders(data?.today.orders ?? 0)} />
-      {pro && (
-      <>
       <StatTile label={t('ThisMonth')} value={money(data?.thisMonth.sales ?? 0)} sub={orders(data?.thisMonth.orders ?? 0)} />
       <StatTile label={t('ThisYear')} value={money(data?.thisYear.sales ?? 0)} sub={orders(data?.thisYear.orders ?? 0)} />
       <StatTile label={t('ThisYearProfit')} value={money(data?.thisYear.profit ?? 0)} tone={profitTone(data?.thisYear.profit ?? 0)} sub={orders(data?.thisYear.orders ?? 0)} />
       <StatTile label={t('AverageOrder')} value={money(data?.averageOrderValue ?? 0)} sub={data ? t('ThisMonthPerOrder') : undefined} />
-      </>
-      )}
     </div>
   )
 }
@@ -177,11 +167,8 @@ function Results({ report, refreshing }: { report: SalesReport; refreshing: bool
 /** `/app/reports`: today / month / year tiles and the sales report of a date range, with CSV and PDF export. */
 export default function ReportsPage() {
   const { t } = useTranslation(['reports', 'common'])
-  const pro = useIsPro()
-  const [range, setRange] = useRange(pro ? 30 : BASIC_REPORT_DAYS)
-  // Basic covers a week; a longer range (typed in, or an old link) is explained instead of asked for (the API would refuse it).
-  const tooLong = !pro && daysIn(range) > BASIC_REPORT_DAYS
-  const report = useSalesReport(range, !tooLong)
+  const [range, setRange] = useRange(30)
+  const report = useSalesReport(range)
   const [exporting, setExporting] = useState<'csv' | 'pdf' | null>(null)
 
   const download = async (kind: 'csv' | 'pdf') => {
@@ -198,10 +185,10 @@ export default function ReportsPage() {
   return (
     <div className={styles.page}>
       <PageHeader title={t('ReportsAndAnalytics')}>
-        <Button loading={exporting === 'csv'} disabled={exporting !== null || !report.data || tooLong} onClick={() => void download('csv')}>
+        <Button loading={exporting === 'csv'} disabled={exporting !== null || !report.data} onClick={() => void download('csv')}>
           {t('ExportCsv')}
         </Button>
-        <Button loading={exporting === 'pdf'} disabled={exporting !== null || !report.data || tooLong} onClick={() => void download('pdf')}>
+        <Button loading={exporting === 'pdf'} disabled={exporting !== null || !report.data} onClick={() => void download('pdf')}>
           {t('DownloadPdf')}
         </Button>
       </PageHeader>
@@ -211,13 +198,11 @@ export default function ReportsPage() {
       <section className={styles.filters} aria-label={t('SalesReport')}>
         <h2 className={styles.cardTitle}>{t('SalesReport')}</h2>
         <div className={styles.filterRow}>
-          <DateRange value={range} onChange={setRange} yearPreset={pro} weekOnly={!pro} />
+          <DateRange value={range} onChange={setRange} yearPreset />
         </div>
       </section>
 
-      {tooLong ? (
-        <p className={styles.planNote} role="status">{t('Plan_ReportsWeek', { ns: 'common' })}</p>
-      ) : report.isPending ? (
+      {report.isPending ? (
         <Skeleton height={320} />
       ) : report.isError && !report.data ? (
         <div className={styles.error} role="alert">

@@ -2526,6 +2526,4 @@
   <data name="Plan_UpgradeKeepsData" xml:space="preserve"><value>لن تفقد أي شيء أدخلته: سيعود كل شيء فور تفعيل خطة Pro.</value></data>
   <data name="Plan_UpgradeHow" xml:space="preserve"><value>للترقية، أرسل معرّف الجهاز من صفحة الترخيص إلى مزوّدك، ثم فعّل المفتاح الجديد هناك.</value></data>
   <data name="Plan_UsersUsed" xml:space="preserve"><value>المستخدمون النشطون: {0} من {1} (الخطة الأساسية)</value></data>
-  <data name="Plan_ReportsWeek" xml:space="preserve"><value>تعرض الخطة الأساسية تقارير لمدة 7 أيام كحد أقصى. اختر فترة أقصر، أو قم بالترقية إلى Pro لأي فترة.</value></data>
-  <data name="Plan_LongerPeriods" xml:space="preserve"><value>آخر 7 أيام. الشهر والربع والسنة وكل الفترات: متوفرة في Pro.</value></data>
 </root>

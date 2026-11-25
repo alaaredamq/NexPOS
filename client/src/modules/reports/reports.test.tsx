@@ -158,20 +158,13 @@ describe('reports on the Basic plan', () => {
     return mountModule(path, routes)
   }
 
-  it('shows a week: only today among the tiles and only the quick picks that fit', async () => {
-    openBasic('/reports?from=2026-10-03&to=2026-10-05')
-
-    expect(await screen.findByText('Total Sales')).toBeInTheDocument()
-    expect(screen.queryByText("This Year's Profit")).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'This year' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '30 days' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '7 days' })).toBeInTheDocument()
-  })
-
-  it('explains a longer range instead of asking the server for it', async () => {
+  it('has every tile, every quick pick and any range, like Pro', async () => {
     openBasic('/reports?from=2026-10-01&to=2026-10-31')
 
-    expect(await screen.findByText(/up to 7 days/)).toBeInTheDocument()
-    expect(api.calls.some((c) => c.url.includes('/reports/sales?'))).toBe(false)
+    expect(await screen.findByText('Total Sales')).toBeInTheDocument()
+    expect(screen.getByText("This Year's Profit")).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'This year' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '30 days' })).toBeInTheDocument()
+    await waitFor(() => expect(api.calls.some((c) => c.url.includes('/reports/sales?') && c.url.includes('from=2026-10-01'))).toBe(true))
   })
 })

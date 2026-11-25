@@ -9,7 +9,6 @@ import { Skeleton } from '@/ui/Skeleton'
 import { StatTile } from '@/ui/StatTile'
 import { StatusBadge } from '@/ui/StatusBadge'
 import { useSession } from '@/core/auth/useSession'
-import { useIsPro } from '@/core/license/license'
 import { flattenNav, type FlatNavItem } from '@/shell/nav'
 import { CATEGORY_COLORS, categoryColor } from '../_shared/categoryPalette'
 import { DonutChart } from '../_shared/charts/DonutChart'
@@ -39,33 +38,25 @@ function Tiles({ data }: { data: Dashboard | undefined }) {
   const { t } = useTranslation('dashboard')
   const notation = data?.currencyNotation ?? ''
   const dash = '-'
-  // Basic looks back a week: the month and all-time tiles are Pro.
-  const pro = useIsPro()
 
   return (
     <div className={styles.tiles} aria-busy={!data}>
-      {pro && (
       <StatTile
         label={t('MonthRevenue')}
         value={data ? formatMoney(data.monthSales, notation) : dash}
         tone={data ? toneOf(data.monthSalesChangePercent) : 'default'}
         sub={data ? t('VsLastMonthPercent', { value: signedPercent(data.monthSalesChangePercent) }) : undefined}
       />
-      )}
-      {pro && (
       <StatTile
         label={t('MonthOrders')}
         value={data ? formatNumber(data.monthOrders, 0) : dash}
         sub={data ? t('VsLastMonthCount', { value: signedCount(data.monthOrdersChange) }) : undefined}
       />
-      )}
       <StatTile
         label={t('TodaySales')}
         value={data ? formatMoney(data.todaySales, notation) : dash}
         sub={data ? t('OrdersToday', { n: formatNumber(data.todayOrders, 0) }) : undefined}
       />
-      {pro && (
-      <>
       <StatTile
         label={t('MonthProfit')}
         value={data ? formatMoney(data.monthProfit, notation) : dash}
@@ -77,8 +68,6 @@ function Tiles({ data }: { data: Dashboard | undefined }) {
         value={data ? formatMoney(data.allTimeSales, notation) : dash}
         sub={data ? t('AllTimeProfitSub', { value: formatMoney(data.allTimeProfit, notation) }) : undefined}
       />
-      </>
-      )}
       <StatTile label={t('TotalCustomers')} value={data ? formatNumber(data.customerCount, 0) : dash} />
       <StatTile label={t('TotalProducts')} value={data ? formatNumber(data.productCount, 0) : dash} />
     </div>
@@ -87,10 +76,7 @@ function Tiles({ data }: { data: Dashboard | undefined }) {
 
 function SalesChart() {
   const { t } = useTranslation(['dashboard', 'common'])
-  // Basic has the last 7 days only (the API refuses longer periods); month, quarter, year and all-time are Pro.
-  const pro = useIsPro()
-  const [chosen, setPeriod] = useState<Period>('month')
-  const period: Period = pro ? chosen : 'week'
+  const [period, setPeriod] = useState<Period>('month')
   const trend = useSalesTrend(period)
   const notation = trend.data?.currencyNotation ?? ''
 
@@ -106,11 +92,7 @@ function SalesChart() {
     <section className={styles.card} aria-label={t('SalesAnalytics')}>
       <div className={styles.cardHead}>
         <h2 className={styles.cardTitle}>{t('SalesAnalytics')}</h2>
-        {pro ? (
-          <ChipGroup options={options} value={period} onChange={(v) => setPeriod(v as Period)} size="sm" aria-label={t('ChartPeriod')} />
-        ) : (
-          <span className={styles.planNote}>{t('Plan_LongerPeriods', { ns: 'common' })}</span>
-        )}
+        <ChipGroup options={options} value={period} onChange={(v) => setPeriod(v as Period)} size="sm" aria-label={t('ChartPeriod')} />
       </div>
       {trend.isPending ? (
         <Skeleton height={260} />
@@ -248,7 +230,6 @@ export default function DashboardPage() {
   const session = useSession()
   const nav = useMemo(() => flattenNav(session.nav), [session.nav])
   const overview = useDashboard()
-  const pro = useIsPro()
 
   return (
     <div className={styles.page}>
@@ -266,7 +247,7 @@ export default function DashboardPage() {
 
       <div className={styles.charts}>
         <SalesChart />
-        {pro && <Categories data={overview.data} />}
+        <Categories data={overview.data} />
       </div>
 
       <QuickActions items={nav} />

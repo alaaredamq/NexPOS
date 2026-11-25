@@ -12,8 +12,6 @@ public enum ProFeature
     ExtraTills,
     /// <summary>More than <see cref="PlanRules.BasicMaxActiveUsers"/> active users.</summary>
     MoreUsers,
-    /// <summary>Reports and the dashboard chart further back than <see cref="PlanRules.BasicReportDays"/> days.</summary>
-    Reports,
     /// <summary>The till sends payment requests to Whish itself (online payments). Taking Whish by hand is in every plan.</summary>
     OnlinePayments
 }
@@ -29,9 +27,6 @@ public static class PlanRules
 
     /// <summary>Basic always runs on a single PC, whatever seat count a key carries.</summary>
     public const int BasicSeats = 1;
-
-    /// <summary>Basic's reports cover at most this many days (a week); Pro's any range.</summary>
-    public const int BasicReportDays = 7;
 
     public static bool Includes(LicensePlan plan, ProFeature feature) => plan == LicensePlan.Pro;
 

@@ -64,22 +64,22 @@ public sealed class PlanApiTests : CatalogApiTestBase, IDisposable
     }
 
     [Fact]
-    public async Task Reports_and_the_dashboard_chart_cover_a_week()
+    public async Task Reports_and_the_dashboard_chart_cover_any_period()
     {
         var admin = await Admin();
 
-        Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/reports/sales?from=2026-10-01&to=2026-10-07"))).StatusCode);
-        foreach (var url in new[] { "/api/v1/reports/sales?from=2026-10-01&to=2026-10-08", "/api/v1/reports/sales.csv?from=2026-10-01&to=2026-10-31" })
-        {
-            var response = await admin.SendAsync(Json(HttpMethod.Get, url));
-            await AssertProblem(response, HttpStatusCode.Forbidden, "plan_upgrade_required");
-            Assert.Equal("Reports", (await Body(response)).GetProperty("feature").GetString());
-        }
-
-        Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/dashboard/sales-trend?period=week"))).StatusCode);
-        await AssertProblem(await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/dashboard/sales-trend?period=month")), HttpStatusCode.Forbidden, "plan_upgrade_required");
-        await AssertProblem(await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/dashboard/sales-trend")), HttpStatusCode.Forbidden, "plan_upgrade_required");
-        Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, "/api/v1/dashboard"))).StatusCode);
+        foreach (var url in new[]
+                 {
+                     "/api/v1/reports/sales?from=2026-10-01&to=2026-10-07",
+                     "/api/v1/reports/sales?from=2025-01-01&to=2026-10-31",
+                     "/api/v1/reports/sales.csv?from=2026-10-01&to=2026-10-31",
+                     "/api/v1/dashboard/sales-trend?period=week",
+                     "/api/v1/dashboard/sales-trend?period=month",
+                     "/api/v1/dashboard/sales-trend?period=all",
+                     "/api/v1/dashboard/sales-trend",
+                     "/api/v1/dashboard",
+                 })
+            Assert.Equal(HttpStatusCode.OK, (await admin.SendAsync(Json(HttpMethod.Get, url))).StatusCode);
     }
 
     [Fact]

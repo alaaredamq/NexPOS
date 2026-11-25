@@ -2526,6 +2526,4 @@
   <data name="Plan_UpgradeKeepsData" xml:space="preserve"><value>Nothing you entered is lost: it is all there again as soon as Pro is activated.</value></data>
   <data name="Plan_UpgradeHow" xml:space="preserve"><value>To upgrade, send the Machine ID from the License page to your provider, then activate the new key there.</value></data>
   <data name="Plan_UsersUsed" xml:space="preserve"><value>Active users: {0} of {1} (Basic plan)</value></data>
-  <data name="Plan_ReportsWeek" xml:space="preserve"><value>The Basic plan shows reports for up to 7 days. Choose a shorter range, or upgrade to Pro for any period.</value></data>
-  <data name="Plan_LongerPeriods" xml:space="preserve"><value>Last 7 days. Month, quarter, year and all-time: available in Pro.</value></data>
 </root>

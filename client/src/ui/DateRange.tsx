@@ -16,8 +16,6 @@ interface DateRangeProps {
   presets?: boolean
   /** Add a "This year" quick pick (1 Jan to today) after the others. */
   yearPreset?: boolean
-  /** Only the quick picks that fit in a week (Today, 7 days): for a range that may not be longer, such as reports on the Basic plan. */
-  weekOnly?: boolean
   disabled?: boolean
 }
 
@@ -33,7 +31,7 @@ function presetRange(kind: 'today' | '7d' | '30d' | 'month' | 'year'): DateRange
 }
 
 /** From/to pair for report and list filters. Keeps `from <= to` by bounding each input with the other. */
-export function DateRange({ value, onChange, presets = true, yearPreset = false, weekOnly = false, disabled }: DateRangeProps) {
+export function DateRange({ value, onChange, presets = true, yearPreset = false, disabled }: DateRangeProps) {
   const { t } = useTranslation()
   const id = useId()
 
@@ -47,14 +45,13 @@ export function DateRange({ value, onChange, presets = true, yearPreset = false,
     onChange(next)
   }
 
-  const allPicks = [
+  const picks = [
     { kind: 'today', label: t('common.today', 'Today') },
     { kind: '7d', label: t('common.last7Days', '7 days') },
     { kind: '30d', label: t('common.last30Days', '30 days') },
     { kind: 'month', label: t('common.thisMonth', 'This month') },
     ...(yearPreset ? ([{ kind: 'year', label: t('common.thisYear', 'This year') }] as const) : []),
   ] as const
-  const picks = weekOnly ? allPicks.filter((p) => p.kind === 'today' || p.kind === '7d') : allPicks
 
   return (
     <div className={styles.wrap} role="group" aria-label={t('common.dateRange', 'Date range')}>

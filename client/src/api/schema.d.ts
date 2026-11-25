@@ -968,7 +968,7 @@ export interface paths {
         };
         /**
          * The sales chart. `period` is `week`, `month` (default), `quarter`, `year` or `all` (since the first sale); an unknown value means the month.
-         *     The Basic plan has only `week`: any other period answers 403 `plan_upgrade_required` (feature `Reports`).
+         *     Every plan has every period.
          */
         get: operations["getSalesTrend"];
         put?: never;
@@ -3059,7 +3059,7 @@ export interface paths {
         };
         /**
          * The sales report for the local days `from` to `to` (both inclusive, `yyyy-MM-dd`). 400 when `to` is before `from` or the range is over 3660 days.
-         *                 403 `plan_upgrade_required` (feature `Reports`) on the Basic plan for a range over 7 days; the CSV and PDF follow the same rules.
+         *                 Every plan has any range; the CSV and PDF follow the same rules.
          */
         get: operations["getSalesReport"];
         put?: never;

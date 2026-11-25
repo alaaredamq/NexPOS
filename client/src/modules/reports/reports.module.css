@@ -146,12 +146,3 @@
   color: var(--color-ink);
   font-weight: 600;
 }
-
-/* Basic plan, range longer than a week: what to do instead of an error. */
-.planNote {
-  margin: 0;
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-info);
-  background: var(--color-info-bg);
-  border-radius: var(--radius-control);
-}

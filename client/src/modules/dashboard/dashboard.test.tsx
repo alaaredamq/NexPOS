@@ -151,7 +151,7 @@ describe('dashboard', () => {
 })
 
 describe('dashboard on the Basic plan', () => {
-  it('shows today and the last 7 days; the month tiles, longer periods and categories are Pro', async () => {
+  it('has the month tiles and every chart period, like Pro', async () => {
     const session = sessionWith(Permissions.Dashboard_View, Permissions.Orders_View)
     session.nav = [section('Sales', [navItem('Dashboard', { migrated: true, href: '/app/dashboard' })])]
     api = fakeApi({ ...session, license: { ...session.license, plan: 'Basic' } })
@@ -160,10 +160,9 @@ describe('dashboard on the Basic plan', () => {
     mountModule('/dashboard', routes)
 
     expect(await screen.findByText('4 orders today')).toBeInTheDocument()
-    expect(screen.queryByText('Revenue this month')).not.toBeInTheDocument()
-    expect(screen.queryByText('Total revenue')).not.toBeInTheDocument()
-    expect(screen.getByText(/available in Pro/)).toBeInTheDocument()
-    await waitFor(() => expect(api.calls.some((c) => c.url.includes('sales-trend?period=week'))).toBe(true))
-    expect(api.calls.some((c) => c.url.includes('period=month'))).toBe(false)
+    expect(screen.getByText('Revenue this month')).toBeInTheDocument()
+    expect(screen.getByText('Total revenue')).toBeInTheDocument()
+    expect(screen.queryByText(/available in Pro/)).not.toBeInTheDocument()
+    await waitFor(() => expect(api.calls.some((c) => c.url.includes('sales-trend?period=month'))).toBe(true))
   })
 })

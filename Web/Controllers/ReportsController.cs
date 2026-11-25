@@ -1,4 +1,3 @@
-using Common.Licensing;
 using Application.DTOs.Reports;
 using Application.IServices.Reports;
 using Core.Time;
@@ -11,8 +10,6 @@ namespace Web.Controllers
 {
     [Authorize]
     [RequirePermission(PermissionHelper.Permissions.Reports_View)]
-    // The old report pages and their JSON have no range limit, so on Basic they are locked; the React Reports page applies the week limit.
-    [RequirePlan(ProFeature.Reports)]
     public class ReportsController : BaseController
     {
         private readonly ISalesReportService _salesReportService;

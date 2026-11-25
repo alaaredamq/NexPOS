@@ -375,7 +375,7 @@ class _IssueLicenceScreenState extends State<IssueLicenceScreen> {
                     onSelectionChanged: (s) => setState(() => _plan = s.isEmpty ? null : s.first),
                   ),
                   const SizedBox(height: 6),
-                  const MutedText('Basic: 1 PC, 3 users, 7-day reports, no inventory. Pro: everything, and the PCs you sell.', size: 13),
+                  const MutedText('Basic: 1 PC, 3 users, no inventory. Pro: everything, and the PCs you sell.', size: 13),
                   if (_plan == 'pro') ...[
                     const SizedBox(height: 12),
                     Row(children: [
