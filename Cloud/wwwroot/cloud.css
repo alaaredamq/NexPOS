@@ -38,7 +38,9 @@
   --grad-text: linear-gradient(100deg, #ffffff 20%, #b8c8ff 60%, #5fe6d8 100%);
   --radius: 20px;
   --shadow: inset 0 1px 0 rgb(255 255 255 / .06), 0 24px 60px -24px rgb(0 0 0 / .7);
-  --glass: linear-gradient(180deg, rgb(var(--fg-rgb) / .06), rgb(var(--fg-rgb) / .015)), rgb(var(--well-rgb) / .5);
+  /* Glass = a plain colour (which can fade between themes) under a soft sheen. */
+  --glass-base: rgb(var(--well-rgb) / .5);
+  --glass-sheen: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / .015));
   --blur: blur(18px) saturate(150%);
   --ease: cubic-bezier(.2, .8, .2, 1);
   --spring: cubic-bezier(.34, 1.5, .64, 1);
@@ -90,7 +92,7 @@ b, strong { color: var(--ink); }
 
 /* ---------- glass: the one material ---------- */
 .card, .list, .rail, .auth .form .box {
-  position: relative; isolation: isolate; background: var(--glass); border: 1px solid var(--line); border-radius: var(--radius);
+  position: relative; isolation: isolate; background-color: var(--glass-base); background-image: var(--glass-sheen); border: 1px solid var(--line); border-radius: var(--radius);
   box-shadow: var(--shadow); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
 }
 /* A lit edge: a soft sheen from the top-left, and teal light where the pointer is (fx.js sets --mx/--my). */
@@ -113,7 +115,7 @@ b, strong { color: var(--ink); }
 .shell { display: grid; grid-template-columns: 262px minmax(0, 1fr); min-height: 100vh; }
 .rail { color: var(--rail-ink); padding: 22px 14px 14px; display: flex; flex-direction: column; gap: 24px; position: sticky; top: 14px;
   height: calc(100vh - 28px); margin: 14px 0 14px 14px; border-radius: 24px; view-transition-name: rail;
-  background: linear-gradient(180deg, rgb(var(--fg-rgb) / .07), rgb(var(--fg-rgb) / .015) 60%), rgb(var(--well-rgb) / .6); }
+  background-color: rgb(var(--well-rgb) / .6); background-image: linear-gradient(180deg, rgb(255 255 255 / .07), rgb(255 255 255 / .015) 60%); }
 .rail::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
   background: radial-gradient(260px 160px at 30% 0%, rgb(109 141 240 / .22), transparent 70%), radial-gradient(240px 200px at 80% 100%, rgb(61 219 203 / .10), transparent 70%); }
 .brand { display: flex; align-items: center; gap: 12px; padding: 2px 8px; color: var(--hi); text-decoration: none; }
@@ -734,11 +736,14 @@ html.theme-switching .rail { view-transition-name: none; }
   --grad: linear-gradient(120deg, #1e3a8a 0%, #2a56c6 60%, #1795a6 100%);
   --grad-text: linear-gradient(100deg, #0b1633 25%, #1e3a8a 65%, #0e9a8d 100%);
   --shadow: inset 0 1px 0 rgb(255 255 255 / .9), 0 18px 44px -22px rgb(30 58 138 / .35), 0 2px 6px -2px rgb(30 58 138 / .08);
-  --glass: linear-gradient(180deg, rgb(255 255 255 / .82), rgb(255 255 255 / .58)), rgb(255 255 255 / .3);
+  --glass-base: rgb(255 255 255 / .66);
+  --glass-sheen: linear-gradient(180deg, rgb(255 255 255 / .55), rgb(255 255 255 / .05));
 }
 [data-theme="light"] a:hover, [data-theme="light"] .rail nav a:hover { color: #0b1633; }
-[data-theme="light"] .fx-bg { background: radial-gradient(1100px 700px at 88% -12%, rgb(14 154 141 / .12), transparent 62%),
+/* The light sky lies over the night one and fades in or out, so a theme change can be a smooth fade. */
+.fx-bg::before { content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; background: radial-gradient(1100px 700px at 88% -12%, rgb(14 154 141 / .12), transparent 62%),
   radial-gradient(1000px 760px at -12% 112%, rgb(42 86 198 / .14), transparent 60%), linear-gradient(180deg, #f4f7fd 0%, #e9eefa 55%, #f2f5fc 100%); }
+[data-theme="light"] .fx-bg::before { opacity: 1; }
 [data-theme="light"] .fx-orb.o1 { background: radial-gradient(circle, rgb(109 141 240 / .28), transparent 62%); }
 [data-theme="light"] .fx-orb.o2 { background: radial-gradient(circle, rgb(61 219 203 / .24), transparent 62%); }
 [data-theme="light"] .fx-orb.o3 { background: radial-gradient(circle, rgb(143 128 255 / .16), transparent 62%); }
@@ -747,7 +752,7 @@ html.theme-switching .rail { view-transition-name: none; }
   background: radial-gradient(240px circle at var(--mx, -999px) var(--my, -999px), rgb(14 154 141 / .75), transparent 70%),
               linear-gradient(155deg, var(--edge, rgb(255 255 255 / 1)), rgb(255 255 255 / .2) 38%, rgb(30 58 138 / .14)); }
 [data-theme="light"] .card::after, [data-theme="light"] .list::after { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgb(42 86 198 / .06), transparent 65%); }
-[data-theme="light"] .rail { background: linear-gradient(180deg, rgb(255 255 255 / .88), rgb(255 255 255 / .6) 60%), rgb(255 255 255 / .4); }
+[data-theme="light"] .rail { background-color: rgb(255 255 255 / .5); background-image: linear-gradient(180deg, rgb(255 255 255 / .76), rgb(255 255 255 / .2) 60%); }
 [data-theme="light"] .rail::after { background: radial-gradient(260px 160px at 30% 0%, rgb(42 86 198 / .12), transparent 70%), radial-gradient(240px 200px at 80% 100%, rgb(14 154 141 / .1), transparent 70%); }
 [data-theme="light"] .brand .mark { filter: drop-shadow(0 4px 10px rgb(30 58 138 / .25)); }
 [data-theme="light"] .brand .mark path { stroke: #1e3a8a; }
@@ -845,6 +850,9 @@ html.theme-switching .rail { view-transition-name: none; }
   .nav-glow { height: 40px; }
 }
 
-/* Theme change on phones: a circle of the new background grows from the switch, the theme flips under it, then it fades.
-   (The page-snapshot wipe used on computers made the page jump on phones, whose toolbars slide in and out.) */
-.theme-veil { position: fixed; inset: 0; z-index: 3000; pointer-events: none; }
+/* Theme change on phones: the page stays in view and every colour fades to the new theme (fx.js adds this class for .7 s).
+   The page-snapshot wipe used on computers made the page jump on phones, whose toolbars slide in and out. */
+html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
+  transition: background-color .6s ease, color .6s ease, border-color .6s ease, fill .6s ease, stroke .6s ease, box-shadow .6s ease,
+    opacity .6s ease, -webkit-text-fill-color .6s ease, stop-color .6s ease !important;
+}

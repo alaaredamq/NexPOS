@@ -254,18 +254,15 @@ export function useTheme() {
     const r = from.getBoundingClientRect()
     const x = r.left + r.width / 2, y = r.top + r.height / 2
     const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
-    // Phones: no page snapshots (their sliding toolbars made the page jump). A circle of the new background covers the screen,
-    // the theme flips under it, and it fades away.
+    // Phones: no page snapshots (their sliding toolbars made the page jump). The page stays in view and its colours fade.
     const touchy = matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
     if (touchy || !doc.startViewTransition) {
-      const veil = Object.assign(document.createElement('div'), { className: 'theme-veil' })
-      veil.style.background = next === 'light' ? '#eef2fb' : '#060c22'
-      document.body.append(veil)
-      veil.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] }, { duration: 520, easing: 'cubic-bezier(.65, 0, .35, 1)', fill: 'forwards' })
-        .finished.then(() => {
-          apply(next)
-          requestAnimationFrame(() => veil.animate({ opacity: [1, 0] }, { duration: 420, easing: 'ease-out', fill: 'forwards' }).finished.then(() => veil.remove()))
-        })
+      const html = document.documentElement
+      html.classList.add('theme-fade')
+      requestAnimationFrame(() => {
+        apply(next)
+        setTimeout(() => html.classList.remove('theme-fade'), 700)
+      })
       return
     }
     document.documentElement.classList.add('theme-switching')
