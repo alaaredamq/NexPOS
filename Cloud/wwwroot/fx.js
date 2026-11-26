@@ -346,6 +346,7 @@
   }
 
   // ================================================================== light or dark (remembered on this device)
+  const TOUCHY = () => matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
   const toggles = [...document.querySelectorAll('[data-theme-toggle]')]
   const labelToggles = () => toggles.forEach((b) => b.setAttribute('aria-label', root.dataset.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'))
   const setTheme = (theme) => {
@@ -358,11 +359,24 @@
   labelToggles()
   toggles.forEach((button) => button.addEventListener('click', () => {
     const next = root.dataset.theme === 'light' ? 'dark' : 'light'
-    if (calm || !document.startViewTransition) { setTheme(next); return }
+    if (calm) { setTheme(next); return }
     // The new theme spreads out from the switch in a circle.
     const r = button.getBoundingClientRect()
     const x = r.left + r.width / 2, y = r.top + r.height / 2
     const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+    // Phones: no page snapshots (their sliding toolbars made the page jump). A circle of the new background covers the screen,
+    // the theme flips under it, and it fades away.
+    if (TOUCHY() || !document.startViewTransition) {
+      const veil = Object.assign(document.createElement('div'), { className: 'theme-veil' })
+      veil.style.background = next === 'light' ? '#eef2fb' : '#060c22'
+      document.body.append(veil)
+      veil.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] }, { duration: 520, easing: 'cubic-bezier(.65, 0, .35, 1)', fill: 'forwards' })
+        .finished.then(() => {
+          setTheme(next)
+          requestAnimationFrame(() => veil.animate({ opacity: [1, 0] }, { duration: 420, easing: 'ease-out', fill: 'forwards' }).finished.then(() => veil.remove()))
+        })
+      return
+    }
     root.classList.add('theme-switching')
     const vt = document.startViewTransition(() => setTheme(next))
     vt.ready.then(() => root.animate(

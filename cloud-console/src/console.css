@@ -34,6 +34,10 @@
   animation: sweep 1.4s ease-in-out infinite; }
 @keyframes sweep { from { background-position: 150% 0; } to { background-position: -50% 0; } }
 
+/* Finance chart: each month is a button (click to open it). No button fill of its own, or light mode shows the browser's beige;
+   :hover and .sel in cloud.css still win, being more specific. */
+button.col.pair { background: transparent; color: inherit; appearance: none; -webkit-appearance: none; }
+
 /* Small helpers. */
 .pulse li { transform-origin: bottom; }
 .btn.link { background: none; border: 0; box-shadow: none; padding: 0; min-height: 0; color: var(--teal-d); text-decoration: underline; text-underline-offset: 3px; }

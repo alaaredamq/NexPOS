@@ -71,7 +71,7 @@ b, strong { color: var(--ink); }
 .icon { width: 19px; height: 19px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- the room: deep space, drifting light, a slow grid, a star field (fx.js draws the stars) ---------- */
-.fx-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
+.fx-bg { position: fixed; inset: 0 0 auto; height: 100vh; height: 100lvh; z-index: -1; overflow: hidden; pointer-events: none;
   background: radial-gradient(1100px 700px at 88% -12%, rgb(61 219 203 / .10), transparent 62%),
               radial-gradient(1000px 760px at -12% 112%, rgb(109 141 240 / .17), transparent 60%),
               linear-gradient(180deg, #050a1c 0%, #081030 55%, #050a1a 100%); }
@@ -689,13 +689,14 @@ html.fx-intro body { overflow: hidden; }
 /* ---------- theme switch (fx.js; the choice is remembered on this device) ---------- */
 .theme-toggle { position: relative; flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; cursor: pointer;
   border: 1px solid var(--line); background: rgb(var(--fg-rgb) / .05); color: var(--ink-2); transition: color .25s, border-color .25s, background-color .25s, transform .35s var(--spring); }
-.theme-toggle:hover { color: var(--tag); border-color: rgb(61 219 203 / .5); transform: rotate(-12deg) scale(1.06); }
+/* Only for a real mouse: some phone browsers claim hover, and a tap left the switch tilted and tinted. */
+@media (hover: hover) and (pointer: fine) { .theme-toggle:hover { color: var(--tag); border-color: rgb(61 219 203 / .5); transform: rotate(-12deg) scale(1.06); } }
 .theme-toggle .icon { position: absolute; transition: transform .5s var(--spring), opacity .3s; }
 .theme-toggle .t-moon { opacity: 0; transform: rotate(-90deg) scale(.4); }
 [data-theme="light"] .theme-toggle .t-sun { opacity: 0; transform: rotate(90deg) scale(.4); }
 [data-theme="light"] .theme-toggle .t-moon { opacity: 1; transform: none; }
 .rail .who .theme-toggle { margin-inline-start: auto; min-width: 40px; min-height: 40px; border: 1px solid var(--line); background: rgb(var(--fg-rgb) / .05); color: var(--rail-ink); }
-.rail .who .theme-toggle:hover { background: rgb(61 219 203 / .1); color: var(--tag); }
+@media (hover: hover) and (pointer: fine) { .rail .who .theme-toggle:hover { background: rgb(61 219 203 / .1); color: var(--tag); } }
 .rail .who .theme-toggle ~ form button { margin-inline-start: 0; }
 .theme-toggle.float { position: fixed; top: 18px; inset-inline-end: 18px; z-index: 30; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 html.theme-switching::view-transition-old(root), html.theme-switching::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
@@ -843,3 +844,7 @@ html.theme-switching .rail { view-transition-name: none; }
   .rail .who button { min-width: 40px; min-height: 40px; }
   .nav-glow { height: 40px; }
 }
+
+/* Theme change on phones: a circle of the new background grows from the switch, the theme flips under it, then it fades.
+   (The page-snapshot wipe used on computers made the page jump on phones, whose toolbars slide in and out.) */
+.theme-veil { position: fixed; inset: 0; z-index: 3000; pointer-events: none; }
