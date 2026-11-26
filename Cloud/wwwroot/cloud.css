@@ -819,3 +819,27 @@ html.theme-switching .rail { view-transition-name: none; }
 [data-theme="light"] .intro-word { color: #0b1633; }
 [data-theme="light"] .intro-word span { text-shadow: none; }
 [data-theme="light"] .intro-hint { color: rgb(59 74 114 / .6); }
+
+/* ---------- touch screens: a tap must not leave a hover look behind (the theme switch stayed tilted and tinted) ---------- */
+@media (hover: none) {
+  .theme-toggle:hover, .rail .who .theme-toggle:hover { transform: none; color: var(--rail-ink); border-color: var(--line); background: rgb(var(--fg-rgb) / .05); }
+  .btn:hover, .chip:hover, .plans label:hover span, .rail nav a:hover .icon, .item:hover .chev { transform: none; }
+  .btn:hover::after { transform: translateX(-130%); }
+  .item:hover::before { transform: scaleY(0); }
+}
+/* A press gives feedback instead: the switch dips, then springs back. */
+.theme-toggle:active { transform: scale(.9); transition-duration: .1s; }
+
+/* ---------- small phones: the top bar fits on one row ---------- */
+@media (max-width: 560px) {
+  .rail { gap: 2px; padding: 6px 8px; flex-wrap: nowrap; }
+  .rail .brand { padding: 0 2px; }
+  .rail .brand .mark { width: 34px; height: 34px; }
+  .rail nav { margin-inline-start: 0; gap: 0; }
+  .rail nav a, .rail .ext { padding: 8px; min-height: 40px; }
+  .rail .ext, .rail .who .avatar { display: none; }
+  .rail .who { gap: 2px; }
+  .rail .who .theme-toggle { min-width: 38px; min-height: 38px; width: 38px; height: 38px; }
+  .rail .who button { min-width: 40px; min-height: 40px; }
+  .nav-glow { height: 40px; }
+}
