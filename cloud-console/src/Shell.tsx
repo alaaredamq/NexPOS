@@ -34,6 +34,7 @@ export function Shell() {
   if (me.data) setCurrency(me.data.currency)
 
   useEffect(() => { if (intro) try { sessionStorage.setItem(INTRO_KEY, '1') } catch { /* private mode */ } }, [intro])
+  useNewVersion(location.pathname)
   // A new page starts at the top, after the old one has faded out.
   useEffect(() => { const t = setTimeout(() => window.scrollTo({ top: 0 }), 200); return () => clearTimeout(t) }, [location.pathname])
   const title = pageTitle(location.pathname)
@@ -65,6 +66,34 @@ export function Shell() {
       </div>
     </>
   )
+}
+
+/** A console tab keeps the code it loaded, even after a publish. This looks for a newer build (on page changes and when the tab
+ *  comes back, at most every 30 s) and, once one exists, loads it at the next page change, never in the middle of a form. */
+function useNewVersion(path: string) {
+  const newer = useRef(false)
+  const last = useRef(0)
+  const first = useRef(true)
+  const check = useRef(async () => {
+    const mine = document.querySelector<HTMLScriptElement>('script[type=module][src*="/console/assets/"]')?.getAttribute('src')
+    if (!mine || newer.current || Date.now() - last.current < 30_000) return // no `mine` in `npm run dev`: nothing to compare
+    last.current = Date.now()
+    try {
+      const html = await (await fetch('/console/', { cache: 'no-store' })).text()
+      const live = html.match(/src="(\/console\/assets\/[^"]+\.js)"/)?.[1]
+      if (live && live !== mine) newer.current = true
+    } catch { /* offline: try again later */ }
+  })
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) void check.current() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
+  useEffect(() => {
+    if (!first.current && newer.current) { location.reload(); return } // the page just changed: a safe moment
+    first.current = false
+    void check.current()
+  }, [path])
 }
 
 function pageTitle(path: string) {

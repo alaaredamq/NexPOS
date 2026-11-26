@@ -346,7 +346,7 @@
   }
 
   // ================================================================== light or dark (remembered on this device)
-  const TOUCHY = () => matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
+  const TOUCHY = () => navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
   const toggles = [...document.querySelectorAll('[data-theme-toggle]')]
   const labelToggles = () => toggles.forEach((b) => b.setAttribute('aria-label', root.dataset.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'))
   const setTheme = (theme) => {

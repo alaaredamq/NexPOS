@@ -255,7 +255,7 @@ export function useTheme() {
     const x = r.left + r.width / 2, y = r.top + r.height / 2
     const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
     // Phones: no page snapshots (their sliding toolbars made the page jump). The page stays in view and its colours fade.
-    const touchy = matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
+    const touchy = navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
     if (touchy || !doc.startViewTransition) {
       const html = document.documentElement
       html.classList.add('theme-fade')
