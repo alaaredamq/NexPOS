@@ -37,7 +37,7 @@
             <h1>Every branch, <em>in sight.</em></h1>
             <p>See which shops are connected, who is due to renew, and the hours a shop's PC went quiet.</p>
             <ol class="pulse" aria-hidden="true">
-                @for (var i = 0; i < sample.Length; i++) { <li class="@(sample[i] == 1 ? "on" : "off")"></li> }
+                @for (var i = 0; i < sample.Length; i++) { <li class="@(sample[i] == 1 ? "on" : "off")" style="--i:@i"></li> }
             </ol>
         </div>
         <small class="muted" style="color:var(--rail-ink);opacity:.7">For the provider only.</small>

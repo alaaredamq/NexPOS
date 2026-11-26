@@ -20,7 +20,7 @@ public static class PublicSite
 
     /// <summary>Paths crawlers are asked to stay out of: the provider portal, the owner website and every API.</summary>
     private static readonly string[] Private =
-        ["/admin", "/Enroll", "/enroll", "/owner", "/api/", "/healthz"];
+        ["/admin", "/console", "/Enroll", "/enroll", "/owner", "/api/", "/healthz"];
 
     /// <summary>Portal folders that used to sit at the root; old bookmarks are sent to their /admin address.</summary>
     private static readonly string[] OldPortalFolders = ["/Account", "/Clients", "/Sites"];

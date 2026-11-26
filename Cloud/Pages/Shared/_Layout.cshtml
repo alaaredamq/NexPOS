@@ -3,15 +3,35 @@
     var nav = ViewData["Nav"] as string;
     var flash = ViewContext.TempData["Flash"] as string;
     var user = User.Identity?.Name ?? "";
+    var title = ViewData["Title"] as string;
+    // The Coduo Cloud mark's frame, from coduo-cloud-brand-kit/mark/svg (used by the rail and the opening).
+    const string cloudPath = "M-20 18A14 14 0 0 1 -20.97 -9.97A19 19 0 0 1 16.43 -13.6A16 16 0 0 1 20 18Z";
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#050a1c" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>@(ViewData["Title"] is string t ? t + " · " : "")Coduo POS Cloud</title>
+    <title>@(title is not null ? title + " · " : "")Coduo POS Cloud</title>
+    @* Motion switches, set before the first paint so nothing flashes: fx (animate), fx-wait (hold the page until fx.js has marked
+       it), intro (the opening: once a session, and again after each sign-in; add ?intro to the address to see it again).
+       If fx.js never runs, the page shows as it is after 2.5 s. The theme (dark unless this device chose light) is set here too. *@
+    <script>
+        (function (d, canIntro) {
+            var theme = 'dark';
+            try { theme = localStorage.getItem('coduo.theme') === 'light' ? 'light' : 'dark'; } catch (e) { }
+            d.setAttribute('data-theme', theme);
+            if (theme === 'light') document.querySelector('meta[name=theme-color]').setAttribute('content', '#eef2fb');
+            if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { d.className += ' fx-calm'; return; }
+            d.className += ' fx fx-wait';
+            try { if (canIntro && (/[?&]intro\b/.test(location.search) || !sessionStorage.getItem('coduo.intro'))) d.className += ' fx-intro'; } catch (e) { }
+            setTimeout(function () { if (!window.__fx) { window.__fxGaveUp = true; d.classList.remove('fx-wait', 'fx-intro'); } }, 2500);
+            setTimeout(function () { d.classList.remove('fx-intro'); }, 9000);
+        })(document.documentElement, @(bare ? "false" : "true"));
+    </script>
     <link rel="icon" href="~/cloud-icon.svg" type="image/svg+xml" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,9 +39,15 @@
     <link rel="stylesheet" href="~/cloud.css" asp-append-version="true" />
 </head>
 <body>
+<div class="fx-bg" aria-hidden="true">
+    <div class="fx-orb o1"></div><div class="fx-orb o2"></div><div class="fx-orb o3"></div>
+    <div class="fx-grid"></div>
+    <canvas class="fx-stars"></canvas>
+</div>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     @* The Coduo Cloud mark, "for dark" colours from coduo-cloud-brand-kit/mark/svg. *@
-    <symbol id="i-mark" viewBox="-138 -146 276 276"><g transform="scale(3)"><g transform="translate(-1.12 5) scale(1.12)"><path d="M-20 18A14 14 0 0 1 -20.97 -9.97A19 19 0 0 1 16.43 -13.6A16 16 0 0 1 20 18Z" fill="none" stroke="#6D8DF0" stroke-width="7.143" stroke-linejoin="round"/></g><circle cx="-9.5" cy="1.64" r="5.5" fill="#3DDBCB"/><circle cx="9.5" cy="1.64" r="5.5" fill="#3DDBCB"/></g></symbol>
+    <symbol id="i-mark" viewBox="-138 -146 276 276"><g transform="scale(3)"><g transform="translate(-1.12 5) scale(1.12)"><path d="@cloudPath" fill="none" stroke="#6D8DF0" stroke-width="7.143" stroke-linejoin="round"/></g><circle cx="-9.5" cy="1.64" r="5.5" fill="#3DDBCB"/><circle cx="9.5" cy="1.64" r="5.5" fill="#3DDBCB"/></g></symbol>
     <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/><path d="M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
@@ -35,18 +61,71 @@
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
     <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M17 6l3 3M14 9l2.5 2.5"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.5A8.5 8.5 0 019.5 3.5a8.5 8.5 0 1011 11z"/></symbol>
 </svg>
+@{
+    // One switch: in the rail when signed in, floating in the corner on the bare pages (sign in, connect link).
+    var toggle = "<button type=\"button\" class=\"theme-toggle" + (bare ? " float" : "") + "\" data-theme-toggle aria-label=\"Switch to light mode\" title=\"Light or dark\"><svg class=\"icon t-sun\" aria-hidden=\"true\"><use href=\"#i-sun\"/></svg><svg class=\"icon t-moon\" aria-hidden=\"true\"><use href=\"#i-moon\"/></svg></button>";
+}
 
 @if (bare)
 {
+    @Html.Raw(toggle)
     @RenderBody()
 }
 else
 {
+    @* The opening (fx.js drives every frame). The dark layer has a cloud-shaped hole in its mask: it starts closed, opens onto the
+       page, and grows past the screen edges as the camera flies in. *@
+    <div class="intro" id="intro" aria-hidden="true">
+        <svg class="intro-svg" viewBox="-100 -100 200 200" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <radialGradient id="ig-bg" gradientUnits="userSpaceOnUse" cx="0" cy="-10" r="190">
+                    <stop data-bg="0" offset="0" stop-color="#16295f"/><stop data-bg="1" offset=".38" stop-color="#0a1438"/><stop data-bg="2" offset="1" stop-color="#040815"/>
+                </radialGradient>
+                <filter id="ig-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.2"/></filter>
+                <filter id="ig-shine" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <mask id="ig-mask" maskUnits="userSpaceOnUse" x="-6000" y="-6000" width="12000" height="12000">
+                    <rect x="-6000" y="-6000" width="12000" height="12000" fill="#fff"/>
+                    <g data-zoom><g transform="translate(0 -12) scale(.95)"><path data-hole transform="translate(-1.12 5) scale(1.12)" d="@cloudPath" fill="#fff"/></g></g>
+                </mask>
+            </defs>
+            <g mask="url(#ig-mask)">
+                <rect x="-6000" y="-6000" width="12000" height="12000" fill="url(#ig-bg)"/>
+                <circle data-ring cx="0" cy="-10" r="30" fill="none" stroke="#3ddbcb" stroke-width=".35" opacity="0"/>
+                <circle data-ring cx="0" cy="-10" r="30" fill="none" stroke="#6d8df0" stroke-width=".35" opacity="0"/>
+                <circle data-ring cx="0" cy="-10" r="30" fill="none" stroke="#3ddbcb" stroke-width=".35" opacity="0"/>
+                <g data-reticle opacity="0">
+                    <circle cx="0" cy="-10" r="56" fill="none" stroke="#6d8df0" stroke-width=".45" stroke-dasharray=".7 2.6"/>
+                    <circle cx="0" cy="-10" r="62" fill="none" stroke="#6d8df0" stroke-width=".25" stroke-opacity=".5"/>
+                    <g data-arc><path d="M-43.8 -53.8A62 62 0 0 1 43.8 -53.8" fill="none" stroke="#3ddbcb" stroke-width=".9" stroke-linecap="round"/><path d="M43.8 33.8A62 62 0 0 1 -43.8 33.8" fill="none" stroke="#3ddbcb" stroke-width=".5" stroke-linecap="round" stroke-opacity=".6"/></g>
+                </g>
+            </g>
+            <g data-zoom>
+                <g data-tilt>
+                    <g transform="translate(0 -12) scale(.95)">
+                        <g transform="translate(-1.12 5) scale(1.12)">
+                            <path data-glow d="@cloudPath" fill="none" stroke="#7d9bff" stroke-width="7.143" stroke-linejoin="round" stroke-linecap="round" pathLength="100" filter="url(#ig-blur)" opacity="0" style="stroke-dasharray:100;stroke-dashoffset:100"/>
+                            <path data-cloud d="@cloudPath" fill="none" stroke="#6d8df0" stroke-width="7.143" stroke-linejoin="round" stroke-linecap="round" pathLength="100" style="stroke-dasharray:100;stroke-dashoffset:100"/>
+                        </g>
+                        <g data-eyes filter="url(#ig-shine)">
+                            <circle data-eye="l" cx="-9.5" cy="1.64" r="5.5" fill="#3ddbcb" transform="scale(0)"/>
+                            <circle data-eye="r" cx="9.5" cy="1.64" r="5.5" fill="#3ddbcb" transform="scale(0)"/>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </svg>
+        <div class="intro-scan"></div>
+        <div class="intro-word"><b>CODUO</b><span>CLOUD</span></div>
+        <div class="intro-hint">Click to skip</div>
+    </div>
+
     <div class="shell">
         <aside class="rail">
             <a class="brand" href="/admin" aria-label="Coduo Cloud, clients">
-                <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
+                <svg class="mark" viewBox="-138 -146 276 276" aria-hidden="true"><g transform="scale(3)"><g data-face><g transform="translate(-1.12 5) scale(1.12)"><path d="@cloudPath" fill="none" stroke="#6D8DF0" stroke-width="7.143" stroke-linejoin="round"/></g><g data-look><circle class="eye l" cx="-9.5" cy="1.64" r="5.5" fill="#3DDBCB"/><circle class="eye r" cx="9.5" cy="1.64" r="5.5" fill="#3DDBCB"/></g></g></g></svg>
                 <span><b>Coduo</b><span>Cloud</span></span>
             </a>
             <nav aria-label="Main">
@@ -55,16 +134,24 @@ else
                 <a href="/admin/Finance" aria-current="@(nav == "finance" ? "page" : null)"><svg class="icon"><use href="#i-chart"/></svg><span class="t">Finance</span></a>
                 <a href="/admin/Clients/Create" aria-current="@(nav == "new" ? "page" : null)"><svg class="icon"><use href="#i-plus"/></svg><span class="t">New client</span></a>
             </nav>
+            <a class="ext" href="/console/"><svg class="icon"><use href="#i-chart"/></svg><span class="t">New console (React)</span></a>
             <a class="ext" href="/owner" target="_blank" rel="noopener"><svg class="icon"><use href="#i-link"/></svg><span class="t">Owner website</span></a>
             <div class="who">
                 <span class="avatar" aria-hidden="true">@(user.Length > 0 ? user[..1] : "?")</span>
                 <span class="who-name">@user<small>Provider</small></span>
+                @Html.Raw(toggle)
                 <form method="post" asp-page="/Account/Login" asp-page-handler="Logout">
                     <button type="submit" aria-label="Sign out" title="Sign out"><svg class="icon"><use href="#i-out"/></svg></button>
                 </form>
             </div>
         </aside>
         <main id="main">
+            <div class="hud" aria-hidden="true">
+                <span class="live"><i></i>Provider console</span>
+                <span class="path">Coduo Cloud / <b>@title</b></span>
+                <span class="line"></span>
+                <span class="clock" data-clock></span>
+            </div>
             @RenderBody()
         </main>
     </div>
@@ -73,7 +160,7 @@ else
 <div class="toasts" role="status" aria-live="polite">
     @if (!string.IsNullOrEmpty(flash))
     {
-        <div class="toast" data-flash><svg class="icon" style="color:var(--tag)"><use href="#i-check"/></svg><span>@flash</span></div>
+        <div class="toast" data-flash><svg class="icon"><use href="#i-check"/></svg><span>@flash</span></div>
     }
 </div>
 
@@ -87,5 +174,6 @@ else
 </dialog>
 
 <script src="~/cloud.js" asp-append-version="true"></script>
+<script src="~/fx.js" asp-append-version="true"></script>
 </body>
 </html>

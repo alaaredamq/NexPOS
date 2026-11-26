@@ -8,6 +8,10 @@
   var params = new URLSearchParams(location.search);
   var CLIENT = params.get('client');
   var ADMIN = !!CLIENT && /^\d+$/.test(CLIENT);
+  // Opened from the React console (/console): it signs in with the admin token instead of the old portal cookie.
+  var FROM_CONSOLE = ADMIN && params.get('from') === 'console';
+  var CONSOLE_TOKEN = null;
+  try { CONSOLE_TOKEN = FROM_CONSOLE ? localStorage.getItem('coduo.console.token') : null; } catch (e) {}
   var session = null;
   try { session = JSON.parse(localStorage.getItem('coduo-owner')); } catch (e) {}
   var lang = 'en';
@@ -214,7 +218,7 @@
   function api(method, path, body, blob) {
     var url = '/menu/v1' + path + (ADMIN ? (path.indexOf('?') > -1 ? '&' : '?') + 'client=' + CLIENT : '');
     var headers = { Accept: 'application/json' };
-    if (ADMIN) headers['X-Coduo-Menu'] = '1';
+    if (ADMIN) { headers['X-Coduo-Menu'] = '1'; if (CONSOLE_TOKEN) headers.Authorization = 'Bearer ' + CONSOLE_TOKEN; }
     else if (session && session.token) headers.Authorization = 'Bearer ' + session.token;
     var init = { method: method, headers: headers, credentials: 'same-origin' };
     if (blob) { headers['Content-Type'] = blob.type || 'application/octet-stream'; init.body = blob; }
@@ -299,7 +303,7 @@
 
   function needSignIn() {
     $('#app').innerHTML = '<div class="wrap">' + bar() + '<div class="card"><h2>' + t('title') + '</h2><p class="sub">' + t('signIn') + '</p>' +
-      '<p style="margin-top:14px"><a class="btn pri" href="' + (ADMIN ? '/admin/Account/Login?ReturnUrl=' + encodeURIComponent(location.pathname + location.search) : '/owner/index.html') + '">' + t('signInBtn') + '</a></p></div></div>';
+      '<p style="margin-top:14px"><a class="btn pri" href="' + (FROM_CONSOLE ? '/console/login' : ADMIN ? '/admin/Account/Login?ReturnUrl=' + encodeURIComponent(location.pathname + location.search) : '/owner/index.html') + '">' + t('signInBtn') + '</a></p></div></div>';
     bindBar();
   }
 
@@ -356,7 +360,7 @@
   // ---- views ----
   /** The way out of the editor. A shop with no POS has nothing else on the owner website, so it gets "Sign out" rather than "back". */
   function exitHtml(cls) {
-    return ADMIN ? '<a class="' + cls + '" href="/admin/Clients/Details/' + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
+    return ADMIN ? '<a class="' + cls + '" href="' + (FROM_CONSOLE ? '/console/clients/' : '/admin/Clients/Details/') + esc(CLIENT) + '">' + ic('back', 'flip') + t('backAdmin') + '</a>'
       : session && session.hasTill === false ? '<button type="button" class="' + cls + '" data-signout>' + t('signOut') + '</button>'
       : '<a class="' + cls + '" href="/owner/index.html">' + ic('back', 'flip') + t('back') + '</a>';
   }

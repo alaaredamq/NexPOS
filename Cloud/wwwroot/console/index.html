@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#050a1c" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Coduo Cloud</title>
+  <!-- The theme is set before the first paint, so a light-mode user never sees a dark flash. -->
+  <script>
+    (function (d) {
+      var t = 'dark';
+      try { t = localStorage.getItem('coduo.theme') === 'light' ? 'light' : 'dark'; } catch (e) { }
+      d.setAttribute('data-theme', t);
+      if (t === 'light') document.querySelector('meta[name=theme-color]').setAttribute('content', '#eef2fb');
+    })(document.documentElement);
+  </script>
+  <link rel="icon" href="/cloud-icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" />
+  <!-- One look for both portals: the Cloud's own stylesheet. -->
+  <link rel="stylesheet" href="/cloud.css" />
+  <script type="module" crossorigin src="/console/assets/index-DJ7ACEAB.js"></script>
+  <link rel="stylesheet" crossorigin href="/console/assets/index-BCBXuA--.css">
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

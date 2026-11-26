@@ -19,14 +19,38 @@
     var maxContacts = cells.Max(c => c.Contacts);
     var top = maxContacts <= 4 ? 4 : (int)Math.Ceiling(maxContacts / 4.0) * 4;
     var planTotal = Math.Max(1, Model.Rows.Count);
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    // Ring gauge: r = 52, so the full circle is 326.73 long (the same number is in cloud.css).
+    var share = (double)Model.Connected / Model.Rows.Count;
+    var ringOff = (326.73 * (1 - share)).ToString("0.##", inv);
+    // Donut: r = 42, so 263.89 around; one segment per plan state, as a share of all clients, with a small gap between segments.
+    var segs = new[] { (Model.PlansActive, "var(--data)"), (Model.PlansEnding, "var(--amber)"), (Model.PlansEnded, "var(--bad)") }.Where(s => s.Item1 > 0).ToList();
+    var segGap = segs.Count > 1 ? 3.0 : 0.0;
+    var segStart = 0.0;
     <div class="g">
         <section class="card s8" aria-labelledby="h-contact">
             <div class="ph">
                 <h2 id="h-contact">Shops in contact</h2>
                 <span class="pill @(Model.Connected == Model.Rows.Count ? "ok" : "warn")">@Model.Overall.LitHours of the last 24 hours had contact</span>
             </div>
-            <div class="big">@Model.Connected <span class="of">of @Model.Rows.Count clients</span></div>
-            <p class="muted" style="margin:6px 0 0">have a shop PC connected and sending data.</p>
+            <div class="hero-row">
+                <div class="ring-wrap" aria-hidden="true">
+                    <svg class="ring" viewBox="0 0 120 120">
+                        <defs>
+                            <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8aa5ff"/><stop offset="1" stop-color="#3ddbcb"/></linearGradient>
+                            <filter id="ring-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        </defs>
+                        <circle class="ring-track" cx="60" cy="60" r="52"/>
+                        <circle class="ring-ticks" cx="60" cy="60" r="41"/>
+                        <circle class="ring-fill" cx="60" cy="60" r="52" stroke-dasharray="326.73" filter="url(#ring-glow)" style="--off:@ringOff"/>
+                    </svg>
+                    <span class="ring-val"><b>@((int)Math.Round(share * 100))</b><small>% online</small></span>
+                </div>
+                <div>
+                    <div class="big">@Model.Connected <span class="of">of @Model.Rows.Count clients</span></div>
+                    <p class="muted" style="margin:8px 0 0">have a shop PC connected and sending data.</p>
+                </div>
+            </div>
             <div class="chart" dir="ltr" role="img" aria-label="Contacts from all shops in each of the last 24 hours">
                 <div class="yax">
                     @foreach (var v in new[] { 0, top / 2, top }) { <span style="bottom:@((v * 100.0 / top).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%">@v</span> }
@@ -46,17 +70,29 @@
                 </div>
             </div>
         </section>
-        <section class="card s4" aria-labelledby="h-plans">
+        <section class="card s4 plans-card" aria-labelledby="h-plans">
             <div class="ph"><h2 id="h-plans">Online plans</h2></div>
-            <div class="stack" role="img" aria-label="Plans: @Model.PlansActive active, @Model.PlansEnding ending soon, @Model.PlansEnded ended">
-                <i style="width:@((Model.PlansActive * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:var(--data)"></i>
-                <i style="width:@((Model.PlansEnding * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:#e0a526"></i>
-                <i style="width:@((Model.PlansEnded * 100.0 / planTotal).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture))%;background:var(--bad)"></i>
-            </div>
-            <div>
-                <div class="pr"><span class="sw" style="background:var(--data)"></span><span class="nm">Active</span><span class="am">@Model.PlansActive</span></div>
-                <div class="pr"><span class="sw" style="background:#e0a526"></span><span class="nm">Ends within 14 days</span><span class="am">@Model.PlansEnding</span></div>
-                <div class="pr"><span class="sw" style="background:var(--bad)"></span><span class="nm">Ended or not started</span><span class="am">@Model.PlansEnded</span></div>
+            <div class="donut-row">
+                <div class="donut-wrap">
+                    <svg class="donut" viewBox="0 0 120 120" role="img" aria-label="Plans: @Model.PlansActive active, @Model.PlansEnding ending soon, @Model.PlansEnded ended, of @Model.Rows.Count clients">
+                        <defs><filter id="donut-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                        <circle class="donut-track" cx="60" cy="60" r="42"/>
+                        <g filter="url(#donut-glow)">
+                            @for (var i = 0; i < segs.Count; i++)
+                            {
+                                var full = 263.89 * segs[i].Item1 / planTotal;
+                                <circle class="seg" cx="60" cy="60" r="42" style="stroke:@(segs[i].Item2);--i:@i;--len:@(Math.Max(0.5, full - segGap).ToString("0.##", inv));--off:@((-segStart).ToString("0.##", inv))"/>
+                                segStart += full;
+                            }
+                        </g>
+                    </svg>
+                    <span class="donut-val"><b>@Model.PlansActive</b><small>active</small></span>
+                </div>
+                <div class="legend-list">
+                    <div class="pr"><span class="sw" style="background:var(--data)"></span><span class="nm">Active</span><span class="am">@Model.PlansActive</span></div>
+                    <div class="pr"><span class="sw" style="background:var(--amber)"></span><span class="nm">Ends within 14 days</span><span class="am">@Model.PlansEnding</span></div>
+                    <div class="pr"><span class="sw" style="background:var(--bad)"></span><span class="nm">Ended or not started</span><span class="am">@Model.PlansEnded</span></div>
+                </div>
             </div>
             <div class="kv">
                 <div><b>@Model.ProductsTotal.ToString("N0")</b><span>products held</span></div>

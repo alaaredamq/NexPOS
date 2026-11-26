@@ -895,3 +895,50 @@ Release APK still debug-signed.
 
 **Not done:** staff cannot be added from the phone (the provider adds them in the portal, on the owner's request); the cash drawer cannot be
 opened, counted or closed from the phone (read only); the till's "expected cash" still counts card sales as cash.
+
+## 2026-11-26 — Cloud admin portal: "glass console" redesign with an opening animation
+
+**Why:** the owner asked for the admin panel to look futuristic, with a lot of motion: start on the cloud logo with its eyes winking, zoom
+smoothly into it while the site appears, and animate every number and graph; glass look.
+
+- **Look** (`Cloud/wwwroot/cloud.css`, rewritten): dark navy room, frosted-glass cards, the rail floats as a glass panel; light comes from
+  the logo (periwinkle #6D8DF0 frame, teal #3DDBCB eyes). Every class name of the old light theme is kept, so pages and tests did not change
+  shape. Card titles are small mono capitals; big numbers use a white-to-teal gradient. The connection slip stays paper on purpose.
+- **Opening** (`Cloud/wwwroot/fx.js` + markup in `_Layout.cshtml`): the cloud draws itself, eyes pop open, blink, the right one winks while
+  the cloud tilts, then the cloud becomes a window onto the page (an SVG mask hole) and the camera flies in through it (~4.5 s). Plays once
+  per browser session and again after each sign-in (the login page clears `sessionStorage["coduo.intro"]`); add `?intro` to any admin
+  address to replay it. A click, key or scroll skips ahead. Reduced-motion users get no intro and no animation at all.
+- **Motion on every page:** blocks glide in as they scroll into view; numbers count up (dates are left alone); bars grow, meters fill, the
+  24-hour strips light up cell by cell; a line with a glowing "now" dot is drawn over the contact chart; a star field reaches for the
+  pointer; glass edges light up near the pointer; the rail highlight slides between links (and from the last page's link); the logo's eyes
+  follow the pointer and close while a password is typed; a ticking console clock; toasts slide in and out.
+- **Dashboard markup:** a ring gauge (% of clients online) beside the big number, and a donut for Online plans (replaces the stacked bar).
+- **Safety:** `<head>` sets `html.fx/fx-wait/fx-intro` before the first paint; if fx.js has not run after 2.5 s the page shows as it is.
+  Print shows every block. Trap found while testing: the page class must not be called `intro` (the overlay's `.intro {display:none}`
+  matched `<html>` and hid the whole page); it is `fx-intro`.
+- Checked in a browser on a throwaway Cloud (port 5199, scratch DataRoot, demo data): sign-in, the opening frame by frame, Clients,
+  Finance, Licences, client and branch pages, New client, phone width, reduced motion; no console errors. `Cloud.Tests`: 395/395 pass.
+
+## 2026-11-26 (later) — Light mode, livelier logo face, and the React provider console (/console)
+
+**Why:** the owner wanted a light mode, a cloud face that follows the cursor more, and then said the Razor portal felt buggy moving
+between pages (full reloads; cards sometimes appeared at once instead of one after the other) and asked for React.
+
+- **Light mode** (both portals): `cloud.css` colours go through channel variables (`--hi`, `--fg-rgb`, `--line-rgb`, `--deep-rgb`,
+  `--well-rgb`) plus a `[data-theme="light"]` block. Switch in the rail (floating on sign-in), remembered per device
+  (`localStorage["coduo.theme"]`), dark by default; the new theme spreads in a circle from the button (View Transitions).
+- **Logo face:** eyes move up to 8/6 units toward the pointer and the whole cloud leans/turns (`[data-face]`), eased per frame.
+- **React console** — new folder `cloud-console/` (Vite + React 19 + TypeScript + react-router + TanStack Query + motion), built into
+  `Cloud/wwwroot/console/` (`npm run build` in cloud-console; the built files are committed so a publish always ships them).
+  Served at `/console` by `MapFallbackToFile("/console/{**path:nonfile}")` in Program.cs (no-cache, public files: all data comes
+  from the admin API). Signs in through `/api/admin/v1/auth/login` like the phone app (token in `localStorage["coduo.console.token"]`),
+  so the API security did not change. Every page of the old portal: Clients dashboard, client (subscription, branches, licences,
+  payments, menu, phone logins, details, history), branch (link slip, disconnect, resync, disable, rename, tokens, uploads, remove),
+  New client, Licences (issue/renew, link, record, import), Finance (period, KPIs, chart, budget, breakdowns, renewals, forms, list, CSV).
+  The rail, background and stars never reload; pages fade; cards enter in order from one motion timeline (`Stagger`/`Item` in fx.tsx),
+  which fixes the "some cards show at once" bug. Numbers count up, charts/rings/donuts draw, the opening is a React port.
+- `/admin` (Razor) stays as it was, with a "New console (React)" rail link, until the owner approves switching `/admin` to the console.
+  `robots.txt` hides `/console`. The menu editor accepts the console token (`?from=console`).
+- Found and fixed: duplicate `id="phone"` on the client page (logins heading vs phone field; the Razor page still has it).
+- Checked in a browser on a throwaway Cloud: sign-in, opening, every page, page changes, add months, payment, phone login, new client
+  with link slip, light mode, back button, phone width, menu editor from the console; no errors. `Cloud.Tests` pass.

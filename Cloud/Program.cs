@@ -156,6 +156,14 @@ app.MapEnrollApi();
 app.MapMenuApi();
 app.MapPublicSite();
 app.MapAdminApi();
+// The provider console: a React app (source in cloud-console/, built into wwwroot/console). Its files are public on purpose: they
+// hold no data. Everything it shows comes from the admin API above, which needs a sign-in token. Any /console/... address the app
+// owns (a client page, Finance) is answered with its index.html, never cached, so a publish reaches the browser at once.
+// "/console" and "/console/" both match (an empty catch-all), so there is no redirect to loop on.
+app.MapFallbackToFile("/console/{**path:nonfile}", "console/index.html", new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "no-cache",
+}).AllowAnonymous();
 app.MapRazorPages();
 
 app.Run();

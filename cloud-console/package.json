@@ -1,0 +1,26 @@
+{
+  "name": "coduo-cloud-console",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The provider console of Coduo Cloud (/console): React on top of the admin API (/api/admin/v1). Builds into Cloud/wwwroot/console.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5",
+    "motion": "^12",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-router-dom": "^7"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6",
+    "typescript": "~6.0.2",
+    "vite": "^8"
+  }
+}

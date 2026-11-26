@@ -74,3 +74,6 @@ Cloud/cloud.settings.json
 
 # Cloud publish settings (admin login, database password): local only
 Cloud/deploy/cloud.settings.json
+
+# Provider console (cloud-console/): TypeScript build cache
+cloud-console/*.tsbuildinfo

@@ -47,8 +47,11 @@ if (dialog) {
   })
 }
 
-// ---- toast: disappears by itself ----
-document.querySelectorAll('[data-flash]').forEach((toast) => setTimeout(() => toast.remove(), 6000))
+// ---- toast: slides away by itself ----
+document.querySelectorAll('[data-flash]').forEach((toast) => setTimeout(() => {
+  toast.classList.add('out')
+  setTimeout(() => toast.remove(), 450)
+}, 6000))
 
 // ---- client list: search and filter chips (the server already sent every row) ----
 const list = document.querySelector('[data-list]')
