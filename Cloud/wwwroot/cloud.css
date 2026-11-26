@@ -850,9 +850,7 @@ html.theme-switching .rail { view-transition-name: none; }
   .nav-glow { height: 40px; }
 }
 
-/* Theme change on phones: the page stays in view and every colour fades to the new theme (fx.js adds this class for .7 s).
-   The page-snapshot wipe used on computers made the page jump on phones, whose toolbars slide in and out. */
-html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
-  transition: background-color .6s ease, color .6s ease, border-color .6s ease, fill .6s ease, stroke .6s ease, box-shadow .6s ease,
-    opacity .6s ease, -webkit-text-fill-color .6s ease, stop-color .6s ease !important;
-}
+/* Theme change on phones (fx.js copyWipe): a copy of the page, in the light theme, lies over the page while the circle is cut
+   through it. The page-snapshot wipe used on computers made the page jump on phones, whose toolbars slide in and out. */
+.theme-wipe { position: fixed; inset: 0; z-index: 3000; pointer-events: none; overflow: hidden; background: var(--void); color: var(--ink); font: 15px/1.55 var(--body); }
+html.theme-instant, html.theme-instant *, html.theme-instant *::before, html.theme-instant *::after { transition: none !important; }

@@ -346,6 +346,45 @@
   }
 
   // ================================================================== light or dark (remembered on this device)
+  // Phones: the circle wipe without page snapshots (those made the page jump as the phone's toolbars slid in and out). A copy of
+  // the page is laid over it and the circle is cut through that copy. The light theme's rules apply to everything inside a light
+  // element, so the copy can only wear light over a dark page: going to light, a light copy's circle grows over the dark page;
+  // going to dark, the page turns dark under a light copy and a growing hole in the copy shows it. Both look the same.
+  const copyWipe = (x, y, end, next, apply) => {
+    const cover = Object.assign(document.createElement('div'), { className: 'theme-wipe' })
+    cover.dataset.theme = 'light'
+    cover.setAttribute('aria-hidden', 'true')
+    for (const src of document.querySelectorAll('.fx-bg, .shell, .auth, .theme-toggle.float')) {
+      const copy = src.cloneNode(true)
+      if (getComputedStyle(src).position !== 'fixed') {
+        const r = src.getBoundingClientRect()
+        Object.assign(copy.style, { position: 'absolute', top: r.top + 'px', left: r.left + 'px', width: r.width + 'px', margin: '0', transform: 'none' })
+      }
+      const canvases = copy.querySelectorAll('canvas')
+      src.querySelectorAll('canvas').forEach((c, i) => { try { canvases[i].getContext('2d').drawImage(c, 0, 0) } catch { } })
+      cover.append(copy)
+    }
+    document.body.append(cover)
+    // A sticky bar does not stick inside the copy: move it to where it is on screen.
+    const rail = document.querySelector('.shell .rail'), copyRail = cover.querySelector('.rail')
+    if (rail && copyRail) copyRail.style.transform = `translateY(${rail.getBoundingClientRect().top - copyRail.getBoundingClientRect().top}px)`
+    const toLight = next === 'light'
+    const W = innerWidth, H = innerHeight
+    const shape = (r) => toLight ? `circle(${r}px at ${x}px ${y}px)`
+      : `path(evenodd, "M0 0H${W}V${H}H0Z M${x - r} ${y}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z")`
+    cover.style.clipPath = shape(0)
+    root.classList.add('theme-instant') // colours change at once under the copy: no transitions to catch up afterwards
+    if (!toLight) apply('dark')
+    const t0 = performance.now()
+    const frame = (now) => {
+      const p = Math.min(1, (now - t0) / 750)
+      cover.style.clipPath = shape(end * (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2))
+      if (p < 1) { requestAnimationFrame(frame); return }
+      if (toLight) apply('light')
+      requestAnimationFrame(() => requestAnimationFrame(() => { cover.remove(); root.classList.remove('theme-instant') }))
+    }
+    requestAnimationFrame(frame)
+  }
   const TOUCHY = () => navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches || matchMedia('(hover: none)').matches || innerWidth < 860
   const toggles = [...document.querySelectorAll('[data-theme-toggle]')]
   const labelToggles = () => toggles.forEach((b) => b.setAttribute('aria-label', root.dataset.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'))
@@ -365,14 +404,7 @@
     const x = r.left + r.width / 2, y = r.top + r.height / 2
     const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
     // Phones: no page snapshots (their sliding toolbars made the page jump). The page stays in view and its colours fade.
-    if (TOUCHY() || !document.startViewTransition) {
-      root.classList.add('theme-fade')
-      requestAnimationFrame(() => {
-        setTheme(next)
-        setTimeout(() => root.classList.remove('theme-fade'), 700)
-      })
-      return
-    }
+    if (TOUCHY() || !document.startViewTransition) { copyWipe(x, y, end, next, setTheme); return }
     root.classList.add('theme-switching')
     const vt = document.startViewTransition(() => setTheme(next))
     vt.ready.then(() => root.animate(
