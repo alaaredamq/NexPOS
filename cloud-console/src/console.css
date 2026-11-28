@@ -53,3 +53,104 @@ button.item { width: 100%; border: 0; background: transparent; font: inherit; te
 .result { margin-top: 12px; }
 select.inline { width: auto; min-height: 38px; padding: 4px 30px 4px 10px; }
 .nf { padding: 60px 20px; text-align: center; }
+
+/* Online menus: a row is not one link (it has its own buttons), so it gets its own columns and no row-wide pointer. */
+/* The buttons' column has one width on every row (a row without a menu has no preview button), so the columns line up. */
+.list-head.mrow, .item.mrow { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 1.1fr) 92px 284px; }
+.item.mrow { cursor: default; }
+.item.mrow a.name { text-decoration: none; }
+.item.mrow a.name:hover { color: var(--tag); }
+.mrow-acts { display: flex; gap: 6px; align-items: center; }
+.mrow-acts .btn.sm { min-height: 36px; padding: 0 12px; }
+.mrow-acts .btn.ghost { padding: 0 10px; }
+@media (max-width: 960px) {
+  .item.mrow { grid-template-columns: minmax(0, 1fr); }
+  .item.mrow .mrow-acts { grid-column: 1 / -1; flex-wrap: wrap; }
+}
+
+/* Import dishes from Excel: the confirm dialog's glass, wider, with two numbered steps and the check's findings. */
+.c-dialog.mi { max-width: 620px; max-height: calc(100dvh - 32px); overflow-y: auto; outline: none; }
+.mi-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.mi-head h3 { margin-bottom: 4px; }
+.mi-head .muted { margin: 0; }
+.mi-x { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: rgb(var(--fg-rgb) / .04); color: var(--ink-2); cursor: pointer; transition: color .2s, border-color .2s; }
+.mi-x:hover { color: var(--hi); border-color: rgb(var(--line-rgb) / .5); }
+.mi-steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.mi-steps li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding: 16px; border: 1px solid var(--line-2); border-radius: 16px; background: rgb(var(--fg-rgb) / .025); }
+.mi-steps b { color: var(--hi); font: 600 15px var(--display); }
+.mi-steps .help { margin: 4px 0 12px; }
+.mi-n { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font: 600 13px var(--mono); color: #051229; background: var(--grad); box-shadow: 0 6px 18px -8px rgb(61 219 203 / .8); }
+[data-theme="light"] .mi-n { color: #fff; }
+.mi-file { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mi-name { font: 500 13px var(--mono); color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mi-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.mi-sum > div { padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 14px; background: rgb(var(--fg-rgb) / .03); }
+.mi-sum b { display: block; font: 600 24px var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--hi); }
+.mi-sum span { color: var(--muted); font-size: 12.5px; }
+.mi-sum .bad b { color: var(--bad); }
+@media (max-width: 520px) { .mi-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mi-issues { margin-top: 14px; max-height: 240px; overflow: auto; border: 1px solid var(--line-2); border-radius: 14px; }
+.mi-issues table.t th { position: sticky; top: 0; background: rgb(var(--well-rgb) / .96); }
+[data-theme="light"] .mi-issues table.t th { background: #fff; }
+.mi-issues table.t td .pill { margin-inline-end: 6px; }
+.mi-issues .help { padding: 0 10px 10px; }
+.mi-bad { display: flex; gap: 10px; align-items: flex-start; margin: 16px 0 0; border-color: rgb(255 107 133 / .35); background: var(--bad-bg); }
+.mi-bad .icon { flex: none; color: var(--bad); margin-top: 2px; }
+.mi-ok { display: flex; gap: 10px; align-items: center; margin: 0; color: var(--ok); font-weight: 600; }
+
+/* The review: wider, the totals, then every dish by section; each one opens into a small form. */
+.c-dialog.mi.wide { max-width: 940px; }
+.mi-sp { flex: 1; }
+.c-dialog.mi .row .btn.ghost { margin-inline-end: auto; }
+.mi-sum .good b { background: var(--grad-text); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mi-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-top: 14px; }
+.mi-bar .help { margin: 0; flex: 1 1 280px; }
+.mi-bar .chip { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.icon.mi-inline { width: 14px; height: 14px; vertical-align: -2px; }
+.mi-list { margin-top: 14px; max-height: min(52vh, 560px); overflow-y: auto; padding-inline-end: 4px; display: grid; gap: 14px; }
+.mi-list[aria-busy="true"] { opacity: .6; transition: opacity .2s; }
+.mi-sec h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font: 500 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); position: sticky; top: 0; z-index: 1; padding: 6px 0; background: rgb(var(--well-rgb) / .97); }
+[data-theme="light"] .mi-sec h4 { background: #fff; }
+.mi-sec h4 .pill { text-transform: none; letter-spacing: 0; }
+.mi-sec h4 .n { margin-inline-start: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mi-sec ul { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; }
+.mi-dish { display: grid; grid-template-columns: minmax(0, 1fr) auto 92px auto; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line-2); transition: background-color .2s; }
+.mi-sec li:first-child { border-top: 0; }
+.mi-dish:hover { background: rgb(109 141 240 / .05); }
+.mi-dish.skip { background: linear-gradient(90deg, rgb(255 107 133 / .07), transparent 70%); }
+.mi-dish.same { opacity: .7; }
+.mi-dish > .pill { justify-self: start; }
+.mi-main { min-width: 0; display: grid; gap: 2px; }
+.mi-main b { color: var(--hi); font-weight: 600; }
+.mi-main small { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mi-flags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.mi-flags .pill { font-size: 11px; }
+.mi-msg { display: flex; gap: 6px; align-items: flex-start; margin: 4px 0 0; font-size: 12.5px; color: var(--warn); }
+.mi-msg.bad { color: var(--bad); }
+.mi-msg .icon { flex: none; width: 14px; height: 14px; margin-top: 2px; }
+.mi-price { display: grid; justify-items: end; text-align: end; font-variant-numeric: tabular-nums; }
+.mi-price b { color: var(--ink); font-weight: 600; }
+.mi-price b.bad { color: var(--bad); text-decoration: underline wavy rgb(255 107 133 / .6); text-underline-offset: 3px; }
+.mi-price small { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.mi-acts { display: flex; gap: 4px; }
+.mi-ib { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; transition: color .2s, border-color .2s, background-color .2s; }
+.mi-ib:hover:not(:disabled) { color: var(--hi); border-color: var(--line); background: rgb(var(--fg-rgb) / .05); }
+.mi-ib:disabled { opacity: .35; cursor: default; }
+.mi-ib .icon { width: 17px; height: 17px; }
+.mi-edit { padding: 4px 14px 14px; border-top: 1px solid var(--line-2); background: linear-gradient(180deg, rgb(61 219 203 / .06), rgb(109 141 240 / .03)); box-shadow: inset 3px 0 0 var(--tag); }
+.mi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; }
+.mi-grid .span2 { grid-column: span 2; }
+.mi-grid .span3 { grid-column: 1 / -1; }
+.mi-grid label { margin: 12px 0 5px; font-size: 12.5px; }
+.mi-edit .row { justify-content: flex-end; margin-top: 14px; }
+.mi-none { text-align: center; padding: 20px; }
+@media (max-width: 640px) {
+  .mi-dish { grid-template-columns: minmax(0, 1fr) auto; }
+  .mi-dish > .pill { grid-row: 2; }
+  .mi-dish .mi-acts { grid-row: 2; justify-self: end; }
+  .mi-grid { grid-template-columns: minmax(0, 1fr); }
+  .mi-grid .span2 { grid-column: auto; }
+  .mi-list { max-height: none; overflow: visible; }
+  .c-dialog.mi .row { flex-wrap: wrap; }
+  .c-dialog.mi .row .mi-sp { display: none; }
+}

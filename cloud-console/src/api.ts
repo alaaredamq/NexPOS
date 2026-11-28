@@ -145,6 +145,43 @@ export interface Licence {
 }
 export interface Signer { state: string; ready: boolean; message: string }
 
+export type MenuState = 'none' | 'draft' | 'published'
+export interface MenuRow {
+  clientId: number; clientName: string; isActive: boolean; type: ClientType; live: boolean; state: MenuState; editorUrl: string
+  menu?: {
+    title: string; slug: string; url: string; previewUrl: string; sections: number; items: number; hidden: number; noPicture: number
+    fromPos: boolean; currency: string; updatedAtUtc: string
+  } | null
+}
+/** A dish as the file gave it, all as text (what was typed), so the review can show and fix it. typePrices: order type id -> price. */
+export interface MenuImportRow {
+  row: number; section: string; name: string; description: string; price: string
+  typePrices: Record<string, string>; hidden: string; soldOut: string
+}
+export interface MenuImportItem extends MenuImportRow {
+  status: 'add' | 'update' | 'same' | 'skip'; message?: string | null; fromPos: boolean
+  priceText?: string | null; typePriceTexts: { type: string; price: string }[]
+}
+export interface MenuImportResult {
+  applied: boolean; rows: number; added: number; updated: number; unchanged: number; skipped: number
+  newSections: string[]; issues: { row: number; message: string; skipped: boolean }[]; moreIssues: boolean
+  currency: string; sections: string[]; orderTypes: { id: number; name: string }[]; items: MenuImportItem[]
+}
+
+/** A file the API hands out behind the token: fetched, then given to the browser as a download. */
+async function download(path: string, fallbackName: string) {
+  const res = await fetch(BASE + path, { headers: { Authorization: 'Bearer ' + (auth.token ?? '') } })
+  if (res.status === 401) { onUnauthorized(); throw new ApiError(401, 'unauthorized', 'Please sign in again.') }
+  if (!res.ok) throw new ApiError(res.status, 'download_failed', 'The download did not work. Try again.')
+  const named = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(res.headers.get('Content-Disposition') ?? '')
+  const name = named ? decodeURIComponent(named[1] ?? named[2]) : fallbackName
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(await res.blob()), download: name })
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+}
+
+const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
 // ---------------------------------------------------------------- calls
 
 export const api = {
@@ -214,4 +251,13 @@ export const api = {
   importLicences: (csv: string) => send<{ added: number; alreadyKnown: number; linked: number; problems: string[] }>('POST', '/licenses/import', undefined, undefined, { body: csv, type: 'text/csv' }),
   linkLicence: (id: number, clientId: number | null, note?: string | null) => put<Licence>(`/licenses/${id}`, { clientId, note: note ?? null }),
   deleteLicence: (id: number) => del(`/licenses/${id}`),
+
+  menus: () => get<MenuRow[]>('/menus'),
+  menuTemplate: (clientId: number) => download(`/clients/${clientId}/menu/template`, 'menu-items.xlsx'),
+  /** Reads and checks the file: every row comes back with what would happen to it. Nothing is saved. */
+  checkMenuFile: (clientId: number, file: File) =>
+    send<MenuImportResult>('POST', `/clients/${clientId}/menu/import`, undefined, undefined, { body: file, type: XLSX }),
+  /** The reviewed rows, checked again (`apply` false) or saved once confirmed (`apply` true). */
+  importMenuRows: (clientId: number, rows: MenuImportRow[], apply: boolean) =>
+    send<MenuImportResult>('POST', `/clients/${clientId}/menu/import/rows`, { rows }, { apply: apply ? 'true' : null }),
 }

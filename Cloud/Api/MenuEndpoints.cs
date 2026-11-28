@@ -357,22 +357,7 @@ public static partial class MenuEndpoints
         var existing = await db.Menus.FirstOrDefaultAsync(m => m.ClientId == editor!.Client.Id);
         if (existing is not null) return Results.Json(await StateAsync(db, editor!, existing, http), SyncWire.Json);
 
-        var title = MenuRules.Clean(body?.Title, 120) ?? editor!.Client.Name;
-        var now = time.GetUtcNow().UtcDateTime;
-        var menu = new Menu
-        {
-            ClientId = editor!.Client.Id, Title = title, Slug = await MenuRules.FreeSlugAsync(db, MenuRules.SlugFrom(title)),
-            PreviewKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(12)).ToLowerInvariant(),
-            CreatedAt = now, UpdatedAt = now,
-        };
-        db.Menus.Add(menu);
-        try { await db.SaveChangesAsync(); }
-        catch (DbUpdateException)
-        {
-            // Two first clicks at once: the other request made it.
-            db.ChangeTracker.Clear();
-            menu = await db.Menus.FirstAsync(m => m.ClientId == editor.Client.Id);
-        }
+        var menu = await MenuRules.CreateAsync(db, editor!.Client, body?.Title, time.GetUtcNow().UtcDateTime);
         return Results.Json(await StateAsync(db, editor, menu, http), SyncWire.Json);
     }
 

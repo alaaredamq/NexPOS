@@ -217,6 +217,30 @@ public static partial class MenuRules
         return "menu-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant();
     }
 
+    /// <summary>
+    /// The client's one menu, made now: titled <paramref name="title"/> (or the client's name) with a free address and its own preview
+    /// key, not published. If another request made it a moment ago, that one is returned.
+    /// </summary>
+    public static async Task<Menu> CreateAsync(ControlDbContext db, Client client, string? title, DateTime nowUtc)
+    {
+        title = Clean(title, 120) ?? client.Name;
+        var menu = new Menu
+        {
+            ClientId = client.Id, Title = title, Slug = await FreeSlugAsync(db, SlugFrom(title)),
+            PreviewKey = Convert.ToHexString(RandomNumberGenerator.GetBytes(12)).ToLowerInvariant(),
+            CreatedAt = nowUtc, UpdatedAt = nowUtc,
+        };
+        db.Menus.Add(menu);
+        try { await db.SaveChangesAsync(); }
+        catch (DbUpdateException)
+        {
+            // Two first clicks at once: the other request made it.
+            db.Entry(menu).State = EntityState.Detached;
+            menu = await db.Menus.FirstAsync(m => m.ClientId == client.Id);
+        }
+        return menu;
+    }
+
     /// <summary>"$12.50", "$8", "450,000 LBP". Whole amounts lose their decimals; others keep two.</summary>
     public static string Price(decimal price, string? currency)
     {

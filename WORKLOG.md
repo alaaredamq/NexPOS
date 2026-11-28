@@ -942,3 +942,27 @@ between pages (full reloads; cards sometimes appeared at once instead of one aft
 - Found and fixed: duplicate `id="phone"` on the client page (logins heading vs phone field; the Razor page still has it).
 - Checked in a browser on a throwaway Cloud: sign-in, opening, every page, page changes, add months, payment, phone login, new client
   with link slip, light mode, back button, phone width, menu editor from the console; no errors. `Cloud.Tests` pass.
+
+## 2026-11-28 — Console: every online menu in one place, and dishes imported from Excel (provider only)
+
+**Why:** when a client asks the provider to fill their menu, the provider needs to open any menu quickly and bring in a whole list of
+dishes from Excel. Only the provider (admin console) gets this; owners do not.
+
+- **Online menus page** (`/console/menus`, rail entry): every client with Online or a menu, with status (live, offline, not published,
+  no menu yet), dishes and sections, last change, and per row Open editor (the existing editor, as that client), Import, and a preview
+  link that works before publishing. Search and filters (published, not published, no menu yet, offline, no dishes).
+- **Import from Excel** (`cloud-console/src/MenuImport.tsx`, also on the client page's Online menu card): download a template made for
+  that menu (its sections in a dropdown, a price column per order type, a Guide sheet), choose the filled file, then a **review popup**:
+  totals (dishes, sections and new ones, to add, problems), every dish by section with its status, each one editable or removable
+  (every change is checked again by the cloud), a Problems filter, then a confirmation; only then is anything saved.
+- **Server:** `Cloud/Services/MenuSpreadsheet.cs` (ClosedXML 0.105.1, the version the POS product import uses) and
+  `Cloud/Api/AdminEndpoints.Menus.cs`: `GET /menus`, `GET /clients/{id}/menu/template`, `POST /clients/{id}/menu/import` (check the
+  file), `POST /clients/{id}/menu/import/rows` (check or, with `apply=true`, save the reviewed rows). Same section + name updates a dish;
+  POS dishes keep their name, price and section; new sections are saved before their dishes in one transaction run through the
+  execution strategy (SQL Server retries). Menu creation moved to `MenuRules.CreateAsync`, shared with the editor. Documented in
+  `docs/online/admin-api.md`.
+- Tests: `Cloud.Tests/MenuImportTests.cs` (check then apply, review edits, updates and POS dishes, template, listing, refusals, no
+  access without the admin token). Checked in a browser on a throwaway Cloud with a real workbook: list, review, edit, remove,
+  confirm, result in the editor; desktop, phone, light mode.
+- Not done: the old Razor `/admin` portal has none of this (the console is the one going forward); no export of an existing menu to
+  Excel yet (re-importing the same file is safe: it changes nothing).

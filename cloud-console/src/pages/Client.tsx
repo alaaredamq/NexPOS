@@ -6,6 +6,8 @@ import { ago, clock, connectionTone, day, licencePill, money, planPill, until, u
 import { CountUp, Item, Stagger } from '../fx'
 import { PaymentForm } from '../forms'
 import { CopyButton, Count, Fold, Icon, LinkSlip, Loading, Pill, Problem, Pulse, useAction, useConfirm } from '../ui'
+import { AnimatePresence } from 'motion/react'
+import { MenuImport } from '../MenuImport'
 
 const ROLES = [
   ['owner', 'Owner: everything, including profit and the cash drawer'],
@@ -18,6 +20,7 @@ export function ClientPage() {
   const client = useQuery({ queryKey: ['client', id], queryFn: () => api.client(id) })
   const [link, setLink] = useState<LinkResult | null>(null)
   const [handOver, setHandOver] = useState<LoginHandOver | null>(null)
+  const [importing, setImporting] = useState(false)
   useEffect(() => { if (location.hash) setTimeout(() => document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' }), 900) }, [])
 
   if (client.isPending) return <Loading />
@@ -27,6 +30,7 @@ export function ClientPage() {
   const c = client.data
   const menuOnly = c.hasOnline && !c.hasPos
   const contact = [c.phone, c.email].filter((x) => x && x.trim()).join(' · ')
+  const editorUrl = `/owner/menu.html?client=${c.id}&from=console`
 
   return (
     <Stagger>
@@ -53,8 +57,14 @@ export function ClientPage() {
       <Item className="card" aria-labelledby="menu">
         <h2 id="menu">Online menu <Pill tone={c.menuLive ? 'ok' : 'bad'} style={{ marginInlineStart: 6 }}>{c.menuLive ? 'live' : 'offline'}</Pill></h2>
         <p className="help">A public page with this shop's products, pictures and prices, shared by link or QR code. {menuOnly ? 'The owner fills it by hand.' : 'Fill it by hand, or link it to a branch so it follows the POS.'} It is part of Online: without Online months (after the grace week) it is offline.</p>
-        <p><a className="btn secondary" href={`/owner/menu.html?client=${c.id}&from=console`}>Open the menu editor</a></p>
+        <div className="row">
+          <a className="btn secondary" href={editorUrl}><Icon id="book" />Open the menu editor</a>
+          <button type="button" className="btn secondary" onClick={() => setImporting(true)}><Icon id="upload" />Import dishes from Excel</button>
+        </div>
       </Item>
+      <AnimatePresence>
+        {importing && <MenuImport key="import" clientId={c.id} clientName={c.name} editorUrl={editorUrl} onClose={() => setImporting(false)} />}
+      </AnimatePresence>
       <Logins c={c} menuOnly={menuOnly} onHandOver={setHandOver} />
       <Item as="div" className="grid2">
         <Details c={c} />

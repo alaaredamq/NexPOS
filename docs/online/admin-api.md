@@ -212,3 +212,26 @@ Ending licences also appear in `/overview` `attention` and in `/finance/summary`
 
 The menu editor API (`/menu/v1/...`, used by `wwwroot/owner/menu.html`) also accepts the admin token. Add `?client={id}` to
 every call to say which client's menu you are editing, as the portal does.
+
+## Online menus (filling a client's menu for them)
+
+Provider only: none of this is on the owner side. The console's Online menus page and the client page's Online menu card use it.
+
+| Call | What it does |
+|---|---|
+| `GET /menus` | Every client with Online or a menu: `clientId`, `clientName`, `isActive`, `type`, `live`, `state` (`none` / `draft` / `published`), `editorUrl` (the menu editor opened as that client), and `menu` (null before one is made): `title`, `slug`, `url`, `previewUrl` (works before publishing), `sections`, `items`, `hidden`, `noPicture`, `fromPos`, `currency`, `updatedAtUtc`. Menus first, most recently changed first. |
+| `GET /clients/{id}/menu/template` | An .xlsx made for this menu: Items sheet (Section, Name, Description, Price, one `Price: <order type>` column per order type, Hidden, Sold out) with dropdowns, a Guide sheet with an example, a hidden Lists sheet. |
+| `POST /clients/{id}/menu/import` | Body: the .xlsx as is (`Content-Type` the xlsx type, at most 10 MB, at most 5000 dishes). Checks it and saves nothing, unless `?apply=true`. |
+| `POST /clients/{id}/menu/import/rows` | Body: `{ rows: [...] }`, the `items` of a check as they were or after editing (same fields). Checks them again; `?apply=true` saves them. This is the console's "review, edit, confirm" step. |
+
+Both import calls answer the same shape: `applied`, `rows`, `added`, `updated`, `unchanged`, `skipped`, `newSections`, `issues`
+(`row`, `message`, `skipped`; at most 200, then `moreIssues`), `currency`, `sections` (on the menu now), `orderTypes` (`id`, `name`),
+and `items`, one per row in order: `row` (the file's row number), `section`, `name`, `description`, `price`, `typePrices`
+(order type id → price), `hidden`, `soldOut` (all as typed, so a review can show and fix them), `status` (`add`, `update`, `same`,
+`skip`), `message`, `fromPos`, `priceText`, `typePriceTexts`.
+
+Rules: a row whose section and name match a dish on the menu (case ignored) updates it, and its empty cells keep what it has; any other
+row adds a dish (Name and Price needed). A section not on the menu is made. A dish from the POS keeps its name, price and section (a note
+says so). A row with a problem is left out; the others go in, in one transaction. A client with no menu gets one on the first apply.
+Applying writes a line on the client's history. Errors: `bad_file` (400) when the file cannot be read, has no Name column, names an
+order type the menu does not have, or there are no rows.

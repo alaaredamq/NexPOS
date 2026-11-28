@@ -55,6 +55,7 @@ builder.Services.AddSingleton<LicenseSigner>();
 builder.Services.AddScoped<LicenseBook>();
 builder.Services.AddSingleton<MenuImages>();
 builder.Services.AddScoped<MenuCatalogMerge>();
+builder.Services.AddScoped<MenuSpreadsheet>();
 
 // Keep the cookie/TempData encryption keys on the data volume, or every redeploy would sign the admin out.
 builder.Services.AddDataProtection().SetApplicationName("NexPOS.Cloud");

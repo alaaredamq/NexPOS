@@ -67,6 +67,7 @@ public static partial class AdminEndpoints
 
         MapFinance(g);
         MapLicenses(g);
+        MapMenus(g);
     }
 
     // ---- replies ----

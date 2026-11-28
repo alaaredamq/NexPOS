@@ -35,6 +35,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- The menu items template and import (admin only), the same version the POS product import uses. -->
+        <PackageReference Include="ClosedXML" Version="0.105.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
             <PrivateAssets>all</PrivateAssets>

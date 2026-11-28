@@ -326,7 +326,10 @@
         var g = c.getContext('2d');
         if (!keepAlpha) { g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); }
         g.drawImage(img, 0, 0, c.width, c.height);
-        img.src = '';
+        // Let go of the decoded photo. Emptying src fires an "error" event, so unhook the handlers first: otherwise that event
+        // rejects with "could not be read" while toBlob is still encoding, and whether the upload works depends on which finishes first.
+        img.onload = img.onerror = null;
+        img.removeAttribute('src');
         // iOS caps the memory all canvases may hold together and frees a canvas late; zero it so repeated uploads keep working.
         var done = function (b) { c.width = c.height = 0; b ? resolve(b) : reject(new Error(t('picBig'))); };
         var fallback = function () { c.toBlob(done, keepAlpha ? 'image/png' : 'image/jpeg', 0.86); };

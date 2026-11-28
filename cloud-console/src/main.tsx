@@ -12,6 +12,7 @@ import { SitePage } from './pages/Site'
 import { NewClient } from './pages/NewClient'
 import { Licences } from './pages/Licences'
 import { Finance } from './pages/Finance'
+import { Menus } from './pages/Menus'
 import './console.css'
 
 // Fresh for 20 s: moving between pages is instant, and anything you change refreshes every page that shows it.
@@ -38,6 +39,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="clients/:id" element={<ClientPage />} />
               <Route path="sites/:id" element={<SitePage />} />
               <Route path="new" element={<NewClient />} />
+              <Route path="menus" element={<Menus />} />
               <Route path="licences" element={<Licences />} />
               <Route path="finance" element={<Finance />} />
               <Route path="*" element={<Navigate to="/" replace />} />

@@ -12,6 +12,7 @@ import { Icon } from './ui'
 
 const NAV = [
   { to: '/', label: 'Clients', icon: 'store', end: true },
+  { to: '/menus', label: 'Online menus', icon: 'book' },
   { to: '/licences', label: 'Licences', icon: 'key' },
   { to: '/finance', label: 'Finance', icon: 'chart' },
   { to: '/new', label: 'New client', icon: 'plus' },
@@ -97,6 +98,7 @@ function useNewVersion(path: string) {
 }
 
 function pageTitle(path: string) {
+  if (path.startsWith('/menus')) return 'Online menus'
   if (path.startsWith('/licences')) return 'Licences'
   if (path.startsWith('/finance')) return 'Finance'
   if (path.startsWith('/new')) return 'New client'
